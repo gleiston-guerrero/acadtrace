@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "usuarios", schema = "public")
+@Table(name = "usuarios", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Usuario {
 
@@ -26,8 +26,8 @@ public class Usuario {
     private String passwordHash;
 
     @Builder.Default
-    @Column(nullable = false, length = 20)
-    private String estado = "ACTIVO";
+    @Column(nullable = false)
+    private Boolean estado = true;
 
     @Builder.Default
     @Column(name = "primer_ingreso")
@@ -55,7 +55,7 @@ public class Usuario {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "usuario_roles",
-            schema = "public",
+            schema = "sga_principal",
             joinColumns = @JoinColumn(name = "id_usuario"),
             inverseJoinColumns = @JoinColumn(name = "id_rol")
     )

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "roles", schema = "public")
+@Table(name = "roles", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Rol {
 

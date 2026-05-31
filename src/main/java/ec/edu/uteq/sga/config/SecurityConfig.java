@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -52,18 +52,16 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/usuarios/**").hasAnyAuthority("ADMINISTRADOR", "SOPORTE_TECNICO")
-                        .requestMatchers("/api/admin/**").hasAnyAuthority("ADMINISTRADOR")
-                        .requestMatchers("/api/secretaria/**").hasAnyAuthority("SECRETARIA")
-                        .requestMatchers("/api/docente/**").hasAnyAuthority("DOCENTE")
-                        .requestMatchers("/api/soporte/**").hasAnyAuthority("SOPORTE_TECNICO")
-                        .requestMatchers("/api/anos-lectivos/**").hasAnyAuthority("ADMINISTRADOR")
-                        .requestMatchers("/api/grados/**").hasAnyAuthority("ADMINISTRADOR", "SECRETARIA")
-                        .requestMatchers("/api/asignaturas/**").hasAnyAuthority("ADMINISTRADOR", "SECRETARIA")
-                        .requestMatchers("/api/estudiantes/**").hasAnyAuthority("ADMINISTRADOR", "SECRETARIA")
-                        .requestMatchers("/api/representantes/**").hasAnyAuthority("ADMINISTRADOR", "SECRETARIA")
-                        .requestMatchers("/api/matriculas/**").hasAnyAuthority("ADMINISTRADOR", "SECRETARIA")
-                        .requestMatchers("/api/asignaciones/**").hasAnyAuthority("ADMINISTRADOR")
+                        .requestMatchers("/api/usuarios/**").hasAnyAuthority("DIRECTOR", "SOPORTE_TECNICO")
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("DIRECTOR")
+                        .requestMatchers("/api/anos-lectivos/**").hasAnyAuthority("DIRECTOR")
+                        .requestMatchers("/api/grados/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
+                        .requestMatchers("/api/asignaturas/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
+                        .requestMatchers("/api/estudiantes/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
+                        .requestMatchers("/api/representantes/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
+                        .requestMatchers("/api/matriculas/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
+                        .requestMatchers("/api/asignaciones/**").hasAnyAuthority("DIRECTOR")
+                        .requestMatchers("/api/calificaciones/**").hasAnyAuthority("DIRECTOR", "DOCENTE", "SECRETARIA")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

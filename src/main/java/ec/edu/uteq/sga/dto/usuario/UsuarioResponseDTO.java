@@ -10,7 +10,7 @@ public class UsuarioResponseDTO {
     private Long idUsuario;
     private String username;
     private String correo;
-    private String estado;
+    private boolean estado;
     private boolean primerIngreso;
     private int intentosFallidos;
     private Instant ultimoAcceso;

@@ -49,7 +49,7 @@ public class UsuarioService {
                 .username(username)
                 .correo(dto.getCorreo())
                 .passwordHash(passwordEncoder.encode(passwordPlano))
-                .estado("ACTIVO")
+                .estado(true)
                 .primerIngreso(true)
                 .intentosFallidos(0)
                 .roles(roles)
@@ -74,7 +74,7 @@ public class UsuarioService {
     @Transactional
     public void cambiarEstado(Long id, String estado) {
         Usuario usuario = buscarPorId(id);
-        usuario.setEstado(estado);
+        usuario.setEstado(true);
         usuarioRepo.save(usuario);
     }
 
