@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "estudiantes", schema = "public")
+@Table(name = "estudiantes", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Estudiante {
 
@@ -27,10 +27,10 @@ public class Estudiante {
     @Column(nullable = false, length = 100)
     private String apellidos;
 
-    @Column(name = "fecha_nacimiento", nullable = false)
+    @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
-    @Column(length = 1)
+    @Column(length = 10)
     private String genero;
 
     @Column(columnDefinition = "text")
@@ -39,8 +39,8 @@ public class Estudiante {
     @Column(length = 20)
     private String telefono;
 
-    @Column(name = "telefono_principal", length = 20)
-    private String telefonoPrincipal;
+    @Column(name = "telefono_alt", length = 20)
+    private String telefonoAlt;
 
     @Column(length = 100)
     private String correo;
@@ -55,7 +55,7 @@ public class Estudiante {
     private Short porcentajeDisc;
 
     @Column(name = "origen_listado", length = 50)
-    private String origenListado = "DISTRITO";
+    private String origenListado;
 
     @Column(length = 20)
     private String estado = "ACTIVO";

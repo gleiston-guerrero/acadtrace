@@ -6,8 +6,7 @@ import lombok.*;
 public class GradoResponseDTO {
     private Long idGrado;
     private String nombre;
-    private Short nivel;
-    private String paralelo;
+    private Short orden;
     private Short capacidadMax;
     private boolean activo;
     private String nivelEducativo;

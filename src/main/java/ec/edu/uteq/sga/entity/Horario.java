@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "horarios", schema = "public")
+@Table(name = "horarios", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Horario {
 

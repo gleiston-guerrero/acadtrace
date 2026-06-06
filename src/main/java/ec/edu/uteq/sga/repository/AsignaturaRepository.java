@@ -7,7 +7,7 @@ import java.util.List;
 
 @Repository
 public interface AsignaturaRepository extends JpaRepository<Asignatura, Long> {
-    List<Asignatura> findByActivoTrue();
+    List<Asignatura> findByActivaTrue();
     boolean existsByNombre(String nombre);
     boolean existsByCodigo(String codigo);
 }

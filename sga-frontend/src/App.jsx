@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Usuarios from "./pages/Usuarios";
 import CambiarPassword from "./pages/CambiarPassword"
 import Estudiantes from "./pages/Estudiantes";
+import Calificaciones from "./pages/Calificaciones";
 function App() {
     return (
         <BrowserRouter>
@@ -14,6 +15,7 @@ function App() {
                 <Route path="/cambiar-password" element={<CambiarPassword />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/estudiantes" element={<Estudiantes />} />
+                <Route path="/calificaciones" element={<Calificaciones />} />
             </Routes>
         </BrowserRouter>
     );

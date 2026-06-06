@@ -87,7 +87,7 @@ public class AsignacionService {
                 .idAsignacion(a.getIdAsignacion())
                 .docente(a.getDocente().getNombres() + " " + a.getDocente().getApellidos())
                 .asignatura(a.getAsignatura().getNombre())
-                .grado(a.getGrado().getNombre() + " " + a.getGrado().getParalelo())
+                .grado(a.getGrado().getNombre())
                 .anoLectivo(a.getAnoLectivo().getNombre())
                 .esTutor(a.isEsTutor())
                 .activo(a.isActivo())

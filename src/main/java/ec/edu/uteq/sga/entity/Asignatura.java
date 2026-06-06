@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "asignaturas", schema = "public")
+@Table(name = "asignaturas", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Asignatura {
 
@@ -23,11 +23,11 @@ public class Asignatura {
     @Column(columnDefinition = "text")
     private String descripcion;
 
-    @Column(name = "horas_semanales")
+    @Column(name = "horas_semana")
     private Short horasSemanales;
 
     @Column
-    private boolean activo = true;
+    private boolean activa = true;
 
     @Column(name = "fecha_creacion")
     private Instant fechaCreacion = Instant.now();

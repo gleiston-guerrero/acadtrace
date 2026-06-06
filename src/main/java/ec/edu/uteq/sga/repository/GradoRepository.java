@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface GradoRepository extends JpaRepository<Grado, Long> {
     List<Grado> findByActivoTrue();
-    boolean existsByNombreAndParalelo(String nombre, String paralelo);
+    boolean existsByNombre(String nombre);
 }

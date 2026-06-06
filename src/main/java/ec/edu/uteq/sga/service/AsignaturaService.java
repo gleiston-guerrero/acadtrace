@@ -23,7 +23,7 @@ public class AsignaturaService {
     }
 
     public List<AsignaturaResponseDTO> listarActivos() {
-        return asignaturaRepo.findByActivoTrue().stream().map(this::toDTO).collect(Collectors.toList());
+        return asignaturaRepo.findByActivaTrue().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public AsignaturaResponseDTO obtenerPorId(Long id) {
@@ -43,7 +43,7 @@ public class AsignaturaService {
                 .codigo(dto.getCodigo())
                 .descripcion(dto.getDescripcion())
                 .horasSemanales(dto.getHorasSemanales())
-                .activo(true)
+                .activa(true)
                 .build();
 
         return toDTO(asignaturaRepo.save(asignatura));
@@ -64,7 +64,7 @@ public class AsignaturaService {
     @Transactional
     public void cambiarEstado(Long id, boolean activo) {
         Asignatura asignatura = buscarPorId(id);
-        asignatura.setActivo(activo);
+        asignatura.setActiva(activo);
         asignaturaRepo.save(asignatura);
     }
 
@@ -80,7 +80,7 @@ public class AsignaturaService {
                 .codigo(a.getCodigo())
                 .descripcion(a.getDescripcion())
                 .horasSemanales(a.getHorasSemanales())
-                .activo(a.isActivo())
+                .activo(a.isActiva())
                 .fechaCreacion(a.getFechaCreacion())
                 .build();
     }

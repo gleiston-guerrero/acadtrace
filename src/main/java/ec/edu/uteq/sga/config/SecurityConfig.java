@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/calificaciones/**").permitAll()
                         .requestMatchers("/api/usuarios/**").hasAnyAuthority("DIRECTOR", "SOPORTE_TECNICO")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("DIRECTOR")
                         .requestMatchers("/api/anos-lectivos/**").hasAnyAuthority("DIRECTOR")
@@ -62,6 +63,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/matriculas/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
                         .requestMatchers("/api/asignaciones/**").hasAnyAuthority("DIRECTOR")
                         .requestMatchers("/api/calificaciones/**").hasAnyAuthority("DIRECTOR", "DOCENTE", "SECRETARIA")
+                        .requestMatchers("/api/rpc/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/matriculas/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/matriculas/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -77,7 +83,8 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

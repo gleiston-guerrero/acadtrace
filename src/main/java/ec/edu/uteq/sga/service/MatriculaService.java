@@ -102,7 +102,7 @@ public class MatriculaService {
                 .idMatricula(m.getIdMatricula())
                 .estudiante(m.getEstudiante().getNombres() + " " + m.getEstudiante().getApellidos())
                 .cedulaEstudiante(m.getEstudiante().getCedula())
-                .grado(m.getGrado().getNombre() + " " + m.getGrado().getParalelo())
+                .grado(m.getGrado().getNombre())
                 .anoLectivo(m.getAnoLectivo().getNombre())
                 .numeroOrden(m.getNumeroOrden())
                 .fechaRegistro(m.getFechaRegistro())

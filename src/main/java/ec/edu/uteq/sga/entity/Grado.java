@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "grados", schema = "public")
+@Table(name = "grados", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Grado {
 
@@ -17,10 +17,7 @@ public class Grado {
     private String nombre;
 
     @Column(nullable = false)
-    private Short nivel;
-
-    @Column(nullable = false, length = 1)
-    private String paralelo;
+    private Short orden;
 
     @Column(name = "capacidad_max")
     private Short capacidadMax = 35;

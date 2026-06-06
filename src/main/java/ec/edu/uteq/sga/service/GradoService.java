@@ -35,8 +35,8 @@ public class GradoService {
 
     @Transactional
     public GradoResponseDTO crear(GradoRequestDTO dto) {
-        if (gradoRepo.existsByNombreAndParalelo(dto.getNombre(), dto.getParalelo()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe ese grado con ese paralelo");
+        if (gradoRepo.existsByNombre(dto.getNombre()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe ese grado");
 
         NivelEducativo nivel = null;
         if (dto.getIdNivel() != null)
@@ -45,8 +45,7 @@ public class GradoService {
 
         Grado grado = Grado.builder()
                 .nombre(dto.getNombre())
-                .nivel(dto.getNivel())
-                .paralelo(dto.getParalelo())
+                .orden(dto.getOrden())
                 .capacidadMax(dto.getCapacidadMax())
                 .activo(true)
                 .nivelEducativo(nivel)
@@ -58,18 +57,14 @@ public class GradoService {
     @Transactional
     public GradoResponseDTO actualizar(Long id, GradoRequestDTO dto) {
         Grado grado = buscarPorId(id);
-
         grado.setNombre(dto.getNombre());
-        grado.setNivel(dto.getNivel());
-        grado.setParalelo(dto.getParalelo());
+        grado.setOrden(dto.getOrden());
         grado.setCapacidadMax(dto.getCapacidadMax());
-
         if (dto.getIdNivel() != null) {
             NivelEducativo nivel = nivelRepo.findById(dto.getIdNivel())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nivel educativo no encontrado"));
             grado.setNivelEducativo(nivel);
         }
-
         return toDTO(gradoRepo.save(grado));
     }
 
@@ -89,8 +84,7 @@ public class GradoService {
         return GradoResponseDTO.builder()
                 .idGrado(g.getIdGrado())
                 .nombre(g.getNombre())
-                .nivel(g.getNivel())
-                .paralelo(g.getParalelo())
+                .orden(g.getOrden())
                 .capacidadMax(g.getCapacidadMax())
                 .activo(g.isActivo())
                 .nivelEducativo(g.getNivelEducativo() != null ? g.getNivelEducativo().getNombre() : null)

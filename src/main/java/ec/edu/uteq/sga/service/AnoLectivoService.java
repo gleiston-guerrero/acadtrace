@@ -19,8 +19,8 @@ public class AnoLectivoService {
 
     private final AnoLectivoRepository anoLectivoRepo;
     private final UsuarioRepository usuarioRepo;
-
-    public List<AnoLectivoResponseDTO> listarTodos() {
+    @Transactional(readOnly = true)
+    public List<AnoLectivoResponseDTO> listarTodos()  {
         return anoLectivoRepo.findAll()
                 .stream()
                 .map(this::toDTO)
@@ -80,7 +80,7 @@ public class AnoLectivoService {
         ano.setEsActual(true);
         anoLectivoRepo.save(ano);
     }
-
+    @Transactional(readOnly = true)
     public AnoLectivoResponseDTO obtenerActual() {
         return anoLectivoRepo.findByEsActualTrue()
                 .map(this::toDTO)
@@ -104,4 +104,6 @@ public class AnoLectivoService {
                 .creadoPor(a.getCreadoPor() != null ? a.getCreadoPor().getUsername() : null)
                 .build();
     }
+
+
 }

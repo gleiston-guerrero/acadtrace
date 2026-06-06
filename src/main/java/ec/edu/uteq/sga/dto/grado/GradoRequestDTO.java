@@ -10,12 +10,8 @@ public class GradoRequestDTO {
     @Size(max = 100)
     private String nombre;
 
-    @NotNull(message = "El nivel es obligatorio")
-    private Short nivel;
-
-    @NotBlank(message = "El paralelo es obligatorio")
-    @Size(max = 1)
-    private String paralelo;
+    @NotNull(message = "El orden es obligatorio")
+    private Short orden;
 
     private Short capacidadMax = 35;
 

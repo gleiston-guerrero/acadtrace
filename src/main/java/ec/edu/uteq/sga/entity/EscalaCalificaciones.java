@@ -5,7 +5,7 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "escala_calificaciones", schema = "public")
+@Table(name = "escala_calificaciones", schema = "sga_principal")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class EscalaCalificaciones {
 
