@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/calificaciones/**").permitAll()
                         .requestMatchers("/api/usuarios/**").hasAnyAuthority("DIRECTOR", "SOPORTE_TECNICO")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("DIRECTOR")

@@ -6,10 +6,10 @@ const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
 
 const ROLES = [
-  { id: 2, nombre: "ADMINISTRADOR" },
-  { id: 3, nombre: "SECRETARIA" },
-  { id: 4, nombre: "DOCENTE" },
-  { id: 1, nombre: "SOPORTE_TECNICO" },
+  { id: 1, nombre: "DIRECTOR" },
+  { id: 2, nombre: "SECRETARIA" },
+  { id: 3, nombre: "DOCENTE" },
+  { id: 4, nombre: "SOPORTE_TECNICO" },
 ];
 
 const estadoBadge = (estado) => {
