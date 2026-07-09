@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Usuarios from "./pages/Usuarios";
-import CambiarPassword from "./pages/CambiarPassword"
-import Estudiantes from "./pages/Estudiantes";
-import Calificaciones from "./pages/Calificaciones";
+import Login from "./pages/login/Login";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Usuarios from "./pages/usuarios/Usuarios";
+import CambiarPassword from "./pages/cambiar-password/CambiarPassword"
+import Estudiantes from "./pages/estudiantes/Estudiantes";
+import Calificaciones from "./pages/calificaciones/Calificaciones";
+import AnosLectivos from "./pages/anos-lectivos/AnosLectivos";
+import Grados from "./pages/grados/Grados";
 function App() {
     return (
         <BrowserRouter>
@@ -16,6 +18,9 @@ function App() {
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/estudiantes" element={<Estudiantes />} />
                 <Route path="/calificaciones" element={<Calificaciones />} />
+                <Route path="/anos-lectivos" element={<AnosLectivos />} />
+                <Route path="/grados" element={<Grados />} />
+                <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
         </BrowserRouter>
     );

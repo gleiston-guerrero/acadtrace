@@ -54,6 +54,27 @@ public class Estudiante {
     @Column(name = "porcentaje_disc")
     private Short porcentajeDisc;
 
+    @Column(name = "carnet_conadis", length = 30)
+    private String carnetConadis;
+
+    @Column(length = 50)
+    private String nacionalidad;
+
+    @Column(length = 50)
+    private String etnia;
+
+    @Column(name = "lugar_nacimiento", length = 150)
+    private String lugarNacimiento;
+
+    @Column(name = "vive_con", length = 50)
+    private String viveCon;
+
+    @Column(name = "numeros_hermanos")
+    private Short numerosHermanos;
+
+    @Column(name = "beneficio_social")
+    private boolean beneficioSocial = false;
+
     @Column(name = "origen_listado", length = 50)
     private String origenListado;
 

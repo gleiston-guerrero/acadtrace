@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package sga.principal;
+
+option java_package = "ec.edu.uteq.sga.grpc.principal";
+option java_multiple_files = true;
+
+// Contrato expuesto por sga-principal para que otros microservicios
+// (Secretaría, Soporte, etc.) lean datos del núcleo sin tocar la BD directo.
+service PrincipalService {
+  rpc ListarEstudiantes (ListarEstudiantesRequest) returns (ListarEstudiantesResponse);
+  rpc ObtenerEstudiante (ObtenerEstudianteRequest) returns (EstudianteProto);
+}
+
+message EstudianteProto {
+  int64 id_estudiante = 1;
+  string cedula = 2;
+  string codigo_estudiante = 3;
+  string nombres = 4;
+  string apellidos = 5;
+  string fecha_nacimiento = 6;
+  string genero = 7;
+  string direccion = 8;
+  string telefono = 9;
+  string correo = 10;
+  bool discapacidad = 11;
+  string tipo_discapacidad = 12;
+  int32 porcentaje_disc = 13;
+  string estado = 14;
+  string representante = 15;
+}
+
+message ListarEstudiantesRequest {
+}
+
+message ListarEstudiantesResponse {
+  repeated EstudianteProto estudiantes = 1;
+}
+
+message ObtenerEstudianteRequest {
+  int64 id_estudiante = 1;
+}

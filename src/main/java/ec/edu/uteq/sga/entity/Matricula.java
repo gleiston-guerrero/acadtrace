@@ -2,6 +2,7 @@ package ec.edu.uteq.sga.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -27,6 +28,10 @@ public class Matricula {
     @JoinColumn(name = "id_ano_lectivo", nullable = false)
     private AnoLectivo anoLectivo;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_paralelo")
+    private Paralelo paralelo;
+
     @Column(name = "numero_orden")
     private Short numeroOrden;
 
@@ -35,8 +40,9 @@ public class Matricula {
     private LocalDate fechaRegistro = LocalDate.now();
 
     @Builder.Default
-    @Column(nullable = false, length = 20)
-    private String estado = "ACTIVO";
+    @Column(nullable = false, columnDefinition = "sga_principal.estado_matricula_t")
+    @ColumnTransformer(write = "?::sga_principal.estado_matricula_t")
+    private String estado = "ACTIVA";
 
     @Column(columnDefinition = "text")
     private String observaciones;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 
 const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";

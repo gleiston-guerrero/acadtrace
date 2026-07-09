@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Layout from "../components/Layout";
+import Layout from "../../components/Layout";
 
 const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
@@ -21,10 +21,16 @@ const estadoBadge = (estado) => {
   return map[estado] || "bg-slate-100 text-slate-500";
 };
 
+const menuItems = [
+  { id: "lista", label: "Lista de usuarios", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
+  { id: "nuevo", label: "Nuevo usuario", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
+];
+
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
+  const [seccion, setSeccion] = useState("lista");
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(null);
@@ -137,8 +143,19 @@ export default function Usuarios() {
 
   const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 
+  const handleSeccion = (id) => {
+    setSeccion(id);
+    if (id === "nuevo") { setShowModal(true); setError(""); }
+  };
+
   return (
-      <Layout breadcrumb={["Inicio", "Usuarios"]}>
+      <Layout
+        breadcrumb={["Inicio", "Usuarios"]}
+        sidebarTitle="Usuarios"
+        menuItems={menuItems}
+        seccion={seccion}
+        onSeccionChange={handleSeccion}
+      >
 
         {/* Alertas */}
         {error && (

@@ -18,7 +18,6 @@ public class EstudianteRequestDTO {
     @Size(max = 100)
     private String apellidos;
 
-    @NotNull(message = "La fecha de nacimiento es obligatoria")
     private LocalDate fechaNacimiento;
 
     @Size(max = 1)
@@ -39,5 +38,29 @@ public class EstudianteRequestDTO {
 
     private Short porcentajeDisc;
 
+    private String carnetConadis;
+
+    private String nacionalidad;
+
+    private String etnia;
+
+    private String lugarNacimiento;
+
+    private String viveCon;
+
+    private Short numerosHermanos;
+
+    private boolean beneficioSocial = false;
+
     private Long idRepresentante;
+
+    // Ficha médica
+    private String tipoSangre;
+    private String alergias;
+    private String enfermedadesCronicas;
+    private String medicamentos;
+    private String contactoEmergenciaNombre;
+    private String contactoEmergenciaTelefono;
+    private String contactoEmergenciaParentesco;
+    private String observacionesMedicas;
 }

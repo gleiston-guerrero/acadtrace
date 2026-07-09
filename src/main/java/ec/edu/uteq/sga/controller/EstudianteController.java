@@ -28,6 +28,14 @@ public class EstudianteController {
         return ResponseEntity.ok(estudianteService.buscar(q));
     }
 
+    @GetMapping("/por-grado")
+    public ResponseEntity<List<EstudianteResponseDTO>> porGrado(
+            @RequestParam Long idGrado,
+            @RequestParam Long idAnoLectivo,
+            @RequestParam(required = false) Long idParalelo) {
+        return ResponseEntity.ok(estudianteService.listarPorGrado(idGrado, idAnoLectivo, idParalelo));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<EstudianteResponseDTO> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(estudianteService.obtenerPorId(id));

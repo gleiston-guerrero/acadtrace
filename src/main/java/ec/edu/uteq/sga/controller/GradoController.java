@@ -49,4 +49,17 @@ public class GradoController {
         gradoService.cambiarEstado(id, activo);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{idGrado}/paralelos")
+    public ResponseEntity<ParaleloDTO> crearParalelo(@PathVariable Long idGrado,
+                                                     @RequestParam String letra) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(gradoService.crearParalelo(idGrado, letra));
+    }
+
+    @PatchMapping("/paralelos/{idParalelo}/estado")
+    public ResponseEntity<Void> cambiarEstadoParalelo(@PathVariable Long idParalelo,
+                                                      @RequestParam boolean activo) {
+        gradoService.cambiarEstadoParalelo(idParalelo, activo);
+        return ResponseEntity.noContent().build();
+    }
 }

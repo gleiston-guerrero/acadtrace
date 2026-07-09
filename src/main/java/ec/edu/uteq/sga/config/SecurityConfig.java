@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/calificaciones/**").permitAll()
                         .requestMatchers("/api/usuarios/**").hasAnyAuthority("DIRECTOR", "SOPORTE_TECNICO")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("DIRECTOR")

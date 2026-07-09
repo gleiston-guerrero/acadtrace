@@ -1,6 +1,7 @@
 package ec.edu.uteq.sga.dto.grado;
 
 import lombok.*;
+import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class GradoResponseDTO {
@@ -10,4 +11,7 @@ public class GradoResponseDTO {
     private Short capacidadMax;
     private boolean activo;
     private String nivelEducativo;
+    private Long idNivel;
+    private String tipoEscala;
+    private List<ParaleloDTO> paralelos;
 }

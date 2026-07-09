@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Layout from "../components/Layout";
+import Layout from "../../components/Layout";
 
 const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
@@ -29,6 +29,10 @@ const IconBack = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
   </svg>
 );
+
+const calMenuItems = [
+  { id: "cursos", label: "Cursos / Asignaturas", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+];
 
 export default function Calificaciones() {
   const [asignaciones, setAsignaciones]   = useState([]);
@@ -101,7 +105,7 @@ export default function Calificaciones() {
 
   // ── VISTA: CURSOS ─────────────────────────────────────────
   if (vista === "cursos") return (
-    <Layout breadcrumb={["Inicio", "Calificaciones"]}>
+    <Layout breadcrumb={["Inicio", "Calificaciones"]} sidebarTitle="Calificaciones" menuItems={calMenuItems} seccion="cursos" onSeccionChange={(id) => { setVista(id); }}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-lg font-bold text-slate-700">Calificaciones</h1>
@@ -153,7 +157,7 @@ export default function Calificaciones() {
 
   // ── VISTA: ESTUDIANTES DEL CURSO ─────────────────────────
   if (vista === "estudiantes") return (
-    <Layout breadcrumb={["Inicio", "Calificaciones", asignacionSel?.asignatura]}>
+    <Layout breadcrumb={["Inicio", "Calificaciones", asignacionSel?.asignatura]} sidebarTitle="Calificaciones" menuItems={calMenuItems} seccion="cursos" onSeccionChange={(id) => { setVista(id); }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <button onClick={() => { setVista("cursos"); setBusqueda(""); }}
@@ -225,7 +229,7 @@ export default function Calificaciones() {
 
   // ── VISTA: CALIFICACIONES DEL ESTUDIANTE (via RPC) ────────
   if (vista === "notas") return (
-    <Layout breadcrumb={["Inicio", "Calificaciones", asignacionSel?.asignatura, estudianteSel?.estudiante]}>
+    <Layout breadcrumb={["Inicio", "Calificaciones", asignacionSel?.asignatura, estudianteSel?.estudiante]} sidebarTitle="Calificaciones" menuItems={calMenuItems} seccion="cursos" onSeccionChange={(id) => { setVista(id); }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <button onClick={() => { setVista("estudiantes"); setCalificaciones(null); }}

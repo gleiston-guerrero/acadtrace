@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package sga.docente;
+
+option java_package = "ec.edu.uteq.sga.grpc.docente";
+option java_multiple_files = true;
+
+// Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+// MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+// que ambos lados se entiendan.
+service DocenteService {
+  rpc ObtenerCalificaciones (ObtenerCalificacionesRequest) returns (ObtenerCalificacionesResponse);
+  rpc CalcularPromedioFormativo (PromedioRequest) returns (PromedioResponse);
+  rpc CalcularPromedioFinal (PromedioRequest) returns (PromedioResponse);
+  rpc RegistrarCalificacion (RegistrarCalificacionRequest) returns (RegistrarCalificacionResponse);
+  rpc ConvertirACualitativa (ConvertirACualitativaRequest) returns (ConvertirACualitativaResponse);
+}
+
+message Calificacion {
+  int64 id_calificacion = 1;
+  int64 id_actividad = 2;
+  int64 id_matricula = 3;
+  double nota = 4;
+  string nota_cualitativa = 5;
+  int32 registrado_por = 6;
+}
+
+message ObtenerCalificacionesRequest {
+  int64 id_matricula = 1;
+  int32 trimestre = 2;
+}
+
+message ObtenerCalificacionesResponse {
+  repeated Calificacion calificaciones = 1;
+}
+
+message PromedioRequest {
+  int64 id_matricula = 1;
+  int32 trimestre = 2;
+}
+
+message PromedioResponse {
+  double promedio = 1;
+}
+
+message RegistrarCalificacionRequest {
+  int64 id_matricula = 1;
+  int64 id_actividad = 2;
+  double nota = 3;
+  int32 trimestre = 4;
+}
+
+message RegistrarCalificacionResponse {
+  bool exitoso = 1;
+  string mensaje = 2;
+  int64 id_calificacion = 3;
+}
+
+message ConvertirACualitativaRequest {
+  double nota = 1;
+}
+
+message ConvertirACualitativaResponse {
+  string cualitativa = 1;
+}

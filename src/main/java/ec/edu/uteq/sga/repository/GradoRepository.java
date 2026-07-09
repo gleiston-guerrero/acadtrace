@@ -8,5 +8,7 @@ import java.util.List;
 @Repository
 public interface GradoRepository extends JpaRepository<Grado, Long> {
     List<Grado> findByActivoTrue();
+    List<Grado> findAllByOrderByOrden();
+    List<Grado> findByActivoTrueOrderByOrden();
     boolean existsByNombre(String nombre);
 }

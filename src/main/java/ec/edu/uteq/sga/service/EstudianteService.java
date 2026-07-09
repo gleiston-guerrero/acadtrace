@@ -2,6 +2,7 @@ package ec.edu.uteq.sga.service;
 
 import ec.edu.uteq.sga.dto.estudiante.*;
 import ec.edu.uteq.sga.entity.Estudiante;
+import ec.edu.uteq.sga.entity.FichaEstudiante;
 import ec.edu.uteq.sga.entity.Representante;
 import ec.edu.uteq.sga.entity.Usuario;
 import ec.edu.uteq.sga.repository.*;
@@ -11,7 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,17 +26,30 @@ public class EstudianteService {
     private final EstudianteRepository estudianteRepo;
     private final RepresentanteRepository representanteRepo;
     private final UsuarioRepository usuarioRepo;
+    private final FichaEstudianteRepository fichaRepo;
+    private final MatriculaRepository matriculaRepo;
 
     @Transactional(readOnly = true)
     public List<EstudianteResponseDTO> listarTodos() {
-        return estudianteRepo.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+        List<Estudiante> estudiantes = estudianteRepo.findAllWithRepresentante();
+        return toDTOList(estudiantes);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EstudianteResponseDTO> listarPorGrado(Long idGrado, Long idAnoLectivo, Long idParalelo) {
+        var matriculas = idParalelo != null
+                ? matriculaRepo.findByGradoParaleloAndAnoLectivoWithEstudiante(idGrado, idParalelo, idAnoLectivo)
+                : matriculaRepo.findByGradoAndAnoLectivoWithEstudiante(idGrado, idAnoLectivo);
+        List<Estudiante> estudiantes = matriculas.stream()
+                .map(m -> m.getEstudiante())
+                .collect(Collectors.toList());
+        return toDTOList(estudiantes);
     }
 
     @Transactional(readOnly = true)
     public List<EstudianteResponseDTO> buscar(String query) {
-        return estudianteRepo
-                .findByNombresContainingIgnoreCaseOrApellidosContainingIgnoreCase(query, query)
-                .stream().map(this::toDTO).collect(Collectors.toList());
+        List<Estudiante> estudiantes = estudianteRepo.searchWithRepresentante(query);
+        return toDTOList(estudiantes);
     }
 
     @Transactional(readOnly = true)
@@ -41,7 +59,7 @@ public class EstudianteService {
 
     @Transactional
     public EstudianteResponseDTO crear(EstudianteRequestDTO dto, String username) {
-        if (dto.getCedula() != null && estudianteRepo.existsByCedula(dto.getCedula()))
+        if (dto.getCedula() != null && !dto.getCedula().isBlank() && estudianteRepo.existsByCedula(dto.getCedula()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un estudiante con esa cédula");
 
         Representante representante = null;
@@ -64,12 +82,23 @@ public class EstudianteService {
                 .discapacidad(dto.isDiscapacidad())
                 .tipoDiscapacidad(dto.getTipoDiscapacidad())
                 .porcentajeDisc(dto.getPorcentajeDisc())
+                .carnetConadis(dto.getCarnetConadis())
+                .nacionalidad(dto.getNacionalidad())
+                .etnia(dto.getEtnia())
+                .lugarNacimiento(dto.getLugarNacimiento())
+                .viveCon(dto.getViveCon())
+                .numerosHermanos(dto.getNumerosHermanos())
+                .beneficioSocial(dto.isBeneficioSocial())
                 .estado("ACTIVO")
                 .representante(representante)
                 .creadoPor(creador)
                 .build();
 
-        return toDTO(estudianteRepo.save(estudiante));
+        estudiante = estudianteRepo.save(estudiante);
+
+        guardarFicha(estudiante, dto);
+
+        return toDTO(estudiante);
     }
 
     @Transactional
@@ -86,6 +115,14 @@ public class EstudianteService {
         estudiante.setDiscapacidad(dto.isDiscapacidad());
         estudiante.setTipoDiscapacidad(dto.getTipoDiscapacidad());
         estudiante.setPorcentajeDisc(dto.getPorcentajeDisc());
+        estudiante.setCarnetConadis(dto.getCarnetConadis());
+        estudiante.setNacionalidad(dto.getNacionalidad());
+        estudiante.setEtnia(dto.getEtnia());
+        estudiante.setLugarNacimiento(dto.getLugarNacimiento());
+        estudiante.setViveCon(dto.getViveCon());
+        estudiante.setNumerosHermanos(dto.getNumerosHermanos());
+        estudiante.setBeneficioSocial(dto.isBeneficioSocial());
+        estudiante.setFechaActualizacion(Instant.now());
 
         if (dto.getIdRepresentante() != null) {
             Representante rep = representanteRepo.findById(dto.getIdRepresentante())
@@ -93,7 +130,11 @@ public class EstudianteService {
             estudiante.setRepresentante(rep);
         }
 
-        return toDTO(estudianteRepo.save(estudiante));
+        estudiante = estudianteRepo.save(estudiante);
+
+        guardarFicha(estudiante, dto);
+
+        return toDTO(estudiante);
     }
 
     @Transactional
@@ -103,13 +144,52 @@ public class EstudianteService {
         estudianteRepo.save(estudiante);
     }
 
+    private void guardarFicha(Estudiante estudiante, EstudianteRequestDTO dto) {
+        boolean tieneDatosMedicos = dto.getTipoSangre() != null || dto.getAlergias() != null
+                || dto.getEnfermedadesCronicas() != null || dto.getMedicamentos() != null
+                || dto.getContactoEmergenciaNombre() != null || dto.getObservacionesMedicas() != null;
+
+        if (!tieneDatosMedicos) return;
+
+        FichaEstudiante ficha = fichaRepo.findByEstudianteIdEstudiante(estudiante.getIdEstudiante())
+                .orElse(FichaEstudiante.builder().estudiante(estudiante).build());
+
+        ficha.setTipoSangre(dto.getTipoSangre());
+        ficha.setAlergias(dto.getAlergias());
+        ficha.setDetalleEnfermedad(dto.getEnfermedadesCronicas());
+        ficha.setMedicacionPermanente(dto.getMedicamentos());
+        ficha.setContactoEmergencia(dto.getContactoEmergenciaNombre());
+        ficha.setTelefonoEmergencia(dto.getContactoEmergenciaTelefono());
+        ficha.setDireccionReferencia(dto.getObservacionesMedicas());
+        ficha.setFechaActualizacion(Instant.now());
+
+        fichaRepo.save(ficha);
+    }
+
     private Estudiante buscarPorId(Long id) {
         return estudianteRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
     }
 
+    private List<EstudianteResponseDTO> toDTOList(List<Estudiante> estudiantes) {
+        if (estudiantes.isEmpty()) return Collections.emptyList();
+
+        List<Long> ids = estudiantes.stream().map(Estudiante::getIdEstudiante).collect(Collectors.toList());
+        Map<Long, FichaEstudiante> fichasMap = fichaRepo.findByEstudiante_IdEstudianteIn(ids).stream()
+                .collect(Collectors.toMap(f -> f.getEstudiante().getIdEstudiante(), Function.identity()));
+
+        return estudiantes.stream()
+                .map(e -> toDTO(e, fichasMap.get(e.getIdEstudiante())))
+                .collect(Collectors.toList());
+    }
+
     private EstudianteResponseDTO toDTO(Estudiante e) {
-        return EstudianteResponseDTO.builder()
+        FichaEstudiante ficha = fichaRepo.findByEstudianteIdEstudiante(e.getIdEstudiante()).orElse(null);
+        return toDTO(e, ficha);
+    }
+
+    private EstudianteResponseDTO toDTO(Estudiante e, FichaEstudiante ficha) {
+        EstudianteResponseDTO.EstudianteResponseDTOBuilder builder = EstudianteResponseDTO.builder()
                 .idEstudiante(e.getIdEstudiante())
                 .cedula(e.getCedula())
                 .codigoEstudiante(e.getCodigoEstudiante())
@@ -123,10 +203,31 @@ public class EstudianteService {
                 .discapacidad(e.isDiscapacidad())
                 .tipoDiscapacidad(e.getTipoDiscapacidad())
                 .porcentajeDisc(e.getPorcentajeDisc())
+                .carnetConadis(e.getCarnetConadis())
+                .nacionalidad(e.getNacionalidad())
+                .etnia(e.getEtnia())
+                .lugarNacimiento(e.getLugarNacimiento())
+                .viveCon(e.getViveCon())
+                .numerosHermanos(e.getNumerosHermanos())
+                .beneficioSocial(e.isBeneficioSocial())
                 .estado(e.getEstado())
+                .fotoUrl(e.getFotoUrl())
+                .origenListado(e.getOrigenListado())
                 .representante(e.getRepresentante() != null ?
                         e.getRepresentante().getNombres() + " " + e.getRepresentante().getApellidos() : null)
-                .fechaCreacion(e.getFechaCreacion())
-                .build();
+                .idRepresentante(e.getRepresentante() != null ? e.getRepresentante().getIdRepresentante() : null)
+                .fechaCreacion(e.getFechaCreacion());
+
+        if (ficha != null) {
+            builder.tipoSangre(ficha.getTipoSangre())
+                    .alergias(ficha.getAlergias())
+                    .enfermedadesCronicas(ficha.getDetalleEnfermedad())
+                    .medicamentos(ficha.getMedicacionPermanente())
+                    .contactoEmergenciaNombre(ficha.getContactoEmergencia())
+                    .contactoEmergenciaTelefono(ficha.getTelefonoEmergencia())
+                    .observacionesMedicas(ficha.getDireccionReferencia());
+        }
+
+        return builder.build();
     }
 }

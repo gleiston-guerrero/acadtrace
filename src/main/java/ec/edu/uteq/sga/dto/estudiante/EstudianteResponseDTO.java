@@ -19,7 +19,27 @@ public class EstudianteResponseDTO {
     private boolean discapacidad;
     private String tipoDiscapacidad;
     private Short porcentajeDisc;
+    private String carnetConadis;
+    private String nacionalidad;
+    private String etnia;
+    private String lugarNacimiento;
+    private String viveCon;
+    private Short numerosHermanos;
+    private boolean beneficioSocial;
     private String estado;
+    private String fotoUrl;
+    private String origenListado;
     private String representante;
+    private Long idRepresentante;
     private Instant fechaCreacion;
+
+    // Ficha médica
+    private String tipoSangre;
+    private String alergias;
+    private String enfermedadesCronicas;
+    private String medicamentos;
+    private String contactoEmergenciaNombre;
+    private String contactoEmergenciaTelefono;
+    private String contactoEmergenciaParentesco;
+    private String observacionesMedicas;
 }
