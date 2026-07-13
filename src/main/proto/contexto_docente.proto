@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package sga.contexto;
+
+option java_package = "ec.edu.uteq.sga.grpc.contexto";
+option java_multiple_files = true;
+
+// Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+// consulte datos institucionales y valide permisos de manera segura.
+service TeacherContextService {
+    rpc ValidateTeacherAssignment (ValidateAssignmentRequest) returns (ValidateAssignmentResponse);
+    rpc GetStudentsByAssignment (StudentsByAssignmentRequest) returns (StudentsByAssignmentResponse);
+    rpc ValidateStudentEnrollment (ValidateEnrollmentRequest) returns (ValidateEnrollmentResponse);
+    rpc GetCurrentAcademicYear (EmptyRequest) returns (AcademicYearResponse);
+}
+
+message EmptyRequest {}
+
+message ValidateAssignmentRequest {
+    int64 id_docente = 1;
+    int64 id_asignacion = 2;
+}
+
+message ValidateAssignmentResponse {
+    bool is_valid = 1;
+    int64 id_asignatura = 2;
+    int64 id_grado = 3;
+    int64 id_paralelo = 4;
+    int64 id_ano_lectivo = 5;
+    bool is_active = 6;
+}
+
+message StudentsByAssignmentRequest {
+    int64 id_asignacion = 1;
+}
+
+message StudentProto {
+    int64 id_estudiante = 1;
+    string cedula = 2;
+    string nombres = 3;
+    string apellidos = 4;
+    int64 id_matricula = 5;
+}
+
+message StudentsByAssignmentResponse {
+    repeated StudentProto students = 1;
+}
+
+message ValidateEnrollmentRequest {
+    int64 id_matricula = 1;
+    int64 id_asignacion = 2;
+}
+
+message ValidateEnrollmentResponse {
+    bool is_valid = 1;
+    int64 id_estudiante = 2;
+}
+
+message AcademicYearResponse {
+    int64 id_ano_lectivo = 1;
+    string nombre = 2;
+    string fecha_inicio = 3;
+    string fecha_fin = 4;
+}
