@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import javax.sql.DataSource;
+import java.sql.Connection;
 
-@Component
+//@Component
 @Profile("dev")
 public class DataSeedRunner implements CommandLineRunner {
 
@@ -36,11 +38,31 @@ public class DataSeedRunner implements CommandLineRunner {
     private MatriculaRepository matriculaRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private DataSource dataSource;
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         System.out.println("====== INICIANDO SEED DE DATOS (PERFIL DEV) ======");
+        
+        try (Connection conn = dataSource.getConnection()) {
+            System.out.println("URL BD: " + conn.getMetaData().getURL());
+            System.out.println("Base de datos: " + conn.getCatalog());
+            System.out.println("Esquema actual: " + conn.getSchema());
+            
+            // Verificar si la tabla usuarios existe
+            var rs = conn.getMetaData().getTables(null, "sga_principal", "usuarios", null);
+            if (!rs.next()) {
+                System.err.println("La tabla sga_principal.usuarios no existe. Omitiendo seed.");
+                return;
+            }
+        } catch (Exception e) {
+            System.err.println("Error verificando la BD: " + e.getMessage());
+            return;
+        }
+
+        try {
 
         // 1. Crear Rol DOCENTE si no existe
         Rol rolDocente = rolRepository.findByNombre("ROLE_DOCENTE").orElseGet(() -> {
@@ -155,6 +177,10 @@ public class DataSeedRunner implements CommandLineRunner {
         System.out.println("ID Estudiante 1: " + est1.getIdEstudiante());
         System.out.println("ID Estudiante 2: " + est2.getIdEstudiante());
         System.out.println("=====================================");
+        } catch (Exception e) {
+            System.err.println("Error ejecutando el SeedRunner: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void crearMatriculaSiNoExiste(Estudiante estudiante, AnoLectivo ano, Grado grado) {
