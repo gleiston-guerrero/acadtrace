@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../config/axios";
 import Layout from "../../components/Layout";
 
-const API = "http://localhost:8080/api";
+
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 
@@ -233,8 +233,8 @@ export default function Estudiantes() {
   const [filtroParalelo, setFiltroParalelo] = useState("");
   const [paralelosFiltro, setParalelosFiltro] = useState([]);
 
-  const token = localStorage.getItem("token");
-  const H = { Authorization: `Bearer ${token}` };
+  
+  
 
   const cargar = (idGrado, idParalelo) => {
     setLoading(true);
@@ -248,7 +248,7 @@ export default function Estudiantes() {
         if (pid) url += `&idParalelo=${pid}`;
       }
     }
-    axios.get(url, { headers: H })
+    axios.get(url)
         .then(r => setEstudiantes(r.data))
         .catch(() => setError("Error al cargar estudiantes"))
         .finally(() => setLoading(false));
@@ -257,8 +257,8 @@ export default function Estudiantes() {
   const [anosLectivos, setAnosLectivos] = useState([]);
 
   useEffect(() => {
-    axios.get(`${API}/grados`, { headers: H }).then(r => setGrados(r.data)).catch(() => {});
-    axios.get(`${API}/anos-lectivos`, { headers: H }).then(r => {
+    api.get(`/api/grados`).then(r => setGrados(r.data)).catch(() => {});
+    api.get(`/api/anos-lectivos`).then(r => {
       setAnosLectivos(r.data);
     }).catch(() => {});
   }, []);
@@ -284,12 +284,12 @@ export default function Estudiantes() {
     }
     setSaving(true); setError("");
     try {
-      const r = await axios.post(`${API}/representantes`, rep, { headers: H });
-      await axios.post(`${API}/estudiantes`, {
+      const r = await api.post(`/api/representantes`, rep);
+      await api.post(`/api/estudiantes`, {
         ...form, ...med,
         porcentajeDisc: form.porcentajeDisc ? Number(form.porcentajeDisc) : null,
         idRepresentante: r.data.idRepresentante,
-      }, { headers: H });
+      });
       setSuccess("Estudiante registrado correctamente.");
       setShowModal(false); reset(); cargar();
     } catch (e) { setError(e.response?.data?.message || "Error al registrar"); }
@@ -317,7 +317,7 @@ export default function Estudiantes() {
         contactoEmergenciaParentesco: edit.contactoEmergenciaParentesco,
         observacionesMedicas: edit.observacionesMedicas,
       };
-      await axios.put(`${API}/estudiantes/${edit.idEstudiante}`, payload, { headers: H });
+      await api.put(`/api/estudiantes/${edit.idEstudiante}`, payload);
       setSuccess("Estudiante actualizado."); setShowEditModal(false); cargar();
     } catch (e) { setError(e.response?.data?.message || "Error al actualizar"); }
     finally { setSaving(false); }
@@ -325,7 +325,7 @@ export default function Estudiantes() {
 
   const cambiarEstado = async (id, estado) => {
     try {
-      await axios.patch(`${API}/estudiantes/${id}/estado?estado=${estado}`, {}, { headers: H });
+      await api.patch(`/api/estudiantes/${id}/estado?estado=${estado}`, {});
       setSuccess(`Estudiante ${estado==="ACTIVO"?"activado":"desactivado"}.`); cargar();
     } catch { setError("Error al cambiar estado"); }
     setShowConfirm(null);
@@ -727,8 +727,8 @@ function ImportarCasModal({ onClose, onSuccess, onError, headers }) {
   const [resumen, setResumen] = useState(null);
 
   useEffect(() => {
-    axios.get(`${API}/grados`, { headers }).then(r => setGrados(r.data)).catch(() => {});
-    axios.get(`${API}/anos-lectivos`, { headers }).then(r => {
+    api.get(`/api/grados`, { headers }).then(r => setGrados(r.data)).catch(() => {});
+    api.get(`/api/anos-lectivos`, { headers }).then(r => {
       setAnosLectivos(r.data);
       const actual = r.data.find(a => a.esActual);
       if (actual) setIdAnoLectivo(String(actual.idAnoLectivo));
@@ -742,7 +742,7 @@ function ImportarCasModal({ onClose, onSuccess, onError, headers }) {
     const formData = new FormData();
     formData.append("archivo", archivo);
     try {
-      const r = await axios.post(`${API}/importacion-cas/parsear`, formData, {
+      const r = await api.post(`/api/importacion-cas/parsear`, formData, {
         headers: { ...headers, "Content-Type": "multipart/form-data" },
       });
       setResultado(r.data);
@@ -787,7 +787,7 @@ function ImportarCasModal({ onClose, onSuccess, onError, headers }) {
     setPaso(3);
     onError("");
     try {
-      const r = await axios.post(`${API}/importacion-cas/confirmar`, {
+      const r = await api.post(`/api/importacion-cas/confirmar`, {
         idGrado: Number(idGrado),
         idParalelo: Number(idParalelo),
         idAnoLectivo: Number(idAnoLectivo),

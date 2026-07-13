@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../config/axios";
 import Layout from "../../components/Layout";
 
-const API = "http://localhost:8080/api";
+
 const PRIMARY = "#243A76";
 
 const ROLES = [
@@ -43,12 +43,12 @@ export default function Usuarios() {
     nombres: "", apellidos: "", correo: "", roles: [],
   });
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
+  
+  
 
   const cargar = () => {
     setLoading(true);
-    axios.get(`${API}/usuarios`, { headers })
+    api.get(`/api/usuarios`)
         .then(r => setUsuarios(r.data))
         .catch(() => setError("Error al cargar usuarios"))
         .finally(() => setLoading(false));
@@ -67,10 +67,10 @@ export default function Usuarios() {
     if (form.roles.length === 0) { setError("Selecciona al menos un rol"); return; }
     setSaving(true); setError("");
     try {
-      await axios.post(`${API}/usuarios`, {
+      await api.post(`/api/usuarios`, {
         ...form,
         roles: form.roles.map(Number),
-      }, { headers });
+      });
       setSuccess("Usuario creado. Se enviaron las credenciales al correo.");
       setShowModal(false);
       setForm({ nombres: "", apellidos: "", correo: "", roles: [] });
@@ -86,13 +86,13 @@ export default function Usuarios() {
     e.preventDefault();
     setSaving(true); setError("");
     try {
-      await axios.put(`${API}/usuarios/${usuarioEdit.idUsuario}`, {
+      await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
         correo: usuarioEdit.correo,
         roles: usuarioEdit.roles.map(r => {
           const found = ROLES.find(x => x.nombre === r);
           return found ? found.id : null;
         }).filter(Boolean),
-      }, { headers });
+      });
       setSuccess("Usuario actualizado correctamente.");
       setShowEditModal(false);
       cargar();
@@ -105,7 +105,7 @@ export default function Usuarios() {
 
   const handleEstado = async (id, estado) => {
     try {
-      await axios.patch(`${API}/usuarios/${id}/estado?estado=${estado}`, {}, { headers });
+      await axios.patch(`${API}/usuarios/${id}/estado?estado=${estado}`, {});
       setSuccess(`Usuario ${estado === "ACTIVO" ? "activado" : "desactivado"} correctamente.`);
       cargar();
     } catch { setError("Error al cambiar estado"); }
@@ -114,7 +114,7 @@ export default function Usuarios() {
 
   const handleReset = async (id) => {
     try {
-      await axios.patch(`${API}/usuarios/${id}/reset-password`, {}, { headers });
+      await axios.patch(`${API}/usuarios/${id}/reset-password`, {});
       setSuccess("Contraseña reseteada. Se envió al correo del usuario.");
       cargar();
     } catch { setError("Error al resetear contraseña"); }
@@ -123,7 +123,7 @@ export default function Usuarios() {
 
   const handleEliminar = async (id) => {
     try {
-      await axios.delete(`${API}/usuarios/${id}`, { headers });
+      await api.delete(`/api/usuarios/${id}`);
       setSuccess("Usuario eliminado correctamente.");
       cargar();
     } catch { setError("No se puede eliminar este usuario."); }

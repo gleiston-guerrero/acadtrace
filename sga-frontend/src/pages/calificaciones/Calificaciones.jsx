@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../config/axios";
 import Layout from "../../components/Layout";
-
-const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 
@@ -46,11 +44,9 @@ export default function Calificaciones() {
   const [loading, setLoading]             = useState(false);
   const [anoActual, setAnoActual]         = useState(null);
 
-  const token = localStorage.getItem("token");
-  const H = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    axios.get(`${API}/anos-lectivos/actual`, { headers: H })
+    api.get(`/api/anos-lectivos/actual`)
       .then(r => {
         setAnoActual(r.data);
         cargarAsignaciones(r.data.idAnoLectivo);
@@ -61,9 +57,9 @@ export default function Calificaciones() {
   const cargarAsignaciones = (idAno) => {
     setLoading(true);
     const url = idAno
-      ? `${API}/asignaciones/ano-lectivo/${idAno}`
-      : `${API}/asignaciones`;
-    axios.get(url, { headers: H })
+      ? `/api/asignaciones/ano-lectivo/${idAno}`
+      : `/api/asignaciones`;
+    api.get(url)
       .then(r => setAsignaciones(r.data.filter(a => a.activo)))
       .finally(() => setLoading(false));
   };
@@ -73,7 +69,7 @@ export default function Calificaciones() {
     setLoading(true);
     setVista("estudiantes");
     setBusqueda("");
-    axios.get(`${API}/matriculas`, { headers: H })
+    api.get(`/api/matriculas`)
       .then(r => setMatriculas(r.data))
       .finally(() => setLoading(false));
   };
@@ -82,7 +78,7 @@ export default function Calificaciones() {
     setEstudianteSel(matricula);
     setLoading(true);
     setVista("notas");
-    axios.get(`${API}/calificaciones/matricula/${matricula.idMatricula}/trimestre/${trimestre}`, { headers: H })
+    api.get(`/api/calificaciones/matricula/${matricula.idMatricula}/trimestre/${trimestre}`)
       .then(r => setCalificaciones(r.data))
       .finally(() => setLoading(false));
   };
@@ -90,7 +86,7 @@ export default function Calificaciones() {
   const cambiarTrimestre = (t) => {
     setTrimestre(t);
     setLoading(true);
-    axios.get(`${API}/calificaciones/matricula/${estudianteSel.idMatricula}/trimestre/${t}`, { headers: H })
+    api.get(`/api/calificaciones/matricula/${estudianteSel.idMatricula}/trimestre/${t}`)
       .then(r => setCalificaciones(r.data))
       .finally(() => setLoading(false));
   };

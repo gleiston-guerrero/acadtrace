@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../config/axios";
 import logo from "../../assets/logo.png";
 
 export default function Login() {
@@ -20,17 +20,20 @@ export default function Login() {
         setLoading(true);
         setError("");
         try {
-            const res = await axios.post("http://localhost:8080/api/auth/login", form);
+            const res = await api.post("/api/auth/login", form);
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("username", res.data.username);
             localStorage.setItem("roles", JSON.stringify(res.data.roles));
             localStorage.setItem("primerIngreso", res.data.primerIngreso);
 
-// Redirigir según primerIngreso
             if (res.data.primerIngreso) {
                 navigate("/cambiar-password");
             } else {
-                navigate("/dashboard");
+                if (res.data.roles && res.data.roles.includes("ROLE_DOCENTE")) {
+                    navigate("/docente");
+                } else {
+                    navigate("/dashboard");
+                }
             }
         } catch (err) {
             setError("Usuario o contraseña incorrectos");

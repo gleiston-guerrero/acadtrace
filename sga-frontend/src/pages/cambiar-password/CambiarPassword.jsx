@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../config/axios";
 import logo from "../../assets/logo.png";
-
-const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
 
 export default function CambiarPassword() {
@@ -20,7 +18,7 @@ export default function CambiarPassword() {
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("token");
+
   const username = localStorage.getItem("username") || "Usuario";
   const primerIngreso = localStorage.getItem("primerIngreso") === "true";
 
@@ -46,13 +44,12 @@ export default function CambiarPassword() {
 
     setLoading(true); setError("");
     try {
-      await axios.patch(
-        `${API}/auth/cambiar-password`,
+      await api.patch(
+        `/api/auth/cambiar-password`,
         {
           passwordActual: form.passwordActual,
           passwordNuevo: form.passwordNuevo,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       setSuccess("¡Contraseña actualizada correctamente!");
       localStorage.setItem("primerIngreso", "false");
