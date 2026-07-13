@@ -11,8 +11,11 @@ import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @GrpcService
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TeacherContextGrpcService extends TeacherContextServiceGrpc.TeacherContextServiceImplBase {
 
     private final TeacherAuthorizationService authService;
