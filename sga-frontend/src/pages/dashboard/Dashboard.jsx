@@ -19,10 +19,6 @@ export default function Dashboard() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (roles.includes("ROLE_DOCENTE")) {
-            navigate("/docente");
-            return;
-        }
         api.get(`/api/anos-lectivos/actual`)
             .then(r => setAnoActual(r.data))
             .catch(() => {});
@@ -33,7 +29,11 @@ export default function Dashboard() {
         navigate(`/${m.id}`);
     };
 
-    const modulosFiltrados = modulos.filter(m =>
+    const modulosPermitidos = roles.includes("ROLE_DOCENTE")
+        ? modulos.filter(m => ["docente", "calificaciones"].includes(m.id))
+        : modulos;
+
+    const modulosFiltrados = modulosPermitidos.filter(m =>
         m.label.toLowerCase().includes(busqueda.toLowerCase()) ||
         m.desc.toLowerCase().includes(busqueda.toLowerCase())
     );

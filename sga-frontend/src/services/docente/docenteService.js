@@ -15,7 +15,7 @@ export const getEstudiantesPorAsignacion = async (asignacionId) => {
 };
 
 export const getActividadesPorAsignacion = async (asignacionId) => {
-    const response = await api.get(`/api/docente/actividades/asignacion/${asignacionId}`);
+    const response = await api.get(`/api/docente/actividades?idAsignacion=${asignacionId}`);
     return response.data;
 };
 
@@ -42,16 +42,16 @@ export const deleteActividad = async (id) => {
 // --- ASISTENCIA ---
 
 export const getAsistenciaPorAsignacionYFecha = async (asignacionId, fecha, idPeriodo = 0) => {
-    let url = `${API_PRINCIPAL}/docente/asistencias/asignacion/${asignacionId}?fecha=${fecha}`;
+    let url = `/api/docente/asistencias/asignacion/${asignacionId}?fecha=${fecha}`;
     if (idPeriodo > 0) url += `&idPeriodo=${idPeriodo}`;
-    const response = await axios.get(url);
+    const response = await api.get(url);
     return response.data;
 };
 
 export const getResumenAsistencia = async (asignacionId, idPeriodo = 0) => {
-    let url = `${API_PRINCIPAL}/docente/asistencias/asignacion/${asignacionId}/resumen`;
+    let url = `/api/docente/asistencias/asignacion/${asignacionId}/resumen`;
     if (idPeriodo > 0) url += `?idPeriodo=${idPeriodo}`;
-    const response = await axios.get(url);
+    const response = await api.get(url);
     return response.data;
 };
 

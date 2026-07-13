@@ -49,15 +49,15 @@ export default function DocenteAsistencia({ asignacionActiva }) {
             const nuevaAsistencia = {};
             // Inicializar todos con PRESENTE (regla de negocio: por defecto para agilizar, pero no se guarda automáticamente)
             estudiantes.forEach(est => {
-                nuevaAsistencia[est.idMatricula] = { estado: 'PRESENTE', justificacion: '', id_asistencia: null };
+                nuevaAsistencia[est.idMatricula] = { estado: 'PRESENTE', justificacion: '', idAsistencia: null };
             });
             
             // Sobrescribir si ya hay registros
             registros.forEach(reg => {
-                nuevaAsistencia[reg.id_matricula] = {
+                nuevaAsistencia[reg.idMatricula] = {
                     estado: reg.estado,
                     justificacion: reg.justificacion || '',
-                    id_asistencia: reg.id_asistencia
+                    idAsistencia: reg.idAsistencia
                 };
             });
             
@@ -101,13 +101,11 @@ export default function DocenteAsistencia({ asignacionActiva }) {
             setGuardando(true);
             setMensaje({ tipo: '', texto: '' });
             
-            // Filtrar solo los que no tienen id_asistencia (los nuevos)
-            // Si la regla de negocio requiere actualizar, habría que llamar a PUT individual o adaptar el backend.
-            // Según la regla: "Devuelve conflicto" si ya existe. Así que enviamos solo los nuevos.
+            // Filtrar solo los que no tienen idAsistencia (los nuevos)
             const nuevosRegistros = estudiantes
-                .filter(est => !asistencias[est.idMatricula].id_asistencia)
+                .filter(est => !asistencias[est.idMatricula].idAsistencia)
                 .map(est => ({
-                    id_matricula: est.idMatricula,
+                    idMatricula: est.idMatricula,
                     estado: asistencias[est.idMatricula].estado,
                     justificacion: asistencias[est.idMatricula].justificacion
                 }));
@@ -119,8 +117,8 @@ export default function DocenteAsistencia({ asignacionActiva }) {
             }
 
             const payload = {
-                id_asignacion: asignacionActiva.idAsignacion,
-                id_periodo: asignacionActiva.anoLectivo.id, // Suponiendo que el periodo es el año o se debe crear endpoint para periodo. Usamos el año mientras tanto o 1.
+                idAsignacion: asignacionActiva.idAsignacion,
+                idPeriodo: 1, 
                 fecha: fecha,
                 asistencias: nuevosRegistros
             };
