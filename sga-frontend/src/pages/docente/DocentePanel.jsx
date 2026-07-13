@@ -1,9 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
+import { getMisAsignaciones } from '../../services/docente/docenteService';
 import DocenteActividades from "./DocenteActividades";
+import DocenteAsistencia from "./DocenteAsistencia";
 
 export default function DocentePanel() {
     const [seccion, setSeccion] = useState("panel");
+    const [asignacionActiva, setAsignacionActiva] = useState(null);
+
+    useEffect(() => {
+        const fetchAsignaciones = async () => {
+            try {
+                const data = await getMisAsignaciones();
+                if (data && data.length > 0) {
+                    setAsignacionActiva(data[0]);
+                }
+            } catch (error) {
+                console.error("Error al obtener asignaciones:", error);
+            }
+        };
+        fetchAsignaciones();
+    }, []);
 
     const menuItems = [
         {
@@ -89,7 +106,7 @@ export default function DocentePanel() {
             )}
 
             {seccion === "actividades" && <DocenteActividades />}
-            {seccion === "asistencia" && <div className="text-slate-500">Módulo de Asistencia en construcción (Fase D).</div>}
+            {seccion === "asistencia" && <DocenteAsistencia asignacionActiva={asignacionActiva} />}
             {seccion === "calificaciones" && <div className="text-slate-500">Módulo de Calificaciones en construcción (Fase E).</div>}
             {seccion === "seguimiento" && <div className="text-slate-500">Módulo de Seguimiento en construcción (Fase F).</div>}
             {seccion === "reportes" && <div className="text-slate-500">Módulo de Reportes en construcción (Fase G).</div>}
