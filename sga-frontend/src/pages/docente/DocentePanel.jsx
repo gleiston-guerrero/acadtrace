@@ -11,12 +11,16 @@ export default function DocentePanel() {
     useEffect(() => {
         const fetchAsignaciones = async () => {
             try {
+                console.log("[React Debug] Obteniendo asignaciones del docente...");
                 const data = await getMisAsignaciones();
+                console.log("[React Debug] Asignaciones recibidas:", data);
                 if (data && data.length > 0) {
                     setAsignacionActiva(data[0]);
+                } else {
+                    console.warn("[React Debug] El endpoint retornó una lista vacía de asignaciones.");
                 }
             } catch (error) {
-                console.error("Error al obtener asignaciones:", error);
+                console.error("[React Debug] Error al obtener asignaciones:", error);
             }
         };
         fetchAsignaciones();

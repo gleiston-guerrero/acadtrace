@@ -32,20 +32,24 @@ export default function DocenteActividades() {
 
     const cargarAsignaciones = async () => {
         try {
+            console.log("[React Debug - Actividades] Cargando asignaciones...");
             const data = await getMisAsignaciones();
+            console.log("[React Debug - Actividades] Asignaciones cargadas:", data);
             setAsignaciones(data);
         } catch (error) {
-            console.error("Error cargando asignaciones:", error);
+            console.error("[React Debug - Actividades] Error cargando asignaciones:", error);
         }
     };
 
     const cargarActividades = async (asignacionId) => {
         try {
             setLoading(true);
+            console.log("[React Debug - Actividades] Cargando actividades para asignacion:", asignacionId);
             const data = await getActividadesPorAsignacion(asignacionId);
+            console.log("[React Debug - Actividades] Actividades recibidas:", data);
             setActividades(data);
         } catch (error) {
-            console.error("Error cargando actividades:", error);
+            console.error("[React Debug - Actividades] Error cargando actividades:", error);
         } finally {
             setLoading(false);
         }

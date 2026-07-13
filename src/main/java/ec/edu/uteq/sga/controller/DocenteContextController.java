@@ -23,11 +23,19 @@ public class DocenteContextController {
 
     @GetMapping("/mis-asignaciones")
     public ResponseEntity<List<Map<String, Object>>> getMisAsignaciones() {
+        System.out.println("[API DEBUG] /mis-asignaciones: Obteniendo docente autenticado...");
         Persona docente = authService.getAuthenticatedTeacher();
+        System.out.println("[API DEBUG] /mis-asignaciones: Docente obtenido -> ID Persona: " + docente.getIdPersona() + ", Nombre: " + docente.getNombres() + " " + docente.getApellidos());
+        
+        System.out.println("[API DEBUG] /mis-asignaciones: Buscando asignaciones del docente...");
         List<Asignacion> asignaciones = authService.getTeacherAssignments(docente.getIdPersona());
+        System.out.println("[API DEBUG] /mis-asignaciones: Total de asignaciones encontradas: " + asignaciones.size());
         
         List<Map<String, Object>> response = asignaciones.stream()
-            .filter(Asignacion::isActivo)
+            .filter(a -> {
+                System.out.println("[API DEBUG] /mis-asignaciones: Procesando asignación ID: " + a.getIdAsignacion() + ", Activa: " + a.isActivo());
+                return a.isActivo();
+            })
             .map(a -> {
                 Map<String, Object> map = new java.util.HashMap<>();
                 map.put("idAsignacion", a.getIdAsignacion());
@@ -46,6 +54,7 @@ public class DocenteContextController {
                 return map;
             }).collect(Collectors.toList());
             
+        System.out.println("[API DEBUG] /mis-asignaciones: Retornando " + response.size() + " asignaciones activas.");
         return ResponseEntity.ok(response);
     }
 
