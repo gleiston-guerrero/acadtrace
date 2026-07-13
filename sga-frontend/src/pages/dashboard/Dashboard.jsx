@@ -26,7 +26,13 @@ export default function Dashboard() {
 
     const handleModulo = (m) => {
         setBreadcrumb(["Inicio", m.label]);
-        navigate(`/${m.id}`);
+        if (m.id === "docente") {
+            const token = localStorage.getItem("token");
+            const redirectUrl = `http://localhost:5174/?token=${token}&username=${encodeURIComponent(username)}&roles=${encodeURIComponent(JSON.stringify(roles))}`;
+            window.location.href = redirectUrl;
+        } else {
+            navigate(`/${m.id}`);
+        }
     };
 
     const modulosPermitidos = roles.includes("ROLE_DOCENTE")

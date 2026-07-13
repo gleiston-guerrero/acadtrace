@@ -30,7 +30,8 @@ export default function Login() {
                 navigate("/cambiar-password");
             } else {
                 if (res.data.roles && res.data.roles.includes("ROLE_DOCENTE")) {
-                    navigate("/docente");
+                    const redirectUrl = `http://localhost:5174/?token=${res.data.token}&username=${encodeURIComponent(res.data.username)}&roles=${encodeURIComponent(JSON.stringify(res.data.roles))}`;
+                    window.location.href = redirectUrl;
                 } else {
                     navigate("/dashboard");
                 }
