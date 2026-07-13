@@ -4,6 +4,8 @@ import ec.edu.uteq.sga.grpc.docente.*;
 import io.grpc.StatusRuntimeException;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import ec.edu.uteq.sga.service.TeacherAuthorizationService;
 
 import java.util.List;
 import java.util.Map;
@@ -20,9 +22,14 @@ public class DocenteGrpcClient {
     @GrpcClient("docente-service")
     private DocenteServiceGrpc.DocenteServiceBlockingStub stub;
 
+    @Autowired
+    private TeacherAuthorizationService authService;
+
     private DocenteServiceGrpc.DocenteServiceBlockingStub getStubWithMetadata() {
+        String docenteId = authService.getAuthenticatedTeacher().getIdPersona().toString();
+        
         io.grpc.Metadata metadata = new io.grpc.Metadata();
-        metadata.put(io.grpc.Metadata.Key.of("docente_id", io.grpc.Metadata.ASCII_STRING_MARSHALLER), "1"); // TODO: Obtener del SecurityContext real
+        metadata.put(io.grpc.Metadata.Key.of("docente_id", io.grpc.Metadata.ASCII_STRING_MARSHALLER), docenteId);
         metadata.put(io.grpc.Metadata.Key.of("internal_token", io.grpc.Metadata.ASCII_STRING_MARSHALLER), "***REMOVED***");
         return stub.withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(metadata));
     }
