@@ -190,6 +190,7 @@
                         <phase>compile</phase>
                         <goals><goal>compile</goal></goals>
                         <configuration>
+                            <useIncrementalCompilation>false</useIncrementalCompilation>
                             <annotationProcessorPaths>
                                 <path>
                                     <groupId>org.projectlombok</groupId>
@@ -204,6 +205,7 @@
                         <phase>test-compile</phase>
                         <goals><goal>testCompile</goal></goals>
                         <configuration>
+                            <useIncrementalCompilation>false</useIncrementalCompilation>
                             <annotationProcessorPaths>
                                 <path>
                                     <groupId>org.projectlombok</groupId>
