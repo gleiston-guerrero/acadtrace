@@ -44,14 +44,21 @@ public class DocenteAsistenciaController {
                     .build());
         }
         
-        AsistenciaListResponse response = asistenciaClient.registrarAsistenciaGrupal(requestBuilder.build());
-        if (response.getSuccess()) {
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", response.getMessage()
-            ));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+        try {
+            AsistenciaListResponse response = asistenciaClient.registrarAsistenciaGrupal(requestBuilder.build());
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", response.getMessage()
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+            }
+        } catch (io.grpc.StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.ALREADY_EXISTS) {
+                return ResponseEntity.status(409).body(Map.of("message", e.getStatus().getDescription()));
+            }
+            return ResponseEntity.badRequest().body(Map.of("message", e.getStatus().getDescription()));
         }
     }
 
@@ -66,14 +73,18 @@ public class DocenteAsistenciaController {
                 .setJustificacion(justificacion)
                 .build();
                 
-        AsistenciaResponse response = asistenciaClient.actualizarAsistencia(request);
-        if (response.getSuccess()) {
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", response.getMessage()
-            ));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+        try {
+            AsistenciaResponse response = asistenciaClient.actualizarAsistencia(request);
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", response.getMessage()
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+            }
+        } catch (io.grpc.StatusRuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getStatus().getDescription()));
         }
     }
 
