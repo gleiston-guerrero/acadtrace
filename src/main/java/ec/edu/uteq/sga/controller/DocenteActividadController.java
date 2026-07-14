@@ -18,6 +18,23 @@ public class DocenteActividadController {
     @Autowired
     private ActividadGrpcClient actividadGrpcClient;
 
+    @Autowired
+    private ec.edu.uteq.sga.repository.PeriodoEvaluacionRepository periodoEvaluacionRepository;
+
+    @GetMapping("/periodos")
+    public ResponseEntity<?> listarPeriodos() {
+        List<ec.edu.uteq.sga.entity.PeriodoEvaluacion> periodos = periodoEvaluacionRepository.findAll();
+        List<Map<String, Object>> response = periodos.stream().map(p -> {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id_periodo", p.getIdPeriodo());
+            map.put("nombre", p.getNombre());
+            map.put("tipo", p.getTipo());
+            map.put("activo", p.isActivo());
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
     private Map<String, Object> mapActividadDto(ActividadDto a) {
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("idActividad", a.getIdActividad());
