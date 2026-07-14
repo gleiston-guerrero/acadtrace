@@ -9,7 +9,7 @@ const PRIMARY_LIGHT = "#2d4a96";
 const SERVICIOS = [
     { nombre: "sga-principal",  url: "http://localhost:8080/actuator/health",     puerto: 8080, descripcion: "Sistema Principal" },
     { nombre: "sga-docente",    url: "http://localhost:8081/api/docente/",        puerto: 8081, descripcion: "Microservicio Docente (Django)" },
-    { nombre: "sga-soporte",    url: "http://localhost:8082/actuator/health",     puerto: 8082, descripcion: "Soporte Técnico" },
+    { nombre: "sga-soporte",    url: "http://localhost:8081/actuator/health",     puerto: 8081, descripcion: "Soporte Técnico" },
 ];
 
 const accionBadge = (accion) => {
