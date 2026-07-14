@@ -69,15 +69,35 @@ public class DocenteActividadController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crearActividad(@RequestBody CrearActividadRequest request) {
+    public ResponseEntity<?> crearActividad(@RequestBody Map<String, Object> body) {
+        CrearActividadRequest request = CrearActividadRequest.newBuilder()
+                .setIdAsignacion(Long.valueOf(body.get("asignacionId").toString()))
+                .setIdPeriodo(Long.valueOf(body.get("periodoId").toString()))
+                .setTipo((String) body.get("tipo"))
+                .setNombre((String) body.get("nombre"))
+                .setDescripcion(body.get("descripcion") != null ? (String) body.get("descripcion") : "")
+                .setFechaEntrega((String) body.get("fechaEntrega"))
+                .setPonderacion(Double.valueOf(body.get("ponderacion").toString()))
+                .setNotaMaxima(Double.valueOf(body.get("notaMaxima").toString()))
+                .setEsSumativa((Boolean) body.get("esSumativa"))
+                .build();
         ActividadResponse response = actividadGrpcClient.crearActividad(request);
         return ResponseEntity.ok(mapActividadResponse(response));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editarActividad(@PathVariable Long id, @RequestBody EditarActividadRequest request) {
-        EditarActividadRequest req = request.toBuilder().setIdActividad(id).build();
-        ActividadResponse response = actividadGrpcClient.editarActividad(req);
+    public ResponseEntity<?> editarActividad(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        EditarActividadRequest request = EditarActividadRequest.newBuilder()
+                .setIdActividad(id)
+                .setTipo((String) body.get("tipo"))
+                .setNombre((String) body.get("nombre"))
+                .setDescripcion(body.get("descripcion") != null ? (String) body.get("descripcion") : "")
+                .setFechaEntrega((String) body.get("fechaEntrega"))
+                .setPonderacion(Double.valueOf(body.get("ponderacion").toString()))
+                .setNotaMaxima(Double.valueOf(body.get("notaMaxima").toString()))
+                .setEsSumativa((Boolean) body.get("esSumativa"))
+                .build();
+        ActividadResponse response = actividadGrpcClient.editarActividad(request);
         return ResponseEntity.ok(mapActividadResponse(response));
     }
 
