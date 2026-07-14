@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/docente/actividades")
@@ -16,37 +18,72 @@ public class DocenteActividadController {
     @Autowired
     private ActividadGrpcClient actividadGrpcClient;
 
+    private Map<String, Object> mapActividadDto(ActividadDto a) {
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("idActividad", a.getIdActividad());
+        map.put("idAsignacion", a.getIdAsignacion());
+        map.put("idPeriodo", a.getIdPeriodo());
+        map.put("tipo", a.getTipo());
+        map.put("nombre", a.getNombre());
+        map.put("descripcion", a.getDescripcion());
+        map.put("fechaEntrega", a.getFechaEntrega());
+        map.put("ponderacion", a.getPonderacion());
+        map.put("notaMaxima", a.getNotaMaxima());
+        map.put("esSumativa", a.getEsSumativa());
+        return map;
+    }
+
+    private Map<String, Object> mapActividadResponse(ActividadResponse r) {
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("exitoso", r.getExitoso());
+        map.put("mensaje", r.getMensaje());
+        if (r.hasActividad()) {
+            map.put("actividad", mapActividadDto(r.getActividad()));
+        }
+        return map;
+    }
+
+    private Map<String, Object> mapEliminarResponse(EliminarActividadResponse r) {
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("exitoso", r.getExitoso());
+        map.put("mensaje", r.getMensaje());
+        return map;
+    }
+
     @GetMapping
-    public ResponseEntity<List<ActividadDto>> listarActividades(
+    public ResponseEntity<?> listarActividades(
             @RequestParam Long idAsignacion,
             @RequestParam(required = false) Long idPeriodo) {
         
         List<ActividadDto> actividades = actividadGrpcClient.listarActividades(idAsignacion, idPeriodo);
-        return ResponseEntity.ok(actividades);
+        List<Map<String, Object>> response = actividades.stream()
+                .map(this::mapActividadDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ActividadResponse> obtenerActividad(@PathVariable Long id) {
+    public ResponseEntity<?> obtenerActividad(@PathVariable Long id) {
         ActividadResponse response = actividadGrpcClient.obtenerActividad(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapActividadResponse(response));
     }
 
     @PostMapping
-    public ResponseEntity<ActividadResponse> crearActividad(@RequestBody CrearActividadRequest request) {
+    public ResponseEntity<?> crearActividad(@RequestBody CrearActividadRequest request) {
         ActividadResponse response = actividadGrpcClient.crearActividad(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapActividadResponse(response));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ActividadResponse> editarActividad(@PathVariable Long id, @RequestBody EditarActividadRequest request) {
+    public ResponseEntity<?> editarActividad(@PathVariable Long id, @RequestBody EditarActividadRequest request) {
         EditarActividadRequest req = request.toBuilder().setIdActividad(id).build();
         ActividadResponse response = actividadGrpcClient.editarActividad(req);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapActividadResponse(response));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<EliminarActividadResponse> eliminarActividad(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarActividad(@PathVariable Long id) {
         EliminarActividadResponse response = actividadGrpcClient.eliminarActividad(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapEliminarResponse(response));
     }
 }
