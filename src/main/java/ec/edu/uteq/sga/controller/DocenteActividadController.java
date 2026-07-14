@@ -20,8 +20,17 @@ public class DocenteActividadController {
     public ResponseEntity<List<ActividadDto>> listarActividades(
             @RequestParam Long idAsignacion,
             @RequestParam(required = false) Long idPeriodo) {
-        
+
         List<ActividadDto> actividades = actividadGrpcClient.listarActividades(idAsignacion, idPeriodo);
+        return ResponseEntity.ok(actividades);
+    }
+
+    @GetMapping("/asignacion/{asignacionId}")
+    public ResponseEntity<List<ActividadDto>> listarActividadesPorAsignacion(
+            @PathVariable Long asignacionId,
+            @RequestParam(required = false) Long idPeriodo) {
+
+        List<ActividadDto> actividades = actividadGrpcClient.listarActividades(asignacionId, idPeriodo);
         return ResponseEntity.ok(actividades);
     }
 

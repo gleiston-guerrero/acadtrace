@@ -4,6 +4,7 @@ import ec.edu.uteq.sga.dto.usuario.*;
 import ec.edu.uteq.sga.entity.*;
 import ec.edu.uteq.sga.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepo;
@@ -36,7 +38,7 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioResponseDTO crear(UsuarioRequestDTO dto) {
+    public UsuarioCreacionResponseDTO crear(UsuarioRequestDTO dto) {
         if (usuarioRepo.existsByCorreo(dto.getCorreo()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya está registrado");
 
@@ -59,8 +61,19 @@ public class UsuarioService {
 
         String nombreCompleto = dto.getNombres() + " " + dto.getApellidos();
         emailService.enviarCredenciales(dto.getCorreo(), nombreCompleto, username, passwordPlano);
+        log.info("Usuario creado: {} ({})", username, dto.getCorreo());
 
-        return toDTO(usuario);
+        return UsuarioCreacionResponseDTO.builder()
+                .idUsuario(usuario.getIdUsuario())
+                .username(username)
+                .correo(usuario.getCorreo())
+                .passwordTemporal(passwordPlano)
+                .estado(usuario.getEstado())
+                .primerIngreso(usuario.isPrimerIngreso())
+                .roles(usuario.getRoles().stream().map(Rol::getNombre).collect(Collectors.toSet()))
+                .fechaCreacion(usuario.getFechaCreacion())
+                .mensaje("Usuario creado exitosamente. Se ha enviado un correo con las credenciales.")
+                .build();
     }
 
     @Transactional

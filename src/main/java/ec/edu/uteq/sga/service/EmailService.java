@@ -1,31 +1,36 @@
 package ec.edu.uteq.sga.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    @Async
+
     public void enviarCredenciales(String correo, String nombreCompleto,
                                    String username, String password) {
         try {
+            log.info("Iniciando envío de correo a: {}", correo);
             var message = mailSender.createMimeMessage();
             var helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(correo);
+            helper.setFrom("kbedonv@uteq.edu.ec");
             helper.setSubject("Bienvenido al SGA — Escuela Provincias Unidas");
             helper.setText(construirHtml(nombreCompleto, username, password), true);
 
             mailSender.send(message);
+            log.info("✓ Correo de credenciales enviado exitosamente a: {}", correo);
         } catch (Exception e) {
-            throw new RuntimeException("Error al enviar correo: " + e.getMessage());
+            log.error("✗ Error crítico al enviar correo a {}: {}", correo, e.getMessage(), e);
+            throw new RuntimeException("Error enviando correo: " + e.getMessage(), e);
         }
     }
 

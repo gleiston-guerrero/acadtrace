@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/logo.png";
+import { redirigirAMicroservicio } from "../../utils/handoff";
 
 export default function Login() {
     const [form, setForm] = useState({ username: "", password: "" });
@@ -21,20 +22,50 @@ export default function Login() {
         setError("");
         try {
             const res = await axios.post("http://localhost:8080/api/auth/login", form);
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("username", res.data.username);
-            localStorage.setItem("roles", JSON.stringify(res.data.roles));
-            localStorage.setItem("primerIngreso", res.data.primerIngreso);
+            const roles = res.data.roles || [];
+            const sesion = {
+                token: res.data.token,
+                username: res.data.username,
+                roles,
+                primerIngreso: res.data.primerIngreso,
+            };
 
-// Redirigir según primerIngreso
+            // Primer ingreso: cambia la contraseña en el principal antes de continuar.
             if (res.data.primerIngreso) {
+                localStorage.setItem("token", sesion.token);
+                localStorage.setItem("username", sesion.username);
+                localStorage.setItem("roles", JSON.stringify(roles));
+                localStorage.setItem("primerIngreso", res.data.primerIngreso);
                 navigate("/cambiar-password");
-            } else {
+                return;
+            }
+
+            // DIRECTOR se queda en el SGA Principal (este mismo origen).
+            if (roles.includes("DIRECTOR")) {
+                localStorage.setItem("token", sesion.token);
+                localStorage.setItem("username", sesion.username);
+                localStorage.setItem("roles", JSON.stringify(roles));
+                localStorage.setItem("primerIngreso", res.data.primerIngreso);
                 navigate("/dashboard");
+                return;
+            }
+
+            // Otros roles: handoff hacia su propio microservicio (otro origen).
+            // NO guardamos el token aquí para no contaminar el localStorage del principal.
+            let destino = null;
+            if (roles.includes("DOCENTE")) destino = "DOCENTE";
+            else if (roles.includes("SECRETARIA")) destino = "SECRETARIA";
+            else if (roles.includes("SOPORTE_TECNICO")) destino = "SOPORTE_TECNICO";
+
+            if (destino) {
+                const ok = await redirigirAMicroservicio(destino, sesion);
+                if (!ok) setLoading(false);
+            } else {
+                setError("Tu usuario no tiene un rol con acceso asignado.");
+                setLoading(false);
             }
         } catch (err) {
             setError("Usuario o contraseña incorrectos");
-        } finally {
             setLoading(false);
         }
     };
