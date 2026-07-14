@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { redirectToLogin } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -91,7 +92,7 @@ export default function Soporte() {
     };
 
     useEffect(() => {
-        if (!token) { navigate("/login"); return; }
+        if (!token) { redirectToLogin(); return; }
         cargar();
         cargarEstadisticas();
     }, []);
@@ -171,7 +172,7 @@ export default function Soporte() {
 
     const handleLogout = () => {
         localStorage.clear();
-        navigate("/login");
+        redirectToLogin();
     };
 
     const modalBg = { backgroundColor: "rgba(36,58,118,0.5)" };

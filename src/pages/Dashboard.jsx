@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { redirectToLogin } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -50,7 +51,7 @@ export default function Dashboard() {
     const [filtroAccion, setFiltroAccion] = useState("TODAS");
 
     useEffect(() => {
-        if (!token) { navigate("/login"); return; }
+        if (!token) { redirectToLogin(); return; }
         if (!esAdmin) { navigate("/soporte"); return; }
         verificarSalud();
         cargarAuditoria();
