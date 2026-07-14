@@ -32,8 +32,8 @@ public class DocenteAsistenciaController {
             return ResponseEntity.badRequest().body(Map.of("message", "Falta idAsignacion o idPeriodo en la peticion"));
         }
         
-        int idAsignacion = ((Number) asignacionObj).intValue();
-        int idPeriodo = ((Number) periodoObj).intValue();
+        int idAsignacion = Integer.parseInt(asignacionObj.toString());
+        int idPeriodo = Integer.parseInt(periodoObj.toString());
         String fecha = (String) body.get("fecha");
         
         List<Map<String, Object>> asistenciasRaw = (List<Map<String, Object>>) body.get("asistencias");
@@ -48,7 +48,7 @@ public class DocenteAsistenciaController {
             if (matriculaObj == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Falta idMatricula en los registros de asistencia"));
             }
-            int idMatricula = ((Number) matriculaObj).intValue();
+            int idMatricula = Integer.parseInt(matriculaObj.toString());
             
             requestBuilder.addAsistencias(AsistenciaItemRequest.newBuilder()
                     .setIdMatricula(idMatricula)
