@@ -25,8 +25,15 @@ public class DocenteAsistenciaController {
 
     @PostMapping("/masivo")
     public ResponseEntity<?> registrarAsistenciaGrupal(@RequestBody Map<String, Object> body) {
-        int idAsignacion = (Integer) body.get("id_asignacion");
-        int idPeriodo = (Integer) body.get("id_periodo");
+        Object asignacionObj = body.get("id_asignacion") != null ? body.get("id_asignacion") : body.get("idAsignacion");
+        Object periodoObj = body.get("id_periodo") != null ? body.get("id_periodo") : body.get("idPeriodo");
+        
+        if (asignacionObj == null || periodoObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Falta idAsignacion o idPeriodo en la peticion"));
+        }
+        
+        int idAsignacion = ((Number) asignacionObj).intValue();
+        int idPeriodo = ((Number) periodoObj).intValue();
         String fecha = (String) body.get("fecha");
         
         List<Map<String, Object>> asistenciasRaw = (List<Map<String, Object>>) body.get("asistencias");
@@ -37,8 +44,14 @@ public class DocenteAsistenciaController {
                 .setFecha(fecha);
                 
         for (Map<String, Object> asis : asistenciasRaw) {
+            Object matriculaObj = asis.get("id_matricula") != null ? asis.get("id_matricula") : asis.get("idMatricula");
+            if (matriculaObj == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Falta idMatricula en los registros de asistencia"));
+            }
+            int idMatricula = ((Number) matriculaObj).intValue();
+            
             requestBuilder.addAsistencias(AsistenciaItemRequest.newBuilder()
-                    .setIdMatricula((Integer) asis.get("id_matricula"))
+                    .setIdMatricula(idMatricula)
                     .setEstado((String) asis.get("estado"))
                     .setJustificacion(asis.get("justificacion") != null ? (String) asis.get("justificacion") : "")
                     .build());
