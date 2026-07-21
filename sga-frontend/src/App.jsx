@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/login/Login";
+import Portales from "./pages/portales/Portales";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Usuarios from "./pages/usuarios/Usuarios";
 import CambiarPassword from "./pages/cambiar-password/CambiarPassword"
@@ -14,6 +15,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Navigate to="/login" />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/portales" element={<Portales />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/cambiar-password" element={<CambiarPassword />} />
                 <Route path="/usuarios" element={<Usuarios />} />

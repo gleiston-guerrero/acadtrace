@@ -40,8 +40,27 @@ export default function Login() {
                 return;
             }
 
-            // DIRECTOR se queda en el SGA Principal (este mismo origen).
-            if (roles.includes("DIRECTOR")) {
+            // Portales a los que el usuario puede entrar según sus roles.
+            const portales = ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"]
+                .filter((rol) => roles.includes(rol));
+
+            if (portales.length === 0) {
+                setError("Tu usuario no tiene un rol con acceso asignado.");
+                setLoading(false);
+                return;
+            }
+
+            // Con más de un portal, se elige en la pantalla intermedia.
+            if (portales.length > 1) {
+                navigate("/portales", { state: sesion });
+                return;
+            }
+
+            // Un solo portal: se entra directo.
+            // DIRECTOR permanece en el SGA Principal (este mismo origen); el resto
+            // se entrega a su microservicio por SSO sin guardar token aquí.
+            const destino = portales[0];
+            if (destino === "DIRECTOR") {
                 localStorage.setItem("token", sesion.token);
                 localStorage.setItem("username", sesion.username);
                 localStorage.setItem("roles", JSON.stringify(roles));
@@ -50,20 +69,8 @@ export default function Login() {
                 return;
             }
 
-            // Otros roles: handoff hacia su propio microservicio (otro origen).
-            // NO guardamos el token aquí para no contaminar el localStorage del principal.
-            let destino = null;
-            if (roles.includes("DOCENTE")) destino = "DOCENTE";
-            else if (roles.includes("SECRETARIA")) destino = "SECRETARIA";
-            else if (roles.includes("SOPORTE_TECNICO")) destino = "SOPORTE_TECNICO";
-
-            if (destino) {
-                const ok = await redirigirAMicroservicio(destino, sesion);
-                if (!ok) setLoading(false);
-            } else {
-                setError("Tu usuario no tiene un rol con acceso asignado.");
-                setLoading(false);
-            }
+            const ok = await redirigirAMicroservicio(destino, sesion);
+            if (!ok) setLoading(false);
         } catch (err) {
             setError("Usuario o contraseña incorrectos");
             setLoading(false);
