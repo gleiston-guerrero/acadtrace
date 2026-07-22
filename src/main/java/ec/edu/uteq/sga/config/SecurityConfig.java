@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -72,6 +73,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/representantes/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
                         .requestMatchers("/api/matriculas/**").hasAnyAuthority("DIRECTOR", "SECRETARIA")
                         .requestMatchers("/api/asignaciones/**").hasAnyAuthority("DIRECTOR")
+                        // Configuración del esquema de calificación: la edita el DIRECTOR;
+                        // el docente la consulta (para calcular promedios con la escala vigente).
+                        .requestMatchers(HttpMethod.GET, "/api/configuracion/**").hasAnyAuthority("DIRECTOR", "DOCENTE")
+                        .requestMatchers("/api/configuracion/**").hasAnyAuthority("DIRECTOR")
                         .requestMatchers("/api/calificaciones/**").hasAnyAuthority("DIRECTOR", "DOCENTE", "SECRETARIA")
                         .requestMatchers("/api/rpc/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
