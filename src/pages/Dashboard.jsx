@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { redirectToLogin } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -9,7 +8,7 @@ const PRIMARY_LIGHT = "#2d4a96";
 const SERVICIOS = [
     { nombre: "sga-principal",  url: "http://localhost:8080/actuator/health",     puerto: 8080, descripcion: "Sistema Principal" },
     { nombre: "sga-docente",    url: "http://localhost:8081/api/docente/",        puerto: 8081, descripcion: "Microservicio Docente (Django)" },
-    { nombre: "sga-soporte",    url: "http://localhost:8081/actuator/health",     puerto: 8081, descripcion: "Soporte Técnico" },
+    { nombre: "sga-soporte",    url: "http://localhost:5178/health",              puerto: 5178, descripcion: "Soporte Técnico" },
 ];
 
 const accionBadge = (accion) => {
@@ -51,7 +50,7 @@ export default function Dashboard() {
     const [filtroAccion, setFiltroAccion] = useState("TODAS");
 
     useEffect(() => {
-        if (!token) { redirectToLogin(); return; }
+        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
         if (!esAdmin) { navigate("/soporte"); return; }
         verificarSalud();
         cargarAuditoria();

@@ -1,0 +1,164 @@
+package ec.uteq.sga.soporte.service;
+
+import ec.uteq.sga.soporte.common.ApiException;
+import ec.uteq.sga.soporte.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;
+import ec.uteq.sga.soporte.dto.ComentarioRequest;
+import ec.uteq.sga.soporte.dto.TicketRequest;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Logica de negocio del modulo de soporte tecnico. Toda la data vive en el
+ * esquema propio sga_soporte (tablas: tickets, comentarios); ningun otro
+ * servicio lee esta base directamente.
+ *
+ * Las consultas devuelven las columnas con alias camelCase para que el
+ * frontend las consuma directamente (idTicket, numeroTicket, creadoPor, ...).
+ */
+@Service
+public class TicketService {
+
+    private static final Set<String> ESTADOS = Set.of("ABIERTO", "EN_PROCESO", "RESUELTO", "CERRADO");
+    private static final Set<String> PRIORIDADES = Set.of("BAJO", "MEDIO", "ALTO", "CRITICO");
+    private static final Set<String> CATEGORIAS = Set.of("HARDWARE", "SOFTWARE", "RED", "CUENTA", "OTRO");
+
+    private static final String SELECT_TICKET = """
+            SELECT id_ticket        AS "idTicket",
+                   numero_ticket    AS "numeroTicket",
+                   titulo, descripcion, categoria, prioridad, estado,
+                   creado_por       AS "creadoPor",
+                   asignado_a       AS "asignadoA",
+                   solucion_aplicada AS "solucionAplicada",
+                   fecha_creacion   AS "fechaCreacion",
+                   fecha_resolucion AS "fechaResolucion"
+            FROM sga_soporte.tickets
+            """;
+
+    private static final String SELECT_COMENTARIO = """
+            SELECT id_comentario  AS "idComentario",
+                   id_ticket      AS "idTicket",
+                   autor, contenido,
+                   nota_interna   AS "notaInterna",
+                   fecha_creacion AS "fechaCreacion"
+            FROM sga_soporte.comentarios
+            """;
+
+    private final NamedParameterJdbcTemplate jdbc;
+
+    public TicketService(NamedParameterJdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    public List<Map<String, Object>> listar() {
+        return jdbc.query(SELECT_TICKET + " ORDER BY fecha_creacion DESC", GenericRowMapper.INSTANCE);
+    }
+
+    public List<Map<String, Object>> misTickets(String username) {
+        return jdbc.query(SELECT_TICKET + " WHERE creado_por = :u ORDER BY fecha_creacion DESC",
+                new MapSqlParameterSource("u", username), GenericRowMapper.INSTANCE);
+    }
+
+    public Map<String, Object> estadisticas() {
+        return jdbc.queryForObject("""
+                SELECT COUNT(*)                                        AS total,
+                       COUNT(*) FILTER (WHERE estado = 'ABIERTO')     AS abiertos,
+                       COUNT(*) FILTER (WHERE estado = 'EN_PROCESO')  AS "enProceso",
+                       COUNT(*) FILTER (WHERE estado = 'RESUELTO')    AS resueltos,
+                       COUNT(*) FILTER (WHERE estado = 'CERRADO')     AS cerrados
+                FROM sga_soporte.tickets
+                """, new MapSqlParameterSource(), GenericRowMapper.INSTANCE);
+    }
+
+    public Map<String, Object> obtener(long id) {
+        List<Map<String, Object>> rows = jdbc.query(SELECT_TICKET + " WHERE id_ticket = :id",
+                new MapSqlParameterSource("id", id), GenericRowMapper.INSTANCE);
+        if (rows.isEmpty()) {
+            throw ApiException.notFound("Ticket no encontrado");
+        }
+        return rows.get(0);
+    }
+
+    @Transactional
+    public Map<String, Object> crear(TicketRequest req, String creadoPor) {
+        String prioridad = req.prioridad().toUpperCase();
+        if (!PRIORIDADES.contains(prioridad)) {
+            throw ApiException.badRequest("Prioridad inválida (BAJO, MEDIO, ALTO, CRITICO)");
+        }
+        String categoria = req.categoria().toUpperCase();
+        if (!CATEGORIAS.contains(categoria)) {
+            throw ApiException.badRequest("Categoría inválida (HARDWARE, SOFTWARE, RED, CUENTA, OTRO)");
+        }
+
+        String numero = "TK-" + System.currentTimeMillis();
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("numero", numero)
+                .addValue("titulo", req.titulo())
+                .addValue("descripcion", req.descripcion())
+                .addValue("categoria", categoria)
+                .addValue("prioridad", prioridad)
+                .addValue("creado_por", creadoPor);
+
+        Long id = jdbc.queryForObject(
+                "INSERT INTO sga_soporte.tickets "
+                        + "(numero_ticket, titulo, descripcion, categoria, prioridad, estado, creado_por, fecha_creacion) "
+                        + "VALUES (:numero, :titulo, :descripcion, :categoria, :prioridad, 'ABIERTO', :creado_por, NOW()) "
+                        + "RETURNING id_ticket",
+                params, Long.class);
+
+        return obtener(id == null ? 0 : id);
+    }
+
+    @Transactional
+    public Map<String, Object> actualizar(long id, ActualizarTicketRequest req) {
+        String estado = req.estado().toUpperCase();
+        if (!ESTADOS.contains(estado)) {
+            throw ApiException.badRequest("Estado inválido (ABIERTO, EN_PROCESO, RESUELTO, CERRADO)");
+        }
+        obtener(id); // valida existencia
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("estado", estado)
+                .addValue("asignado", req.asignadoA())
+                .addValue("solucion", req.solucionAplicada());
+        jdbc.update(
+                "UPDATE sga_soporte.tickets SET estado = :estado, "
+                        + "asignado_a = COALESCE(:asignado, asignado_a), "
+                        + "solucion_aplicada = COALESCE(:solucion, solucion_aplicada), "
+                        + "fecha_resolucion = CASE WHEN :estado IN ('RESUELTO','CERRADO') THEN NOW() ELSE fecha_resolucion END "
+                        + "WHERE id_ticket = :id",
+                params);
+        return obtener(id);
+    }
+
+    public List<Map<String, Object>> listarComentarios(long idTicket) {
+        obtener(idTicket);
+        return jdbc.query(SELECT_COMENTARIO + " WHERE id_ticket = :id ORDER BY fecha_creacion ASC",
+                new MapSqlParameterSource("id", idTicket), GenericRowMapper.INSTANCE);
+    }
+
+    @Transactional
+    public Map<String, Object> comentar(long idTicket, ComentarioRequest req, String autor) {
+        obtener(idTicket);
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id_ticket", idTicket)
+                .addValue("autor", autor)
+                .addValue("contenido", req.contenido())
+                .addValue("nota_interna", req.notaInterna() != null && req.notaInterna());
+        Long id = jdbc.queryForObject(
+                "INSERT INTO sga_soporte.comentarios (id_ticket, autor, contenido, nota_interna, fecha_creacion) "
+                        + "VALUES (:id_ticket, :autor, :contenido, :nota_interna, NOW()) RETURNING id_comentario",
+                params, Long.class);
+
+        return jdbc.query(SELECT_COMENTARIO + " WHERE id_comentario = :id",
+                new MapSqlParameterSource("id", id), GenericRowMapper.INSTANCE).get(0);
+    }
+}

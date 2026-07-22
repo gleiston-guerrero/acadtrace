@@ -1,24 +1,28 @@
-import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Soporte  from "./pages/Soporte";
 import Usuarios from "./pages/Usuarios";
 import Dashboard from "./pages/Dashboard";
-import { capturarTokenDeURL } from "./utils/auth";
+
+// El login vive únicamente en el SGA Principal. Aquí solo se entra por handoff SSO
+// (ver capturarSesionSSO en main.jsx). Sin token, se redirige al login del principal.
+function PrivateRoute({ children }) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "http://localhost:5173/login";
+        return null;
+    }
+    return children;
+}
 
 function App() {
-    // Al cargar la app, revisa si venimos de un login del principal
-    // con el token en la URL, y si es asi lo guarda antes de renderizar rutas
-    useEffect(() => {
-        capturarTokenDeURL();
-    }, []);
-
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/"          element={<Navigate to="/soporte" />} />
-                <Route path="/soporte"   element={<Soporte />} />
-                <Route path="/usuarios"  element={<Usuarios />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/"          element={<Navigate to="/dashboard" />} />
+                <Route path="/soporte"   element={<PrivateRoute><Soporte /></PrivateRoute>} />
+                <Route path="/usuarios"  element={<PrivateRoute><Usuarios /></PrivateRoute>} />
+                <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                <Route path="*"          element={<Navigate to="/dashboard" />} />
             </Routes>
         </BrowserRouter>
     );

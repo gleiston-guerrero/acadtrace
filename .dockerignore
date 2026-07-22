@@ -1,8 +1,0 @@
-target/
-.idea/
-.mvn/
-*.iml
-node_modules/
-sga-soporte-frontend/
-.git/
-.env

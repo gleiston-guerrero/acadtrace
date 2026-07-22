@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { redirectToLogin } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -74,7 +73,7 @@ export default function Usuarios() {
     const [savingRoles,  setSavingRoles]  = useState(false);
 
     useEffect(() => {
-        if (!token) { redirectToLogin(); return; }
+        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
         if (!puedeGestionar) { navigate("/soporte"); return; }
         cargar();
     }, []);

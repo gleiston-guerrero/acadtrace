@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { redirectToLogin } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API = "http://localhost:8082/api/soporte";
+const API = "/api/soporte";
 const PRIMARY = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
 
@@ -92,7 +91,7 @@ export default function Soporte() {
     };
 
     useEffect(() => {
-        if (!token) { redirectToLogin(); return; }
+        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
         cargar();
         cargarEstadisticas();
     }, []);
@@ -172,7 +171,7 @@ export default function Soporte() {
 
     const handleLogout = () => {
         localStorage.clear();
-        redirectToLogin();
+        window.location.href = "http://localhost:5173/login";
     };
 
     const modalBg = { backgroundColor: "rgba(36,58,118,0.5)" };
