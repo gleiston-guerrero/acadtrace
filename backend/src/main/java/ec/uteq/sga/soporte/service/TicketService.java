@@ -16,8 +16,8 @@ import java.util.Set;
 
 /**
  * Logica de negocio del modulo de soporte tecnico. Toda la data vive en el
- * esquema propio sga_soporte (tablas: tickets, comentarios); ningun otro
- * servicio lee esta base directamente.
+ * esquema propio sga_soporte (tablas: tickets, comentarios, historial_ticket);
+ * ningun otro servicio lee esta base directamente.
  *
  * Las consultas devuelven las columnas con alias camelCase para que el
  * frontend las consuma directamente (idTicket, numeroTicket, creadoPor, ...).
@@ -48,6 +48,17 @@ public class TicketService {
                    nota_interna   AS "notaInterna",
                    fecha_creacion AS "fechaCreacion"
             FROM sga_soporte.comentarios
+            """;
+
+    private static final String SELECT_HISTORIAL = """
+            SELECT id_historial       AS "idHistorial",
+                   id_ticket          AS "idTicket",
+                   campo,
+                   valor_anterior     AS "valorAnterior",
+                   valor_nuevo        AS "valorNuevo",
+                   modificado_por     AS "modificadoPor",
+                   fecha_modificacion AS "fechaModificacion"
+            FROM sga_soporte.historial_ticket
             """;
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -117,12 +128,15 @@ public class TicketService {
     }
 
     @Transactional
-    public Map<String, Object> actualizar(long id, ActualizarTicketRequest req) {
+    public Map<String, Object> actualizar(long id, ActualizarTicketRequest req, String modificadoPor) {
         String estado = req.estado().toUpperCase();
         if (!ESTADOS.contains(estado)) {
             throw ApiException.badRequest("Estado inválido (ABIERTO, EN_PROCESO, RESUELTO, CERRADO)");
         }
-        obtener(id); // valida existencia
+
+        Map<String, Object> actual = obtener(id); // valida existencia y trae valores previos
+        String estadoAnterior = (String) actual.get("estado");
+        String asignadoAnterior = (String) actual.get("asignadoA");
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
@@ -136,7 +150,35 @@ public class TicketService {
                         + "fecha_resolucion = CASE WHEN :estado IN ('RESUELTO','CERRADO') THEN NOW() ELSE fecha_resolucion END "
                         + "WHERE id_ticket = :id",
                 params);
+
+        if (!estado.equals(estadoAnterior)) {
+            registrarHistorial(id, "ESTADO", estadoAnterior, estado, modificadoPor);
+        }
+        if (req.asignadoA() != null && !req.asignadoA().equals(asignadoAnterior)) {
+            registrarHistorial(id, "ASIGNADO_A", asignadoAnterior, req.asignadoA(), modificadoPor);
+        }
+
         return obtener(id);
+    }
+
+    private void registrarHistorial(long idTicket, String campo, String anterior, String nuevo, String modificadoPor) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id_ticket", idTicket)
+                .addValue("campo", campo)
+                .addValue("anterior", anterior)
+                .addValue("nuevo", nuevo)
+                .addValue("modificado_por", modificadoPor);
+        jdbc.update(
+                "INSERT INTO sga_soporte.historial_ticket "
+                        + "(id_ticket, campo, valor_anterior, valor_nuevo, modificado_por, fecha_modificacion) "
+                        + "VALUES (:id_ticket, :campo, :anterior, :nuevo, :modificado_por, NOW())",
+                params);
+    }
+
+    public List<Map<String, Object>> listarHistorial(long idTicket) {
+        obtener(idTicket);
+        return jdbc.query(SELECT_HISTORIAL + " WHERE id_ticket = :id ORDER BY fecha_modificacion ASC",
+                new MapSqlParameterSource("id", idTicket), GenericRowMapper.INSTANCE);
     }
 
     public List<Map<String, Object>> listarComentarios(long idTicket) {

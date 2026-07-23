@@ -54,11 +54,16 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-    @PutMapping("/{id}")
-    public Map<String, Object> actualizar(
-            @PathVariable long id, @Valid @RequestBody ActualizarTicketRequest req) {
-        return service.actualizar(id, req);
-    }
+@PutMapping("/{id}")
+public Map<String, Object> actualizar(
+        @PathVariable long id, @Valid @RequestBody ActualizarTicketRequest req, AuthenticatedUser user) {
+    return service.actualizar(id, req, user.username());
+}
+
+@GetMapping("/{id}/historial")
+public List<Map<String, Object>> historial(@PathVariable long id) {
+    return service.listarHistorial(id);
+}
 
     @GetMapping("/{id}/comentarios")
     public List<Map<String, Object>> listarComentarios(@PathVariable long id) {
