@@ -33,6 +33,16 @@ public class AsignacionController {
         return ResponseEntity.ok(asignacionService.listarPorDocente(idDocente));
     }
 
+    @GetMapping("/docentes")
+    public ResponseEntity<List<java.util.Map<String, Object>>> listarDocentes() {
+        return ResponseEntity.ok(asignacionService.listarDocentes());
+    }
+
+    @GetMapping("/grado/{idGrado}/paralelos")
+    public ResponseEntity<List<java.util.Map<String, Object>>> listarParalelos(@PathVariable Long idGrado) {
+        return ResponseEntity.ok(asignacionService.listarParalelosPorGrado(idGrado));
+    }
+
     @PostMapping
     public ResponseEntity<AsignacionResponseDTO> crear(@Valid @RequestBody AsignacionRequestDTO dto,
                                                        Authentication auth) {

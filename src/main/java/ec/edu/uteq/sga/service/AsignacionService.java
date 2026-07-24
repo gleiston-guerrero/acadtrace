@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,8 +22,36 @@ public class AsignacionService {
     private final PersonaRepository personaRepo;
     private final AsignaturaRepository asignaturaRepo;
     private final GradoRepository gradoRepo;
+    private final ParaleloRepository paraleloRepo;
     private final AnoLectivoRepository anoLectivoRepo;
     private final UsuarioRepository usuarioRepo;
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> listarDocentes() {
+        return usuarioRepo.findAll().stream()
+                .filter(u -> u.getRoles().stream()
+                        .anyMatch(r -> r.getNombre().equalsIgnoreCase("DOCENTE")))
+                .map(u -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("idDocente", u.getIdUsuario());
+                    String nombre = personaRepo.findByUsuario_IdUsuario(u.getIdUsuario())
+                            .map(p -> p.getNombres() + " " + p.getApellidos())
+                            .orElse(u.getUsername());
+                    map.put("nombre", nombre);
+                    return map;
+                }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> listarParalelosPorGrado(Long idGrado) {
+        return paraleloRepo.findByGradoIdGradoAndActivoTrueOrderByLetra(idGrado).stream()
+                .map(p -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("idParalelo", p.getIdParalelo());
+                    map.put("letra", p.getLetra());
+                    return map;
+                }).collect(Collectors.toList());
+    }
 
     @Transactional(readOnly = true)
     public List<AsignacionResponseDTO> listarTodos() {
@@ -55,6 +85,9 @@ public class AsignacionService {
         Grado grado = gradoRepo.findById(dto.getIdGrado())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grado no encontrado"));
 
+        Paralelo paralelo = paraleloRepo.findById(dto.getIdParalelo())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paralelo no encontrado"));
+
         AnoLectivo anoLectivo = anoLectivoRepo.findById(dto.getIdAnoLectivo())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Año lectivo no encontrado"));
 
@@ -65,9 +98,11 @@ public class AsignacionService {
                 .docente(docente)
                 .asignatura(asignatura)
                 .grado(grado)
+                .paralelo(paralelo)
                 .anoLectivo(anoLectivo)
                 .esTutor(dto.isEsTutor())
                 .activo(true)
+                .fechaAsignacion(java.time.Instant.now())
                 .asignadoPor(asignadoPor)
                 .build();
 
@@ -88,6 +123,7 @@ public class AsignacionService {
                 .docente(a.getDocente().getNombres() + " " + a.getDocente().getApellidos())
                 .asignatura(a.getAsignatura().getNombre())
                 .grado(a.getGrado().getNombre())
+                .paralelo(a.getParalelo() != null ? a.getParalelo().getLetra() : null)
                 .anoLectivo(a.getAnoLectivo().getNombre())
                 .esTutor(a.isEsTutor())
                 .activo(a.isActivo())

@@ -9,6 +9,7 @@ public class AsignacionResponseDTO {
     private String docente;
     private String asignatura;
     private String grado;
+    private String paralelo;
     private String anoLectivo;
     private boolean esTutor;
     private boolean activo;
