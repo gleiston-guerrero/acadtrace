@@ -7,6 +7,7 @@ import ec.edu.uteq.sga.entity.Persona;
 import ec.edu.uteq.sga.service.TeacherAuthorizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class DocenteContextController {
     private TeacherAuthorizationService authService;
 
     @GetMapping("/mis-asignaciones")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> getMisAsignaciones() {
         System.out.println("[API DEBUG] /mis-asignaciones: Obteniendo docente autenticado...");
         Persona docente = authService.getAuthenticatedTeacher();
@@ -82,6 +84,7 @@ public class DocenteContextController {
     }
 
     @GetMapping("/asignaciones/{id}/estudiantes")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> getEstudiantesAsignacion(@PathVariable Long id) {
         Persona docente = authService.getAuthenticatedTeacher();
         Asignacion asignacion = authService.validateTeacherAssignment(docente.getIdPersona(), id);

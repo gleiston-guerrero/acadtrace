@@ -8,6 +8,7 @@ import Estudiantes from "./pages/estudiantes/Estudiantes";
 import Calificaciones from "./pages/calificaciones/Calificaciones";
 import AnosLectivos from "./pages/anos-lectivos/AnosLectivos";
 import Grados from "./pages/grados/Grados";
+import Asignaciones from "./pages/asignaciones/Asignaciones";
 import ConfiguracionCalificacion from "./pages/configuracion/ConfiguracionCalificacion";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/calificaciones" element={<Calificaciones />} />
                 <Route path="/anos-lectivos" element={<AnosLectivos />} />
                 <Route path="/grados" element={<Grados />} />
+                <Route path="/asignaciones" element={<Asignaciones />} />
                 <Route path="/configuracion/calificacion" element={<ConfiguracionCalificacion />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>

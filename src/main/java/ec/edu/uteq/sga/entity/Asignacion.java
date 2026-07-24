@@ -27,6 +27,10 @@ public class Asignacion {
     private Grado grado;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_paralelo", nullable = false)
+    private Paralelo paralelo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ano_lectivo", nullable = false)
     private AnoLectivo anoLectivo;
 
