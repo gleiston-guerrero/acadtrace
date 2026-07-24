@@ -1,0 +1,29 @@
+﻿[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ------------------------------------------------------------------------
+[INFO] os.detected.name: windows
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 10.0
+[INFO] os.detected.version.major: 10
+[INFO] os.detected.version.minor: 0
+[INFO] os.detected.classifier: windows-x86_64
+Downloading from central: https://repo.maven.apache.org/maven2/datasource/url=jdbc/postgresql///localhost/postgresql-//localhost.pom
+[WARNING] The POM for .datasource.url=jdbc:postgresql:jar://localhost is missing, no dependency information available
+Downloading from central: https://repo.maven.apache.org/maven2/datasource/url=jdbc/postgresql///localhost/postgresql-//localhost.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.221 s
+[INFO] Finished at: 2026-07-20T15:49:33-05:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Plugin .datasource.url=jdbc:postgresql://localhost or one of its dependencies could not be resolved:
+[ERROR] 	Could not find artifact .datasource.url=jdbc:postgresql:jar://localhost in central (https://repo.maven.apache.org/maven2)
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/PluginResolutionException

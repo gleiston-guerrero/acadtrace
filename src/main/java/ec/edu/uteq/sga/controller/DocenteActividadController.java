@@ -71,12 +71,21 @@ public class DocenteActividadController {
     public ResponseEntity<?> listarActividades(
             @RequestParam Long idAsignacion,
             @RequestParam(required = false) Long idPeriodo) {
-        
+
         List<ActividadDto> actividades = actividadGrpcClient.listarActividades(idAsignacion, idPeriodo);
         List<Map<String, Object>> response = actividades.stream()
                 .map(this::mapActividadDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/asignacion/{asignacionId}")
+    public ResponseEntity<List<ActividadDto>> listarActividadesPorAsignacion(
+            @PathVariable Long asignacionId,
+            @RequestParam(required = false) Long idPeriodo) {
+
+        List<ActividadDto> actividades = actividadGrpcClient.listarActividades(asignacionId, idPeriodo);
+        return ResponseEntity.ok(actividades);
     }
 
     @GetMapping("/{id}")
