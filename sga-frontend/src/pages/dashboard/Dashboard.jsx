@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../config/axios";
 import logo from "../../assets/logo.png";
 import { modulos } from "../../config/modulos";
-
-const API = "http://localhost:8080/api";
 
 const PRIMARY = "#243A76";
 const PRIMARY_DARK = "#1a2d5f";
@@ -16,25 +14,32 @@ export default function Dashboard() {
     const [anoActual, setAnoActual] = useState(null);
     const [busqueda, setBusqueda] = useState("");
     const [breadcrumb, setBreadcrumb] = useState(["Inicio"]);
-    const navigate = useNavigate();
-
     const username = localStorage.getItem("username") || "Director";
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-    const token = localStorage.getItem("token");
-    const headers = { Authorization: `Bearer ${token}` };
+    const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get(`${API}/anos-lectivos/actual`, { headers })
+        api.get(`/api/anos-lectivos/actual`)
             .then(r => setAnoActual(r.data))
             .catch(() => {});
     }, []);
 
     const handleModulo = (m) => {
         setBreadcrumb(["Inicio", m.label]);
-        navigate(`/${m.id}`);
+        if (m.id === "docente") {
+            const token = localStorage.getItem("token");
+            const redirectUrl = `http://localhost:5174/?token=${token}&username=${encodeURIComponent(username)}&roles=${encodeURIComponent(JSON.stringify(roles))}`;
+            window.location.href = redirectUrl;
+        } else {
+            navigate(`/${m.id}`);
+        }
     };
 
-    const modulosFiltrados = modulos.filter(m =>
+    const modulosPermitidos = roles.includes("ROLE_DOCENTE")
+        ? modulos.filter(m => ["docente", "calificaciones"].includes(m.id))
+        : modulos;
+
+    const modulosFiltrados = modulosPermitidos.filter(m =>
         m.label.toLowerCase().includes(busqueda.toLowerCase()) ||
         m.desc.toLowerCase().includes(busqueda.toLowerCase())
     );

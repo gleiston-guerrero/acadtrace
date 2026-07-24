@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../config/axios";
 import Layout from "../../components/Layout";
 
-const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 
@@ -26,12 +25,10 @@ export default function AnosLectivos() {
 
   const [form, setForm] = useState({ nombre: "", fechaInicio: "", fechaFin: "" });
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
 
   const cargar = () => {
     setLoading(true);
-    axios.get(`${API}/anos-lectivos`, { headers })
+    api.get(`/api/anos-lectivos`)
       .then(r => setAnos(r.data))
       .catch(() => setError("Error al cargar años lectivos"))
       .finally(() => setLoading(false));
@@ -51,7 +48,7 @@ export default function AnosLectivos() {
     e.preventDefault();
     setSaving(true); setError("");
     try {
-      await axios.post(`${API}/anos-lectivos`, form, { headers });
+      await api.post(`/api/anos-lectivos`, form);
       setSuccess("Año lectivo creado correctamente.");
       setShowModal(false);
       setForm({ nombre: "", fechaInicio: "", fechaFin: "" });
@@ -67,11 +64,11 @@ export default function AnosLectivos() {
     e.preventDefault();
     setSaving(true); setError("");
     try {
-      await axios.put(`${API}/anos-lectivos/${anoEdit.idAnoLectivo}`, {
+      await api.put(`/api/anos-lectivos/${anoEdit.idAnoLectivo}`, {
         nombre: anoEdit.nombre,
         fechaInicio: anoEdit.fechaInicio,
         fechaFin: anoEdit.fechaFin,
-      }, { headers });
+      });
       setSuccess("Año lectivo actualizado correctamente.");
       setShowEditModal(false);
       cargar();
@@ -84,7 +81,7 @@ export default function AnosLectivos() {
 
   const handleEstablecerActual = async (id) => {
     try {
-      await axios.patch(`${API}/anos-lectivos/${id}/establecer-actual`, {}, { headers });
+      await api.patch(`/api/anos-lectivos/${id}/establecer-actual`, {});
       setSuccess("Año lectivo establecido como actual.");
       cargar();
     } catch {

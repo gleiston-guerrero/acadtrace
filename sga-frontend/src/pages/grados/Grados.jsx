@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../config/axios";
 import Layout from "../../components/Layout";
 
-const API = "http://localhost:8080/api";
+
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 
@@ -42,12 +42,12 @@ export default function Grados() {
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
 
-  const token = localStorage.getItem("token");
-  const H = { Authorization: `Bearer ${token}` };
+  
+  
 
   const cargar = () => {
     setLoading(true);
-    axios.get(`${API}/grados`, { headers: H })
+    api.get(`/api/grados`)
       .then(r => setGrados(r.data))
       .catch(() => setError("Error al cargar grados"))
       .finally(() => setLoading(false));
@@ -55,7 +55,7 @@ export default function Grados() {
 
   useEffect(() => {
     cargar();
-    axios.get(`${API}/anos-lectivos/actual`, { headers: H })
+    api.get(`/api/anos-lectivos/actual`)
       .then(r => setAnoLectivoActual(r.data))
       .catch(() => {});
   }, []);
@@ -81,12 +81,12 @@ export default function Grados() {
     if (!nuevaLetra.trim()) return;
     setSaving(true);
     try {
-      await axios.post(`${API}/grados/${gradoSel.idGrado}/paralelos?letra=${nuevaLetra.trim().toUpperCase()}`, {}, { headers: H });
+      await api.post(`/api/grados/${gradoSel.idGrado}/paralelos?letra=${nuevaLetra.trim().toUpperCase()}`, {});
       setSuccess(`Paralelo ${nuevaLetra.toUpperCase()} creado`);
       setShowCrearParalelo(false);
       setNuevaLetra("");
       cargar();
-      const updated = (await axios.get(`${API}/grados/${gradoSel.idGrado}`, { headers: H })).data;
+      const updated = (await api.get(`/api/grados/${gradoSel.idGrado}`)).data;
       setGradoSel(updated);
     } catch (e) {
       setError(e.response?.data?.message || "Error al crear paralelo");
@@ -103,7 +103,7 @@ export default function Grados() {
     setBusqueda("");
     setPagina(1);
     try {
-      const r = await axios.get(`${API}/estudiantes/por-grado`, {
+      const r = await api.get(`/api/estudiantes/por-grado`, {
         headers: H,
         params: { idGrado: grado.idGrado, idAnoLectivo: anoLectivoActual.idAnoLectivo, idParalelo: paralelo.idParalelo }
       });
@@ -559,7 +559,7 @@ function GradoForm({ onCancel, onSuccess, onError, headers }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    axios.get(`${API}/grados`, { headers }).then(r => {
+    api.get(`/api/grados`, { headers }).then(r => {
       const seen = new Set();
       const nivs = [];
       r.data.forEach(g => {
@@ -576,7 +576,7 @@ function GradoForm({ onCancel, onSuccess, onError, headers }) {
     e.preventDefault();
     setSaving(true); onError("");
     try {
-      await axios.post(`${API}/grados`, {
+      await api.post(`/api/grados`, {
         nombre,
         orden: Number(orden),
         capacidadMax: Number(capacidad),
@@ -627,3 +627,4 @@ function GradoForm({ onCancel, onSuccess, onError, headers }) {
     </form>
   );
 }
+

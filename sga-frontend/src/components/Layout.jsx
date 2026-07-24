@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../config/axios";
 import logo from "../assets/logo.png";
-
-const API = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
 
@@ -15,11 +13,9 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
 
   const username = localStorage.getItem("username") || "Usuario";
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    axios.get(`${API}/anos-lectivos/actual`, { headers })
+    api.get(`/api/anos-lectivos/actual`)
       .then(r => setAnoActual(r.data))
       .catch(() => {});
   }, []);

@@ -25,8 +25,15 @@ public class DocenteAsistenciaController {
 
     @PostMapping("/masivo")
     public ResponseEntity<?> registrarAsistenciaGrupal(@RequestBody Map<String, Object> body) {
-        int idAsignacion = (Integer) body.get("id_asignacion");
-        int idPeriodo = (Integer) body.get("id_periodo");
+        Object asignacionObj = body.get("id_asignacion") != null ? body.get("id_asignacion") : body.get("idAsignacion");
+        Object periodoObj = body.get("id_periodo") != null ? body.get("id_periodo") : body.get("idPeriodo");
+        
+        if (asignacionObj == null || periodoObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Falta idAsignacion o idPeriodo en la peticion"));
+        }
+        
+        int idAsignacion = Integer.parseInt(asignacionObj.toString());
+        int idPeriodo = Integer.parseInt(periodoObj.toString());
         String fecha = (String) body.get("fecha");
         
         List<Map<String, Object>> asistenciasRaw = (List<Map<String, Object>>) body.get("asistencias");
@@ -37,21 +44,34 @@ public class DocenteAsistenciaController {
                 .setFecha(fecha);
                 
         for (Map<String, Object> asis : asistenciasRaw) {
+            Object matriculaObj = asis.get("id_matricula") != null ? asis.get("id_matricula") : asis.get("idMatricula");
+            if (matriculaObj == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Falta idMatricula en los registros de asistencia"));
+            }
+            int idMatricula = Integer.parseInt(matriculaObj.toString());
+            
             requestBuilder.addAsistencias(AsistenciaItemRequest.newBuilder()
-                    .setIdMatricula((Integer) asis.get("id_matricula"))
+                    .setIdMatricula(idMatricula)
                     .setEstado((String) asis.get("estado"))
                     .setJustificacion(asis.get("justificacion") != null ? (String) asis.get("justificacion") : "")
                     .build());
         }
         
-        AsistenciaListResponse response = asistenciaClient.registrarAsistenciaGrupal(requestBuilder.build());
-        if (response.getSuccess()) {
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", response.getMessage()
-            ));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+        try {
+            AsistenciaListResponse response = asistenciaClient.registrarAsistenciaGrupal(requestBuilder.build());
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", response.getMessage()
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+            }
+        } catch (io.grpc.StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.ALREADY_EXISTS) {
+                return ResponseEntity.status(409).body(Map.of("message", e.getStatus().getDescription()));
+            }
+            return ResponseEntity.badRequest().body(Map.of("message", e.getStatus().getDescription()));
         }
     }
 
@@ -66,14 +86,18 @@ public class DocenteAsistenciaController {
                 .setJustificacion(justificacion)
                 .build();
                 
-        AsistenciaResponse response = asistenciaClient.actualizarAsistencia(request);
-        if (response.getSuccess()) {
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", response.getMessage()
-            ));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+        try {
+            AsistenciaResponse response = asistenciaClient.actualizarAsistencia(request);
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", response.getMessage()
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", response.getMessage()));
+            }
+        } catch (io.grpc.StatusRuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getStatus().getDescription()));
         }
     }
 

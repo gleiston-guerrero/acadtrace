@@ -1,69 +1,67 @@
-import axios from "axios";
+import api from "../../config/axios";
 
-const API_PRINCIPAL = "http://localhost:8080/api";
 
-const getHeaders = () => {
-    const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token}` };
-};
+
+
 
 export const getMisAsignaciones = async () => {
-    const response = await axios.get(`${API_PRINCIPAL}/docentes/mis-asignaciones`, { headers: getHeaders() });
+    const response = await api.get(`/api/docentes/mis-asignaciones`);
     return response.data;
 };
 
 export const getEstudiantesPorAsignacion = async (asignacionId) => {
-    const response = await axios.get(`${API_PRINCIPAL}/docentes/asignaciones/${asignacionId}/estudiantes`, { headers: getHeaders() });
+    const response = await api.get(`/api/docentes/asignaciones/${asignacionId}/estudiantes`);
     return response.data;
 };
 
 export const getActividadesPorAsignacion = async (asignacionId) => {
-    const response = await axios.get(`${API_PRINCIPAL}/docente/actividades/asignacion/${asignacionId}`, { headers: getHeaders() });
+    const response = await api.get(`/api/docente/actividades?idAsignacion=${asignacionId}`);
     return response.data;
 };
 
 export const getActividadById = async (id) => {
-    const response = await axios.get(`${API_PRINCIPAL}/docente/actividades/${id}`, { headers: getHeaders() });
+    const response = await api.get(`/api/docente/actividades/${id}`);
     return response.data;
 };
 
 export const createActividad = async (data) => {
-    const response = await axios.post(`${API_PRINCIPAL}/docente/actividades`, data, { headers: getHeaders() });
+    const response = await api.post(`/api/docente/actividades`, data);
     return response.data;
 };
 
 export const updateActividad = async (id, data) => {
-    const response = await axios.put(`${API_PRINCIPAL}/docente/actividades/${id}`, data, { headers: getHeaders() });
+    const response = await api.put(`/api/docente/actividades/${id}`, data);
     return response.data;
 };
 
 export const deleteActividad = async (id) => {
-    const response = await axios.delete(`${API_PRINCIPAL}/docente/actividades/${id}`, { headers: getHeaders() });
+    const response = await api.delete(`/api/docente/actividades/${id}`);
     return response.data;
 };
 
 // --- ASISTENCIA ---
 
 export const getAsistenciaPorAsignacionYFecha = async (asignacionId, fecha, idPeriodo = 0) => {
-    let url = `${API_PRINCIPAL}/docente/asistencias/asignacion/${asignacionId}?fecha=${fecha}`;
+    let url = `/api/docente/asistencias/asignacion/${asignacionId}?fecha=${fecha}`;
     if (idPeriodo > 0) url += `&idPeriodo=${idPeriodo}`;
-    const response = await axios.get(url, { headers: getHeaders() });
+    const response = await api.get(url);
     return response.data;
 };
 
 export const getResumenAsistencia = async (asignacionId, idPeriodo = 0) => {
-    let url = `${API_PRINCIPAL}/docente/asistencias/asignacion/${asignacionId}/resumen`;
+    let url = `/api/docente/asistencias/asignacion/${asignacionId}/resumen`;
     if (idPeriodo > 0) url += `?idPeriodo=${idPeriodo}`;
-    const response = await axios.get(url, { headers: getHeaders() });
+    const response = await api.get(url);
     return response.data;
 };
 
 export const registrarAsistenciaGrupal = async (data) => {
-    const response = await axios.post(`${API_PRINCIPAL}/docente/asistencias/masivo`, data, { headers: getHeaders() });
+    const response = await api.post(`/api/docente/asistencias/masivo`, data);
     return response.data;
 };
 
 export const actualizarAsistencia = async (id, data) => {
-    const response = await axios.put(`${API_PRINCIPAL}/docente/asistencias/${id}`, data, { headers: getHeaders() });
+    const response = await api.put(`/api/docente/asistencias/${id}`, data);
     return response.data;
 };
+
