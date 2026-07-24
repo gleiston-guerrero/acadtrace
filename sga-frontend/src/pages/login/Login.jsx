@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../config/axios";
 import logo from "../../assets/logo.png";
+import { redirigirAMicroservicio } from "../../utils/handoff";
 
 export default function Login() {
     const [form, setForm] = useState({ username: "", password: "" });
@@ -20,25 +21,58 @@ export default function Login() {
         setLoading(true);
         setError("");
         try {
-            const res = await api.post("/api/auth/login", form);
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("username", res.data.username);
-            localStorage.setItem("roles", JSON.stringify(res.data.roles));
-            localStorage.setItem("primerIngreso", res.data.primerIngreso);
+            const res = await axios.post("http://localhost:8080/api/auth/login", form);
+            const roles = res.data.roles || [];
+            const sesion = {
+                token: res.data.token,
+                username: res.data.username,
+                roles,
+                primerIngreso: res.data.primerIngreso,
+            };
 
+            // Primer ingreso: cambia la contraseña en el principal antes de continuar.
             if (res.data.primerIngreso) {
+                localStorage.setItem("token", sesion.token);
+                localStorage.setItem("username", sesion.username);
+                localStorage.setItem("roles", JSON.stringify(roles));
+                localStorage.setItem("primerIngreso", res.data.primerIngreso);
                 navigate("/cambiar-password");
-            } else {
-                if (res.data.roles && res.data.roles.includes("ROLE_DOCENTE")) {
-                    const redirectUrl = `http://localhost:5174/?token=${res.data.token}&username=${encodeURIComponent(res.data.username)}&roles=${encodeURIComponent(JSON.stringify(res.data.roles))}`;
-                    window.location.href = redirectUrl;
-                } else {
-                    navigate("/dashboard");
-                }
+                return;
             }
+
+            // Portales a los que el usuario puede entrar según sus roles.
+            const portales = ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"]
+                .filter((rol) => roles.includes(rol));
+
+            if (portales.length === 0) {
+                setError("Tu usuario no tiene un rol con acceso asignado.");
+                setLoading(false);
+                return;
+            }
+
+            // Con más de un portal, se elige en la pantalla intermedia.
+            if (portales.length > 1) {
+                navigate("/portales", { state: sesion });
+                return;
+            }
+
+            // Un solo portal: se entra directo.
+            // DIRECTOR permanece en el SGA Principal (este mismo origen); el resto
+            // se entrega a su microservicio por SSO sin guardar token aquí.
+            const destino = portales[0];
+            if (destino === "DIRECTOR") {
+                localStorage.setItem("token", sesion.token);
+                localStorage.setItem("username", sesion.username);
+                localStorage.setItem("roles", JSON.stringify(roles));
+                localStorage.setItem("primerIngreso", res.data.primerIngreso);
+                navigate("/dashboard");
+                return;
+            }
+
+            const ok = await redirigirAMicroservicio(destino, sesion);
+            if (!ok) setLoading(false);
         } catch (err) {
             setError("Usuario o contraseña incorrectos");
-        } finally {
             setLoading(false);
         }
     };
