@@ -6,37 +6,66 @@ option java_package = "ec.edu.uteq.sga.grpc.principal";
 option java_multiple_files = true;
 
 // Contrato expuesto por sga-principal para que otros microservicios
-// (Secretaría, Soporte, etc.) lean datos del núcleo sin tocar la BD directo.
+// (Secretaría, Soporte, etc.) lean el catálogo institucional sin tocar la
+// base de datos directo. Estudiantes/matrículas/representantes ya no se
+// exponen aquí: esos datos son dominio exclusivo de sga-secretaria desde que
+// las tablas se movieron al esquema sga_secretaria.
 service PrincipalService {
-  rpc ListarEstudiantes (ListarEstudiantesRequest) returns (ListarEstudiantesResponse);
-  rpc ObtenerEstudiante (ObtenerEstudianteRequest) returns (EstudianteProto);
+  rpc ListarAnosLectivos (Empty) returns (AnosLectivosResponse);
+  rpc ListarGrados (Empty) returns (GradosResponse);
+  rpc ListarParalelos (ListarParalelosRequest) returns (ParalelosResponse);
+  rpc ListarAsignaturas (Empty) returns (AsignaturasResponse);
 }
 
-message EstudianteProto {
-  int64 id_estudiante = 1;
-  string cedula = 2;
-  string codigo_estudiante = 3;
-  string nombres = 4;
-  string apellidos = 5;
-  string fecha_nacimiento = 6;
-  string genero = 7;
-  string direccion = 8;
-  string telefono = 9;
-  string correo = 10;
-  bool discapacidad = 11;
-  string tipo_discapacidad = 12;
-  int32 porcentaje_disc = 13;
-  string estado = 14;
-  string representante = 15;
+message Empty {
 }
 
-message ListarEstudiantesRequest {
+message AnoLectivoProto {
+  int64 id_ano_lectivo = 1;
+  string nombre = 2;
+  string fecha_inicio = 3;
+  string fecha_fin = 4;
+  bool es_actual = 5;
 }
 
-message ListarEstudiantesResponse {
-  repeated EstudianteProto estudiantes = 1;
+message AnosLectivosResponse {
+  repeated AnoLectivoProto anos_lectivos = 1;
 }
 
-message ObtenerEstudianteRequest {
-  int64 id_estudiante = 1;
+message GradoProto {
+  int64 id_grado = 1;
+  string nombre = 2;
+  int32 orden = 3;
+  bool activo = 4;
+}
+
+message GradosResponse {
+  repeated GradoProto grados = 1;
+}
+
+message ListarParalelosRequest {
+  // 0 = sin filtro, trae los paralelos de todos los grados
+  int64 id_grado = 1;
+}
+
+message ParaleloProto {
+  int64 id_paralelo = 1;
+  int64 id_grado = 2;
+  string letra = 3;
+  bool activo = 4;
+}
+
+message ParalelosResponse {
+  repeated ParaleloProto paralelos = 1;
+}
+
+message AsignaturaProto {
+  int64 id_asignatura = 1;
+  string nombre = 2;
+  string codigo = 3;
+  bool activa = 4;
+}
+
+message AsignaturasResponse {
+  repeated AsignaturaProto asignaturas = 1;
 }
