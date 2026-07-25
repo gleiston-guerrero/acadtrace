@@ -20,6 +20,15 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * DEUDA TECNICA CONOCIDA: escribe estudiantes/matriculas por JPA directo
+ * (estudianteRepo.save/matriculaRepo.save), igual que hacian los controllers
+ * de escritura ya eliminados de este servicio (ver EstudianteController/
+ * MatriculaController, removidos porque sga-secretaria es ahora la unica
+ * duena de esas tablas). Este import bypassa el cifrado AES, la generacion
+ * de codigo_estudiante y las validaciones de sga-secretaria. Pendiente
+ * migrar a llamar a un endpoint de sga-secretaria en vez de escribir aqui.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

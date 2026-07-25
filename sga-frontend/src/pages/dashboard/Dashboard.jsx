@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../config/axios";
 import logo from "../../assets/logo.png";
 import { modulos } from "../../config/modulos";
+import { redirigirAMicroservicio } from "../../utils/handoff";
 
 const PRIMARY = "#243A76";
 const PRIMARY_DARK = "#1a2d5f";
@@ -25,6 +26,19 @@ export default function Dashboard() {
     }, []);
 
     const handleModulo = (m) => {
+        // Modulos como "estudiantes" ya no viven en este frontend (sga-secretaria
+        // es la unica duena de esos datos, ver PrincipalGrpcService); en vez de
+        // navegar a una ruta local se entrega la sesion al Portal Secretaria por
+        // el mismo mecanismo de SSO que ya usa Portales.jsx.
+        if (m.handoff) {
+            redirigirAMicroservicio(m.handoff, {
+                token,
+                username,
+                roles,
+                primerIngreso: localStorage.getItem("primerIngreso") === "true",
+            });
+            return;
+        }
         setBreadcrumb(["Inicio", m.label]);
         if (m.id === "docente") {
             const token = localStorage.getItem("token");

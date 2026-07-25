@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "matriculas", schema = "sga_principal")
+@Table(name = "matriculas", schema = "sga_secretaria")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Matricula {
 
