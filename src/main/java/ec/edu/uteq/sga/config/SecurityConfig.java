@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/grados/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/asignaturas/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/estudiantes/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
+                        .requestMatchers("/api/importacion-excel/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/representantes/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/matriculas/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA", "ROLE_DOCENTE")
                         .requestMatchers("/api/asignaciones/**").hasAnyAuthority("ROLE_DIRECTOR")
