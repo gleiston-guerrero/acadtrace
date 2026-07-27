@@ -21,7 +21,7 @@ export default function Login() {
         setLoading(true);
         setError("");
         try {
-            const res = await axios.post("http://localhost:8080/api/auth/login", form);
+            const res = await api.post("/api/auth/login", form);
             const roles = res.data.roles || [];
             const sesion = {
                 token: res.data.token,
@@ -72,7 +72,16 @@ export default function Login() {
             const ok = await redirigirAMicroservicio(destino, sesion);
             if (!ok) setLoading(false);
         } catch (err) {
-            setError("Usuario o contraseña incorrectos");
+            if (err.response?.status === 401) {
+                setError("Usuario o contraseña incorrectos");
+            } else if (err.response) {
+                setError(err.response.data?.message || `Error del servidor (${err.response.status})`);
+            } else {
+                // Sin response: error de red, CORS, o un bug en el propio código (p. ej. una
+                // variable no definida) — mostrar err.message evita que un error real quede
+                // disfrazado de "credenciales incorrectas".
+                setError(`No se pudo conectar: ${err.message}`);
+            }
             setLoading(false);
         }
     };
