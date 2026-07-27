@@ -80,9 +80,13 @@ public class TeacherAuthorizationService {
     public List<Matricula> getStudentsByAssignment(Long idAsignacion) {
         Asignacion asignacion = asignacionRepository.findById(idAsignacion)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada"));
-        
-        return matriculaRepository.findByGradoAndAnoLectivoWithEstudiante(
+
+        // La asignación pertenece a UN paralelo específico (Décimo "A"), así que
+        // los estudiantes deben filtrarse por grado + paralelo + año lectivo, no solo
+        // por grado (eso mezclaba A, B y C en un mismo listado).
+        return matriculaRepository.findByGradoParaleloAndAnoLectivoWithEstudiante(
                 asignacion.getGrado().getIdGrado(),
+                asignacion.getParalelo().getIdParalelo(),
                 asignacion.getAnoLectivo().getIdAnoLectivo()
         ).stream().filter(m -> "ACTIVA".equalsIgnoreCase(m.getEstado())).toList();
     }

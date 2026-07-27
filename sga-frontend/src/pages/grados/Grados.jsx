@@ -16,9 +16,20 @@ const NIVELES_CONFIG = {
 
 const nivelConfig = (nivel) => NIVELES_CONFIG[nivel] || { accent: "#64748b", accentLight: "#f1f5f9", accentMid: "#cbd5e1", textAccent: "#475569" };
 
+const ic = (d) => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} /></svg>;
+
 const menuItems = [
-  { id: "cursos", label: "Cursos", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg> },
-  { id: "nuevo", label: "Nuevo grado", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+  { id: "cursos", label: "Cursos", icon: ic("M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10") },
+  { id: "nuevo", label: "Nuevo grado", icon: ic("M12 4v16m8-8H4") },
+];
+
+// Menú lateral cuando se entra a un curso (paralelo).
+const menuCurso = [
+  { id: "estudiantes", label: "Estudiantes", icon: ic("M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z") },
+  { id: "docentes", label: "Docentes a cargo", icon: ic("M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z") },
+  { id: "notas", label: "Notas", icon: ic("M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z") },
+  { id: "asistencia", label: "Asistencia", icon: ic("M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z") },
+  { id: "reportes", label: "Reportes", icon: ic("M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z") },
 ];
 
 const PAGE_SIZE = 10;
@@ -41,6 +52,85 @@ export default function Grados() {
   const [anoLectivoActual, setAnoLectivoActual] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
+
+  // Vista de supervisión del curso (Director): docentes y detalle por estudiante.
+  const [vistaCurso, setVistaCurso] = useState("estudiantes"); // estudiantes | docentes
+  const [docentesCurso, setDocentesCurso] = useState([]);
+  const [detalleEst, setDetalleEst] = useState(null);       // estudiante abierto en el ojito
+  const [detalleNotas, setDetalleNotas] = useState([]);
+  const [detalleAsist, setDetalleAsist] = useState([]);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
+  const [notasCurso, setNotasCurso] = useState([]);
+  const [asistCurso, setAsistCurso] = useState([]);
+  const [cargandoPanel, setCargandoPanel] = useState(false);
+
+  const DJANGO_REST = "http://localhost:8000/api/docente";
+
+  // Consolidado de notas/asistencia del curso (para los paneles Notas y Asistencia).
+  useEffect(() => {
+    if (!paraleloSel || docentesCurso.length === 0) return;
+    if (vistaCurso !== "notas" && vistaCurso !== "asistencia") return;
+    const asigs = [...new Set(docentesCurso.map(d => d.idAsignacion))];
+    setCargandoPanel(true);
+    (async () => {
+      try {
+        if (vistaCurso === "notas") {
+          const listas = await Promise.all(asigs.map(id =>
+            fetch(`${DJANGO_REST}/calificaciones/?id_asignacion=${id}`).then(r => r.json()).catch(() => [])));
+          const porMat = {};
+          listas.flat().forEach(c => {
+            const m = c.id_matricula;
+            (porMat[m] = porMat[m] || []).push(parseFloat(c.nota));
+          });
+          setNotasCurso(Object.entries(porMat).map(([m, notas]) => ({
+            idMatricula: Number(m), cantidad: notas.length,
+            promedio: notas.reduce((a, b) => a + b, 0) / notas.length,
+          })));
+        } else {
+          const listas = await Promise.all(asigs.map(id =>
+            fetch(`${DJANGO_REST}/resumen-asistencia/?id_asignacion=${id}`).then(r => r.json()).catch(() => [])));
+          const porMat = {};
+          listas.flat().forEach(r => {
+            const m = r.id_matricula;
+            const a = porMat[m] = porMat[m] || { p: 0, au: 0, j: 0, t: 0 };
+            a.p += r.total_presentes || 0; a.au += r.total_ausentes || 0;
+            a.j += r.total_justificados || 0; a.t += r.total_atrasos || 0;
+          });
+          setAsistCurso(Object.entries(porMat).map(([m, v]) => {
+            const tot = v.p + v.au + v.j + v.t;
+            return { idMatricula: Number(m), ...v, pct: tot ? ((v.p + v.j) / tot) * 100 : 0 };
+          }));
+        }
+      } finally { setCargandoPanel(false); }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vistaCurso, docentesCurso, paraleloSel]);
+
+  const nombreMat = (idMat) => {
+    const e = estudiantesParalelo.find(x => x.idMatricula === idMat);
+    return e ? `${e.apellidos} ${e.nombres}` : `Matrícula #${idMat}`;
+  };
+
+  const cargarDocentesCurso = (idGrado, idParalelo, idAno) => {
+    api.get(`/api/asignaciones/ano-lectivo/${idAno}`)
+      .then(r => setDocentesCurso((r.data || []).filter(a => a.idGrado === idGrado && a.idParalelo === idParalelo)))
+      .catch(() => setDocentesCurso([]));
+  };
+
+  const abrirDetalleEstudiante = async (est) => {
+    setDetalleEst(est);
+    setDetalleNotas([]); setDetalleAsist([]);
+    setCargandoDetalle(true);
+    try {
+      const [notas, asist] = await Promise.all([
+        fetch(`${DJANGO_REST}/calificaciones/?id_matricula=${est.idMatricula}`).then(r => r.json()).catch(() => []),
+        fetch(`${DJANGO_REST}/resumen-asistencia/?id_matricula=${est.idMatricula}`).then(r => r.json()).catch(() => []),
+      ]);
+      setDetalleNotas(Array.isArray(notas) ? notas : []);
+      setDetalleAsist(Array.isArray(asist) ? asist : []);
+    } catch { /* sin datos */ }
+    finally { setCargandoDetalle(false); }
+  };
 
   
   
@@ -98,13 +188,14 @@ export default function Grados() {
       setError("No hay un año lectivo activo configurado");
       return;
     }
-    setParaleloSel({ ...paralelo, gradoNombre: grado.nombre, nivelEducativo: grado.nivelEducativo });
+    setParaleloSel({ ...paralelo, gradoNombre: grado.nombre, nivelEducativo: grado.nivelEducativo, idGrado: grado.idGrado });
     setLoadingEstudiantes(true);
     setBusqueda("");
     setPagina(1);
+    setVistaCurso("estudiantes");
+    cargarDocentesCurso(grado.idGrado, paralelo.idParalelo, anoLectivoActual.idAnoLectivo);
     try {
       const r = await api.get(`/api/estudiantes/por-grado`, {
-        headers: H,
         params: { idGrado: grado.idGrado, idAnoLectivo: anoLectivoActual.idAnoLectivo, idParalelo: paralelo.idParalelo }
       });
       setEstudiantesParalelo(r.data);
@@ -130,10 +221,10 @@ export default function Grados() {
             ? ["Inicio", "Grados", gradoSel.nombre]
             : ["Inicio", "Grados"]
       }
-      sidebarTitle="Grados"
-      menuItems={menuItems}
-      seccion={seccion}
-      onSeccionChange={handleSeccion}
+      sidebarTitle={paraleloSel ? `${paraleloSel.gradoNombre} "${paraleloSel.letra}"` : "Grados"}
+      menuItems={paraleloSel ? menuCurso : menuItems}
+      seccion={paraleloSel ? vistaCurso : seccion}
+      onSeccionChange={paraleloSel ? setVistaCurso : handleSeccion}
     >
       {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError("")} className="text-red-400 ml-4">✕</button></div>}
       {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-green-600 text-sm">{success}</span><button onClick={() => setSuccess("")} className="text-green-400 ml-4">✕</button></div>}
@@ -161,6 +252,7 @@ export default function Grados() {
             </div>
           </div>
 
+          {vistaCurso === "estudiantes" && (
           <div className="mb-4">
             <input
               type="text"
@@ -170,8 +262,108 @@ export default function Grados() {
               className="w-full max-w-md px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-white"
             />
           </div>
+          )}
 
-          {loadingEstudiantes ? (
+          {/* DOCENTES A CARGO */}
+          {vistaCurso === "docentes" && (
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              {docentesCurso.length === 0 ? (
+                <div className="p-12 text-center text-slate-400 text-sm">No hay docentes asignados a este curso.</div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ backgroundColor: "#f8f9fc" }} className="border-b border-slate-100">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Docente</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Asignatura</th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Tutor</th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {docentesCurso.map(d => (
+                      <tr key={d.idAsignacion} className="border-b border-slate-50 hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-700">{d.docente}</td>
+                        <td className="px-4 py-3 text-slate-600">{d.asignatura}</td>
+                        <td className="px-4 py-3 text-center">{d.esTutor ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ backgroundColor: "#eef0f7", color: PRIMARY }}>Tutor</span> : <span className="text-slate-300">—</span>}</td>
+                        <td className="px-4 py-3 text-center"><span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${d.activo ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>{d.activo ? "Activa" : "Inactiva"}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* NOTAS del curso */}
+          {vistaCurso === "notas" && (
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              {cargandoPanel ? <div className="p-12 text-center text-slate-400 text-sm">Cargando notas...</div>
+               : notasCurso.length === 0 ? <div className="p-12 text-center text-slate-400 text-sm">Aún no hay calificaciones registradas en este curso.</div>
+               : (
+                <table className="w-full text-sm">
+                  <thead><tr style={{ backgroundColor: "#f8f9fc" }} className="border-b border-slate-100">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Estudiante</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Calificaciones</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Promedio</th>
+                  </tr></thead>
+                  <tbody>
+                    {notasCurso.sort((a, b) => nombreMat(a.idMatricula).localeCompare(nombreMat(b.idMatricula))).map(n => (
+                      <tr key={n.idMatricula} className="border-b border-slate-50 hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-700">{nombreMat(n.idMatricula)}</td>
+                        <td className="px-4 py-3 text-center text-slate-500">{n.cantidad}</td>
+                        <td className="px-4 py-3 text-center font-bold" style={{ color: n.promedio >= 7 ? "#15803d" : "#b91c1c" }}>{n.promedio.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* ASISTENCIA del curso */}
+          {vistaCurso === "asistencia" && (
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              {cargandoPanel ? <div className="p-12 text-center text-slate-400 text-sm">Cargando asistencia...</div>
+               : asistCurso.length === 0 ? <div className="p-12 text-center text-slate-400 text-sm">Aún no hay asistencia registrada en este curso.</div>
+               : (
+                <table className="w-full text-sm">
+                  <thead><tr style={{ backgroundColor: "#f8f9fc" }} className="border-b border-slate-100">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Estudiante</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">P</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">A</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">J</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">T</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">% Asist.</th>
+                  </tr></thead>
+                  <tbody>
+                    {asistCurso.sort((a, b) => nombreMat(a.idMatricula).localeCompare(nombreMat(b.idMatricula))).map(r => (
+                      <tr key={r.idMatricula} className="border-b border-slate-50 hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-700">{nombreMat(r.idMatricula)}</td>
+                        <td className="px-4 py-3 text-center text-green-600">{r.p}</td>
+                        <td className="px-4 py-3 text-center text-red-600">{r.au}</td>
+                        <td className="px-4 py-3 text-center text-blue-600">{r.j}</td>
+                        <td className="px-4 py-3 text-center text-amber-600">{r.t}</td>
+                        <td className="px-4 py-3 text-center font-bold" style={{ color: PRIMARY }}>{r.pct.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* REPORTES */}
+          {vistaCurso === "reportes" && (
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
+              <div className="w-14 h-14 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: "#eef0f7", color: PRIMARY }}>
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <h3 className="font-semibold text-slate-700">Reportes del curso</h3>
+              <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">Generación de boletas, actas y consolidados en PDF. Se habilitará en la siguiente entrega.</p>
+            </div>
+          )}
+
+          {vistaCurso === "estudiantes" && (loadingEstudiantes ? (
             <div className="p-12 text-center text-slate-400 text-sm">Cargando estudiantes...</div>
           ) : filtrados.length === 0 ? (
             <div className="p-12 text-center text-slate-400 text-sm bg-white rounded-xl border border-slate-200">
@@ -189,6 +381,7 @@ export default function Grados() {
                       <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Código</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Representante</th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Ver</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -210,9 +403,17 @@ export default function Grados() {
                         <td className="px-4 py-3 text-slate-600 font-mono text-xs">{e.codigoEstudiante || "—"}</td>
                         <td className="px-4 py-3 text-slate-600">{e.representante || "—"}</td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${e.estado === "ACTIVO" ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${(e.estado === "ACTIVO" || e.estado === "ACTIVA") ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
                             {e.estado}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button onClick={() => abrirDetalleEstudiante(e)} title="Ver detalle"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-white transition"
+                            onMouseOver={ev => ev.currentTarget.style.backgroundColor = PRIMARY}
+                            onMouseOut={ev => ev.currentTarget.style.backgroundColor = "transparent"}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -250,6 +451,85 @@ export default function Grados() {
                 </div>
               )}
             </>
+          ))}
+
+          {/* MODAL: detalle completo del estudiante */}
+          {detalleEst && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+                <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center font-bold">
+                      {detalleEst.nombres?.[0]}{detalleEst.apellidos?.[0]}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{detalleEst.apellidos} {detalleEst.nombres}</h3>
+                      <p className="text-xs text-white/70">{detalleEst.codigoEstudiante || "—"} · {detalleEst.cedula || "sin cédula"}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setDetalleEst(null)} className="text-white/70 hover:text-white">✕</button>
+                </div>
+                <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-xs text-slate-400 uppercase">Género</span><p className="text-slate-700">{detalleEst.genero || "—"}</p></div>
+                    <div><span className="text-xs text-slate-400 uppercase">Representante</span><p className="text-slate-700">{detalleEst.representante || "—"}</p></div>
+                    <div><span className="text-xs text-slate-400 uppercase">Estado matrícula</span><p className="text-slate-700">{detalleEst.estado}</p></div>
+                    <div><span className="text-xs text-slate-400 uppercase">N° orden</span><p className="text-slate-700">{detalleEst.numeroOrden ?? "—"}</p></div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Calificaciones</p>
+                    {cargandoDetalle ? <p className="text-slate-400 text-sm">Cargando...</p>
+                     : detalleNotas.length === 0 ? <p className="text-slate-400 text-sm">Sin calificaciones registradas.</p>
+                     : (
+                      <div className="border border-slate-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead><tr style={{ backgroundColor: "#f8f9fc" }}><th className="text-left px-3 py-2 text-xs text-slate-500">Actividad (id)</th><th className="text-center px-3 py-2 text-xs text-slate-500">Nota</th></tr></thead>
+                          <tbody>
+                            {detalleNotas.map(n => (
+                              <tr key={n.id_calificacion} className="border-t border-slate-100">
+                                <td className="px-3 py-2 text-slate-600">#{n.id_actividad}</td>
+                                <td className="px-3 py-2 text-center font-semibold" style={{ color: PRIMARY }}>{n.nota}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Asistencia (resumen)</p>
+                    {cargandoDetalle ? <p className="text-slate-400 text-sm">Cargando...</p>
+                     : detalleAsist.length === 0 ? <p className="text-slate-400 text-sm">Sin registros de asistencia.</p>
+                     : (
+                      <div className="grid grid-cols-4 gap-2">
+                        {(() => {
+                          const r = detalleAsist.reduce((a, x) => ({
+                            p: a.p + (x.total_presentes || 0), au: a.au + (x.total_ausentes || 0),
+                            j: a.j + (x.total_justificados || 0), t: a.t + (x.total_atrasos || 0),
+                          }), { p: 0, au: 0, j: 0, t: 0 });
+                          return [
+                            { l: "Presentes", v: r.p, c: "text-green-600" },
+                            { l: "Ausentes", v: r.au, c: "text-red-600" },
+                            { l: "Justif.", v: r.j, c: "text-blue-600" },
+                            { l: "Atrasos", v: r.t, c: "text-amber-600" },
+                          ].map(x => (
+                            <div key={x.l} className="border border-slate-200 rounded-lg p-3 text-center">
+                              <div className={`text-xl font-bold ${x.c}`}>{x.v}</div>
+                              <div className="text-[10px] text-slate-400 uppercase">{x.l}</div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="p-4 border-t border-slate-100 flex justify-end">
+                  <button onClick={() => setDetalleEst(null)} className="px-5 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100">Cerrar</button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       ) : !gradoSel ? (
@@ -262,23 +542,20 @@ export default function Grados() {
             </div>
           </div>
 
-          {Object.entries(nivelesAgrupados).map(([nivel, gradosNivel]) => {
-            const c = nivelConfig(nivel);
-            return (
-              <div key={nivel} className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1.5 h-7 rounded-full" style={{ backgroundColor: c.accent }} />
-                  <h2 className="text-base font-bold uppercase tracking-wide" style={{ color: c.textAccent }}>{nivel}</h2>
-                  <span className="text-sm text-slate-400 ml-1">({gradosNivel.length} grado{gradosNivel.length !== 1 ? "s" : ""})</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {gradosNivel.map(g => (
-                    <GradoCard key={g.idGrado} grado={g} config={c} onClick={() => setGradoSel(g)} />
-                  ))}
-                </div>
+          {Object.entries(nivelesAgrupados).map(([nivel, gradosNivel]) => (
+            <div key={nivel} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1.5 h-5 rounded-full" style={{ backgroundColor: PRIMARY }} />
+                <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: PRIMARY }}>{nivel}</h2>
+                <span className="text-xs text-slate-400 ml-1">({gradosNivel.length} grado{gradosNivel.length !== 1 ? "s" : ""})</span>
               </div>
-            );
-          })}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {gradosNivel.map(g => (
+                  <GradoCard key={g.idGrado} grado={g} onClick={() => setGradoSel(g)} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         /* ── VISTA DETALLE: Paralelos del grado seleccionado ── */
@@ -375,7 +652,6 @@ export default function Grados() {
               onCancel={() => { setShowModal(false); setSeccion("cursos"); }}
               onSuccess={(msg) => { setShowModal(false); setSeccion("cursos"); setSuccess(msg); cargar(); }}
               onError={setError}
-              headers={H}
             />
           </div>
         </div>
@@ -384,168 +660,274 @@ export default function Grados() {
   );
 }
 
-/* ── TARJETA DE GRADO — diseño con borde lateral y fondo claro ── */
-function GradoCard({ grado, config, onClick }) {
+const CARD_PALETTES = [
+  { id: "navy", header: "bg-[#2b3c66]" },
+  { id: "slate", header: "bg-[#475569]" },
+  { id: "indigo", header: "bg-[#3b4266]" },
+  { id: "teal", header: "bg-[#33535e]" },
+  { id: "olive", header: "bg-[#4a5840]" },
+  { id: "zinc", header: "bg-[#52525b]" },
+];
+
+/* ── TARJETA DE GRADO — diseño dos tonos con tono suave y menú sin emoticones ── */
+function GradoCard({ grado, onClick }) {
   const totalParalelos = grado.paralelos?.length || 0;
   const paralelosActivos = grado.paralelos?.filter(p => p.activo).length || 0;
+
+  const storageKey = `grado_color_${grado.idGrado}`;
+  const [colorIdx, setColorIdx] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved !== null ? parseInt(saved, 10) : (grado.idGrado % CARD_PALETTES.length);
+  });
+  const [showMenu, setShowMenu] = useState(false);
+
+  const cambiarColor = (e) => {
+    e.stopPropagation();
+    const nextIdx = (colorIdx + 1) % CARD_PALETTES.length;
+    setColorIdx(nextIdx);
+    localStorage.setItem(storageKey, String(nextIdx));
+    setShowMenu(false);
+  };
+
+  const currentPalette = CARD_PALETTES[colorIdx % CARD_PALETTES.length];
 
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
-      style={{ border: `1px solid ${config.accentMid}`, borderLeft: `5px solid ${config.accent}` }}
+      className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-400 transition-all duration-200 flex flex-col text-left group cursor-pointer relative"
     >
-      {/* Cabecera */}
-      <div className="px-5 pt-5 pb-4" style={{ backgroundColor: config.accentLight }}>
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3.5">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
-              style={{ backgroundColor: config.accent }}>
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-bold text-[15px] leading-snug text-slate-800">{grado.nombre}</h3>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: config.accentMid, color: config.textAccent }}>
-                  {grado.nivelEducativo}
-                </span>
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${grado.activo ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
-                  {grado.activo ? "Activo" : "Inactivo"}
-                </span>
-              </div>
+      {/* BANDA DE ENCABEZADO CON TONO SUAVE */}
+      <div className={`${currentPalette.header} p-4 text-white relative`}>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+            {grado.nivelEducativo || "EGB"}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+              grado.activo ? "bg-emerald-600 text-white" : "bg-slate-500 text-white"
+            }`}>
+              {grado.activo ? "ACTIVO" : "INACTIVO"}
+            </span>
+
+            {/* BOTÓN 3 PUNTOS (•••) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+                className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold transition cursor-pointer"
+                title="Opciones"
+              >
+                •••
+              </button>
+
+              {/* MENÚ DESPLEGABLE LIMPnotifications SIN EMOTICONES */}
+              {showMenu && (
+                <div
+                  className="absolute right-0 top-7 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-30 text-slate-700"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={cambiarColor}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition"
+                  >
+                    Cambiar color
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      onClick();
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition"
+                  >
+                    Abrir paralelos
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        <h3 className="text-base font-bold uppercase tracking-wide leading-snug line-clamp-2">
+          {grado.nombre}
+        </h3>
+
+        <p className="text-[11px] text-slate-200 font-medium mt-0.5">
+          Escuela Provincias Unidas
+        </p>
       </div>
 
-      {/* Estadísticas */}
-      <div className="px-5 py-4 flex items-center divide-x divide-slate-100">
-        <div className="flex-1 text-center pr-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{totalParalelos}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Paralelos</p>
+      {/* CUERPO INFERIOR */}
+      <div className="p-4 bg-white flex-1 flex flex-col justify-between space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">PARALELOS</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{totalParalelos}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ACTIVOS</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{paralelosActivos}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ESTADO</span>
+            <span className="block text-xs font-bold text-emerald-600 mt-0.5">{grado.activo ? "Vigente" : "Inactivo"}</span>
+          </div>
         </div>
-        <div className="flex-1 text-center px-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{paralelosActivos}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Activos</p>
-        </div>
-        <div className="flex-1 text-center pl-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{grado.capacidadMax || 35}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Cap. Máx</p>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-600 group-hover:text-[#243A76] transition-colors">
+            Abrir paralelos
+          </span>
+          <span className="text-xs font-bold text-slate-400 group-hover:text-[#243A76] transition-colors">
+            →
+          </span>
         </div>
       </div>
 
-      {/* Detalles */}
-      <div className="px-5 pb-3 flex items-center gap-4 text-xs text-slate-400">
-        <span className="flex items-center gap-1">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-          {grado.tipoEscala === "CUALITATIVA" ? "Cualitativa" : "Cuantitativa"}
-        </span>
-        <span className="flex items-center gap-1">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
-          Orden {grado.orden}
-        </span>
-      </div>
-
-      {/* Acciones */}
-      <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: `1px solid ${config.accentMid}` }}>
-        <div className="flex items-center gap-1">
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Estudiantes" onClick={e => e.stopPropagation()}>
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </button>
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Configurar" onClick={e => e.stopPropagation()}>
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </button>
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Horario" onClick={e => e.stopPropagation()}>
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-          </button>
-        </div>
-        <button
-          className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition shadow-sm"
-          style={{ backgroundColor: config.accent }}
-          onClick={(e) => { e.stopPropagation(); onClick(); }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          Ver paralelos
-        </button>
-      </div>
+      {showMenu && (
+        <div className="fixed inset-0 z-20 cursor-default" onClick={(e) => { e.stopPropagation(); setShowMenu(false); }} />
+      )}
     </div>
   );
 }
 
-/* ── TARJETA DE PARALELO — mismo diseño adaptado ── */
+/* ── TARJETA DE PARALELO — diseño dos tonos con tono suave ── */
 function ParaleloCard({ paralelo, grado, config, onVerEstudiantes }) {
+  const storageKey = `paralelo_color_${paralelo.idParalelo}`;
+  const [colorIdx, setColorIdx] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved !== null ? parseInt(saved, 10) : (paralelo.idParalelo % CARD_PALETTES.length);
+  });
+  const [showMenu, setShowMenu] = useState(false);
+
+  const cambiarColor = (e) => {
+    e.stopPropagation();
+    const nextIdx = (colorIdx + 1) % CARD_PALETTES.length;
+    setColorIdx(nextIdx);
+    localStorage.setItem(storageKey, String(nextIdx));
+    setShowMenu(false);
+  };
+
+  const currentPalette = CARD_PALETTES[colorIdx % CARD_PALETTES.length];
+
   return (
-    <div
-      className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all"
-      style={{ border: `1px solid ${config.accentMid}`, borderLeft: `5px solid ${config.accent}` }}
-    >
-      {/* Cabecera */}
-      <div className="px-5 pt-5 pb-4" style={{ backgroundColor: config.accentLight }}>
-        <div className="flex items-start gap-3.5">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
-            style={{ backgroundColor: config.accent }}>
-            <span className="text-white text-xl font-bold">{paralelo.letra}</span>
+    <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-400 transition-all duration-200 flex flex-col text-left group relative">
+      {/* CABECERA CON COLOR SUAVE */}
+      <div className={`${currentPalette.header} p-4 text-white relative`}>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+              {grado.nivelEducativo}
+            </span>
+            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+              paralelo.activo ? "bg-emerald-600 text-white" : "bg-slate-500 text-white"
+            }`}>
+              {paralelo.activo ? "ACTIVO" : "INACTIVO"}
+            </span>
           </div>
-          <div className="min-w-0">
-            <h3 className="font-bold text-[15px] leading-snug text-slate-800">{grado.nombre} "{paralelo.letra}"</h3>
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: config.accentMid, color: config.textAccent }}>
-                {grado.nivelEducativo}
-              </span>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${paralelo.activo ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
-                {paralelo.activo ? "Activo" : "Inactivo"}
-              </span>
-            </div>
+
+          {/* BOTÓN 3 PUNTOS (•••) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold transition cursor-pointer"
+              title="Opciones"
+            >
+              •••
+            </button>
+
+            {/* MENÚ DESPLEGABLE SIN EMOTICONES */}
+            {showMenu && (
+              <div
+                className="absolute right-0 top-7 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-30 text-slate-700"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={cambiarColor}
+                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition"
+                >
+                  Cambiar color
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    onVerEstudiantes();
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition"
+                >
+                  Ver estudiantes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 mt-1">
+          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+            {paralelo.letra}
+          </div>
+          <div>
+            <h3 className="text-base font-bold uppercase tracking-wide leading-tight">
+              {grado.nombre} "{paralelo.letra}"
+            </h3>
+            <p className="text-[11px] text-slate-200 font-medium mt-0.5">
+              Escuela Provincias Unidas
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Estadísticas */}
-      <div className="px-5 py-4 flex items-center divide-x divide-slate-100">
-        <div className="flex-1 text-center pr-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{paralelo.totalEstudiantes ?? 0}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Estudiantes</p>
+      {/* CUERPO INFERIOR CON ESTADÍSTICAS */}
+      <div className="p-4 bg-white flex-1 flex flex-col justify-between space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ALUMNOS</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{paralelo.totalEstudiantes ?? 0}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">CAPACIDAD</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{grado.capacidadMax || 35}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ESCALA</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{grado.tipoEscala === "CUALITATIVA" ? "C" : "N"}</span>
+          </div>
         </div>
-        <div className="flex-1 text-center px-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{grado.capacidadMax || 35}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Capacidad</p>
-        </div>
-        <div className="flex-1 text-center pl-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{grado.tipoEscala === "CUALITATIVA" ? "C" : "N"}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Escala</p>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onVerEstudiantes}
+            className="text-xs font-medium text-slate-600 group-hover:text-[#243A76] transition-colors"
+          >
+            Ver detalle y estudiantes
+          </button>
+          <button
+            type="button"
+            onClick={onVerEstudiantes}
+            className="text-xs font-bold text-slate-400 group-hover:text-[#243A76] transition-colors"
+          >
+            →
+          </button>
         </div>
       </div>
 
-      {/* Info tutor */}
-      <div className="px-5 pb-3 flex items-center gap-2 text-xs text-slate-400">
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-        Tutor: Sin asignar
-      </div>
-
-      {/* Acciones */}
-      <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: `1px solid ${config.accentMid}` }}>
-        <div className="flex items-center gap-1">
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Estudiantes" onClick={onVerEstudiantes}>
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </button>
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Asignaturas">
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-          </button>
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Horario">
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-          </button>
-        </div>
-        <button
-          className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition shadow-sm"
-          style={{ backgroundColor: config.accent }}
-          onClick={onVerEstudiantes}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          Ver detalle
-        </button>
-      </div>
+      {showMenu && (
+        <div className="fixed inset-0 z-20 cursor-default" onClick={(e) => { e.stopPropagation(); setShowMenu(false); }} />
+      )}
     </div>
   );
 }

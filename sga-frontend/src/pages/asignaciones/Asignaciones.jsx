@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Layout from "../../components/Layout";
 
@@ -27,13 +28,26 @@ const formVacio = {
   esTutor: false,
 };
 
+const CARD_PALETTES = [
+  { id: "navy", header: "bg-[#2b3c66]" },
+  { id: "slate", header: "bg-[#475569]" },
+  { id: "indigo", header: "bg-[#3b4266]" },
+  { id: "teal", header: "bg-[#33535e]" },
+  { id: "olive", header: "bg-[#4a5840]" },
+  { id: "zinc", header: "bg-[#52525b]" },
+];
+
 export default function Asignaciones() {
+  const navigate = useNavigate();
   const [seccion, setSeccion] = useState("lista");
   const [asignaciones, setAsignaciones] = useState([]);
   const [asignaturas, setAsignaturas] = useState([]);
   const [grados, setGrados] = useState([]);
   const [paralelos, setParalelos] = useState([]);
   const [anosLectivos, setAnosLectivos] = useState([]);
+  const [materiasMalla, setMateriasMalla] = useState([]);
+  const [loadingMaterias, setLoadingMaterias] = useState(false);
+  const [materiasMallaEdit, setMateriasMallaEdit] = useState([]);
   const [form, setForm] = useState(formVacio);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,13 +57,17 @@ export default function Asignaciones() {
   const [cedulaInput, setCedulaInput] = useState("");
   const [buscando, setBuscando] = useState(false);
   const [docenteSel, setDocenteSel] = useState(null);
+  const [modoBusqueda, setModoBusqueda] = useState("cedula"); // "cedula" | "nombre"
+  const [nombreQuery, setNombreQuery] = useState("");
 
   const [personasDocentes, setPersonasDocentes] = useState([]);
   const [loadingDocentes, setLoadingDocentes] = useState(false);
-  const [perfilEdit, setPerfilEdit] = useState(null);
-  const [nuevoDocente, setNuevoDocente] = useState(null);
   const [asignEdit, setAsignEdit] = useState(null);
   const [asignVer, setAsignVer] = useState(null);
+  const [docenteVer, setDocenteVer] = useState(null);
+
+  const [cardColors, setCardColors] = useState({});
+  const [activeMenuKey, setActiveMenuKey] = useState(null);
 
   const token = localStorage.getItem("token");
   const H = { Authorization: `Bearer ${token}` };
@@ -67,6 +85,7 @@ export default function Asignaciones() {
     axios.get(`${API}/asignaturas`, { headers: H }).then(r => setAsignaturas(r.data)).catch(() => {});
     axios.get(`${API}/grados`, { headers: H }).then(r => setGrados(r.data)).catch(() => {});
     axios.get(`${API}/anos-lectivos`, { headers: H }).then(r => setAnosLectivos(r.data)).catch(() => {});
+    cargarPersonasDocentes();
   }, []);
 
   useEffect(() => {
@@ -85,6 +104,27 @@ export default function Asignaciones() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.idGrado]);
 
+  // Cargar solo las materias que ya están en la malla del grado + año lectivo
+  useEffect(() => {
+    if (form.idGrado && form.idAnoLectivo) {
+      setLoadingMaterias(true);
+      axios.get(`${API}/malla/grado/${form.idGrado}`, { headers: H, params: { idAnoLectivo: form.idAnoLectivo } })
+        .then(r => setMateriasMalla(r.data?.materias || []))
+        .catch(() => setMateriasMalla([]))
+        .finally(() => setLoadingMaterias(false));
+    } else {
+      setMateriasMalla([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.idGrado, form.idAnoLectivo]);
+
+  const cargarMateriasMallaEdit = (idGrado, idAnoLectivo) => {
+    if (!idGrado || !idAnoLectivo) { setMateriasMallaEdit([]); return; }
+    axios.get(`${API}/malla/grado/${idGrado}`, { headers: H, params: { idAnoLectivo } })
+      .then(r => setMateriasMallaEdit(r.data?.materias || []))
+      .catch(() => setMateriasMallaEdit([]));
+  };
+
   const handleSeccion = (id) => {
     setSeccion(id);
     setError("");
@@ -92,6 +132,8 @@ export default function Asignaciones() {
       setForm(formVacio);
       setCedulaInput("");
       setDocenteSel(null);
+      setNombreQuery("");
+      setModoBusqueda("cedula");
     }
     if (id === "docentes") cargarPersonasDocentes();
   };
@@ -133,132 +175,17 @@ export default function Asignaciones() {
     }
   };
 
-  const subirFoto = async (file, setter) => {
-    const fd = new FormData();
-    fd.append("archivo", file);
-    try {
-      const { data } = await axios.post(`${API}/uploads/foto`, fd, {
-        headers: { ...H, "Content-Type": "multipart/form-data" },
-      });
-      setter(data.url);
-    } catch (err) {
-      setError(err.response?.data?.message || "No se pudo subir la imagen.");
-    }
-  };
-
-  const autoBuscarCedula = async (cedula) => {
-    setNuevoDocente(nd => ({ ...nd, cedula, existente: null, buscando: true }));
+  const seleccionarDocentePorNombre = (p) => {
+    setDocenteSel(p);
+    setForm(f => ({ ...f, idDocente: String(p.idPersona) }));
     setError("");
-    if (!/^\d{10}$/.test(cedula)) {
-      setNuevoDocente(nd => ({ ...nd, existente: null, buscando: false }));
-      return;
-    }
-    try {
-      const { data } = await axios.get(`${API}/personas/buscar`, { headers: H, params: { cedula } });
-      if (!data.roles?.includes("DOCENTE")) {
-        setError("Ese usuario existe pero NO tiene rol DOCENTE. Ve a Usuarios y agrégaselo.");
-        setNuevoDocente(nd => ({ ...nd, existente: "sin_rol", buscando: false }));
-        return;
-      }
-      setNuevoDocente(nd => ({
-        ...nd,
-        buscando: false,
-        existente: data,
-        idPersona: data.idPersona,
-        idUsuario: data.idUsuario,
-        nombres: data.nombres || "",
-        apellidos: data.apellidos || "",
-        correo: data.correo || "",
-        fechaNacimiento: data.fechaNacimiento || "",
-        genero: data.genero || "",
-        telefono: data.telefono || "",
-        telefonoAlt: data.telefonoAlt || "",
-        direccion: data.direccion || "",
-        correoPersonal: data.correoPersonal || "",
-        tituloAcademico: data.tituloAcademico || "",
-        especializacion: data.especializacion || "",
-        fotoUrl: data.fotoUrl || "",
-      }));
-    } catch (err) {
-      if (err.response?.status === 404) {
-        setNuevoDocente(nd => ({ ...nd, existente: "nuevo", buscando: false }));
-      } else {
-        setError("No se pudo consultar la cédula");
-        setNuevoDocente(nd => ({ ...nd, buscando: false }));
-      }
-    }
   };
 
-  const crearDocente = async (e) => {
-    e.preventDefault();
-    if (!/^\d{10}$/.test(nuevoDocente.cedula)) { setError("La cédula debe tener 10 dígitos"); return; }
-    if (nuevoDocente.existente === "sin_rol") { setError("El usuario existe pero no tiene rol DOCENTE."); return; }
-    setSaving(true); setError("");
-    try {
-      const perfil = {
-        cedula: nuevoDocente.cedula,
-        nombres: nuevoDocente.nombres,
-        apellidos: nuevoDocente.apellidos,
-        fechaNacimiento: nuevoDocente.fechaNacimiento || null,
-        genero: nuevoDocente.genero || null,
-        telefono: nuevoDocente.telefono || null,
-        telefonoAlt: nuevoDocente.telefonoAlt || null,
-        direccion: nuevoDocente.direccion || null,
-        correoPersonal: nuevoDocente.correoPersonal || null,
-        tituloAcademico: nuevoDocente.tituloAcademico || null,
-        especializacion: nuevoDocente.especializacion || null,
-        fotoUrl: nuevoDocente.fotoUrl || null,
-      };
-
-      if (nuevoDocente.existente && nuevoDocente.idPersona) {
-        await axios.put(`${API}/personas/${nuevoDocente.idPersona}`, perfil, { headers: H });
-        setSuccess("Perfil docente actualizado.");
-      } else {
-        const resp = await axios.post(`${API}/usuarios`, {
-          nombres: nuevoDocente.nombres,
-          apellidos: nuevoDocente.apellidos,
-          correo: nuevoDocente.correo,
-          roles: [3],
-        }, { headers: H });
-        const idUsuario = resp.data?.idUsuario;
-        if (!idUsuario) throw new Error("No se creó el usuario");
-        await axios.post(`${API}/personas`, { idUsuario, ...perfil }, { headers: H });
-        setSuccess("Docente creado. Las credenciales se enviaron al correo.");
-      }
-
-      setNuevoDocente(null);
-      cargarPersonasDocentes();
-    } catch (err) {
-      setError(err.response?.data?.message || "No se pudo guardar el docente.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const guardarPerfil = async (e) => {
-    e.preventDefault();
-    setSaving(true); setError("");
-    try {
-      await axios.put(`${API}/personas/${perfilEdit.idPersona}`, {
-        cedula: perfilEdit.cedula,
-        nombres: perfilEdit.nombres,
-        apellidos: perfilEdit.apellidos,
-        telefono: perfilEdit.telefono || null,
-        direccion: perfilEdit.direccion || null,
-        correoPersonal: perfilEdit.correoPersonal || null,
-        tituloAcademico: perfilEdit.tituloAcademico || null,
-        especializacion: perfilEdit.especializacion || null,
-        fotoUrl: perfilEdit.fotoUrl || null,
-      }, { headers: H });
-      setSuccess("Perfil actualizado.");
-      setPerfilEdit(null);
-      cargarPersonasDocentes();
-    } catch (err) {
-      setError(err.response?.data?.message || "No se pudo guardar el perfil.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const docentesFiltrados = nombreQuery.trim().length < 2
+    ? []
+    : personasDocentes.filter(p =>
+        `${p.nombres} ${p.apellidos} ${p.cedula}`.toLowerCase().includes(nombreQuery.trim().toLowerCase())
+      ).slice(0, 8);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -322,6 +249,7 @@ export default function Asignaciones() {
       axios.get(`${API}/asignaciones/grado/${a.idGrado}/paralelos`, { headers: H })
         .then(r => setParalelos(r.data)).catch(() => setParalelos([]));
     }
+    cargarMateriasMallaEdit(a.idGrado, a.idAnoLectivo);
   };
 
   const guardarEdicionAsign = async (e) => {
@@ -377,46 +305,92 @@ export default function Asignaciones() {
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            {Object.entries(cursos).map(([curso, items]) => {
+            {Object.entries(cursos).map(([curso, items], idx) => {
               const tutor = items.find(i => i.esTutor);
+              const savedColor = cardColors[curso] ?? (localStorage.getItem(`asig_color_${curso}`) ? parseInt(localStorage.getItem(`asig_color_${curso}`), 10) : idx % CARD_PALETTES.length);
+              const currentPalette = CARD_PALETTES[savedColor % CARD_PALETTES.length];
+              const isMenuOpen = activeMenuKey === curso;
+
+              const cambiarColorCard = () => {
+                const next = (savedColor + 1) % CARD_PALETTES.length;
+                setCardColors(prev => ({ ...prev, [curso]: next }));
+                localStorage.setItem(`asig_color_${curso}`, String(next));
+                setActiveMenuKey(null);
+              };
+
               return (
-                <div key={curso} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 text-white flex justify-between items-center">
+                <div key={curso} className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+                  {/* BANDA DE ENCABEZADO CON TONO SUAVE Y 3 PUNTOS */}
+                  <div className={`${currentPalette.header} px-4 py-3 text-white flex justify-between items-center relative`}>
                     <div>
-                      <h3 className="font-semibold text-sm">{curso}</h3>
-                      <p className="text-white/70 text-xs">{items.length} asignatura(s)</p>
+                      <h3 className="font-bold text-sm leading-snug">{curso}</h3>
+                      <p className="text-white/80 text-[11px] font-medium mt-0.5">{items.length} asignatura(s)</p>
                     </div>
-                    {tutor
-                      ? <span className="bg-white/20 text-white text-xs font-medium px-2 py-1 rounded">Tutor: {tutor.docente}</span>
-                      : <span className="bg-amber-400/30 text-white text-xs font-medium px-2 py-1 rounded">Sin tutor</span>}
+
+                    <div className="flex items-center gap-2">
+                      {tutor
+                        ? <span className="bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-md">Tutor: {tutor.docente}</span>
+                        : <span className="bg-amber-500/80 text-white text-xs font-semibold px-2.5 py-1 rounded-md">Sin tutor</span>}
+
+                      {/* BOTÓN 3 PUNTOS (•••) */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setActiveMenuKey(isMenuOpen ? null : curso)}
+                          className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold transition cursor-pointer"
+                          title="Opciones"
+                        >
+                          •••
+                        </button>
+
+                        {/* MENÚ DESPLEGABLE LIMPIO SIN EMOTICONES */}
+                        {isMenuOpen && (
+                          <div className="absolute right-0 top-7 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-30 text-slate-700">
+                            <button
+                              type="button"
+                              onClick={cambiarColorCard}
+                              className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition"
+                            >
+                              Cambiar color
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* LISTA DE ASIGNATURAS DEL CURSO */}
                   <div className="divide-y divide-slate-100">
                     {items.map((a) => (
-                      <div key={a.idAsignacion} className="px-4 py-3 flex items-center justify-between hover:bg-slate-50">
+                      <div key={a.idAsignacion} className="px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition">
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-700 truncate">{a.asignatura}</p>
+                          <p className="text-sm font-semibold text-slate-700 truncate">{a.asignatura}</p>
                           <p className="text-xs text-slate-500 truncate">
                             {a.docente}
-                            {a.esTutor && <span className="ml-2 bg-blue-50 text-blue-700 text-[10px] font-semibold px-1.5 py-0.5 rounded">TUTOR</span>}
+                            {a.esTutor && <span className="ml-2 bg-blue-50 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">TUTOR</span>}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
                           <button onClick={() => setAsignVer(a)} title="Ver detalle"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                           </button>
                           <button onClick={() => abrirEditar(a)} title="Editar"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50">
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                           </button>
                           <button onClick={() => toggleEstado(a)}
-                            className={`text-xs font-semibold px-2 py-1 rounded ${a.activo ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                            className={`text-xs font-semibold px-2 py-1 rounded transition ${a.activo ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
                             {a.activo ? "Activa" : "Inactiva"}
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
+
+                  {isMenuOpen && (
+                    <div className="fixed inset-0 z-20 cursor-default" onClick={() => setActiveMenuKey(null)} />
+                  )}
                 </div>
               );
             })}
@@ -426,116 +400,199 @@ export default function Asignaciones() {
 
       {/* NUEVO */}
       {seccion === "nuevo" && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-slate-200 max-w-2xl space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Docente — buscar por cédula</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={10}
-                value={cedulaInput}
-                onChange={(e) => { setCedulaInput(e.target.value.replace(/\D/g, "")); setDocenteSel(null); setForm(f => ({ ...f, idDocente: "" })); }}
-                placeholder="10 dígitos"
-                className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50"
-              />
-              <button
-                type="button"
-                onClick={buscarDocentePorCedula}
-                disabled={buscando || cedulaInput.length !== 10}
-                style={{ backgroundColor: PRIMARY }}
-                className="text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
-              >
-                {buscando ? "Buscando..." : "Buscar"}
-              </button>
-            </div>
-            {docenteSel && (
-              <div className="mt-3 border border-blue-100 bg-blue-50 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-slate-700">{docenteSel.nombres} {docenteSel.apellidos}</p>
-                <p className="text-slate-500 text-xs">Usuario: <span className="font-mono">{docenteSel.username}</span> · {docenteSel.correo}</p>
-                <p className="text-slate-500 text-xs mt-1">Roles: {[...(docenteSel.roles || [])].join(", ")}</p>
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Encabezado */}
+          <div style={{ backgroundColor: PRIMARY }} className="px-6 py-5 text-white">
+            <h2 className="font-bold text-lg leading-tight">Nueva asignación</h2>
+            <p className="text-white/70 text-xs mt-0.5">Vincula un docente con una materia de la malla del curso.</p>
+          </div>
+
+          <div className="p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* COLUMNA IZQUIERDA — DOCENTE */}
+            <div className="lg:col-span-1">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: PRIMARY }}>1</span>
+                <h3 className="text-sm font-bold text-slate-700">Docente</h3>
               </div>
-            )}
-          </div>
+              {/* Conmutador cédula / nombre */}
+              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 mb-2 bg-slate-50">
+                <button type="button" onClick={() => { setModoBusqueda("cedula"); setDocenteSel(null); setForm(f => ({ ...f, idDocente: "" })); }}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition ${modoBusqueda === "cedula" ? "bg-white shadow-sm text-slate-700" : "text-slate-400"}`}>
+                  Por cédula
+                </button>
+                <button type="button" onClick={() => { setModoBusqueda("nombre"); setDocenteSel(null); setForm(f => ({ ...f, idDocente: "" })); }}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition ${modoBusqueda === "nombre" ? "bg-white shadow-sm text-slate-700" : "text-slate-400"}`}>
+                  Por nombre
+                </button>
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Asignatura</label>
-            <select required value={form.idAsignatura} onChange={(e) => setForm({ ...form, idAsignatura: e.target.value })}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
-              <option value="">Seleccione...</option>
-              {asignaturas.map((s) => <option key={s.idAsignatura} value={s.idAsignatura}>{s.nombre}</option>)}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Grado</label>
-              <select required value={form.idGrado} onChange={(e) => setForm({ ...form, idGrado: e.target.value, idParalelo: "" })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
-                <option value="">Seleccione...</option>
-                {grados.map((g) => <option key={g.idGrado} value={g.idGrado}>{g.nombre}</option>)}
-              </select>
+              {modoBusqueda === "cedula" ? (
+                <>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Buscar por cédula</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={cedulaInput}
+                      onChange={(e) => { setCedulaInput(e.target.value.replace(/\D/g, "")); setDocenteSel(null); setForm(f => ({ ...f, idDocente: "" })); }}
+                      placeholder="10 dígitos"
+                      className="flex-1 min-w-0 border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={buscarDocentePorCedula}
+                      disabled={buscando || cedulaInput.length !== 10}
+                      style={{ backgroundColor: PRIMARY }}
+                      className="text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 flex-shrink-0"
+                    >
+                      {buscando ? "..." : "Buscar"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Buscar por nombre</label>
+                  <input
+                    type="text"
+                    value={nombreQuery}
+                    onChange={(e) => { setNombreQuery(e.target.value); setDocenteSel(null); setForm(f => ({ ...f, idDocente: "" })); }}
+                    placeholder="Escribe nombre, apellido o cédula..."
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  {nombreQuery.trim().length >= 2 && !docenteSel && (
+                    <div className="mt-2 border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-52 overflow-y-auto">
+                      {docentesFiltrados.length === 0 ? (
+                        <p className="px-3 py-3 text-xs text-slate-400">Sin coincidencias entre los docentes registrados.</p>
+                      ) : docentesFiltrados.map((p) => (
+                        <button key={p.idPersona} type="button" onClick={() => seleccionarDocentePorNombre(p)}
+                          className="w-full text-left px-3 py-2 hover:bg-slate-50 transition">
+                          <p className="text-sm font-medium text-slate-700">{p.nombres} {p.apellidos}</p>
+                          <p className="text-xs text-slate-400 font-mono">{p.cedula || "sin cédula"}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {docenteSel ? (
+                <div className="mt-4 border border-blue-100 bg-blue-50 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: PRIMARY }}>
+                      {(docenteSel.nombres?.[0] || "?").toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-700 truncate">{docenteSel.nombres} {docenteSel.apellidos}</p>
+                      <p className="text-slate-500 text-xs truncate">{docenteSel.correo}</p>
+                    </div>
+                  </div>
+                  <p className="text-slate-500 text-xs mt-3 pt-3 border-t border-blue-100">
+                    Usuario: <span className="font-mono text-slate-600">{docenteSel.username}</span>
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4 border border-dashed border-slate-200 rounded-xl p-6 text-center">
+                  <p className="text-xs text-slate-400">Ingresa la cédula y presiona <strong>Buscar</strong> para seleccionar al docente.</p>
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Paralelo</label>
-              <select required value={form.idParalelo} onChange={(e) => setForm({ ...form, idParalelo: e.target.value })}
-                disabled={!form.idGrado}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 disabled:opacity-50">
-                <option value="">{form.idGrado ? "Seleccione..." : "Elija un grado primero"}</option>
-                {paralelos.map((p) => <option key={p.idParalelo} value={p.idParalelo}>Paralelo {p.letra}</option>)}
-              </select>
+
+            {/* COLUMNA DERECHA — DETALLE ACADÉMICO */}
+            <div className="lg:col-span-2 lg:border-l lg:border-slate-100 lg:pl-8">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: PRIMARY }}>2</span>
+                <h3 className="text-sm font-bold text-slate-700">Curso y materia</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Grado</label>
+                  <select required value={form.idGrado} onChange={(e) => setForm({ ...form, idGrado: e.target.value, idParalelo: "", idAsignatura: "" })}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Seleccione...</option>
+                    {grados.map((g) => <option key={g.idGrado} value={g.idGrado}>{g.nombre}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Paralelo</label>
+                  <select required value={form.idParalelo} onChange={(e) => setForm({ ...form, idParalelo: e.target.value })}
+                    disabled={!form.idGrado}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 disabled:opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">{form.idGrado ? "Seleccione..." : "Elija un grado primero"}</option>
+                    {paralelos.map((p) => <option key={p.idParalelo} value={p.idParalelo}>Paralelo {p.letra}</option>)}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Año lectivo</label>
+                  <select required value={form.idAnoLectivo} onChange={(e) => setForm({ ...form, idAnoLectivo: e.target.value, idAsignatura: "" })}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Seleccione...</option>
+                    {anosLectivos.map((y) => <option key={y.idAnoLectivo} value={y.idAnoLectivo}>{y.nombre}</option>)}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
+                    Asignatura <span className="text-slate-400 normal-case font-normal">— materias de la malla del grado</span>
+                  </label>
+                  <select required value={form.idAsignatura} onChange={(e) => setForm({ ...form, idAsignatura: e.target.value })}
+                    disabled={!form.idGrado || !form.idAnoLectivo || loadingMaterias}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 disabled:opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">
+                      {!form.idGrado || !form.idAnoLectivo
+                        ? "Elija grado y año lectivo primero"
+                        : loadingMaterias
+                          ? "Cargando materias..."
+                          : materiasMalla.length === 0
+                            ? "El grado no tiene materias en su malla"
+                            : "Seleccione..."}
+                    </option>
+                    {materiasMalla.map((m) => <option key={m.idAsignatura} value={m.idAsignatura}>{m.asignatura}</option>)}
+                  </select>
+                  {form.idGrado && form.idAnoLectivo && !loadingMaterias && materiasMalla.length === 0 && (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-2">
+                      Este grado no tiene materias asignadas en su malla. Agrégalas primero en el módulo <strong>Asignaturas → Malla por grado</strong>.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-slate-600 mt-5 select-none cursor-pointer">
+                <input type="checkbox" checked={form.esTutor} onChange={(e) => setForm({ ...form, esTutor: e.target.checked })} className="w-4 h-4" />
+                Es docente tutor del curso
+              </label>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Año lectivo</label>
-            <select required value={form.idAnoLectivo} onChange={(e) => setForm({ ...form, idAnoLectivo: e.target.value })}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
-              <option value="">Seleccione...</option>
-              {anosLectivos.map((y) => <option key={y.idAnoLectivo} value={y.idAnoLectivo}>{y.nombre}</option>)}
-            </select>
-          </div>
-
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <input type="checkbox" checked={form.esTutor} onChange={(e) => setForm({ ...form, esTutor: e.target.checked })} />
-            Es docente tutor del curso
-          </label>
-
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} style={{ backgroundColor: PRIMARY }}
-              className="text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60">
-              {saving ? "Guardando..." : "Crear Asignación"}
-            </button>
-            <button type="button" onClick={() => { setForm(formVacio); setSeccion("lista"); }}
-              className="px-5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100">
+          {/* Pie de acciones */}
+          <div className="px-6 lg:px-8 py-4 bg-slate-50 border-t border-slate-100 flex gap-3 justify-end">
+            <button type="button" onClick={() => { setForm(formVacio); setCedulaInput(""); setDocenteSel(null); setSeccion("lista"); }}
+              className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 transition">
               Cancelar
+            </button>
+            <button type="submit" disabled={saving} style={{ backgroundColor: PRIMARY }}
+              className="text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60 shadow-sm transition">
+              {saving ? "Guardando..." : "Crear Asignación"}
             </button>
           </div>
         </form>
       )}
 
-      {/* DOCENTES */}
-      {seccion === "docentes" && !perfilEdit && (
+      {/* DOCENTES — solo consulta. La gestión vive en el módulo Usuarios. */}
+      {seccion === "docentes" && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+          <div className="p-4 border-b border-slate-100 flex justify-between items-center gap-3 flex-wrap">
             <div>
               <h2 className="text-slate-700 font-semibold text-sm">Docentes registrados</h2>
-              <p className="text-slate-400 text-xs">Perfiles ligados a usuarios con rol DOCENTE.</p>
+              <p className="text-slate-400 text-xs">Consulta de perfiles con rol DOCENTE. Para crear, editar o desactivar, usa el módulo Usuarios.</p>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-400">{personasDocentes.length} docente(s)</span>
               <button
-                onClick={() => setNuevoDocente({
-                cedula: "", nombres: "", apellidos: "", correo: "",
-                fechaNacimiento: "", genero: "", telefono: "", telefonoAlt: "",
-                direccion: "", correoPersonal: "", tituloAcademico: "",
-                especializacion: "", fotoUrl: "",
-                existente: null, buscando: false, idPersona: null, idUsuario: null
-              })}
+                onClick={() => navigate("/usuarios")}
                 style={{ backgroundColor: PRIMARY }}
                 className="text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:opacity-90"
               >
-                + Nuevo docente
+                Gestionar en Usuarios →
               </button>
             </div>
           </div>
@@ -557,16 +614,16 @@ export default function Asignaciones() {
               <tbody>
                 {personasDocentes.map((p) => (
                   <tr key={p.idPersona} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 font-mono text-slate-600">{p.cedula}</td>
+                    <td className="px-4 py-3 font-mono text-slate-600">{p.cedula || "—"}</td>
                     <td className="px-4 py-3 text-slate-700 font-medium">{p.nombres} {p.apellidos}</td>
                     <td className="px-4 py-3 text-slate-500 text-xs">{p.username}<br /><span className="text-slate-400">{p.correo}</span></td>
                     <td className="px-4 py-3 text-slate-600 text-xs">{p.tituloAcademico || <span className="text-slate-300">—</span>}</td>
                     <td className="px-4 py-3 text-center">
                       <button
-                        onClick={() => setPerfilEdit({ ...p })}
-                        className="text-xs font-semibold px-3 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100"
+                        onClick={() => setDocenteVer(p)}
+                        className="text-xs font-semibold px-3 py-1 rounded bg-slate-100 text-slate-600 hover:bg-slate-200"
                       >
-                        Editar
+                        Ver
                       </button>
                     </td>
                   </tr>
@@ -577,256 +634,42 @@ export default function Asignaciones() {
         </div>
       )}
 
-      {nuevoDocente && (
+      {docenteVer && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex justify-between items-center text-white">
-              <div>
-                <h3 className="font-semibold">Nuevo docente</h3>
-                <p className="text-xs text-white/70">Se creará el usuario con rol DOCENTE y su perfil profesional.</p>
-              </div>
-              <button onClick={() => { setNuevoDocente(null); setError(""); }} className="text-white/70 hover:text-white">✕</button>
+              <h3 className="font-semibold">Perfil del docente</h3>
+              <button onClick={() => setDocenteVer(null)} className="text-white/70 hover:text-white">✕</button>
             </div>
-            <form onSubmit={crearDocente} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-
-              {/* FOTO */}
-              <div className="flex items-center gap-4 pb-4 border-b border-slate-100">
-                <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {nuevoDocente.fotoUrl ? (
-                    <img src={nuevoDocente.fotoUrl.startsWith("http") ? nuevoDocente.fotoUrl : `${API.replace("/api","")}${nuevoDocente.fotoUrl}`} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM4 20a8 8 0 0116 0" /></svg>
-                  )}
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              <div className="flex items-center gap-4 pb-3 border-b border-slate-100">
+                <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {docenteVer.fotoUrl
+                    ? <img src={docenteVer.fotoUrl.startsWith("http") ? docenteVer.fotoUrl : `${API.replace("/api","")}${docenteVer.fotoUrl}`} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-slate-400 text-xl font-bold">{(docenteVer.nombres?.[0] || "?").toUpperCase()}</span>}
                 </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Foto de perfil</label>
-                  <input type="file" accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) subirFoto(f, (url) => setNuevoDocente(nd => ({ ...nd, fotoUrl: url }))); }}
-                    className="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 file:cursor-pointer file:hover:bg-slate-200" />
-                  <p className="text-xs text-slate-400 mt-1">JPG, PNG o WEBP · máximo 3 MB</p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-700 truncate">{docenteVer.nombres} {docenteVer.apellidos}</p>
+                  <p className="text-xs text-slate-500 truncate">{docenteVer.username} · {docenteVer.correo}</p>
                 </div>
               </div>
-
-              {/* DATOS DE CUENTA — auto-llena desde el usuario */}
-              <div>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Datos de cuenta</p>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
-                    Cédula * <span className="text-slate-400 normal-case font-normal">— al escribir 10 dígitos se carga el usuario</span>
-                  </label>
-                  <input type="text" inputMode="numeric" maxLength={10} required
-                    value={nuevoDocente.cedula}
-                    onChange={(e) => autoBuscarCedula(e.target.value.replace(/\D/g, ""))}
-                    placeholder="10 dígitos"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 font-mono" />
-                  {nuevoDocente.buscando && <p className="text-xs text-slate-400 mt-1">Buscando usuario...</p>}
-                  {nuevoDocente.existente === "nuevo" && (
-                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded px-3 py-2 mt-2">
-                      No hay un usuario con esa cédula. Se creará uno nuevo con rol DOCENTE.
-                    </p>
-                  )}
-                  {nuevoDocente.existente && nuevoDocente.existente !== "nuevo" && nuevoDocente.existente !== "sin_rol" && (
-                    <p className="text-xs text-green-700 bg-green-50 border border-green-100 rounded px-3 py-2 mt-2">
-                      ✓ Usuario encontrado: <strong>{nuevoDocente.existente.username}</strong> — se completará su perfil profesional.
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Nombres *</label>
-                    <input type="text" required value={nuevoDocente.nombres}
-                      disabled={!!nuevoDocente.existente && nuevoDocente.existente !== "nuevo"}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, nombres: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Apellidos *</label>
-                    <input type="text" required value={nuevoDocente.apellidos}
-                      disabled={!!nuevoDocente.existente && nuevoDocente.existente !== "nuevo"}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, apellidos: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Correo institucional *</label>
-                    <input type="email" required value={nuevoDocente.correo}
-                      disabled={!!nuevoDocente.existente && nuevoDocente.existente !== "nuevo"}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, correo: e.target.value })}
-                      placeholder="docente@sga.com"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
-                  </div>
-                </div>
-              </div>
-
-              {/* DATOS PERSONALES */}
-              <div>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Datos personales</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Fecha nacimiento</label>
-                    <input type="date" value={nuevoDocente.fechaNacimiento}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, fechaNacimiento: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Género</label>
-                    <select value={nuevoDocente.genero}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, genero: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
-                      <option value="">—</option>
-                      <option value="MASCULINO">Masculino</option>
-                      <option value="FEMENINO">Femenino</option>
-                      <option value="OTRO">Otro</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono</label>
-                    <input type="text" value={nuevoDocente.telefono}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, telefono: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono alt.</label>
-                    <input type="text" value={nuevoDocente.telefonoAlt}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, telefonoAlt: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Correo personal (adicional)</label>
-                    <input type="email" value={nuevoDocente.correoPersonal}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, correoPersonal: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                  <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Dirección</label>
-                    <input type="text" value={nuevoDocente.direccion}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, direccion: e.target.value })}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                </div>
-              </div>
-
-              {/* DATOS PROFESIONALES */}
-              <div>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Datos profesionales</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Título académico</label>
-                    <input type="text" value={nuevoDocente.tituloAcademico}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, tituloAcademico: e.target.value })}
-                      placeholder="Lic. en Ciencias de la Educación"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Especialización</label>
-                    <input type="text" value={nuevoDocente.especializacion}
-                      onChange={(e) => setNuevoDocente({ ...nuevoDocente, especializacion: e.target.value })}
-                      placeholder="Matemáticas, Lengua, etc."
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-                  </div>
-                </div>
-              </div>
-
-              {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
-
-              <div className="flex gap-3 pt-2 border-t border-slate-100">
-                <button type="button" onClick={() => { setNuevoDocente(null); setError(""); }}
-                  className="flex-1 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={saving || nuevoDocente.buscando || nuevoDocente.existente === "sin_rol"}
-                  style={{ backgroundColor: PRIMARY }}
-                  className="flex-1 py-2 text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60">
-                  {saving
-                    ? "Guardando..."
-                    : nuevoDocente.existente && nuevoDocente.existente !== "nuevo"
-                      ? "Guardar perfil"
-                      : "Crear docente"}
-                </button>
-              </div>
-            </form>
+              <Detalle label="Cédula" value={docenteVer.cedula} />
+              <Detalle label="Título académico" value={docenteVer.tituloAcademico} />
+              <Detalle label="Especialización" value={docenteVer.especializacion} />
+              <Detalle label="Teléfono" value={docenteVer.telefono} />
+              <Detalle label="Dirección" value={docenteVer.direccion} />
+              <Detalle label="Correo personal" value={docenteVer.correoPersonal} />
+            </div>
+            <div className="p-4 border-t border-slate-100 flex justify-end gap-3">
+              <button onClick={() => { setDocenteVer(null); navigate("/usuarios"); }}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white" style={{ backgroundColor: PRIMARY }}>
+                Editar en Usuarios
+              </button>
+              <button onClick={() => setDocenteVer(null)} className="px-5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100">Cerrar</button>
+            </div>
           </div>
         </div>
       )}
-
-      {/* EDITAR PERFIL DOCENTE */}
-      {seccion === "docentes" && perfilEdit && (
-        <form onSubmit={guardarPerfil} className="bg-white p-6 rounded-xl border border-slate-200 max-w-3xl space-y-4">
-          <div className="flex items-center gap-4 pb-3 border-b border-slate-100">
-            <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
-              {perfilEdit.fotoUrl ? (
-                <img src={perfilEdit.fotoUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-slate-400 text-xl font-bold">{(perfilEdit.nombres?.[0] || "?").toUpperCase()}</span>
-              )}
-            </div>
-            <div>
-              <h2 className="text-slate-700 font-semibold">{perfilEdit.nombres} {perfilEdit.apellidos}</h2>
-              <p className="text-xs text-slate-500">{perfilEdit.username} · {perfilEdit.correo}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Cédula</label>
-              <input type="text" value={perfilEdit.cedula || ""} disabled
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-100 font-mono text-slate-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono</label>
-              <input type="text" value={perfilEdit.telefono || ""} onChange={(e) => setPerfilEdit({ ...perfilEdit, telefono: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Dirección</label>
-            <input type="text" value={perfilEdit.direccion || ""} onChange={(e) => setPerfilEdit({ ...perfilEdit, direccion: e.target.value })}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Correo personal (adicional)</label>
-            <input type="email" value={perfilEdit.correoPersonal || ""} onChange={(e) => setPerfilEdit({ ...perfilEdit, correoPersonal: e.target.value })}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Título académico</label>
-              <input type="text" value={perfilEdit.tituloAcademico || ""} onChange={(e) => setPerfilEdit({ ...perfilEdit, tituloAcademico: e.target.value })}
-                placeholder="Ej: Lic. Ciencias de la Educación"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Especialización</label>
-              <input type="text" value={perfilEdit.especializacion || ""} onChange={(e) => setPerfilEdit({ ...perfilEdit, especializacion: e.target.value })}
-                placeholder="Ej: Matemáticas"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Foto</label>
-            <input type="file" accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) subirFoto(f, (url) => setPerfilEdit(p => ({ ...p, fotoUrl: url }))); }}
-              className="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 file:cursor-pointer" />
-            <p className="text-xs text-slate-400 mt-1">JPG, PNG o WEBP · máximo 3 MB</p>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} style={{ backgroundColor: PRIMARY }}
-              className="text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60">
-              {saving ? "Guardando..." : "Guardar cambios"}
-            </button>
-            <button type="button" onClick={() => setPerfilEdit(null)}
-              className="px-5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100">
-              Cancelar
-            </button>
-          </div>
-        </form>
-      )}
-
       {/* VER DETALLE ASIGNACIÓN */}
       {asignVer && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -879,22 +722,15 @@ export default function Asignaciones() {
             </div>
             <form onSubmit={guardarEdicionAsign} className="p-6 space-y-4">
               {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Asignatura</label>
-                <select required value={asignEdit.idAsignatura} onChange={(e) => setAsignEdit({ ...asignEdit, idAsignatura: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
-                  <option value="">Seleccione...</option>
-                  {asignaturas.map((s) => <option key={s.idAsignatura} value={s.idAsignatura}>{s.nombre}</option>)}
-                </select>
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Grado</label>
                   <select required value={asignEdit.idGrado}
                     onChange={(e) => {
                       const g = e.target.value;
-                      setAsignEdit({ ...asignEdit, idGrado: g, idParalelo: "" });
+                      setAsignEdit({ ...asignEdit, idGrado: g, idParalelo: "", idAsignatura: "" });
                       if (g) axios.get(`${API}/asignaciones/grado/${g}/paralelos`, { headers: H }).then(r => setParalelos(r.data)).catch(() => setParalelos([]));
+                      cargarMateriasMallaEdit(g, asignEdit.idAnoLectivo);
                     }}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
                     <option value="">Seleccione...</option>
@@ -913,10 +749,30 @@ export default function Asignaciones() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Año lectivo</label>
-                <select required value={asignEdit.idAnoLectivo} onChange={(e) => setAsignEdit({ ...asignEdit, idAnoLectivo: e.target.value })}
+                <select required value={asignEdit.idAnoLectivo}
+                  onChange={(e) => {
+                    const y = e.target.value;
+                    setAsignEdit({ ...asignEdit, idAnoLectivo: y, idAsignatura: "" });
+                    cargarMateriasMallaEdit(asignEdit.idGrado, y);
+                  }}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50">
                   <option value="">Seleccione...</option>
                   {anosLectivos.map((y) => <option key={y.idAnoLectivo} value={y.idAnoLectivo}>{y.nombre}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Asignatura</label>
+                <select required value={asignEdit.idAsignatura} onChange={(e) => setAsignEdit({ ...asignEdit, idAsignatura: e.target.value })}
+                  disabled={!asignEdit.idGrado || !asignEdit.idAnoLectivo}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 disabled:opacity-50">
+                  <option value="">
+                    {!asignEdit.idGrado || !asignEdit.idAnoLectivo
+                      ? "Elija grado y año lectivo"
+                      : materiasMallaEdit.length === 0
+                        ? "El grado no tiene materias en su malla"
+                        : "Seleccione..."}
+                  </option>
+                  {materiasMallaEdit.map((m) => <option key={m.idAsignatura} value={m.idAsignatura}>{m.asignatura}</option>)}
                 </select>
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-600">

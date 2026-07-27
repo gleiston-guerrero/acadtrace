@@ -52,6 +52,10 @@ public class DocenteContextController {
                     "id", a.getGrado().getIdGrado(),
                     "nombre", a.getGrado().getNombre()
                 ));
+                map.put("paralelo", Map.of(
+                    "id", a.getParalelo().getIdParalelo(),
+                    "letra", a.getParalelo().getLetra()
+                ));
                 map.put("anoLectivo", Map.of(
                     "id", a.getAnoLectivo().getIdAnoLectivo(),
                     "nombre", a.getAnoLectivo().getNombre()
@@ -92,14 +96,18 @@ public class DocenteContextController {
         List<Matricula> matriculas = authService.getStudentsByAssignment(id);
         
         List<Map<String, Object>> response = matriculas.stream().map(m -> {
+            var est = m.getEstudiante();
+            // Se usa HashMap (no Map.of) porque Map.of lanza NullPointerException
+            // ante valores null, y la cédula del estudiante puede ser null.
+            Map<String, Object> estudiante = new java.util.HashMap<>();
+            estudiante.put("id", est.getIdEstudiante());
+            estudiante.put("nombres", est.getNombres());
+            estudiante.put("apellidos", est.getApellidos());
+            estudiante.put("cedula", est.getCedula() != null ? est.getCedula() : "");
+
             Map<String, Object> map = new java.util.HashMap<>();
             map.put("idMatricula", m.getIdMatricula());
-            map.put("estudiante", Map.of(
-                "id", m.getEstudiante().getIdEstudiante(),
-                "nombres", m.getEstudiante().getNombres(),
-                "apellidos", m.getEstudiante().getApellidos(),
-                "cedula", m.getEstudiante().getCedula()
-            ));
+            map.put("estudiante", estudiante);
             map.put("estado", m.getEstado());
             return map;
         }).collect(Collectors.toList());

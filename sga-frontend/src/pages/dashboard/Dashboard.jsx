@@ -40,13 +40,7 @@ export default function Dashboard() {
             return;
         }
         setBreadcrumb(["Inicio", m.label]);
-        if (m.id === "docente") {
-            const token = localStorage.getItem("token");
-            const redirectUrl = `http://localhost:5174/?token=${token}&username=${encodeURIComponent(username)}&roles=${encodeURIComponent(JSON.stringify(roles))}`;
-            window.location.href = redirectUrl;
-        } else {
-            navigate(`/${m.id}`);
-        }
+        navigate(`/${m.id}`);
     };
 
     // El dashboard es el portal del DIRECTOR: muestra todos los módulos
@@ -65,8 +59,8 @@ export default function Dashboard() {
     return (
         <div className="flex flex-col min-h-screen bg-slate-50">
 
-            {/* TOP BAR */}
-            <header style={{ backgroundColor: PRIMARY }} className="text-white h-14 flex items-center justify-between px-4 shadow z-30 flex-shrink-0">
+            {/* TOP BAR - FIJO */}
+            <header style={{ backgroundColor: PRIMARY }} className="fixed top-0 left-0 right-0 text-white h-14 flex items-center justify-between px-4 shadow z-40 flex-shrink-0">
                 <div className="flex items-center gap-3">
                     <img src={logo} alt="Logo" className="w-8 h-8 rounded-full object-cover border-2 border-white border-opacity-40" />
                     <span className="font-bold text-sm">SGA</span>
@@ -171,6 +165,9 @@ export default function Dashboard() {
                 </div>
             </header>
 
+            {/* Spacer del header fijo */}
+            <div className="h-14 flex-shrink-0" />
+
             {/* BREADCRUMB + BUSCADOR */}
             <div className="bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between">
                 <nav className="text-xs text-slate-500 flex items-center gap-1">
@@ -203,7 +200,7 @@ export default function Dashboard() {
             </div>
 
             {/* BODY */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden" style={{ paddingBottom: "2.5rem" }}>
 
                 {/* PANEL IZQUIERDO */}
                 <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 hidden lg:block">
@@ -264,8 +261,8 @@ export default function Dashboard() {
                 </main>
             </div>
 
-            {/* FOOTER */}
-            <footer style={{ backgroundColor: PRIMARY }} className="text-white text-opacity-80 text-xs text-center py-2 flex-shrink-0">
+            {/* FOOTER - FIJO */}
+            <footer style={{ backgroundColor: PRIMARY }} className="fixed bottom-0 left-0 right-0 text-white text-opacity-80 text-xs text-center py-2 z-40 flex-shrink-0">
                 Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
             </footer>
 

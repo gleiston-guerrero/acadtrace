@@ -33,6 +33,97 @@ const Detalle = ({ label, value, mono = false }) => (
   </div>
 );
 
+const IMG_BASE = "http://localhost:8080";
+const ID_DOCENTE = 3;
+
+const formInicial = {
+  cedula: "", nombres: "", apellidos: "", correo: "", roles: [],
+  fechaNacimiento: "", genero: "", telefono: "", telefonoAlt: "",
+  direccion: "", correoPersonal: "", tituloAcademico: "", especializacion: "", fotoUrl: "",
+};
+
+// Sección de datos del docente (se reutiliza en crear y editar).
+// data = objeto de estado; onChange = setter que recibe el objeto completo.
+function DocenteCampos({ data, onChange, subirFoto }) {
+  const set = (k, v) => onChange({ ...data, [k]: v });
+  const foto = data.fotoUrl
+    ? (data.fotoUrl.startsWith("http") ? data.fotoUrl : `${IMG_BASE}${data.fotoUrl}`)
+    : null;
+  return (
+    <div className="border-t border-slate-100 pt-4 space-y-4">
+      <p className="text-xs font-semibold text-[#243A76] uppercase tracking-wide">
+        Datos del docente <span className="text-slate-400 normal-case font-normal">— requeridos por el rol DOCENTE</span>
+      </p>
+
+      {/* Foto */}
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+          {foto
+            ? <img src={foto} alt="" className="w-full h-full object-cover" />
+            : <svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM4 20a8 8 0 0116 0" /></svg>}
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Foto de perfil</label>
+          <input type="file" accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) subirFoto(f, (url) => set("fotoUrl", url)); }}
+            className="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 file:cursor-pointer" />
+          <p className="text-xs text-slate-400 mt-1">JPG, PNG o WEBP · máx 3 MB</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Título académico *</label>
+          <input type="text" value={data.tituloAcademico || ""} onChange={(e) => set("tituloAcademico", e.target.value)}
+            placeholder="Lic. en Ciencias de la Educación"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Especialización</label>
+          <input type="text" value={data.especializacion || ""} onChange={(e) => set("especializacion", e.target.value)}
+            placeholder="Matemáticas, Lengua, etc."
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Fecha de nacimiento</label>
+          <input type="date" value={data.fechaNacimiento || ""} onChange={(e) => set("fechaNacimiento", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Género</label>
+          <select value={data.genero || ""} onChange={(e) => set("genero", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50">
+            <option value="">—</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMENINO">Femenino</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono</label>
+          <input type="text" value={data.telefono || ""} onChange={(e) => set("telefono", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono alt.</label>
+          <input type="text" value={data.telefonoAlt || ""} onChange={(e) => set("telefonoAlt", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Correo personal (adicional)</label>
+          <input type="email" value={data.correoPersonal || ""} onChange={(e) => set("correoPersonal", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Dirección</label>
+          <input type="text" value={data.direccion || ""} onChange={(e) => set("direccion", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const menuItems = [
   { id: "lista", label: "Lista de usuarios", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
   { id: "nuevo", label: "Nuevo usuario", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
@@ -53,12 +144,18 @@ export default function Usuarios() {
   const [success, setSuccess] = useState("");
   const [usuarioEdit, setUsuarioEdit] = useState(null);
 
-  const [form, setForm] = useState({
-    cedula: "", nombres: "", apellidos: "", correo: "", roles: [],
-  });
+  const [form, setForm] = useState(formInicial);
 
-  
-  
+  const subirFoto = async (file, setter) => {
+    const fd = new FormData();
+    fd.append("archivo", file);
+    try {
+      const { data } = await api.post(`/api/uploads/foto`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setter(data.url);
+    } catch (err) {
+      setError(err.response?.data?.message || "No se pudo subir la imagen.");
+    }
+  };
 
   const cargar = () => {
     setLoading(true);
@@ -76,10 +173,16 @@ export default function Usuarios() {
       u.roles?.some(r => r.toLowerCase().includes(busqueda.toLowerCase()))
   );
 
+  const esDocente = form.roles.includes(ID_DOCENTE);
+
   const handleCrear = async (e) => {
     e.preventDefault();
     if (form.roles.length === 0) { setError("Selecciona al menos un rol"); return; }
     if (!/^\d{10}$/.test(form.cedula)) { setError("La cédula debe tener 10 dígitos"); return; }
+    if (esDocente && !form.tituloAcademico.trim()) {
+      setError("Como el usuario tiene rol DOCENTE, indica al menos el título académico.");
+      return;
+    }
     setSaving(true); setError("");
     try {
       const { cedula, nombres, apellidos, correo } = form;
@@ -89,13 +192,27 @@ export default function Usuarios() {
       });
       const idUsuario = resp.data?.idUsuario;
       if (idUsuario) {
+        const personaPayload = { idUsuario, cedula, nombres, apellidos };
+        if (esDocente) {
+          Object.assign(personaPayload, {
+            fechaNacimiento: form.fechaNacimiento || null,
+            genero: form.genero || null,
+            telefono: form.telefono || null,
+            telefonoAlt: form.telefonoAlt || null,
+            direccion: form.direccion || null,
+            correoPersonal: form.correoPersonal || null,
+            tituloAcademico: form.tituloAcademico || null,
+            especializacion: form.especializacion || null,
+            fotoUrl: form.fotoUrl || null,
+          });
+        }
         try {
-          await api.post(`/api/personas`, { idUsuario, cedula, nombres, apellidos });
+          await api.post(`/api/personas`, personaPayload);
         } catch (perr) {
           const msg = perr.response?.data?.message || perr.message || "sin detalle";
-          setError(`Usuario creado, pero NO se guardó la cédula: ${msg}. Completa el perfil desde Docentes.`);
+          setError(`Usuario creado, pero NO se guardó el perfil: ${msg}. Complétalo editando el usuario.`);
           setShowModal(false);
-          setForm({ cedula: "", nombres: "", apellidos: "", correo: "", roles: [] });
+          setForm(formInicial);
           cargar();
           setSaving(false);
           return;
@@ -103,7 +220,7 @@ export default function Usuarios() {
       }
       setSuccess("Usuario creado. Se enviaron las credenciales al correo.");
       setShowModal(false);
-      setForm({ cedula: "", nombres: "", apellidos: "", correo: "", roles: [] });
+      setForm(formInicial);
       cargar();
     } catch (e) {
       setError(e.response?.data?.message || "Error al crear usuario");
@@ -131,6 +248,11 @@ export default function Usuarios() {
       setError("La cédula debe tener 10 dígitos");
       return;
     }
+    const editDocente = usuarioEdit.roles.includes("DOCENTE");
+    if (editDocente && !(usuarioEdit.tituloAcademico || "").trim()) {
+      setError("Como el usuario tiene rol DOCENTE, indica al menos el título académico.");
+      return;
+    }
     setSaving(true); setError("");
     try {
       await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
@@ -147,6 +269,19 @@ export default function Usuarios() {
           nombres: usuarioEdit.nombres,
           apellidos: usuarioEdit.apellidos,
         };
+        if (editDocente) {
+          Object.assign(payload, {
+            fechaNacimiento: usuarioEdit.fechaNacimiento || null,
+            genero: usuarioEdit.genero || null,
+            telefono: usuarioEdit.telefono || null,
+            telefonoAlt: usuarioEdit.telefonoAlt || null,
+            direccion: usuarioEdit.direccion || null,
+            correoPersonal: usuarioEdit.correoPersonal || null,
+            tituloAcademico: usuarioEdit.tituloAcademico || null,
+            especializacion: usuarioEdit.especializacion || null,
+            fotoUrl: usuarioEdit.fotoUrl || null,
+          });
+        }
         if (usuarioEdit.idPersona) {
           await api.put(`/api/personas/${usuarioEdit.idPersona}`, payload);
         } else {
@@ -166,7 +301,7 @@ export default function Usuarios() {
 
   const handleEstado = async (id, estado) => {
     try {
-      await axios.patch(`${API}/usuarios/${id}/estado?estado=${estado}`, {});
+      await api.patch(`/api/usuarios/${id}/estado?estado=${estado}`, {});
       setSuccess(`Usuario ${estado === "ACTIVO" ? "activado" : "desactivado"} correctamente.`);
       cargar();
     } catch { setError("Error al cambiar estado"); }
@@ -175,7 +310,7 @@ export default function Usuarios() {
 
   const handleReset = async (id) => {
     try {
-      await axios.patch(`${API}/usuarios/${id}/reset-password`, {});
+      await api.patch(`/api/usuarios/${id}/reset-password`, {});
       setSuccess("Contraseña reseteada. Se envió al correo del usuario.");
       cargar();
     } catch { setError("Error al resetear contraseña"); }
@@ -336,7 +471,15 @@ export default function Usuarios() {
                                   let personaData = { idPersona: null, cedula: "", nombres: "", apellidos: "" };
                                   try {
                                     const { data } = await api.get(`/api/personas/usuario/${u.idUsuario}`);
-                                    personaData = { idPersona: data.idPersona, cedula: data.cedula || "", nombres: data.nombres || "", apellidos: data.apellidos || "" };
+                                    personaData = {
+                                      idPersona: data.idPersona,
+                                      cedula: data.cedula || "", nombres: data.nombres || "", apellidos: data.apellidos || "",
+                                      fechaNacimiento: data.fechaNacimiento || "", genero: data.genero || "",
+                                      telefono: data.telefono || "", telefonoAlt: data.telefonoAlt || "",
+                                      direccion: data.direccion || "", correoPersonal: data.correoPersonal || "",
+                                      tituloAcademico: data.tituloAcademico || "", especializacion: data.especializacion || "",
+                                      fotoUrl: data.fotoUrl || "",
+                                    };
                                   } catch (_) { /* sin persona: quedará el objeto vacío */ }
                                   setUsuarioEdit({ ...u, roles: [...u.roles], ...personaData });
                                   setShowEditModal(true);
@@ -403,12 +546,12 @@ export default function Usuarios() {
         {/* MODAL CREAR */}
         {showModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+              <div className={`bg-white rounded-2xl shadow-2xl w-full overflow-hidden ${esDocente ? "max-w-2xl" : "max-w-md"}`}>
                 <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between">
                   <h2 className="text-white font-bold text-base">Nuevo Usuario</h2>
                   <button onClick={() => { setShowModal(false); setError(""); }} className="text-white text-opacity-70 hover:text-opacity-100">✕</button>
                 </div>
-                <form onSubmit={handleCrear} className="p-6 space-y-4">
+                <form onSubmit={handleCrear} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                   {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
 
                   <div>
@@ -480,6 +623,8 @@ export default function Usuarios() {
                     </div>
                   </div>
 
+                  {esDocente && <DocenteCampos data={form} onChange={setForm} subirFoto={subirFoto} />}
+
                   <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
                     <p className="text-xs text-blue-600">
                       <strong>Usuario generado automáticamente</strong> a partir del nombre y apellido.<br />
@@ -503,12 +648,12 @@ export default function Usuarios() {
         {/* MODAL EDITAR */}
         {showEditModal && usuarioEdit && (
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+              <div className={`bg-white rounded-2xl shadow-2xl w-full overflow-hidden ${usuarioEdit.roles.includes("DOCENTE") ? "max-w-2xl" : "max-w-md"}`}>
                 <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between">
                   <h2 className="text-white font-bold text-base">Editar — {usuarioEdit.username}</h2>
                   <button onClick={() => setShowEditModal(false)} className="text-white text-opacity-70 hover:text-opacity-100">✕</button>
                 </div>
-                <form onSubmit={handleEditar} className="p-6 space-y-4">
+                <form onSubmit={handleEditar} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                   {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
 
                   {!usuarioEdit.idPersona && (
@@ -591,6 +736,10 @@ export default function Usuarios() {
                       })}
                     </div>
                   </div>
+
+                  {usuarioEdit.roles.includes("DOCENTE") && (
+                    <DocenteCampos data={usuarioEdit} onChange={setUsuarioEdit} subirFoto={subirFoto} />
+                  )}
 
                   <div className="flex gap-3 pt-2">
                     <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
