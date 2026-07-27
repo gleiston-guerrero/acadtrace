@@ -15,4 +15,14 @@ public class AsignacionResponseDTO {
     private boolean activo;
     private Instant fechaAsignacion;
     private String asignadoPor;
+
+    private Long idDocente;
+    private Long idAsignatura;
+    private Long idGrado;
+    private Long idParalelo;
+    private Long idAnoLectivo;
+    private String cedulaDocente;
+    private String correoDocente;
+    private String tituloDocente;
+    private String fotoDocente;
 }

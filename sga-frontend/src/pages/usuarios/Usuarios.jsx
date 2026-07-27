@@ -21,6 +21,18 @@ const estadoBadge = (estado) => {
   return map[estado] || "bg-slate-100 text-slate-500";
 };
 
+const formatFecha = (v) => {
+  if (!v) return "—";
+  try { return new Date(v).toLocaleString("es-EC"); } catch { return v; }
+};
+
+const Detalle = ({ label, value, mono = false }) => (
+  <div className="grid grid-cols-3 gap-2 text-sm py-1">
+    <span className="text-slate-400 text-xs uppercase tracking-wide">{label}</span>
+    <span className={`col-span-2 text-slate-700 ${mono ? "font-mono" : ""}`}>{value || <span className="text-slate-300">—</span>}</span>
+  </div>
+);
+
 const menuItems = [
   { id: "lista", label: "Lista de usuarios", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
   { id: "nuevo", label: "Nuevo usuario", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
@@ -34,13 +46,15 @@ export default function Usuarios() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(null);
+  const [detalle, setDetalle] = useState(null);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [usuarioEdit, setUsuarioEdit] = useState(null);
 
   const [form, setForm] = useState({
-    nombres: "", apellidos: "", correo: "", roles: [],
+    cedula: "", nombres: "", apellidos: "", correo: "", roles: [],
   });
 
   
@@ -65,15 +79,31 @@ export default function Usuarios() {
   const handleCrear = async (e) => {
     e.preventDefault();
     if (form.roles.length === 0) { setError("Selecciona al menos un rol"); return; }
+    if (!/^\d{10}$/.test(form.cedula)) { setError("La cédula debe tener 10 dígitos"); return; }
     setSaving(true); setError("");
     try {
-      await api.post(`/api/usuarios`, {
-        ...form,
+      const { cedula, nombres, apellidos, correo } = form;
+      const resp = await api.post(`/api/usuarios`, {
+        nombres, apellidos, correo,
         roles: form.roles.map(Number),
       });
+      const idUsuario = resp.data?.idUsuario;
+      if (idUsuario) {
+        try {
+          await api.post(`/api/personas`, { idUsuario, cedula, nombres, apellidos });
+        } catch (perr) {
+          const msg = perr.response?.data?.message || perr.message || "sin detalle";
+          setError(`Usuario creado, pero NO se guardó la cédula: ${msg}. Completa el perfil desde Docentes.`);
+          setShowModal(false);
+          setForm({ cedula: "", nombres: "", apellidos: "", correo: "", roles: [] });
+          cargar();
+          setSaving(false);
+          return;
+        }
+      }
       setSuccess("Usuario creado. Se enviaron las credenciales al correo.");
       setShowModal(false);
-      setForm({ nombres: "", apellidos: "", correo: "", roles: [] });
+      setForm({ cedula: "", nombres: "", apellidos: "", correo: "", roles: [] });
       cargar();
     } catch (e) {
       setError(e.response?.data?.message || "Error al crear usuario");
@@ -82,8 +112,25 @@ export default function Usuarios() {
     }
   };
 
+  const verDetalle = async (u) => {
+    setDetalle({ usuario: u, persona: null });
+    setCargandoDetalle(true);
+    try {
+      const { data } = await api.get(`/api/personas/usuario/${u.idUsuario}`);
+      setDetalle({ usuario: u, persona: data });
+    } catch (err) {
+      setDetalle({ usuario: u, persona: null, sinPersona: err.response?.status === 404 });
+    } finally {
+      setCargandoDetalle(false);
+    }
+  };
+
   const handleEditar = async (e) => {
     e.preventDefault();
+    if (usuarioEdit.cedula && !/^\d{10}$/.test(usuarioEdit.cedula)) {
+      setError("La cédula debe tener 10 dígitos");
+      return;
+    }
     setSaving(true); setError("");
     try {
       await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
@@ -93,11 +140,25 @@ export default function Usuarios() {
           return found ? found.id : null;
         }).filter(Boolean),
       });
+
+      if (usuarioEdit.cedula) {
+        const payload = {
+          cedula: usuarioEdit.cedula,
+          nombres: usuarioEdit.nombres,
+          apellidos: usuarioEdit.apellidos,
+        };
+        if (usuarioEdit.idPersona) {
+          await api.put(`/api/personas/${usuarioEdit.idPersona}`, payload);
+        } else {
+          await api.post(`/api/personas`, { idUsuario: usuarioEdit.idUsuario, ...payload });
+        }
+      }
+
       setSuccess("Usuario actualizado correctamente.");
       setShowEditModal(false);
       cargar();
-    } catch (e) {
-      setError(e.response?.data?.message || "Error al actualizar");
+    } catch (err) {
+      setError(err.response?.data?.message || "Error al actualizar");
     } finally {
       setSaving(false);
     }
@@ -259,9 +320,27 @@ export default function Usuarios() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-1">
-                            {/* Editar */}
                             <button
-                                onClick={() => { setUsuarioEdit({ ...u, roles: [...u.roles] }); setShowEditModal(true); setError(""); }}
+                                onClick={() => verDetalle(u)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                                title="Ver detalle"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                            <button
+                                onClick={async () => {
+                                  setError("");
+                                  let personaData = { idPersona: null, cedula: "", nombres: "", apellidos: "" };
+                                  try {
+                                    const { data } = await api.get(`/api/personas/usuario/${u.idUsuario}`);
+                                    personaData = { idPersona: data.idPersona, cedula: data.cedula || "", nombres: data.nombres || "", apellidos: data.apellidos || "" };
+                                  } catch (_) { /* sin persona: quedará el objeto vacío */ }
+                                  setUsuarioEdit({ ...u, roles: [...u.roles], ...personaData });
+                                  setShowEditModal(true);
+                                }}
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
                                 title="Editar"
                             >
@@ -331,6 +410,20 @@ export default function Usuarios() {
                 </div>
                 <form onSubmit={handleCrear} className="p-6 space-y-4">
                   {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Cédula</label>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={form.cedula}
+                        onChange={e => setForm({ ...form, cedula: e.target.value.replace(/\D/g, "") })}
+                        placeholder="10 dígitos"
+                        required
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                    />
+                  </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -417,6 +510,46 @@ export default function Usuarios() {
                 </div>
                 <form onSubmit={handleEditar} className="p-6 space-y-4">
                   {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
+
+                  {!usuarioEdit.idPersona && (
+                    <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-amber-700 text-xs">
+                      Este usuario no tiene cédula registrada. Complétala aquí para poder buscarlo por cédula.
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Cédula</label>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={usuarioEdit.cedula || ""}
+                        onChange={e => setUsuarioEdit({ ...usuarioEdit, cedula: e.target.value.replace(/\D/g, "") })}
+                        placeholder="10 dígitos"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50 font-mono"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Nombres</label>
+                      <input
+                          type="text"
+                          value={usuarioEdit.nombres || ""}
+                          onChange={e => setUsuarioEdit({ ...usuarioEdit, nombres: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Apellidos</label>
+                      <input
+                          type="text"
+                          value={usuarioEdit.apellidos || ""}
+                          onChange={e => setUsuarioEdit({ ...usuarioEdit, apellidos: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                      />
+                    </div>
+                  </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Correo electrónico</label>
@@ -518,6 +651,69 @@ export default function Usuarios() {
                       Confirmar
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {detalle && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+                <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex justify-between items-center text-white">
+                  <div>
+                    <h3 className="font-semibold">Detalle del usuario</h3>
+                    <p className="text-xs text-white/70">Información completa (sin credenciales)</p>
+                  </div>
+                  <button onClick={() => setDetalle(null)} className="text-white/70 hover:text-white">✕</button>
+                </div>
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                  <div className="flex items-center gap-4 pb-3 border-b border-slate-100">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
+                      {detalle.persona?.fotoUrl ? (
+                          <img src={detalle.persona.fotoUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                          <span className="text-slate-400 text-xl font-bold">{detalle.usuario.username?.[0]?.toUpperCase() || "?"}</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-700">
+                        {detalle.persona ? `${detalle.persona.nombres} ${detalle.persona.apellidos}` : detalle.usuario.username}
+                      </p>
+                      <p className="text-xs text-slate-500 font-mono">{detalle.usuario.username}</p>
+                    </div>
+                  </div>
+
+                  {cargandoDetalle && <p className="text-slate-400 text-sm text-center py-2">Cargando datos...</p>}
+
+                  <Detalle label="Correo institucional" value={detalle.usuario.correo} />
+                  <Detalle label="Estado" value={detalle.usuario.estado} />
+                  <Detalle label="Primer ingreso" value={detalle.usuario.primerIngreso ? "Pendiente" : "Completado"} />
+                  <Detalle label="Intentos fallidos" value={String(detalle.usuario.intentosFallidos ?? 0)} />
+                  <Detalle label="Último acceso" value={formatFecha(detalle.usuario.ultimoAcceso)} />
+                  <Detalle label="Roles" value={(detalle.usuario.roles || []).join(", ") || "—"} />
+
+                  <div className="pt-3 border-t border-slate-100">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Datos personales</p>
+                    {detalle.sinPersona ? (
+                        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                          Este usuario no tiene datos personales registrados.
+                        </p>
+                    ) : detalle.persona ? (
+                        <>
+                          <Detalle label="Cédula" value={detalle.persona.cedula} mono />
+                          <Detalle label="Teléfono" value={detalle.persona.telefono} />
+                          <Detalle label="Dirección" value={detalle.persona.direccion} />
+                          <Detalle label="Correo personal" value={detalle.persona.correoPersonal} />
+                          <Detalle label="Título académico" value={detalle.persona.tituloAcademico} />
+                          <Detalle label="Especialización" value={detalle.persona.especializacion} />
+                        </>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="p-4 border-t border-slate-100 flex justify-end">
+                  <button onClick={() => setDetalle(null)} className="px-5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100">
+                    Cerrar
+                  </button>
                 </div>
               </div>
             </div>

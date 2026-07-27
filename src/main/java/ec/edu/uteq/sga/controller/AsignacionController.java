@@ -56,4 +56,10 @@ public class AsignacionController {
         asignacionService.cambiarEstado(id, activo);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AsignacionResponseDTO> actualizar(@PathVariable Long id,
+                                                            @Valid @RequestBody AsignacionRequestDTO dto) {
+        return ResponseEntity.ok(asignacionService.actualizar(id, dto));
+    }
 }

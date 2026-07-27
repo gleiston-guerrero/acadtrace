@@ -117,6 +117,32 @@ public class AsignacionService {
         asignacionRepo.save(asignacion);
     }
 
+    @Transactional
+    public AsignacionResponseDTO actualizar(Long id, AsignacionRequestDTO dto) {
+        Asignacion asignacion = asignacionRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada"));
+
+        Persona docente = personaRepo.findById(dto.getIdDocente())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Docente no encontrado"));
+        Asignatura asignatura = asignaturaRepo.findById(dto.getIdAsignatura())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Asignatura no encontrada"));
+        Grado grado = gradoRepo.findById(dto.getIdGrado())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grado no encontrado"));
+        Paralelo paralelo = paraleloRepo.findById(dto.getIdParalelo())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paralelo no encontrado"));
+        AnoLectivo anoLectivo = anoLectivoRepo.findById(dto.getIdAnoLectivo())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Año lectivo no encontrado"));
+
+        asignacion.setDocente(docente);
+        asignacion.setAsignatura(asignatura);
+        asignacion.setGrado(grado);
+        asignacion.setParalelo(paralelo);
+        asignacion.setAnoLectivo(anoLectivo);
+        asignacion.setEsTutor(dto.isEsTutor());
+
+        return toDTO(asignacionRepo.save(asignacion));
+    }
+
     private AsignacionResponseDTO toDTO(Asignacion a) {
         return AsignacionResponseDTO.builder()
                 .idAsignacion(a.getIdAsignacion())
@@ -129,6 +155,15 @@ public class AsignacionService {
                 .activo(a.isActivo())
                 .fechaAsignacion(a.getFechaAsignacion())
                 .asignadoPor(a.getAsignadoPor() != null ? a.getAsignadoPor().getUsername() : null)
+                .idDocente(a.getDocente().getIdPersona())
+                .idAsignatura(a.getAsignatura().getIdAsignatura())
+                .idGrado(a.getGrado().getIdGrado())
+                .idParalelo(a.getParalelo() != null ? a.getParalelo().getIdParalelo() : null)
+                .idAnoLectivo(a.getAnoLectivo().getIdAnoLectivo())
+                .cedulaDocente(a.getDocente().getCedula())
+                .correoDocente(a.getDocente().getUsuario() != null ? a.getDocente().getUsuario().getCorreo() : null)
+                .tituloDocente(a.getDocente().getTituloAcademico())
+                .fotoDocente(a.getDocente().getFotoUrl())
                 .build();
     }
 }

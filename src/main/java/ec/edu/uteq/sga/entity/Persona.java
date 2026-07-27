@@ -2,6 +2,7 @@ package ec.edu.uteq.sga.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -31,7 +32,8 @@ public class Persona {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
-    @Column(length = 1)
+    @Column(columnDefinition = "sga_principal.genero_t")
+    @ColumnTransformer(write = "?::sga_principal.genero_t")
     private String genero;
 
     @Column(length = 20)
@@ -55,9 +57,11 @@ public class Persona {
     @Column(name = "foto_url")
     private String fotoUrl;
 
+    @Builder.Default
     @Column(name = "fecha_creacion")
     private Instant fechaCreacion = Instant.now();
 
+    @Builder.Default
     @Column(name = "fecha_actualizacion")
     private Instant fechaActualizacion = Instant.now();
 }

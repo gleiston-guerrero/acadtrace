@@ -49,11 +49,10 @@ export default function Dashboard() {
         }
     };
 
-    const modulosPermitidos = roles.includes("ROLE_DOCENTE")
-        ? modulos.filter(m => ["docente", "calificaciones"].includes(m.id))
-        : modulos;
-
-    const modulosFiltrados = modulosPermitidos.filter(m =>
+    // El dashboard es el portal del DIRECTOR: muestra todos los módulos
+    // administrativos. Los docentes no llegan aquí (se entregan a su
+    // microservicio), así que no se filtra por DOCENTE.
+    const modulosFiltrados = modulos.filter(m =>
         m.label.toLowerCase().includes(busqueda.toLowerCase()) ||
         m.desc.toLowerCase().includes(busqueda.toLowerCase())
     );

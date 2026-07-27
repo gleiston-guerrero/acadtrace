@@ -28,7 +28,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         "Usuario no encontrado: " + username));
 
         List<SimpleGrantedAuthority> authorities = usuario.getRoles().stream()
-                .map(rol -> new SimpleGrantedAuthority(rol.getNombre()))
+                .map(rol -> {
+                    String nombre = rol.getNombre();
+                    return new SimpleGrantedAuthority(nombre.startsWith("ROLE_") ? nombre : "ROLE_" + nombre);
+                })
                 .collect(Collectors.toList());
 
         return new User(
