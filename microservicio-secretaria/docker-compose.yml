@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: sga-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sga
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # No depende del servicio "postgres" de arriba: la app se conecta a Supabase
+  # (DB_HOST/DB_PORT en .env), no a este Postgres local.
+  secretaria:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: sga-secretaria
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-5176}:5176"
+
+volumes:
+  pgdata:
