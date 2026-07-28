@@ -26,4 +26,14 @@ public class CrearEstudianteDTO {
     private String carnetConadis;
     private String fotoUrl;
     private RepresentanteInputDTO representante;
+
+    /** Vincula un representante ya existente (por id) — usado por el flujo gRPC de sga-secretaria,
+     *  que crea/gestiona representantes por su cuenta. Tiene prioridad sobre {@link #representante}. */
+    private Long idRepresentante;
+
+    /** Usuario que originó el registro (resuelto por sga-secretaria antes de llamar por gRPC). */
+    private Long idUsuarioCreador;
+
+    /** Código generado por sga-secretaria (EST-0001...); en blanco = no tocar el código actual (caso actualizar). */
+    private String codigoEstudiante;
 }

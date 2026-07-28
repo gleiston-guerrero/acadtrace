@@ -6,8 +6,10 @@ import ec.edu.uteq.sga.dto.EstudianteListDTO;
 import ec.edu.uteq.sga.dto.RepresentanteInputDTO;
 import ec.edu.uteq.sga.entity.Estudiante;
 import ec.edu.uteq.sga.entity.Representante;
+import ec.edu.uteq.sga.entity.Usuario;
 import ec.edu.uteq.sga.repository.EstudianteRepository;
 import ec.edu.uteq.sga.repository.RepresentanteRepository;
+import ec.edu.uteq.sga.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class EstudianteService {
 
     private final EstudianteRepository estudianteRepo;
     private final RepresentanteRepository representanteRepo;
+    private final UsuarioRepository usuarioRepo;
 
     public List<EstudianteListDTO> listar(String q) {
         List<Estudiante> estudiantes = (q == null || q.isBlank())
@@ -34,13 +37,39 @@ public class EstudianteService {
     }
 
     public EstudianteDetalleDTO obtener(Long id) {
-        Estudiante e = estudianteRepo.findById(id)
+        Estudiante e = estudianteRepo.findByIdWithRepresentante(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
         return toDetalleDTO(e);
     }
 
+    /** Paginado en memoria (volumen de una sola institución, no amerita Pageable en el repositorio todavía). */
+    public PaginaEstudiantes listarPaginado(String q, int page, int limit) {
+        List<Estudiante> todos = (q == null || q.isBlank())
+                ? estudianteRepo.findAllWithRepresentante()
+                : estudianteRepo.searchWithRepresentante(q.trim());
+
+        int limiteReal = limit > 0 ? limit : 15;
+        int paginaReal = page > 0 ? page : 1;
+        int desde = Math.min((paginaReal - 1) * limiteReal, todos.size());
+        int hasta = Math.min(desde + limiteReal, todos.size());
+
+        List<EstudianteDetalleDTO> items = todos.subList(desde, hasta).stream().map(this::toDetalleDTO).toList();
+        return new PaginaEstudiantes(items, todos.size());
+    }
+
+    public record PaginaEstudiantes(List<EstudianteDetalleDTO> items, long total) {}
+
     @Transactional
-    public EstudianteListDTO crear(CrearEstudianteDTO dto) {
+    public void cambiarEstado(Long id, boolean activo) {
+        Estudiante estudiante = estudianteRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
+        estudiante.setEstado(activo ? "ACTIVO" : "INACTIVO");
+        estudiante.setFechaActualizacion(Instant.now());
+        estudianteRepo.save(estudiante);
+    }
+
+    @Transactional
+    public EstudianteDetalleDTO crear(CrearEstudianteDTO dto) {
         String cedula = validarCedula(dto.getCedula());
         String nombres = validarNombres(dto.getNombres());
         String apellidos = validarApellidos(dto.getApellidos());
@@ -54,11 +83,11 @@ public class EstudianteService {
         estudiante.setFechaCreacion(Instant.now());
         aplicarCampos(estudiante, dto, cedula, nombres, apellidos);
 
-        return toDTO(estudianteRepo.save(estudiante));
+        return toDetalleDTO(estudianteRepo.save(estudiante));
     }
 
     @Transactional
-    public EstudianteListDTO actualizar(Long id, CrearEstudianteDTO dto) {
+    public EstudianteDetalleDTO actualizar(Long id, CrearEstudianteDTO dto) {
         Estudiante estudiante = estudianteRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
 
@@ -72,7 +101,7 @@ public class EstudianteService {
 
         aplicarCampos(estudiante, dto, cedula, nombres, apellidos);
 
-        return toDTO(estudianteRepo.save(estudiante));
+        return toDetalleDTO(estudianteRepo.save(estudiante));
     }
 
     private String validarCedula(String cedula) {
@@ -97,7 +126,10 @@ public class EstudianteService {
     }
 
     private void aplicarCampos(Estudiante estudiante, CrearEstudianteDTO dto, String cedula, String nombres, String apellidos) {
-        Representante representante = resolverRepresentante(dto.getRepresentante());
+        Representante representante = dto.getIdRepresentante() != null
+                ? representanteRepo.findById(dto.getIdRepresentante())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Representante no encontrado"))
+                : resolverRepresentante(dto.getRepresentante());
 
         estudiante.setCedula(cedula);
         estudiante.setNombres(nombres);
@@ -120,6 +152,12 @@ public class EstudianteService {
         estudiante.setCarnetConadis(dto.getCarnetConadis());
         estudiante.setFotoUrl(dto.getFotoUrl());
         if (representante != null) estudiante.setRepresentante(representante);
+        if (dto.getCodigoEstudiante() != null && !dto.getCodigoEstudiante().isBlank())
+            estudiante.setCodigoEstudiante(dto.getCodigoEstudiante());
+        if (dto.getIdUsuarioCreador() != null) {
+            Usuario creador = usuarioRepo.findById(dto.getIdUsuarioCreador()).orElse(null);
+            if (creador != null) estudiante.setCreadoPor(creador);
+        }
         estudiante.setFechaActualizacion(Instant.now());
     }
 
@@ -147,7 +185,7 @@ public class EstudianteService {
                 .cedula(cedula.isEmpty() ? null : cedula)
                 .nombres(nombres)
                 .apellidos(apellidos)
-                .parentesco(r.getParentesco())
+                .parentesco(r.getParentesco() != null && !r.getParentesco().isBlank() ? r.getParentesco() : "No especificado")
                 .telefonoPrincipal(telefono)
                 .telefonoAlt(r.getTelefonoAlt())
                 .correo(r.getCorreo())
@@ -206,6 +244,7 @@ public class EstudianteService {
                         ? new RepresentanteInputDTO(r.getCedula(), r.getNombres(), r.getApellidos(), r.getParentesco(),
                                 r.getTelefonoPrincipal(), r.getTelefonoAlt(), r.getCorreo(), r.getDireccion())
                         : null)
+                .idRepresentante(r != null ? r.getIdRepresentante() : null)
                 .build();
     }
 }

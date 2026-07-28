@@ -30,4 +30,5 @@ public class EstudianteDetalleDTO {
     private String estado;
     private String origenListado;
     private RepresentanteInputDTO representante;
+    private Long idRepresentante;
 }

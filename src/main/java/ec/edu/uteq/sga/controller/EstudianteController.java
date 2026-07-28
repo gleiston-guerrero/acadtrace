@@ -35,12 +35,12 @@ public class EstudianteController {
     }
 
     @PostMapping
-    public ResponseEntity<EstudianteListDTO> crear(@RequestBody CrearEstudianteDTO dto) {
+    public ResponseEntity<EstudianteDetalleDTO> crear(@RequestBody CrearEstudianteDTO dto) {
         return ResponseEntity.ok(estudianteService.crear(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EstudianteListDTO> actualizar(@PathVariable Long id, @RequestBody CrearEstudianteDTO dto) {
+    public ResponseEntity<EstudianteDetalleDTO> actualizar(@PathVariable Long id, @RequestBody CrearEstudianteDTO dto) {
         return ResponseEntity.ok(estudianteService.actualizar(id, dto));
     }
 }
