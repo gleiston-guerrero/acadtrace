@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface TicketComentarioRepository extends CrudRepository<TicketComentario, Long> {
-    List<TicketComentario> findByTicketIdOrderByFechaCreacionAsc(Long ticketId);
+    List<TicketComentario> findByIdTicketOrderByFechaCreacionAsc(Long idTicket);
 }

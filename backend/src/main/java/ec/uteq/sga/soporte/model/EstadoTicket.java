@@ -1,7 +1,7 @@
 package ec.uteq.sga.soporte.model;
 
 public enum EstadoTicket {
-    PENDIENTE,
+    ABIERTO,
     EN_PROCESO,
     RESUELTO,
     CERRADO

@@ -6,46 +6,46 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
-@Table("ticket_comentarios")
+/** Entidad Spring Data JDBC que mapea sga_soporte.comentarios (no conectada a ningun controller hoy). */
+@Table("sga_soporte.comentarios")
 public class TicketComentario {
 
     @Id
+    @Column("id_comentario")
     private Long id;
 
-    @Column("ticket_id")
-    private Long ticketId;
+    @Column("id_ticket")
+    private Long idTicket;
 
-    @Column("usuario_id")
-    private Long usuarioId;
+    private String autor;
+    private String contenido;
 
-    private String comentario;
-
-    @Column("es_respuesta_interna")
-    private Boolean esRespuestaInterna;
+    @Column("nota_interna")
+    private Boolean notaInterna;
 
     @Column("fecha_creacion")
     private LocalDateTime fechaCreacion;
 
     public TicketComentario() {
         this.fechaCreacion = LocalDateTime.now();
-        this.esRespuestaInterna = false;
+        this.notaInterna = false;
     }
 
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public Long getTicketId() { return ticketId; }
-    public void setTicketId(Long ticketId) { this.ticketId = ticketId; }
+    public Long getIdTicket() { return idTicket; }
+    public void setIdTicket(Long idTicket) { this.idTicket = idTicket; }
 
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
+    public String getAutor() { return autor; }
+    public void setAutor(String autor) { this.autor = autor; }
 
-    public String getComentario() { return comentario; }
-    public void setComentario(String comentario) { this.comentario = comentario; }
+    public String getContenido() { return contenido; }
+    public void setContenido(String contenido) { this.contenido = contenido; }
 
-    public Boolean getEsRespuestaInterna() { return esRespuestaInterna; }
-    public void setEsRespuestaInterna(Boolean esRespuestaInterna) { this.esRespuestaInterna = esRespuestaInterna; }
+    public Boolean getNotaInterna() { return notaInterna; }
+    public void setNotaInterna(Boolean notaInterna) { this.notaInterna = notaInterna; }
 
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }

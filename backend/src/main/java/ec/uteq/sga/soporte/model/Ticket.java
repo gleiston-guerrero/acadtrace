@@ -6,48 +6,56 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
-@Table("tickets")
+/**
+ * Entidad Spring Data JDBC que mapea sga_soporte.tickets. NOTA: el flujo real
+ * de la app (TicketController/TicketService) usa JdbcTemplate directo con
+ * SQL propio y no pasa por esta clase; esta entidad queda disponible para
+ * quien la quiera usar mas adelante, pero hoy no esta conectada a ningun
+ * controller.
+ */
+@Table("sga_soporte.tickets")
 public class Ticket {
 
     @Id
+    @Column("id_ticket")
     private Long id;
-    private String codigo;
+
+    @Column("numero_ticket")
+    private String numeroTicket;
+
     private String titulo;
     private String descripcion;
-    private String estado;
+    private String categoria;
     private String prioridad;
+    private String estado;
 
-    @Column("usuario_solicitante_id")
-    private Long usuarioSolicitanteId;
+    @Column("creado_por")
+    private String creadoPor;
 
-    @Column("tecnico_asignado_id")
-    private Long tecnicoAsignadoId;
+    @Column("asignado_a")
+    private String asignadoA;
 
-    @Column("categoria_id")
-    private Long categoriaId;
+    @Column("solucion_aplicada")
+    private String solucionAplicada;
 
     @Column("fecha_creacion")
     private LocalDateTime fechaCreacion;
 
-    @Column("fecha_actualizacion")
-    private LocalDateTime fechaActualizacion;
-
-    @Column("fecha_cierre")
-    private LocalDateTime fechaCierre;
+    @Column("fecha_resolucion")
+    private LocalDateTime fechaResolucion;
 
     public Ticket() {
         this.fechaCreacion = LocalDateTime.now();
-        this.fechaActualizacion = LocalDateTime.now();
-        this.estado = EstadoTicket.PENDIENTE.name();
-        this.prioridad = PrioridadTicket.MEDIA.name();
+        this.estado = EstadoTicket.ABIERTO.name();
+        this.prioridad = PrioridadTicket.MEDIO.name();
     }
 
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
+    public String getNumeroTicket() { return numeroTicket; }
+    public void setNumeroTicket(String numeroTicket) { this.numeroTicket = numeroTicket; }
 
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
@@ -55,27 +63,27 @@ public class Ticket {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
 
     public String getPrioridad() { return prioridad; }
     public void setPrioridad(String prioridad) { this.prioridad = prioridad; }
 
-    public Long getUsuarioSolicitanteId() { return usuarioSolicitanteId; }
-    public void setUsuarioSolicitanteId(Long usuarioSolicitanteId) { this.usuarioSolicitanteId = usuarioSolicitanteId; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
-    public Long getTecnicoAsignadoId() { return tecnicoAsignadoId; }
-    public void setTecnicoAsignadoId(Long tecnicoAsignadoId) { this.tecnicoAsignadoId = tecnicoAsignadoId; }
+    public String getCreadoPor() { return creadoPor; }
+    public void setCreadoPor(String creadoPor) { this.creadoPor = creadoPor; }
 
-    public Long getCategoriaId() { return categoriaId; }
-    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
+    public String getAsignadoA() { return asignadoA; }
+    public void setAsignadoA(String asignadoA) { this.asignadoA = asignadoA; }
+
+    public String getSolucionAplicada() { return solucionAplicada; }
+    public void setSolucionAplicada(String solucionAplicada) { this.solucionAplicada = solucionAplicada; }
 
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 
-    public LocalDateTime getFechaActualizacion() { return fechaActualizacion; }
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
-
-    public LocalDateTime getFechaCierre() { return fechaCierre; }
-    public void setFechaCierre(LocalDateTime fechaCierre) { this.fechaCierre = fechaCierre; }
+    public LocalDateTime getFechaResolucion() { return fechaResolucion; }
+    public void setFechaResolucion(LocalDateTime fechaResolucion) { this.fechaResolucion = fechaResolucion; }
 }
