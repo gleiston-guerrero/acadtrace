@@ -17,6 +17,11 @@ service PrincipalService {
   rpc ListarAnosLectivos (Empty) returns (AnosLectivosResponse);
   rpc ListarGrados (Empty) returns (GradosResponse);
   rpc ListarParalelos (ListarParalelosRequest) returns (ParalelosResponse);
+  rpc CrearGrado (GuardarGradoRequest) returns (GradoProto);
+  rpc ActualizarGrado (GuardarGradoRequest) returns (GradoProto);
+  rpc CambiarEstadoGrado (CambiarEstadoGradoRequest) returns (Empty);
+  rpc CrearParalelo (GuardarParaleloRequest) returns (ParaleloProto);
+  rpc CambiarEstadoParalelo (CambiarEstadoParaleloRequest) returns (Empty);
   rpc ListarAsignaturas (Empty) returns (AsignaturasResponse);
   rpc CrearEstudiante (GuardarEstudianteRequest) returns (EstudianteProto);
   rpc ActualizarEstudiante (GuardarEstudianteRequest) returns (EstudianteProto);
@@ -45,10 +50,27 @@ message GradoProto {
   string nombre = 2;
   int32 orden = 3;
   bool activo = 4;
+  int32 capacidad_max = 5;
+  int64 id_nivel = 6; // 0 = sin nivel asignado
+  string nivel_educativo = 7;
+  string tipo_escala = 8;
 }
 
 message GradosResponse {
   repeated GradoProto grados = 1;
+}
+
+message GuardarGradoRequest {
+  int64 id_grado = 1; // 0 en creacion, ignorado por CrearGrado
+  string nombre = 2;
+  int32 orden = 3;
+  int32 capacidad_max = 4;
+  int64 id_nivel = 5; // 0 = sin nivel
+}
+
+message CambiarEstadoGradoRequest {
+  int64 id_grado = 1;
+  bool activo = 2;
 }
 
 message ListarParalelosRequest {
@@ -61,10 +83,21 @@ message ParaleloProto {
   int64 id_grado = 2;
   string letra = 3;
   bool activo = 4;
+  int64 total_estudiantes = 5;
 }
 
 message ParalelosResponse {
   repeated ParaleloProto paralelos = 1;
+}
+
+message GuardarParaleloRequest {
+  int64 id_grado = 1;
+  string letra = 2;
+}
+
+message CambiarEstadoParaleloRequest {
+  int64 id_paralelo = 1;
+  bool activo = 2;
 }
 
 message AsignaturaProto {

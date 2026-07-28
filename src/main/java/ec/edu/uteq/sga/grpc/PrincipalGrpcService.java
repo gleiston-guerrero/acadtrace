@@ -2,16 +2,16 @@ package ec.edu.uteq.sga.grpc;
 
 import ec.edu.uteq.sga.dto.CrearEstudianteDTO;
 import ec.edu.uteq.sga.dto.EstudianteDetalleDTO;
+import ec.edu.uteq.sga.dto.grado.GradoRequestDTO;
+import ec.edu.uteq.sga.dto.grado.GradoResponseDTO;
+import ec.edu.uteq.sga.dto.grado.ParaleloDTO;
 import ec.edu.uteq.sga.entity.AnoLectivo;
 import ec.edu.uteq.sga.entity.Asignatura;
-import ec.edu.uteq.sga.entity.Grado;
-import ec.edu.uteq.sga.entity.Paralelo;
 import ec.edu.uteq.sga.grpc.principal.*;
 import ec.edu.uteq.sga.repository.AnoLectivoRepository;
 import ec.edu.uteq.sga.repository.AsignaturaRepository;
-import ec.edu.uteq.sga.repository.GradoRepository;
-import ec.edu.uteq.sga.repository.ParaleloRepository;
 import ec.edu.uteq.sga.service.EstudianteService;
+import ec.edu.uteq.sga.service.GradoService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +34,9 @@ import java.util.List;
 public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceImplBase {
 
     private final AnoLectivoRepository anoLectivoRepository;
-    private final GradoRepository gradoRepository;
-    private final ParaleloRepository paraleloRepository;
     private final AsignaturaRepository asignaturaRepository;
     private final EstudianteService estudianteService;
+    private final GradoService gradoService;
 
     @Override
     public void listarAnosLectivos(Empty request, StreamObserver<AnosLectivosResponse> responseObserver) {
@@ -51,7 +50,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     @Override
     public void listarGrados(Empty request, StreamObserver<GradosResponse> responseObserver) {
         GradosResponse.Builder response = GradosResponse.newBuilder();
-        gradoRepository.findAllByOrderByOrden().forEach(g -> response.addGrados(toProto(g)));
+        gradoService.listarTodos().forEach(g -> response.addGrados(toProto(g)));
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }
@@ -59,12 +58,76 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     @Override
     public void listarParalelos(ListarParalelosRequest request, StreamObserver<ParalelosResponse> responseObserver) {
         ParalelosResponse.Builder response = ParalelosResponse.newBuilder();
-        List<Paralelo> paralelos = request.getIdGrado() > 0
-                ? paraleloRepository.findByGradoIdGradoOrderByLetra(request.getIdGrado())
-                : paraleloRepository.findAll();
-        paralelos.forEach(p -> response.addParalelos(toProto(p)));
+        gradoService.listarTodos().stream()
+                .filter(g -> request.getIdGrado() <= 0 || request.getIdGrado() == g.getIdGrado())
+                .flatMap(g -> g.getParalelos().stream())
+                .forEach(p -> response.addParalelos(toProto(p)));
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void crearGrado(GuardarGradoRequest request, StreamObserver<GradoProto> responseObserver) {
+        try {
+            GradoResponseDTO creado = gradoService.crear(fromProto(request));
+            responseObserver.onNext(toProto(creado));
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void actualizarGrado(GuardarGradoRequest request, StreamObserver<GradoProto> responseObserver) {
+        try {
+            GradoResponseDTO actualizado = gradoService.actualizar(request.getIdGrado(), fromProto(request));
+            responseObserver.onNext(toProto(actualizado));
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void cambiarEstadoGrado(CambiarEstadoGradoRequest request, StreamObserver<Empty> responseObserver) {
+        try {
+            gradoService.cambiarEstado(request.getIdGrado(), request.getActivo());
+            responseObserver.onNext(Empty.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void crearParalelo(GuardarParaleloRequest request, StreamObserver<ParaleloProto> responseObserver) {
+        try {
+            ParaleloDTO creado = gradoService.crearParalelo(request.getIdGrado(), request.getLetra());
+            responseObserver.onNext(toProto(creado));
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void cambiarEstadoParalelo(CambiarEstadoParaleloRequest request, StreamObserver<Empty> responseObserver) {
+        try {
+            gradoService.cambiarEstadoParalelo(request.getIdParalelo(), request.getActivo());
+            responseObserver.onNext(Empty.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    private GradoRequestDTO fromProto(GuardarGradoRequest r) {
+        return GradoRequestDTO.builder()
+                .nombre(r.getNombre())
+                .orden((short) r.getOrden())
+                .capacidadMax(r.getCapacidadMax() > 0 ? (short) r.getCapacidadMax() : 35)
+                .idNivel(r.getIdNivel() > 0 ? r.getIdNivel() : null)
+                .build();
     }
 
     @Override
@@ -85,21 +148,26 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
                 .build();
     }
 
-    private GradoProto toProto(Grado g) {
+    private GradoProto toProto(GradoResponseDTO d) {
         return GradoProto.newBuilder()
-                .setIdGrado(g.getIdGrado())
-                .setNombre(nullToEmpty(g.getNombre()))
-                .setOrden(g.getOrden() != null ? g.getOrden() : 0)
-                .setActivo(g.isActivo())
+                .setIdGrado(d.getIdGrado())
+                .setNombre(nullToEmpty(d.getNombre()))
+                .setOrden(d.getOrden() != null ? d.getOrden() : 0)
+                .setActivo(d.isActivo())
+                .setCapacidadMax(d.getCapacidadMax() != null ? d.getCapacidadMax() : 0)
+                .setIdNivel(d.getIdNivel() != null ? d.getIdNivel() : 0)
+                .setNivelEducativo(nullToEmpty(d.getNivelEducativo()))
+                .setTipoEscala(nullToEmpty(d.getTipoEscala()))
                 .build();
     }
 
-    private ParaleloProto toProto(Paralelo p) {
+    private ParaleloProto toProto(ParaleloDTO p) {
         return ParaleloProto.newBuilder()
                 .setIdParalelo(p.getIdParalelo())
-                .setIdGrado(p.getGrado() != null ? p.getGrado().getIdGrado() : 0)
+                .setIdGrado(p.getIdGrado() != null ? p.getIdGrado() : 0)
                 .setLetra(nullToEmpty(p.getLetra()))
                 .setActivo(p.isActivo())
+                .setTotalEstudiantes(p.getTotalEstudiantes())
                 .build();
     }
 
