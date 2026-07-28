@@ -1,0 +1,872 @@
+import { useState, useEffect } from "react";
+import api from "../../config/axios";
+import Layout from "../../components/Layout";
+
+
+const PRIMARY = "#243A76";
+
+const ROLES = [
+  { id: 1, nombre: "DIRECTOR" },
+  { id: 2, nombre: "SECRETARIA" },
+  { id: 3, nombre: "DOCENTE" },
+  { id: 4, nombre: "SOPORTE_TECNICO" },
+];
+
+const estadoBadge = (estado) => {
+  const map = {
+    ACTIVO: "bg-green-100 text-green-700",
+    INACTIVO: "bg-slate-100 text-slate-500",
+    BLOQUEADO: "bg-red-100 text-red-600",
+  };
+  return map[estado] || "bg-slate-100 text-slate-500";
+};
+
+const formatFecha = (v) => {
+  if (!v) return "—";
+  try { return new Date(v).toLocaleString("es-EC"); } catch { return v; }
+};
+
+const Detalle = ({ label, value, mono = false }) => (
+  <div className="grid grid-cols-3 gap-2 text-sm py-1">
+    <span className="text-slate-400 text-xs uppercase tracking-wide">{label}</span>
+    <span className={`col-span-2 text-slate-700 ${mono ? "font-mono" : ""}`}>{value || <span className="text-slate-300">—</span>}</span>
+  </div>
+);
+
+const IMG_BASE = "http://localhost:8080";
+const ID_DOCENTE = 3;
+
+const formInicial = {
+  cedula: "", nombres: "", apellidos: "", correo: "", roles: [],
+  fechaNacimiento: "", genero: "", telefono: "", telefonoAlt: "",
+  direccion: "", correoPersonal: "", tituloAcademico: "", especializacion: "", fotoUrl: "",
+};
+
+// Sección de datos del docente (se reutiliza en crear y editar).
+// data = objeto de estado; onChange = setter que recibe el objeto completo.
+function DocenteCampos({ data, onChange, subirFoto }) {
+  const set = (k, v) => onChange({ ...data, [k]: v });
+  const foto = data.fotoUrl
+    ? (data.fotoUrl.startsWith("http") ? data.fotoUrl : `${IMG_BASE}${data.fotoUrl}`)
+    : null;
+  return (
+    <div className="border-t border-slate-100 pt-4 space-y-4">
+      <p className="text-xs font-semibold text-[#243A76] uppercase tracking-wide">
+        Datos del docente <span className="text-slate-400 normal-case font-normal">— requeridos por el rol DOCENTE</span>
+      </p>
+
+      {/* Foto */}
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+          {foto
+            ? <img src={foto} alt="" className="w-full h-full object-cover" />
+            : <svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM4 20a8 8 0 0116 0" /></svg>}
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Foto de perfil</label>
+          <input type="file" accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) subirFoto(f, (url) => set("fotoUrl", url)); }}
+            className="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 file:cursor-pointer" />
+          <p className="text-xs text-slate-400 mt-1">JPG, PNG o WEBP · máx 3 MB</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Título académico *</label>
+          <input type="text" value={data.tituloAcademico || ""} onChange={(e) => set("tituloAcademico", e.target.value)}
+            placeholder="Lic. en Ciencias de la Educación"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Especialización</label>
+          <input type="text" value={data.especializacion || ""} onChange={(e) => set("especializacion", e.target.value)}
+            placeholder="Matemáticas, Lengua, etc."
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Fecha de nacimiento</label>
+          <input type="date" value={data.fechaNacimiento || ""} onChange={(e) => set("fechaNacimiento", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Género</label>
+          <select value={data.genero || ""} onChange={(e) => set("genero", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50">
+            <option value="">—</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMENINO">Femenino</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono</label>
+          <input type="text" value={data.telefono || ""} onChange={(e) => set("telefono", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Teléfono alt.</label>
+          <input type="text" value={data.telefonoAlt || ""} onChange={(e) => set("telefonoAlt", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Correo personal (adicional)</label>
+          <input type="email" value={data.correoPersonal || ""} onChange={(e) => set("correoPersonal", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Dirección</label>
+          <input type="text" value={data.direccion || ""} onChange={(e) => set("direccion", e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const menuItems = [
+  { id: "lista", label: "Lista de usuarios", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
+  { id: "nuevo", label: "Nuevo usuario", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
+];
+
+export default function Usuarios() {
+  const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
+  const [seccion, setSeccion] = useState("lista");
+  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(null);
+  const [detalle, setDetalle] = useState(null);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [usuarioEdit, setUsuarioEdit] = useState(null);
+
+  const [form, setForm] = useState(formInicial);
+
+  const subirFoto = async (file, setter) => {
+    const fd = new FormData();
+    fd.append("archivo", file);
+    try {
+      const { data } = await api.post(`/api/uploads/foto`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setter(data.url);
+    } catch (err) {
+      setError(err.response?.data?.message || "No se pudo subir la imagen.");
+    }
+  };
+
+  const cargar = () => {
+    setLoading(true);
+    api.get(`/api/usuarios`)
+        .then(r => setUsuarios(r.data))
+        .catch(() => setError("Error al cargar usuarios"))
+        .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { cargar(); }, []);
+
+  const filtrados = usuarios.filter(u =>
+      u.username?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      u.correo?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      u.roles?.some(r => r.toLowerCase().includes(busqueda.toLowerCase()))
+  );
+
+  const esDocente = form.roles.includes(ID_DOCENTE);
+
+  const handleCrear = async (e) => {
+    e.preventDefault();
+    if (form.roles.length === 0) { setError("Selecciona al menos un rol"); return; }
+    if (!/^\d{10}$/.test(form.cedula)) { setError("La cédula debe tener 10 dígitos"); return; }
+    if (esDocente && !form.tituloAcademico.trim()) {
+      setError("Como el usuario tiene rol DOCENTE, indica al menos el título académico.");
+      return;
+    }
+    setSaving(true); setError("");
+    try {
+      const { cedula, nombres, apellidos, correo } = form;
+      const resp = await api.post(`/api/usuarios`, {
+        nombres, apellidos, correo,
+        roles: form.roles.map(Number),
+      });
+      const idUsuario = resp.data?.idUsuario;
+      if (idUsuario) {
+        const personaPayload = { idUsuario, cedula, nombres, apellidos };
+        if (esDocente) {
+          Object.assign(personaPayload, {
+            fechaNacimiento: form.fechaNacimiento || null,
+            genero: form.genero || null,
+            telefono: form.telefono || null,
+            telefonoAlt: form.telefonoAlt || null,
+            direccion: form.direccion || null,
+            correoPersonal: form.correoPersonal || null,
+            tituloAcademico: form.tituloAcademico || null,
+            especializacion: form.especializacion || null,
+            fotoUrl: form.fotoUrl || null,
+          });
+        }
+        try {
+          await api.post(`/api/personas`, personaPayload);
+        } catch (perr) {
+          const msg = perr.response?.data?.message || perr.message || "sin detalle";
+          setError(`Usuario creado, pero NO se guardó el perfil: ${msg}. Complétalo editando el usuario.`);
+          setShowModal(false);
+          setForm(formInicial);
+          cargar();
+          setSaving(false);
+          return;
+        }
+      }
+      setSuccess("Usuario creado. Se enviaron las credenciales al correo.");
+      setShowModal(false);
+      setForm(formInicial);
+      cargar();
+    } catch (e) {
+      setError(e.response?.data?.message || "Error al crear usuario");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const verDetalle = async (u) => {
+    setDetalle({ usuario: u, persona: null });
+    setCargandoDetalle(true);
+    try {
+      const { data } = await api.get(`/api/personas/usuario/${u.idUsuario}`);
+      setDetalle({ usuario: u, persona: data });
+    } catch (err) {
+      setDetalle({ usuario: u, persona: null, sinPersona: err.response?.status === 404 });
+    } finally {
+      setCargandoDetalle(false);
+    }
+  };
+
+  const handleEditar = async (e) => {
+    e.preventDefault();
+    if (usuarioEdit.cedula && !/^\d{10}$/.test(usuarioEdit.cedula)) {
+      setError("La cédula debe tener 10 dígitos");
+      return;
+    }
+    const editDocente = usuarioEdit.roles.includes("DOCENTE");
+    if (editDocente && !(usuarioEdit.tituloAcademico || "").trim()) {
+      setError("Como el usuario tiene rol DOCENTE, indica al menos el título académico.");
+      return;
+    }
+    setSaving(true); setError("");
+    try {
+      await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
+        correo: usuarioEdit.correo,
+        roles: usuarioEdit.roles.map(r => {
+          const found = ROLES.find(x => x.nombre === r);
+          return found ? found.id : null;
+        }).filter(Boolean),
+      });
+
+      if (usuarioEdit.cedula) {
+        const payload = {
+          cedula: usuarioEdit.cedula,
+          nombres: usuarioEdit.nombres,
+          apellidos: usuarioEdit.apellidos,
+        };
+        if (editDocente) {
+          Object.assign(payload, {
+            fechaNacimiento: usuarioEdit.fechaNacimiento || null,
+            genero: usuarioEdit.genero || null,
+            telefono: usuarioEdit.telefono || null,
+            telefonoAlt: usuarioEdit.telefonoAlt || null,
+            direccion: usuarioEdit.direccion || null,
+            correoPersonal: usuarioEdit.correoPersonal || null,
+            tituloAcademico: usuarioEdit.tituloAcademico || null,
+            especializacion: usuarioEdit.especializacion || null,
+            fotoUrl: usuarioEdit.fotoUrl || null,
+          });
+        }
+        if (usuarioEdit.idPersona) {
+          await api.put(`/api/personas/${usuarioEdit.idPersona}`, payload);
+        } else {
+          await api.post(`/api/personas`, { idUsuario: usuarioEdit.idUsuario, ...payload });
+        }
+      }
+
+      setSuccess("Usuario actualizado correctamente.");
+      setShowEditModal(false);
+      cargar();
+    } catch (err) {
+      setError(err.response?.data?.message || "Error al actualizar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEstado = async (id, estado) => {
+    try {
+      await api.patch(`/api/usuarios/${id}/estado?estado=${estado}`, {});
+      setSuccess(`Usuario ${estado === "ACTIVO" ? "activado" : "desactivado"} correctamente.`);
+      cargar();
+    } catch { setError("Error al cambiar estado"); }
+    setShowConfirm(null);
+  };
+
+  const handleReset = async (id) => {
+    try {
+      await api.patch(`/api/usuarios/${id}/reset-password`, {});
+      setSuccess("Contraseña reseteada. Se envió al correo del usuario.");
+      cargar();
+    } catch { setError("Error al resetear contraseña"); }
+    setShowConfirm(null);
+  };
+
+  const handleEliminar = async (id) => {
+    try {
+      await api.delete(`/api/usuarios/${id}`);
+      setSuccess("Usuario eliminado correctamente.");
+      cargar();
+    } catch { setError("No se puede eliminar este usuario."); }
+    setShowConfirm(null);
+  };
+
+  const toggleRol = (id) => {
+    setForm(f => ({
+      ...f,
+      roles: f.roles.includes(id) ? f.roles.filter(r => r !== id) : [...f.roles, id],
+    }));
+  };
+
+  useEffect(() => {
+    if (success) { const t = setTimeout(() => setSuccess(""), 4000); return () => clearTimeout(t); }
+  }, [success]);
+
+  const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
+
+  const handleSeccion = (id) => {
+    setSeccion(id);
+    if (id === "nuevo") { setShowModal(true); setError(""); }
+  };
+
+  return (
+      <Layout
+        breadcrumb={["Inicio", "Usuarios"]}
+        sidebarTitle="Usuarios"
+        menuItems={menuItems}
+        seccion={seccion}
+        onSeccionChange={handleSeccion}
+      >
+
+        {/* Alertas */}
+        {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+              <span className="text-red-600 text-sm">{error}</span>
+              <button onClick={() => setError("")} className="text-red-400 hover:text-red-600">✕</button>
+            </div>
+        )}
+        {success && (
+            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between">
+              <span className="text-green-600 text-sm">{success}</span>
+              <button onClick={() => setSuccess("")} className="text-green-400 hover:text-green-600">✕</button>
+            </div>
+        )}
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-lg font-bold text-slate-700">Usuarios</h1>
+            <p className="text-xs text-slate-400">{filtrados.length} usuario{filtrados.length !== 1 ? "s" : ""} encontrado{filtrados.length !== 1 ? "s" : ""}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <input
+                  type="text"
+                  placeholder="Buscar usuario..."
+                  value={busqueda}
+                  onChange={e => setBusqueda(e.target.value)}
+                  className="pl-3 pr-8 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none bg-slate-50 w-48"
+              />
+              <svg className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <button
+                onClick={() => { setShowModal(true); setError(""); }}
+                style={{ backgroundColor: PRIMARY }}
+                className="flex items-center gap-2 text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Nuevo usuario
+            </button>
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          {loading ? (
+              <div className="p-12 text-center text-slate-400 text-sm">Cargando usuarios...</div>
+          ) : filtrados.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 text-sm">No se encontraron usuarios</div>
+          ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                  <tr style={{ backgroundColor: PRIMARY }} className="text-white text-xs">
+                    <th className="text-left px-4 py-3 font-semibold">#</th>
+                    <th className="text-left px-4 py-3 font-semibold">Usuario</th>
+                    <th className="text-left px-4 py-3 font-semibold">Correo</th>
+                    <th className="text-left px-4 py-3 font-semibold">Roles</th>
+                    <th className="text-left px-4 py-3 font-semibold">Estado</th>
+                    <th className="text-left px-4 py-3 font-semibold">Primer ingreso</th>
+                    <th className="text-center px-4 py-3 font-semibold">Acciones</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {filtrados.map((u, i) => (
+                      <tr key={u.idUsuario} className={`border-t border-slate-100 hover:bg-slate-50 transition ${i % 2 === 0 ? "" : "bg-slate-50/50"}`}>
+                        <td className="px-4 py-3 text-slate-400 text-xs">{i + 1}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div style={{ backgroundColor: PRIMARY }} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase flex-shrink-0">
+                              {u.username?.charAt(0)}
+                            </div>
+                            <span className="font-medium text-slate-700">{u.username}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">{u.correo}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {u.roles?.map(r => (
+                                <span key={r} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                            {r.replace("_", " ")}
+                          </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${estadoBadge(u.estado)}`}>
+                        {u.estado}
+                      </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {u.primerIngreso ? (
+                              <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">Pendiente</span>
+                          ) : (
+                              <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Completo</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                                onClick={() => verDetalle(u)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                                title="Ver detalle"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                            <button
+                                onClick={async () => {
+                                  setError("");
+                                  let personaData = { idPersona: null, cedula: "", nombres: "", apellidos: "" };
+                                  try {
+                                    const { data } = await api.get(`/api/personas/usuario/${u.idUsuario}`);
+                                    personaData = {
+                                      idPersona: data.idPersona,
+                                      cedula: data.cedula || "", nombres: data.nombres || "", apellidos: data.apellidos || "",
+                                      fechaNacimiento: data.fechaNacimiento || "", genero: data.genero || "",
+                                      telefono: data.telefono || "", telefonoAlt: data.telefonoAlt || "",
+                                      direccion: data.direccion || "", correoPersonal: data.correoPersonal || "",
+                                      tituloAcademico: data.tituloAcademico || "", especializacion: data.especializacion || "",
+                                      fotoUrl: data.fotoUrl || "",
+                                    };
+                                  } catch (_) { /* sin persona: quedará el objeto vacío */ }
+                                  setUsuarioEdit({ ...u, roles: [...u.roles], ...personaData });
+                                  setShowEditModal(true);
+                                }}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
+                                title="Editar"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            {/* Reset password */}
+                            <button
+                                onClick={() => setShowConfirm({ tipo: "reset", id: u.idUsuario, nombre: u.username })}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition"
+                                title="Resetear contraseña"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                              </svg>
+                            </button>
+                            {/* Activar/Desactivar */}
+                            {u.estado === "ACTIVO" ? (
+                                <button
+                                    onClick={() => setShowConfirm({ tipo: "desactivar", id: u.idUsuario, nombre: u.username })}
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition"
+                                    title="Desactivar"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                  </svg>
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setShowConfirm({ tipo: "activar", id: u.idUsuario, nombre: u.username })}
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 transition"
+                                    title="Activar"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </button>
+                            )}
+                            {/* Eliminar */}
+                            <button
+                                onClick={() => setShowConfirm({ tipo: "eliminar", id: u.idUsuario, nombre: u.username })}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+                                title="Eliminar"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                  ))}
+                  </tbody>
+                </table>
+              </div>
+          )}
+        </div>
+
+        {/* MODAL CREAR */}
+        {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
+              <div className={`bg-white rounded-2xl shadow-2xl w-full overflow-hidden ${esDocente ? "max-w-2xl" : "max-w-md"}`}>
+                <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between">
+                  <h2 className="text-white font-bold text-base">Nuevo Usuario</h2>
+                  <button onClick={() => { setShowModal(false); setError(""); }} className="text-white text-opacity-70 hover:text-opacity-100">✕</button>
+                </div>
+                <form onSubmit={handleCrear} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                  {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Cédula</label>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={form.cedula}
+                        onChange={e => setForm({ ...form, cedula: e.target.value.replace(/\D/g, "") })}
+                        placeholder="10 dígitos"
+                        required
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Nombres</label>
+                      <input
+                          type="text"
+                          value={form.nombres}
+                          onChange={e => setForm({ ...form, nombres: e.target.value })}
+                          placeholder="Ej: María José"
+                          required
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Apellidos</label>
+                      <input
+                          type="text"
+                          value={form.apellidos}
+                          onChange={e => setForm({ ...form, apellidos: e.target.value })}
+                          placeholder="Ej: Rodríguez Pérez"
+                          required
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Correo electrónico</label>
+                    <input
+                        type="email"
+                        value={form.correo}
+                        onChange={e => setForm({ ...form, correo: e.target.value })}
+                        placeholder="correo@ejemplo.com"
+                        required
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                    />
+                    <p className="text-xs text-slate-400 mt-1">Las credenciales se enviarán a este correo.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Roles</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ROLES.map(r => (
+                          <label key={r.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition text-sm ${form.roles.includes(r.id) ? "border-[#243A76] bg-blue-50 text-[#243A76] font-medium" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                            <input type="checkbox" checked={form.roles.includes(r.id)} onChange={() => toggleRol(r.id)} className="hidden" />
+                            {form.roles.includes(r.id) ? (
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            ) : (
+                                <span className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                            )}
+                            {r.nombre.replace("_", " ")}
+                          </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {esDocente && <DocenteCampos data={form} onChange={setForm} subirFoto={subirFoto} />}
+
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                    <p className="text-xs text-blue-600">
+                      <strong>Usuario generado automáticamente</strong> a partir del nombre y apellido.<br />
+                      La contraseña será aleatoria y se enviará al correo indicado.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => { setShowModal(false); setError(""); }} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
+                      Cancelar
+                    </button>
+                    <button type="submit" disabled={saving} style={{ backgroundColor: PRIMARY }} className="flex-1 py-2 text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-60">
+                      {saving ? "Creando..." : "Crear usuario"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+        )}
+
+        {/* MODAL EDITAR */}
+        {showEditModal && usuarioEdit && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
+              <div className={`bg-white rounded-2xl shadow-2xl w-full overflow-hidden ${usuarioEdit.roles.includes("DOCENTE") ? "max-w-2xl" : "max-w-md"}`}>
+                <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between">
+                  <h2 className="text-white font-bold text-base">Editar — {usuarioEdit.username}</h2>
+                  <button onClick={() => setShowEditModal(false)} className="text-white text-opacity-70 hover:text-opacity-100">✕</button>
+                </div>
+                <form onSubmit={handleEditar} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                  {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
+
+                  {!usuarioEdit.idPersona && (
+                    <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-amber-700 text-xs">
+                      Este usuario no tiene cédula registrada. Complétala aquí para poder buscarlo por cédula.
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Cédula</label>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={usuarioEdit.cedula || ""}
+                        onChange={e => setUsuarioEdit({ ...usuarioEdit, cedula: e.target.value.replace(/\D/g, "") })}
+                        placeholder="10 dígitos"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50 font-mono"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Nombres</label>
+                      <input
+                          type="text"
+                          value={usuarioEdit.nombres || ""}
+                          onChange={e => setUsuarioEdit({ ...usuarioEdit, nombres: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Apellidos</label>
+                      <input
+                          type="text"
+                          value={usuarioEdit.apellidos || ""}
+                          onChange={e => setUsuarioEdit({ ...usuarioEdit, apellidos: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Correo electrónico</label>
+                    <input
+                        type="email"
+                        value={usuarioEdit.correo}
+                        onChange={e => setUsuarioEdit({ ...usuarioEdit, correo: e.target.value })}
+                        required
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none bg-slate-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Roles</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ROLES.map(r => {
+                        const activo = usuarioEdit.roles.includes(r.nombre);
+                        return (
+                            <label key={r.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition text-sm ${activo ? "border-[#243A76] bg-blue-50 text-[#243A76] font-medium" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                              <input
+                                  type="checkbox"
+                                  checked={activo}
+                                  onChange={() => {
+                                    const roles = activo
+                                        ? usuarioEdit.roles.filter(x => x !== r.nombre)
+                                        : [...usuarioEdit.roles, r.nombre];
+                                    setUsuarioEdit({ ...usuarioEdit, roles });
+                                  }}
+                                  className="hidden"
+                              />
+                              {activo ? (
+                                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              ) : (
+                                  <span className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                              )}
+                              {r.nombre.replace("_", " ")}
+                            </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {usuarioEdit.roles.includes("DOCENTE") && (
+                    <DocenteCampos data={usuarioEdit} onChange={setUsuarioEdit} subirFoto={subirFoto} />
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
+                      Cancelar
+                    </button>
+                    <button type="submit" disabled={saving} style={{ backgroundColor: PRIMARY }} className="flex-1 py-2 text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-60">
+                      {saving ? "Guardando..." : "Guardar cambios"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+        )}
+
+        {/* MODAL CONFIRMACIÓN */}
+        {showConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                <div className={`px-6 py-4 ${
+                    showConfirm.tipo === "eliminar" ? "bg-red-600" :
+                        showConfirm.tipo === "reset" ? "bg-amber-500" :
+                            showConfirm.tipo === "desactivar" ? "bg-orange-500" : "bg-green-500"
+                }`}>
+                  <h2 className="text-white font-bold text-base">
+                    {showConfirm.tipo === "eliminar" ? "Eliminar usuario" :
+                        showConfirm.tipo === "reset" ? "Resetear contraseña" :
+                            showConfirm.tipo === "desactivar" ? "Desactivar usuario" : "Activar usuario"}
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <p className="text-slate-600 text-sm">
+                    {showConfirm.tipo === "eliminar"
+                        ? `¿Eliminar permanentemente al usuario "${showConfirm.nombre}"? Esta acción no se puede deshacer.`
+                        : showConfirm.tipo === "reset"
+                            ? `¿Resetear la contraseña de "${showConfirm.nombre}"? Se enviará una nueva al correo.`
+                            : showConfirm.tipo === "desactivar"
+                                ? `¿Desactivar al usuario "${showConfirm.nombre}"? No podrá ingresar al sistema.`
+                                : `¿Activar al usuario "${showConfirm.nombre}"?`}
+                  </p>
+                  <div className="flex gap-3 mt-5">
+                    <button onClick={() => setShowConfirm(null)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
+                      Cancelar
+                    </button>
+                    <button
+                        onClick={() => {
+                          if (showConfirm.tipo === "eliminar") handleEliminar(showConfirm.id);
+                          else if (showConfirm.tipo === "reset") handleReset(showConfirm.id);
+                          else if (showConfirm.tipo === "desactivar") handleEstado(showConfirm.id, "INACTIVO");
+                          else handleEstado(showConfirm.id, "ACTIVO");
+                        }}
+                        className={`flex-1 py-2 text-white rounded-lg text-sm font-medium transition ${
+                            showConfirm.tipo === "eliminar" ? "bg-red-600 hover:bg-red-700" :
+                                showConfirm.tipo === "reset" ? "bg-amber-500 hover:bg-amber-600" :
+                                    showConfirm.tipo === "desactivar" ? "bg-orange-500 hover:bg-orange-600" :
+                                        "bg-green-500 hover:bg-green-600"
+                        }`}
+                    >
+                      Confirmar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {detalle && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+                <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex justify-between items-center text-white">
+                  <div>
+                    <h3 className="font-semibold">Detalle del usuario</h3>
+                    <p className="text-xs text-white/70">Información completa (sin credenciales)</p>
+                  </div>
+                  <button onClick={() => setDetalle(null)} className="text-white/70 hover:text-white">✕</button>
+                </div>
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                  <div className="flex items-center gap-4 pb-3 border-b border-slate-100">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
+                      {detalle.persona?.fotoUrl ? (
+                          <img src={detalle.persona.fotoUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                          <span className="text-slate-400 text-xl font-bold">{detalle.usuario.username?.[0]?.toUpperCase() || "?"}</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-700">
+                        {detalle.persona ? `${detalle.persona.nombres} ${detalle.persona.apellidos}` : detalle.usuario.username}
+                      </p>
+                      <p className="text-xs text-slate-500 font-mono">{detalle.usuario.username}</p>
+                    </div>
+                  </div>
+
+                  {cargandoDetalle && <p className="text-slate-400 text-sm text-center py-2">Cargando datos...</p>}
+
+                  <Detalle label="Correo institucional" value={detalle.usuario.correo} />
+                  <Detalle label="Estado" value={detalle.usuario.estado} />
+                  <Detalle label="Primer ingreso" value={detalle.usuario.primerIngreso ? "Pendiente" : "Completado"} />
+                  <Detalle label="Intentos fallidos" value={String(detalle.usuario.intentosFallidos ?? 0)} />
+                  <Detalle label="Último acceso" value={formatFecha(detalle.usuario.ultimoAcceso)} />
+                  <Detalle label="Roles" value={(detalle.usuario.roles || []).join(", ") || "—"} />
+
+                  <div className="pt-3 border-t border-slate-100">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Datos personales</p>
+                    {detalle.sinPersona ? (
+                        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                          Este usuario no tiene datos personales registrados.
+                        </p>
+                    ) : detalle.persona ? (
+                        <>
+                          <Detalle label="Cédula" value={detalle.persona.cedula} mono />
+                          <Detalle label="Teléfono" value={detalle.persona.telefono} />
+                          <Detalle label="Dirección" value={detalle.persona.direccion} />
+                          <Detalle label="Correo personal" value={detalle.persona.correoPersonal} />
+                          <Detalle label="Título académico" value={detalle.persona.tituloAcademico} />
+                          <Detalle label="Especialización" value={detalle.persona.especializacion} />
+                        </>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="p-4 border-t border-slate-100 flex justify-end">
+                  <button onClick={() => setDetalle(null)} className="px-5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100">
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
+      </Layout>
+  );
+}
