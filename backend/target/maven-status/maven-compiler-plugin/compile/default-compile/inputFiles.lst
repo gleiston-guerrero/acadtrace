@@ -6,9 +6,12 @@ C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\s
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\config\WebConfig.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\controller\HealthController.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\controller\TicketController.java
+C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\controller\UsuarioController.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\dto\ActualizarTicketRequest.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\dto\ComentarioRequest.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\dto\TicketRequest.java
+C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\grpc\GrpcChannelConfig.java
+C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\grpc\TecnicoGrpcClient.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\security\AuthenticatedUser.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\security\CurrentUserArgumentResolver.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\security\JwtAuthFilter.java
@@ -16,3 +19,4 @@ C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\s
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\security\SecurityFilterConfig.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\service\TicketService.java
 C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\src\main\java\ec\uteq\sga\soporte\SgaSoporteApplication.java
+C:\Users\julia\Downloads\proyectos\sga-soporte-1\backend\target\generated-sources\protobuf\java\Usuarios.java
