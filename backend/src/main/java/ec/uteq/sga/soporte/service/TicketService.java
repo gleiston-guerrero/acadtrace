@@ -4,6 +4,7 @@ import ec.uteq.sga.soporte.common.ApiException;
 import ec.uteq.sga.soporte.common.jdbc.GenericRowMapper;
 import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;
 import ec.uteq.sga.soporte.dto.ComentarioRequest;
+import ec.uteq.sga.soporte.dto.EscalarTicketRequest;
 import ec.uteq.sga.soporte.dto.TicketRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -87,6 +88,51 @@ public class TicketService {
                 """, new MapSqlParameterSource(), GenericRowMapper.INSTANCE);
     }
 
+    /**
+     * Reportes de gestion: totales y tiempo promedio de resolucion (horas)
+     * agrupados por categoria y por tecnico asignado, mas un resumen general.
+     * El tiempo de resolucion solo se calcula sobre tickets que ya tienen
+     * fecha_resolucion (RESUELTO o CERRADO).
+     */
+    public Map<String, Object> reportes() {
+        List<Map<String, Object>> porCategoria = jdbc.query("""
+                SELECT categoria,
+                       COUNT(*)                                                    AS total,
+                       COUNT(*) FILTER (WHERE estado IN ('RESUELTO','CERRADO'))    AS resueltos,
+                       ROUND(CAST(AVG(EXTRACT(EPOCH FROM (fecha_resolucion - fecha_creacion)) / 3600.0)
+                             FILTER (WHERE fecha_resolucion IS NOT NULL) AS numeric), 1) AS "tiempoPromedioHoras"
+                FROM sga_soporte.tickets
+                GROUP BY categoria
+                ORDER BY total DESC
+                """, new MapSqlParameterSource(), GenericRowMapper.INSTANCE);
+
+        List<Map<String, Object>> porTecnico = jdbc.query("""
+                SELECT asignado_a                                                  AS tecnico,
+                       COUNT(*)                                                    AS total,
+                       COUNT(*) FILTER (WHERE estado IN ('RESUELTO','CERRADO'))    AS resueltos,
+                       ROUND(CAST(AVG(EXTRACT(EPOCH FROM (fecha_resolucion - fecha_creacion)) / 3600.0)
+                             FILTER (WHERE fecha_resolucion IS NOT NULL) AS numeric), 1) AS "tiempoPromedioHoras"
+                FROM sga_soporte.tickets
+                WHERE asignado_a IS NOT NULL
+                GROUP BY asignado_a
+                ORDER BY total DESC
+                """, new MapSqlParameterSource(), GenericRowMapper.INSTANCE);
+
+        Map<String, Object> general = jdbc.queryForObject("""
+                SELECT COUNT(*)                                                     AS "totalTickets",
+                       COUNT(*) FILTER (WHERE fecha_resolucion IS NOT NULL)         AS "ticketsResueltos",
+                       ROUND(CAST(AVG(EXTRACT(EPOCH FROM (fecha_resolucion - fecha_creacion)) / 3600.0)
+                             FILTER (WHERE fecha_resolucion IS NOT NULL) AS numeric), 1) AS "tiempoPromedioHoras"
+                FROM sga_soporte.tickets
+                """, new MapSqlParameterSource(), GenericRowMapper.INSTANCE);
+
+        return Map.of(
+                "porCategoria", porCategoria,
+                "porTecnico", porTecnico,
+                "general", general
+        );
+    }
+
     public Map<String, Object> obtener(long id) {
         List<Map<String, Object>> rows = jdbc.query(SELECT_TICKET + " WHERE id_ticket = :id",
                 new MapSqlParameterSource("id", id), GenericRowMapper.INSTANCE);
@@ -157,6 +203,65 @@ public class TicketService {
         if (req.asignadoA() != null && !req.asignadoA().equals(asignadoAnterior)) {
             registrarHistorial(id, "ASIGNADO_A", asignadoAnterior, req.asignadoA(), modificadoPor);
         }
+
+        return obtener(id);
+    }
+
+    /**
+     * Escalamiento: sube la prioridad y/o reasigna el ticket a un tecnico
+     * superior. Requiere al menos uno de los dos cambios y siempre deja el
+     * motivo registrado como nota interna en el timeline del ticket.
+     */
+    @Transactional
+    public Map<String, Object> escalar(long id, EscalarTicketRequest req, String actor) {
+        Map<String, Object> actual = obtener(id); // valida existencia y trae valores previos
+        String estadoActual = (String) actual.get("estado");
+        if ("CERRADO".equals(estadoActual)) {
+            throw ApiException.badRequest("No se puede escalar un ticket cerrado");
+        }
+
+        String nuevaPrioridad = req.nuevaPrioridad() == null || req.nuevaPrioridad().isBlank()
+                ? null : req.nuevaPrioridad().toUpperCase();
+        if (nuevaPrioridad != null && !PRIORIDADES.contains(nuevaPrioridad)) {
+            throw ApiException.badRequest("Prioridad inválida (BAJO, MEDIO, ALTO, CRITICO)");
+        }
+        String nuevoAsignado = req.nuevoAsignado() == null || req.nuevoAsignado().isBlank()
+                ? null : req.nuevoAsignado();
+
+        if (nuevaPrioridad == null && nuevoAsignado == null) {
+            throw ApiException.badRequest("El escalamiento debe cambiar la prioridad y/o reasignar el ticket");
+        }
+
+        String prioridadAnterior = (String) actual.get("prioridad");
+        String asignadoAnterior = (String) actual.get("asignadoA");
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("prioridad", nuevaPrioridad)
+                .addValue("asignado", nuevoAsignado);
+        jdbc.update(
+                "UPDATE sga_soporte.tickets SET "
+                        + "prioridad = COALESCE(:prioridad, prioridad), "
+                        + "asignado_a = COALESCE(:asignado, asignado_a) "
+                        + "WHERE id_ticket = :id",
+                params);
+
+        if (nuevaPrioridad != null && !nuevaPrioridad.equals(prioridadAnterior)) {
+            registrarHistorial(id, "PRIORIDAD", prioridadAnterior, nuevaPrioridad, actor);
+        }
+        if (nuevoAsignado != null && !nuevoAsignado.equals(asignadoAnterior)) {
+            registrarHistorial(id, "ASIGNADO_A", asignadoAnterior, nuevoAsignado, actor);
+        }
+
+        MapSqlParameterSource comentario = new MapSqlParameterSource()
+                .addValue("id_ticket", id)
+                .addValue("autor", actor)
+                .addValue("contenido", "Escalamiento: " + req.motivo())
+                .addValue("nota_interna", true);
+        jdbc.update(
+                "INSERT INTO sga_soporte.comentarios (id_ticket, autor, contenido, nota_interna, fecha_creacion) "
+                        + "VALUES (:id_ticket, :autor, :contenido, :nota_interna, NOW())",
+                comentario);
 
         return obtener(id);
     }

@@ -2,6 +2,7 @@ package ec.uteq.sga.soporte.controller;
 
 import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;
 import ec.uteq.sga.soporte.dto.ComentarioRequest;
+import ec.uteq.sga.soporte.dto.EscalarTicketRequest;
 import ec.uteq.sga.soporte.dto.TicketRequest;
 import ec.uteq.sga.soporte.security.AuthenticatedUser;
 import ec.uteq.sga.soporte.service.TicketService;
@@ -42,6 +43,11 @@ public class TicketController {
         return service.estadisticas();
     }
 
+    @GetMapping("/reportes")
+    public Map<String, Object> reportes() {
+        return service.reportes();
+    }
+
     @GetMapping("/{id}")
     public Map<String, Object> obtener(@PathVariable long id) {
         return service.obtener(id);
@@ -58,6 +64,12 @@ public class TicketController {
 public Map<String, Object> actualizar(
         @PathVariable long id, @Valid @RequestBody ActualizarTicketRequest req, AuthenticatedUser user) {
     return service.actualizar(id, req, user.username());
+}
+
+@PostMapping("/{id}/escalar")
+public Map<String, Object> escalar(
+        @PathVariable long id, @Valid @RequestBody EscalarTicketRequest req, AuthenticatedUser user) {
+    return service.escalar(id, req, user.username());
 }
 
 @GetMapping("/{id}/historial")
