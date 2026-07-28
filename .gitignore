@@ -1,0 +1,21 @@
+# Node / Frontend
+**/node_modules/
+**/dist/
+**/build/
+*.log
+
+# Java / Maven
+**/target/
+*.class
+*.jar
+
+# Python / Django
+**/__pycache__/
+*.pyc
+**/venv/
+
+# IDEs & System
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

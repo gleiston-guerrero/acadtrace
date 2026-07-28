@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # ─── 1. SGA PRINCIPAL (Java Spring Boot) ───
+  sga-principal:
+    build:
+      context: ./sga-principal
+      dockerfile: Dockerfile
+    container_name: sga-principal
+    ports:
+      - "8080:8080"   # REST Gateway
+      - "9092:9092"   # gRPC Server
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - grpc.client.docente-service.address=static://microservicio-docente:9091
+    networks:
+      - sga-distribuido-net
+
+  # ─── 2. MICROSERVICIO DOCENTE (Django + gRPC) ───
+  microservicio-docente:
+    build:
+      context: ./microservicio-docente
+      dockerfile: Dockerfile
+    container_name: microservicio-docente
+    ports:
+      - "8000:8000"   # REST
+      - "9091:9091"   # gRPC Server
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+
+  # ─── 3. MICROSERVICIO SECRETARÍA ───
+  microservicio-secretaria:
+    build:
+      context: ./microservicio-secretaria
+      dockerfile: backend/Dockerfile
+    container_name: microservicio-secretaria
+    ports:
+      - "5176:5176"
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+    networks:
+      - sga-distribuido-net
+
+  # ─── 4. MICROSERVICIO SOPORTE ───
+  microservicio-soporte:
+    build:
+      context: ./microservicio-soporte
+      dockerfile: backend/Dockerfile
+    container_name: microservicio-soporte
+    ports:
+      - "5177:5177"
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+    networks:
+      - sga-distribuido-net
+
+networks:
+  sga-distribuido-net:
+    driver: bridge
