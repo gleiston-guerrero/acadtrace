@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: microservicio-docente
     ports:
-      - "8000:8000"   # REST
+      - "8081:8000"   # REST (el contenedor Django siempre escucha en 8000, ver Dockerfile)
       - "9091:9091"   # gRPC Server
     environment:
       - DB_HOST=192.0.2.1
@@ -48,7 +48,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: microservicio-secretaria
     ports:
-      - "5176:5176"
+      - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -71,7 +71,7 @@ services:
       dockerfile: Dockerfile
     container_name: microservicio-soporte
     ports:
-      - "5177:5178"
+      - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
