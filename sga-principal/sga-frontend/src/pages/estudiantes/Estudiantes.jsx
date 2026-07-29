@@ -41,12 +41,10 @@ export default function Estudiantes() {
   const cargar = (q) => {
     setCargandoLista(true);
     api.get(`/api/estudiantes`, { params: q ? { q } : {} })
-      .then(r => setEstudiantes(r.data))
+      .then(r => setEstudiantes(Array.isArray(r.data) ? r.data : []))
       .catch(() => setError("No se pudo cargar la lista de estudiantes"))
       .finally(() => setCargandoLista(false));
   };
-
-  useEffect(() => { cargar(); }, []);
 
   useEffect(() => {
     setPagina(1);

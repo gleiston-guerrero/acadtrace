@@ -14,7 +14,7 @@ import java.util.Map;
  * endpoint sigue protegido por JwtAuthFilter como el resto de /api/soporte/*.
  */
 @RestController
-@RequestMapping("/api/soporte/tecnicos")
+@RequestMapping("/api/soporte/tecnicos-list")
 public class TecnicoController {
 
     private final TecnicoService service;

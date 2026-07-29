@@ -9,6 +9,8 @@ export const MICROSERVICIOS = {
   DOCENTE: {
     nombre: "Portal Docente",
     hosts: [
+      "http://localhost:8081",
+      "http://localhost:5174",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -19,6 +21,8 @@ export const MICROSERVICIOS = {
   SECRETARIA: {
     nombre: "Portal Secretaría",
     hosts: [
+      "http://localhost:8082",
+      "http://localhost:5175",
       "http://localhost:5174",
       "http://localhost:4000",
       "http://localhost:4001",
@@ -30,6 +34,8 @@ export const MICROSERVICIOS = {
   SOPORTE_TECNICO: {
     nombre: "Portal Soporte",
     hosts: [
+      "http://localhost:8083",
+      "http://localhost:5176",
       "http://localhost:5177",
       "http://localhost:6001",
       "http://localhost:6002",

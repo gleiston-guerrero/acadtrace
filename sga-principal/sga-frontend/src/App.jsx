@@ -12,6 +12,8 @@ import Asignaturas from "./pages/asignaturas/Asignaturas";
 import ConfiguracionCalificacion from "./pages/configuracion/ConfiguracionCalificacion";
 import ConsultaAsistencias from "./pages/asistencias/ConsultaAsistencias";
 
+import Estudiantes from "./pages/estudiantes/Estudiantes";
+
 function App() {
     return (
         <BrowserRouter>
@@ -22,7 +24,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/cambiar-password" element={<CambiarPassword />} />
                 <Route path="/usuarios" element={<Usuarios />} />
-                {/* /estudiantes se retiro: sga-secretaria es la unica duena de ese dominio (ver Dashboard.jsx handleModulo) */}
+                <Route path="/estudiantes" element={<Estudiantes />} />
                 <Route path="/asistencias" element={<ConsultaAsistencias />} />
                 <Route path="/calificaciones" element={<Calificaciones />} />
                 <Route path="/anos-lectivos" element={<AnosLectivos />} />
