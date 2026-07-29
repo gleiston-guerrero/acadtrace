@@ -9,7 +9,7 @@ import axios from "axios";
 const API = "http://localhost:8080/api";
 
 // Datos de referencia (períodos) que aún solo expone Django por REST.
-const API_DOCENTE_REST = "http://localhost:8000/api/docente";
+const API_DOCENTE_REST = "http://localhost:8081/api/docente";
 
 const authHeaders = () => {
   const token = localStorage.getItem("token");

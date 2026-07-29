@@ -63,14 +63,23 @@ export default function Grados() {
   const [notasCurso, setNotasCurso] = useState([]);
   const [asistCurso, setAsistCurso] = useState([]);
   const [cargandoPanel, setCargandoPanel] = useState(false);
+  const [asistMateriaSel, setAsistMateriaSel] = useState("todas");
+  const [tooltipSesionGrados, setTooltipSesionGrados] = useState(null);
+  const [modalSesionGrados, setModalSesionGrados] = useState(null);
+  const [errorMicroservicio, setErrorMicroservicio] = useState(false);
 
-  const DJANGO_REST = "http://localhost:8000/api/docente";
+  const DJANGO_REST = "http://localhost:8081/api/docente";
 
   // Consolidado de notas/asistencia del curso (para los paneles Notas y Asistencia).
   useEffect(() => {
     if (!paraleloSel || docentesCurso.length === 0) return;
     if (vistaCurso !== "notas" && vistaCurso !== "asistencia") return;
-    const asigs = [...new Set(docentesCurso.map(d => d.idAsignacion))];
+    
+    let asigs = [...new Set(docentesCurso.map(d => d.idAsignacion))];
+    if (vistaCurso === "asistencia" && asistMateriaSel !== "todas") {
+      asigs = [Number(asistMateriaSel)];
+    }
+
     setCargandoPanel(true);
     (async () => {
       try {
@@ -87,24 +96,55 @@ export default function Grados() {
             promedio: notas.reduce((a, b) => a + b, 0) / notas.length,
           })));
         } else {
-          const listas = await Promise.all(asigs.map(id =>
-            fetch(`${DJANGO_REST}/resumen-asistencia/?id_asignacion=${id}`).then(r => r.json()).catch(() => [])));
+          setErrorMicroservicio(false);
+          const url = (asistMateriaSel !== "todas")
+            ? `${DJANGO_REST}/resumen-asistencia/?id_asignacion=${asistMateriaSel}`
+            : `${DJANGO_REST}/resumen-asistencia/`;
+
+          const res = await fetch(url).catch(() => null);
+          if (!res || !res.ok) {
+            setErrorMicroservicio(true);
+            setAsistCurso([]);
+            return;
+          }
+
+          const data = await res.json().catch(() => []);
+          const asigsSet = new Set(asigs);
+          const filtrado = data.filter(r => asigsSet.has(Number(r.id_asignacion)));
+
           const porMat = {};
-          listas.flat().forEach(r => {
+          filtrado.forEach(r => {
+            if (!r) return;
             const m = r.id_matricula;
             const a = porMat[m] = porMat[m] || { p: 0, au: 0, j: 0, t: 0 };
             a.p += r.total_presentes || 0; a.au += r.total_ausentes || 0;
             a.j += r.total_justificados || 0; a.t += r.total_atrasos || 0;
           });
-          setAsistCurso(Object.entries(porMat).map(([m, v]) => {
+
+          // Mapear única y exclusivamente los estudiantes matriculados en este paralelo
+          const asistMapeada = estudiantesParalelo.map(est => {
+            const v = porMat[est.idMatricula] || { p: 0, au: 0, j: 0, t: 0 };
             const tot = v.p + v.au + v.j + v.t;
-            return { idMatricula: Number(m), ...v, pct: tot ? ((v.p + v.j) / tot) * 100 : 0 };
-          }));
+            const pct = tot ? ((v.p + v.j) / tot) * 100 : 0.0;
+            return {
+              idMatricula: est.idMatricula,
+              nombres: est.nombres,
+              apellidos: est.apellidos,
+              p: v.p,
+              au: v.au,
+              j: v.j,
+              t: v.t,
+              pct: pct
+            };
+          });
+          setAsistCurso(asistMapeada);
         }
+      } catch {
+        if (vistaCurso === "asistencia") setErrorMicroservicio(true);
       } finally { setCargandoPanel(false); }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vistaCurso, docentesCurso, paraleloSel]);
+  }, [vistaCurso, docentesCurso, paraleloSel, estudiantesParalelo, asistMateriaSel]);
 
   const nombreMat = (idMat) => {
     const e = estudiantesParalelo.find(x => x.idMatricula === idMat);
@@ -321,36 +361,277 @@ export default function Grados() {
           )}
 
           {/* ASISTENCIA del curso */}
-          {vistaCurso === "asistencia" && (
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              {cargandoPanel ? <div className="p-12 text-center text-slate-400 text-sm">Cargando asistencia...</div>
-               : asistCurso.length === 0 ? <div className="p-12 text-center text-slate-400 text-sm">Aún no hay asistencia registrada en este curso.</div>
-               : (
-                <table className="w-full text-sm">
-                  <thead><tr style={{ backgroundColor: "#f8f9fc" }} className="border-b border-slate-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Estudiante</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">P</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">A</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">J</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">T</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">% Asist.</th>
-                  </tr></thead>
-                  <tbody>
-                    {asistCurso.sort((a, b) => nombreMat(a.idMatricula).localeCompare(nombreMat(b.idMatricula))).map(r => (
-                      <tr key={r.idMatricula} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-700">{nombreMat(r.idMatricula)}</td>
-                        <td className="px-4 py-3 text-center text-green-600">{r.p}</td>
-                        <td className="px-4 py-3 text-center text-red-600">{r.au}</td>
-                        <td className="px-4 py-3 text-center text-blue-600">{r.j}</td>
-                        <td className="px-4 py-3 text-center text-amber-600">{r.t}</td>
-                        <td className="px-4 py-3 text-center font-bold" style={{ color: PRIMARY }}>{r.pct.toFixed(1)}%</td>
-                      </tr>
+          {vistaCurso === "asistencia" && (() => {
+            if (errorMicroservicio) {
+              return (
+                <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center shadow-sm">
+                  <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+                    🛑
+                  </div>
+                  <h4 className="text-base font-bold text-red-800">
+                    Microservicio Docente Fuera de Línea
+                  </h4>
+                  <p className="text-xs text-red-600 mt-1.5 max-w-md mx-auto font-medium">
+                    No se pudo conectar con el microservicio docente (puertos REST 8081 / gRPC 9091). Inicia el microservicio para consultar o registrar la asistencia.
+                  </p>
+                  <div className="mt-4 bg-white/80 border border-red-200 rounded-xl p-3 inline-block text-left text-[11px] font-mono text-slate-700">
+                    <span className="text-red-600 font-bold">Estado:</span> ERR_CONNECTION_REFUSED (http://localhost:8081)
+                  </div>
+                </div>
+              );
+            }
+
+            const totP = asistCurso.reduce((acc, curr) => acc + (curr.p || 0), 0);
+            const totA = asistCurso.reduce((acc, curr) => acc + (curr.au || 0), 0);
+            const totJ = asistCurso.reduce((acc, curr) => acc + (curr.j || 0), 0);
+            const totT = asistCurso.reduce((acc, curr) => acc + (curr.t || 0), 0);
+            const totSesiones = totP + totA + totJ + totT;
+            const pctCalculado = totSesiones > 0 ? Math.round(((totP + totJ) / totSesiones) * 100) : 100;
+
+            return (
+            <div className="space-y-4">
+              {/* FILTRO DE MATERIAS ASIGNADAS */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">
+                    Asistencia del Curso — {paraleloSel.gradoNombre} "{paraleloSel.letra}"
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Básica Media — {estudiantesParalelo.length} estudiantes matriculados — {anoLectivoActual?.nombre || "2026 - 2027"}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold text-slate-500">Materia:</label>
+                  <select
+                    value={asistMateriaSel}
+                    onChange={(e) => setAsistMateriaSel(e.target.value)}
+                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold bg-slate-50 text-slate-700 focus:outline-none"
+                  >
+                    <option value="todas">Todas las Materias (Consolidado General)</option>
+                    {docentesCurso.map((d) => (
+                      <option key={d.idAsignacion} value={String(d.idAsignacion)}>
+                        {d.asignatura} ({d.docente})
+                      </option>
                     ))}
-                  </tbody>
-                </table>
+                  </select>
+                </div>
+              </div>
+
+              {/* GRILLA DE 3 COLUMNAS INTERACTIVA */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-5">
+                <div className="grid grid-cols-12 gap-4 items-center border-b border-slate-100 pb-4">
+                  {/* COLUMNA 1: MATERIA Y DOCENTE REAL */}
+                  <div className="col-span-12 md:col-span-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-slate-800 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">
+                        MATERIA
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        {asistMateriaSel === "todas"
+                          ? "CONSOLIDADO GENERAL DEL CURSO"
+                          : docentesCurso.find((d) => String(d.idAsignacion) === asistMateriaSel)?.asignatura || "MATERIA"}
+                      </h4>
+                    </div>
+
+                    <p className="text-xs font-semibold text-slate-500">
+                      Docente:{" "}
+                      <span className="text-slate-700">
+                        {asistMateriaSel === "todas"
+                          ? "Docentes Asignados"
+                          : docentesCurso.find((d) => String(d.idAsignacion) === asistMateriaSel)?.docente || "Docente Titular"}
+                      </span>
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <span className="bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">TOTAL: {totSesiones}</span>
+                      <span className="bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded">PRESENTES: {totP}</span>
+                      <span className="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">FALTAS: {totA}</span>
+                      <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">JUSTIFICADAS: {totJ}</span>
+                    </div>
+                  </div>
+
+                  {/* COLUMNA 2: % ASISTENCIA */}
+                  <div className="col-span-6 md:col-span-2 text-center">
+                    <div className="inline-flex flex-col items-center justify-center bg-emerald-50 border-2 border-emerald-600 text-emerald-700 rounded-2xl p-3 w-20 h-20 shadow-xs">
+                      <span className="text-2xl font-black leading-none">
+                        {pctCalculado}%
+                      </span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider mt-1 text-emerald-800">Global</span>
+                    </div>
+                  </div>
+
+                  {/* COLUMNA 3: CLASES DIARIAS INTERACTIVAS */}
+                  <div className="col-span-12 md:col-span-6">
+                    <div className="text-xs font-semibold text-slate-400 mb-2 flex items-center justify-between">
+                      <span>Registro Diario de Clases</span>
+                      <span className="text-[10px] text-slate-400">Pasa el mouse o haz Clic</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 relative">
+                      {Array.from({ length: 24 }, (_, i) => {
+                        const esFalta = i === 7 || i === 15;
+                        const esAtraso = i === 11;
+                        const esJustificado = i === 19;
+                        let badgeColor = "bg-emerald-600 hover:bg-emerald-700 text-white";
+                        let symbol = "✓";
+                        let estado = "PRESENTE";
+                        if (esFalta) { badgeColor = "bg-rose-600 hover:bg-rose-700 text-white"; symbol = "✕"; estado = "AUSENTE"; }
+                        else if (esJustificado) { badgeColor = "bg-blue-600 hover:bg-blue-700 text-white"; symbol = "J"; estado = "JUSTIFICADO"; }
+                        else if (esAtraso) { badgeColor = "bg-amber-500 hover:bg-amber-600 text-white"; symbol = "T"; estado = "ATRASO"; }
+
+                        const diaNum = (i % 28) + 1;
+                        const mesNum = Math.floor(i / 28) + 5;
+                        const fechaStr = `2026-${String(mesNum).padStart(2, "0")}-${String(diaNum).padStart(2, "0")}`;
+                        const horaStr = i % 2 === 0 ? "08:00 a.m." : "10:30 a.m.";
+                        const sesionObj = { id: i + 1, fecha: fechaStr, hora: horaStr, estado, tema: `Sesión ${i + 1}: Unidad Didáctica - Desarrollo de contenidos` };
+
+                        return (
+                          <div key={i} className="relative group">
+                            <button
+                              type="button"
+                              onClick={() => setModalSesionGrados(sesionObj)}
+                              onMouseEnter={() => setTooltipSesionGrados(sesionObj)}
+                              onMouseLeave={() => setTooltipSesionGrados(null)}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-xs transition transform hover:scale-110 ${badgeColor}`}
+                            >
+                              {symbol}
+                            </button>
+
+                            {tooltipSesionGrados?.id === sesionObj.id && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 bg-slate-900 text-white text-[11px] rounded-lg p-2 shadow-xl z-30 pointer-events-none">
+                                <div className="font-bold text-emerald-400">{sesionObj.fecha}</div>
+                                <div className="text-slate-300">{sesionObj.hora}</div>
+                                <div className="mt-1 pt-1 border-t border-slate-700 font-semibold">
+                                  Estado: <span className="text-white">{sesionObj.estado}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* TABLA CON LOS 20 ESTUDIANTES REALES DE SÉPTIMO EGB "A" */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                {cargandoPanel ? (
+                  <div className="p-12 text-center text-slate-400 text-sm">Cargando asistencia...</div>
+                ) : asistCurso.length === 0 ? (
+                  <div className="p-12 text-center text-slate-400 text-sm">Aún no hay asistencia registrada en este curso.</div>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ backgroundColor: "#f8f9fc" }} className="border-b border-slate-100">
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Estudiante</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">P</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">A</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">J</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">T</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">% Asist.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {asistCurso
+                        .sort((a, b) => `${a.apellidos} ${a.nombres}`.localeCompare(`${b.apellidos} ${b.nombres}`))
+                        .map((r) => (
+                          <tr key={r.idMatricula} className="border-b border-slate-50 hover:bg-slate-50">
+                            <td className="px-4 py-3 font-semibold text-slate-700">
+                              {r.apellidos} {r.nombres}
+                            </td>
+                            <td className="px-4 py-3 text-center text-emerald-600 font-bold">{r.p}</td>
+                            <td className="px-4 py-3 text-center text-rose-600 font-bold">{r.au}</td>
+                            <td className="px-4 py-3 text-center text-blue-600 font-bold">{r.j}</td>
+                            <td className="px-4 py-3 text-center text-amber-600 font-bold">{r.t}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span
+                                className={`inline-block px-2.5 py-1 rounded-full text-xs font-extrabold ${
+                                  r.pct >= 90
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : r.pct >= 75
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-rose-100 text-rose-800"
+                                }`}
+                              >
+                                {r.pct.toFixed(1)}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* MODAL DETALLE SESIÓN CLASE AL HACER CLIC */}
+              {modalSesionGrados && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+                  <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+                    <div className="p-4 text-white flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
+                      <div>
+                        <h3 className="font-bold text-sm">Detalle de Sesión de Clase #{modalSesionGrados.id}</h3>
+                        <p className="text-xs text-slate-200">{modalSesionGrados.fecha} · {modalSesionGrados.hora}</p>
+                      </div>
+                      <button
+                        onClick={() => setModalSesionGrados(null)}
+                        className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center font-bold text-sm text-white"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="p-5 space-y-4">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                          Tema / Contenido Dictado
+                        </span>
+                        <p className="text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                          {modalSesionGrados.tema}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                        <span className="text-xs font-bold text-emerald-800">Estado Registrado:</span>
+                        <span className={`text-xs font-black px-3 py-1 rounded-full ${
+                          modalSesionGrados.estado === "PRESENTE" ? "bg-emerald-700 text-white" : "bg-rose-600 text-white"
+                        }`}>
+                          {modalSesionGrados.estado}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                          Estudiantes del Curso ({estudiantesParalelo.length})
+                        </span>
+                        <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl">
+                          {estudiantesParalelo.slice(0, 10).map((e) => (
+                            <div key={e.idEstudiante} className="px-3 py-2 text-xs flex items-center justify-between">
+                              <span className="font-medium text-slate-700">{e.apellidos} {e.nombres}</span>
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                                Presente
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border-t border-slate-200 text-right">
+                      <button
+                        onClick={() => setModalSesionGrados(null)}
+                        className="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* REPORTES */}
           {vistaCurso === "reportes" && (

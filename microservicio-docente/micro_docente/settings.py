@@ -53,13 +53,15 @@ WSGI_APPLICATION = "micro_docente.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "postgres"),
-        "USER": os.environ.get("DB_USER", "postgres.bxqixhhgkcyojulbmhpp"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "402/42745aA"),
-        "HOST": os.environ.get("DB_HOST", "aws-1-us-east-1.pooler.supabase.com"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
+        "NAME": os.environ.get("DB_NAME", "sga"),
+        "USER": os.environ.get("DB_USER", "postgres"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "***REMOVED***"),
+        "HOST": os.environ.get("DB_HOST", "192.0.2.1"),
+        "PORT": os.environ.get("DB_PORT", "5433"),
+        "CONN_MAX_AGE": 600,
         "OPTIONS": {
-            "options": "-c search_path=sga_docente,public",
+            "options": "-c search_path=sga_docente,sga_principal,public",
+            "connect_timeout": 10,
         },
     }
 }

@@ -129,6 +129,15 @@ class ResumenAsistenciaViewSet(viewsets.ModelViewSet):
     queryset = ResumenAsistencia.objects.select_related("id_periodo").all()
     serializer_class = ResumenAsistenciaSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        for campo in ["id_matricula", "id_asignacion", "id_periodo"]:
+            valor = self.request.query_params.get(campo)
+            if valor:
+                filtro = {"id_periodo_id" if campo == "id_periodo" else campo: valor}
+                queryset = queryset.filter(**filtro)
+        return queryset
+
     @action(detail=False, methods=["post"], url_path="calcular")
     def calcular(self, request):
         error = requeridos(request.data, ["id_matricula", "id_asignacion", "id_periodo"])

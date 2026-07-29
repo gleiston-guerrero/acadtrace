@@ -10,6 +10,7 @@ import Grados from "./pages/grados/Grados";
 import Asignaciones from "./pages/asignaciones/Asignaciones";
 import Asignaturas from "./pages/asignaturas/Asignaturas";
 import ConfiguracionCalificacion from "./pages/configuracion/ConfiguracionCalificacion";
+import ConsultaAsistencias from "./pages/asistencias/ConsultaAsistencias";
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/cambiar-password" element={<CambiarPassword />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 {/* /estudiantes se retiro: sga-secretaria es la unica duena de ese dominio (ver Dashboard.jsx handleModulo) */}
+                <Route path="/asistencias" element={<ConsultaAsistencias />} />
                 <Route path="/calificaciones" element={<Calificaciones />} />
                 <Route path="/anos-lectivos" element={<AnosLectivos />} />
                 <Route path="/grados" element={<Grados />} />
