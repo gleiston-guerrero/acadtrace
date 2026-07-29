@@ -17,6 +17,17 @@ El sistema esta compuesto por un modulo principal y tres microservicios autonomo
 
 ---
 
+## Credenciales de Acceso para Evaluacion
+
+Para acceder a los distintos modulos del sistema utilizar las siguientes credenciales predeterminadas:
+
+| Rol | Usuario | Contrasena | Descripcion / Modulos |
+| :--- | :--- | :--- | :--- |
+| **Administrador** | `pcastrol2` | `402/42745aA` | Acceso completo a SGA Principal, Grados, Matriculas y Administracion |
+| **Docente Titular** | `jsjimenezt` | `402/42745aA` | Acceso al portal docente, registro de notas y toma de asistencias |
+
+---
+
 ## Base de Datos Distribuida (AWS EC2)
 
 Todos los servicios convergen de forma distribuida en la base de datos alojada en la nube:
