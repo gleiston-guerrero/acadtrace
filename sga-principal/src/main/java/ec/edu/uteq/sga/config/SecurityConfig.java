@@ -63,6 +63,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // Fotos de perfil servidas como recurso estatico: los <img src="..."> del navegador
+                        // no pueden mandar el header Authorization, asi que la lectura debe ser publica
+                        // (el nombre de archivo es un UUID, no enumerable).
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/anos-lectivos/actual").authenticated()
                         .requestMatchers("/api/usuarios/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SOPORTE_TECNICO")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_DIRECTOR")
@@ -71,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/asignaturas/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/malla/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/estudiantes/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
+                        .requestMatchers("/api/importacion-excel/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/representantes/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/matriculas/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA", "ROLE_DOCENTE")
                         .requestMatchers("/api/asignaciones/**").hasAnyAuthority("ROLE_DIRECTOR")

@@ -1,27 +1,42 @@
 package ec.uteq.sga.secretaria.service;
 
-import ec.uteq.sga.secretaria.common.ApiException;
+import ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest;
+import ec.edu.uteq.sga.grpc.principal.MatriculaProto;
 import ec.uteq.sga.secretaria.common.PageResult;
 import ec.uteq.sga.secretaria.common.jdbc.GenericRowMapper;
 import ec.uteq.sga.secretaria.dto.MatriculaRequest;
+import ec.uteq.sga.secretaria.grpc.PrincipalGrpcClient;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Matricula vive en sga_secretaria (entidad JPA de sga-principal); se
+ * gestiona por completo via gRPC, igual que Estudiante. historial_promocion
+ * sigue siendo tabla compartida en sga_principal (fuera de alcance de esta
+ * migracion, ver HistorialService), se lee por SQL directo solo para
+ * enriquecer listarPorEstudiante. Grado/Paralelo/AnoLectivo se leen via
+ * CatalogoService (gRPC, catalogo institucional de sga-principal).
+ */
 @Service
 public class MatriculaService {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final CatalogoService catalogo;
+    private final PrincipalGrpcClient client;
 
-    public MatriculaService(NamedParameterJdbcTemplate jdbc, CatalogoService catalogo) {
+    public MatriculaService(NamedParameterJdbcTemplate jdbc, CatalogoService catalogo, PrincipalGrpcClient client) {
         this.jdbc = jdbc;
         this.catalogo = catalogo;
+        this.client = client;
     }
 
     public List<Map<String, Object>> paralelosPorGrado(long idGrado) {
@@ -38,57 +53,33 @@ public class MatriculaService {
     }
 
     public PageResult<Map<String, Object>> listarPorAnoLectivo(long idAnoLectivo, int page, int limit, String search) {
-        int offset = (page - 1) * limit;
-        MapSqlParameterSource params = new MapSqlParameterSource().addValue("idAno", idAnoLectivo);
-        String where = "WHERE m.id_ano_lectivo = :idAno";
-        if (search != null && !search.isBlank()) {
-            params.addValue("like", "%" + search + "%");
-            where += " AND (e.nombres ILIKE :like OR e.apellidos ILIKE :like OR e.cedula ILIKE :like)";
-        }
-
-        Long total = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM sga_principal.matriculas m " +
-                        "JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante " + where,
-                params, Long.class);
-
-        params.addValue("limit", limit).addValue("offset", offset);
-        // Orden por id_grado/id_paralelo (no por g.orden/p.letra: el catalogo se
-        // consume por gRPC, no por JOIN SQL, ver CatalogoService) - suficiente
-        // porque grados y paralelos normalmente se crean en el mismo orden en
-        // que se muestran.
-        String sql = """
-                SELECT m.id_matricula, m.numero_orden, m.fecha_registro, m.estado, m.observaciones,
-                       m.id_grado, m.id_paralelo, m.id_ano_lectivo,
-                       e.id_estudiante, e.cedula, e.codigo_estudiante,
-                       e.nombres || ' ' || e.apellidos AS estudiante,
-                       u.username AS registrado_por
-                FROM sga_principal.matriculas m
-                JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
-                LEFT JOIN sga_principal.usuarios u ON u.id_usuario = m.registrado_por
-                %s
-                ORDER BY m.id_grado, m.id_paralelo, e.apellidos
-                LIMIT :limit OFFSET :offset
-                """.formatted(where);
-        List<Map<String, Object>> data = jdbc.query(sql, params, GenericRowMapper.INSTANCE);
+        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()
+                .setIdAnoLectivo(idAnoLectivo)
+                .setQ(search != null ? search : "")
+                .setPage(page)
+                .setLimit(limit)
+                .build();
+        var response = client.listarMatriculas(request);
+        List<Map<String, Object>> data = new ArrayList<>(response.getMatriculasList().stream().map(this::fromProto).toList());
         enriquecerConCatalogo(data);
-
-        return PageResult.of(data, total == null ? 0 : total, page, limit);
+        return PageResult.of(data, response.getTotal(), page, limit);
     }
 
     public List<Map<String, Object>> estadisticasPorGrado(long idAnoLectivo) {
-        List<Map<String, Object>> conteos = jdbc.query("""
-                SELECT id_grado, id_paralelo,
-                       COUNT(*) AS total,
-                       COUNT(*) FILTER (WHERE estado = 'ACTIVA') AS activas,
-                       COUNT(*) FILTER (WHERE estado = 'RETIRADA') AS retiradas
-                FROM sga_principal.matriculas
-                WHERE id_ano_lectivo = :idAno
-                GROUP BY id_grado, id_paralelo
-                """, new MapSqlParameterSource("idAno", idAnoLectivo), GenericRowMapper.INSTANCE);
+        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()
+                .setIdAnoLectivo(idAnoLectivo)
+                .setPage(1)
+                .setLimit(5000)
+                .build();
+        List<MatriculaProto> matriculas = client.listarMatriculas(request).getMatriculasList();
 
-        Map<String, Map<String, Object>> conteoPorClave = new LinkedHashMap<>();
-        for (Map<String, Object> c : conteos) {
-            conteoPorClave.put(c.get("id_grado") + ":" + c.get("id_paralelo"), c);
+        Map<String, long[]> conteoPorClave = new LinkedHashMap<>(); // {total, activas, retiradas}
+        for (MatriculaProto m : matriculas) {
+            String clave = m.getIdGrado() + ":" + m.getIdParalelo();
+            long[] c = conteoPorClave.computeIfAbsent(clave, k -> new long[3]);
+            c[0]++;
+            if ("ACTIVA".equals(m.getEstado())) c[1]++;
+            if ("RETIRADA".equals(m.getEstado())) c[2]++;
         }
 
         List<CatalogoService.Grado> grados = catalogo.grados().stream()
@@ -96,20 +87,20 @@ public class MatriculaService {
                 .sorted(Comparator.comparingInt(CatalogoService.Grado::orden))
                 .toList();
 
-        List<Map<String, Object>> resultado = new java.util.ArrayList<>();
+        List<Map<String, Object>> resultado = new ArrayList<>();
         for (CatalogoService.Grado grado : grados) {
             List<CatalogoService.Paralelo> paralelos = catalogo.paralelos(grado.id()).stream()
                     .filter(CatalogoService.Paralelo::activo)
                     .sorted(Comparator.comparing(CatalogoService.Paralelo::letra))
                     .toList();
             for (CatalogoService.Paralelo paralelo : paralelos) {
-                Map<String, Object> conteo = conteoPorClave.get(grado.id() + ":" + paralelo.id());
+                long[] c = conteoPorClave.get(grado.id() + ":" + paralelo.id());
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("grado", grado.nombre());
                 row.put("paralelo", paralelo.letra());
-                row.put("total", conteo != null ? conteo.get("total") : 0L);
-                row.put("activas", conteo != null ? conteo.get("activas") : 0L);
-                row.put("retiradas", conteo != null ? conteo.get("retiradas") : 0L);
+                row.put("total", c != null ? c[0] : 0L);
+                row.put("activas", c != null ? c[1] : 0L);
+                row.put("retiradas", c != null ? c[2] : 0L);
                 resultado.add(row);
             }
         }
@@ -117,90 +108,84 @@ public class MatriculaService {
     }
 
     public List<Map<String, Object>> listarPorEstudiante(long idEstudiante) {
-        String sql = """
-                SELECT m.id_matricula, m.numero_orden, m.fecha_registro, m.estado,
-                       m.id_grado, m.id_paralelo, m.id_ano_lectivo,
-                       hp.resultado AS resultado_promocion, hp.promedio_anual
-                FROM sga_principal.matriculas m
-                LEFT JOIN sga_principal.historial_promocion hp ON hp.id_matricula = m.id_matricula
-                WHERE m.id_estudiante = :id
-                """;
-        List<Map<String, Object>> data = jdbc.query(sql, new MapSqlParameterSource("id", idEstudiante), GenericRowMapper.INSTANCE);
+        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()
+                .setIdEstudiante(idEstudiante)
+                .build();
+        List<MatriculaProto> matriculas = client.listarMatriculas(request).getMatriculasList();
+        List<Map<String, Object>> data = new ArrayList<>(matriculas.stream().map(this::fromProto).toList());
         enriquecerConCatalogo(data);
+        enriquecerConHistorial(data);
         data.sort(Comparator.comparing(
-                (Map<String, Object> row) -> (java.time.LocalDate) row.get("ano_lectivo_fecha_inicio"),
+                (Map<String, Object> row) -> (LocalDate) row.get("ano_lectivo_fecha_inicio"),
                 Comparator.nullsLast(Comparator.reverseOrder())));
         return data;
     }
 
     public Map<String, Object> obtenerPorId(long id) {
-        String sql = """
-                SELECT m.*,
-                       e.nombres || ' ' || e.apellidos AS estudiante,
-                       e.cedula, e.codigo_estudiante,
-                       u.username AS registrado_por
-                FROM sga_principal.matriculas m
-                JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
-                LEFT JOIN sga_principal.usuarios u ON u.id_usuario = m.registrado_por
-                WHERE m.id_matricula = :id
-                """;
-        List<Map<String, Object>> rows = jdbc.query(sql, new MapSqlParameterSource("id", id), GenericRowMapper.INSTANCE);
-        if (rows.isEmpty()) throw ApiException.notFound("Matrícula no encontrada");
-        List<Map<String, Object>> data = new java.util.ArrayList<>(rows);
-        enriquecerConCatalogo(data);
-        return data.get(0);
+        List<Map<String, Object>> filas = new ArrayList<>(List.of(fromProto(client.obtenerMatricula(id))));
+        enriquecerConCatalogo(filas);
+        return filas.get(0);
     }
 
     public Map<String, Object> crear(MatriculaRequest dto, String username) {
-        MapSqlParameterSource dupParams = new MapSqlParameterSource()
-                .addValue("idEstudiante", dto.id_estudiante())
-                .addValue("idAno", dto.id_ano_lectivo());
-        List<Long> dup = jdbc.query(
-                "SELECT id_matricula FROM sga_principal.matriculas WHERE id_estudiante = :idEstudiante AND id_ano_lectivo = :idAno",
-                dupParams, (rs, n) -> rs.getLong("id_matricula"));
-        if (!dup.isEmpty()) throw ApiException.conflict("El estudiante ya tiene matrícula en ese año lectivo");
-
-        List<Long> userIds = jdbc.query(
-                "SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username",
-                new MapSqlParameterSource("username", username), (rs, n) -> rs.getLong("id_usuario"));
-        Long registradoPor = userIds.isEmpty() ? null : userIds.get(0);
-
-        Integer maxOrden = jdbc.queryForObject(
-                "SELECT COALESCE(MAX(numero_orden), 0) FROM sga_principal.matriculas WHERE id_ano_lectivo = :idAno",
-                new MapSqlParameterSource("idAno", dto.id_ano_lectivo()), Integer.class);
-        int numeroOrden = (maxOrden == null ? 0 : maxOrden) + 1;
-
-        String estado = (dto.estado() == null || dto.estado().isBlank()) ? "ACTIVA" : dto.estado();
-        String observaciones = (dto.observaciones() == null || dto.observaciones().isBlank()) ? null : dto.observaciones();
-
-        MapSqlParameterSource insertParams = new MapSqlParameterSource()
-                .addValue("idEstudiante", dto.id_estudiante())
-                .addValue("idGrado", dto.id_grado())
-                .addValue("idParalelo", dto.id_paralelo())
-                .addValue("idAno", dto.id_ano_lectivo())
-                .addValue("numeroOrden", numeroOrden)
-                .addValue("estado", estado)
-                .addValue("observaciones", observaciones)
-                .addValue("registradoPor", registradoPor);
-
-        // ::sga_principal.estado_matricula_t agregado por estrictez de PgJDBC (ver nota en EstudianteService)
-        String insertSql = """
-                INSERT INTO sga_principal.matriculas
-                  (id_estudiante, id_grado, id_paralelo, id_ano_lectivo,
-                   numero_orden, fecha_registro, estado, observaciones, registrado_por)
-                VALUES (:idEstudiante, :idGrado, :idParalelo, :idAno, :numeroOrden, CURRENT_DATE,
-                        :estado::sga_principal.estado_matricula_t, :observaciones, :registradoPor)
-                RETURNING id_matricula
-                """;
-        Long newId = jdbc.queryForObject(insertSql, insertParams, Long.class);
-        return obtenerPorId(newId);
+        Long idUsuario = resolverIdUsuario(username);
+        GuardarMatriculaRequest request = GuardarMatriculaRequest.newBuilder()
+                .setIdEstudiante(dto.id_estudiante())
+                .setIdGrado(dto.id_grado())
+                .setIdParalelo(dto.id_paralelo() != null ? dto.id_paralelo() : 0)
+                .setIdAnoLectivo(dto.id_ano_lectivo())
+                .setEstado(dto.estado() != null ? dto.estado() : "")
+                .setObservaciones(dto.observaciones() != null ? dto.observaciones() : "")
+                .setIdUsuarioRegistro(idUsuario != null ? idUsuario : 0)
+                .build();
+        List<Map<String, Object>> filas = new ArrayList<>(List.of(fromProto(client.crearMatricula(request))));
+        enriquecerConCatalogo(filas);
+        return filas.get(0);
     }
 
     public void cambiarEstado(long id, String estado) {
-        obtenerPorId(id);
-        jdbc.update(
-                "UPDATE sga_principal.matriculas SET estado = :estado::sga_principal.estado_matricula_t WHERE id_matricula = :id",
-                new MapSqlParameterSource().addValue("estado", estado).addValue("id", id));
+        client.cambiarEstadoMatricula(id, estado);
+    }
+
+    private Long resolverIdUsuario(String username) {
+        List<Long> ids = jdbc.query(
+                "SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username",
+                new MapSqlParameterSource("username", username), (rs, n) -> rs.getLong("id_usuario"));
+        return ids.isEmpty() ? null : ids.get(0);
+    }
+
+    /** historial_promocion no se movio de esquema (fuera de alcance, ver HistorialService); se lee directo. */
+    private void enriquecerConHistorial(List<Map<String, Object>> filas) {
+        if (filas.isEmpty()) return;
+        List<Long> ids = filas.stream().map(f -> (Long) f.get("id_matricula")).toList();
+        List<Map<String, Object>> historial = jdbc.query(
+                "SELECT id_matricula, resultado AS resultado_promocion, promedio_anual FROM sga_principal.historial_promocion WHERE id_matricula IN (:ids)",
+                new MapSqlParameterSource("ids", ids), GenericRowMapper.INSTANCE);
+        Map<Long, Map<String, Object>> porMatricula = new LinkedHashMap<>();
+        historial.forEach(h -> porMatricula.put((Long) h.get("id_matricula"), h));
+        for (Map<String, Object> fila : filas) {
+            Map<String, Object> h = porMatricula.get((Long) fila.get("id_matricula"));
+            fila.put("resultado_promocion", h != null ? h.get("resultado_promocion") : null);
+            fila.put("promedio_anual", h != null ? h.get("promedio_anual") : null);
+        }
+    }
+
+    private Map<String, Object> fromProto(MatriculaProto m) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("id_matricula", m.getIdMatricula());
+        row.put("id_estudiante", m.getIdEstudiante());
+        row.put("cedula", m.getEstudianteCedula());
+        row.put("codigo_estudiante", m.getEstudianteCodigo());
+        row.put("estudiante", (m.getEstudianteNombres() + " " + m.getEstudianteApellidos()).trim());
+        row.put("id_grado", m.getIdGrado());
+        row.put("id_paralelo", m.getIdParalelo() > 0 ? m.getIdParalelo() : null);
+        row.put("id_ano_lectivo", m.getIdAnoLectivo());
+        row.put("numero_orden", m.getNumeroOrden());
+        row.put("fecha_registro", m.getFechaRegistro().isBlank() ? null : LocalDate.parse(m.getFechaRegistro()));
+        row.put("estado", m.getEstado());
+        row.put("observaciones", m.getObservaciones().isBlank() ? null : m.getObservaciones());
+        row.put("registrado_por", m.getRegistradoPor().isBlank() ? null : m.getRegistradoPor());
+        return row;
     }
 
     /**
@@ -230,8 +215,6 @@ public class MatriculaService {
             fila.put("paralelo", paralelo != null ? paralelo.letra() : null);
             fila.put("ano_lectivo", ano != null ? ano.nombre() : null);
             fila.put("ano_lectivo_fecha_inicio", ano != null ? ano.fechaInicio() : null);
-            // Alias sin prefijo: listarPorEstudiante devolvia fecha_inicio/fecha_fin
-            // "pelados" (columnas de anos_lectivos sin alias) antes del JOIN por gRPC.
             fila.put("fecha_inicio", ano != null ? ano.fechaInicio() : null);
             fila.put("fecha_fin", ano != null ? ano.fechaFin() : null);
         }

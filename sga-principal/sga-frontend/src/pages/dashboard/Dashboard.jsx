@@ -17,6 +17,7 @@ export default function Dashboard() {
     const [breadcrumb, setBreadcrumb] = useState(["Inicio"]);
     const username = localStorage.getItem("username") || "Director";
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -26,10 +27,9 @@ export default function Dashboard() {
     }, []);
 
     const handleModulo = (m) => {
-        // Modulos como "estudiantes" ya no viven en este frontend (sga-secretaria
-        // es la unica duena de esos datos, ver PrincipalGrpcService); en vez de
-        // navegar a una ruta local se entrega la sesion al Portal Secretaria por
-        // el mismo mecanismo de SSO que ya usa Portales.jsx.
+        // Modulos marcados con handoff no tienen pagina local (su dominio vive
+        // por completo en otro microservicio); en vez de navegar a una ruta local
+        // se entrega la sesion por el mismo mecanismo de SSO que usa Portales.jsx.
         if (m.handoff) {
             redirigirAMicroservicio(m.handoff, {
                 token,

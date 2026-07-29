@@ -57,7 +57,7 @@ public class ReportesService {
         String sql = """
                 SELECT m.numero_orden, m.fecha_registro, m.estado,
                        e.cedula, e.nombres || ' ' || e.apellidos AS estudiante
-                FROM sga_principal.matriculas m
+                FROM sga_secretaria.matriculas m
                 JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
                 %s
                 ORDER BY e.apellidos
@@ -96,14 +96,14 @@ public class ReportesService {
                        COUNT(*) FILTER (WHERE e.discapacidad = true) AS con_discapacidad,
                        COUNT(*) FILTER (WHERE e.genero = 'MASCULINO') AS masculino,
                        COUNT(*) FILTER (WHERE e.genero = 'FEMENINO') AS femenino
-                FROM sga_principal.matriculas m
+                FROM sga_secretaria.matriculas m
                 JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
                 WHERE m.id_ano_lectivo = :idAno
                 """, params, GenericRowMapper.INSTANCE).get(0);
 
         List<Map<String, Object>> conteosPorGrado = jdbc.query("""
                 SELECT id_grado, COUNT(*) AS total
-                FROM sga_principal.matriculas
+                FROM sga_secretaria.matriculas
                 WHERE id_ano_lectivo = :idAno
                 GROUP BY id_grado
                 """, params, GenericRowMapper.INSTANCE);
@@ -126,7 +126,7 @@ public class ReportesService {
 
         List<Map<String, Object>> porEstado = jdbc.query("""
                 SELECT estado, COUNT(*) AS cantidad
-                FROM sga_principal.matriculas WHERE id_ano_lectivo = :idAno
+                FROM sga_secretaria.matriculas WHERE id_ano_lectivo = :idAno
                 GROUP BY estado
                 """, params, GenericRowMapper.INSTANCE);
 

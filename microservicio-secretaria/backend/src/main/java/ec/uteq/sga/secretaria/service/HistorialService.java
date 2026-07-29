@@ -82,7 +82,7 @@ public class HistorialService {
     public Map<String, Object> registrarPromocion(PromocionRequest dto, String username) {
         List<Map<String, Object>> mat = jdbc.query(
                 "SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo " +
-                        "FROM sga_principal.matriculas m WHERE m.id_matricula = :id",
+                        "FROM sga_secretaria.matriculas m WHERE m.id_matricula = :id",
                 new MapSqlParameterSource("id", dto.id_matricula()), GenericRowMapper.INSTANCE);
         if (mat.isEmpty()) throw ApiException.notFound("Matrícula no encontrada");
         Map<String, Object> m = mat.get(0);
@@ -99,15 +99,18 @@ public class HistorialService {
 
         String observaciones = (dto.observaciones() == null || dto.observaciones().isBlank()) ? null : dto.observaciones();
 
-        // "resultado" nunca aparece con cast explicito en el SQL Node original (a diferencia de
-        // genero_t/estado_matricula_t), lo que indica que es una columna varchar/text simple, no un enum custom.
+        // resultado SI es un enum custom (sga_principal.resultado_promocion_t) pese al comentario
+        // original: PgJDBC exige el cast explicito (::resultado_promocion_t) igual que ya pasa con
+        // estado_matricula_t en otras consultas; sin el cast, el INSERT falla siempre con
+        // "column is of type ... but expression is of type character varying".
         // lamport_ts: orden causal del evento, ver LamportClock e independiente de fecha_registro (reloj de pared).
         long lamportTs = lamportClock.tick();
         jdbc.update("""
                 INSERT INTO sga_principal.historial_promocion
                   (id_matricula, id_estudiante, id_grado_origen, id_ano_lectivo,
                    resultado, promedio_anual, observaciones, registrado_por, lamport_ts)
-                VALUES (:idMatricula, :idEstudiante, :idGrado, :idAno, :resultado, :promedio, :observaciones, :registradoPor, :lamportTs)
+                VALUES (:idMatricula, :idEstudiante, :idGrado, :idAno,
+                        :resultado::sga_principal.resultado_promocion_t, :promedio, :observaciones, :registradoPor, :lamportTs)
                 """,
                 new MapSqlParameterSource()
                         .addValue("lamportTs", lamportTs)
@@ -122,7 +125,7 @@ public class HistorialService {
 
         String estadoMatricula = "PROMOVIDO".equals(dto.resultado()) ? "PROMOVIDA" : "NO_PROMOVIDA";
         jdbc.update(
-                "UPDATE sga_principal.matriculas SET estado = :estado::sga_principal.estado_matricula_t " +
+                "UPDATE sga_secretaria.matriculas SET estado = :estado::sga_principal.estado_matricula_t " +
                         "WHERE id_matricula = :id",
                 new MapSqlParameterSource().addValue("estado", estadoMatricula).addValue("id", dto.id_matricula()));
 
@@ -171,7 +174,7 @@ public class HistorialService {
                 SELECT m.id_matricula, e.id_estudiante,
                        e.nombres || ' ' || e.apellidos AS estudiante,
                        e.cedula, m.id_grado, m.id_paralelo
-                FROM sga_principal.matriculas m
+                FROM sga_secretaria.matriculas m
                 JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
                 WHERE m.id_ano_lectivo = :idAno
                   AND NOT EXISTS (

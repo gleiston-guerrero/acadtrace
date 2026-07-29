@@ -20,4 +20,7 @@ public interface EstudianteRepository extends JpaRepository<Estudiante, Long> {
 
     @Query("SELECT e FROM Estudiante e LEFT JOIN FETCH e.representante WHERE LOWER(e.nombres) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(e.apellidos) LIKE LOWER(CONCAT('%',:q,'%'))")
     List<Estudiante> searchWithRepresentante(@Param("q") String query);
+
+    @Query("SELECT e FROM Estudiante e LEFT JOIN FETCH e.representante WHERE e.idEstudiante = :id")
+    Optional<Estudiante> findByIdWithRepresentante(@Param("id") Long id);
 }
