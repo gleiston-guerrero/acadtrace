@@ -8,11 +8,11 @@ option java_multiple_files = true;
 // Contrato expuesto por sga-principal para que otros microservicios
 // (Secretaría, Soporte, etc.) lean el catálogo institucional (años
 // lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
-// directo. Estudiante (crear/actualizar/listar/obtener/cambiarEstado) vive
-// en el esquema sga_secretaria (tablas propias de Secretaría) y se maneja
-// aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
-// Matrícula/Representante (ficha completa)/FichaEstudiante siguen siendo
-// SQL directo desde Secretaría por ahora (migración pendiente).
+// directo. Estudiante, Matricula y FichaEstudiante (crear/actualizar/
+// listar/obtener/cambiarEstado) viven en el esquema sga_secretaria (tablas
+// propias de Secretaría) y se manejan aquí por completo — Secretaría ya no
+// hace SQL directo a esas tablas. Representante (ficha completa) sigue
+// siendo SQL directo desde Secretaría por ahora (migración pendiente).
 service PrincipalService {
   rpc ListarAnosLectivos (Empty) returns (AnosLectivosResponse);
   rpc ListarGrados (Empty) returns (GradosResponse);
@@ -28,6 +28,12 @@ service PrincipalService {
   rpc ListarEstudiantes (ListarEstudiantesRequest) returns (ListarEstudiantesResponse);
   rpc ObtenerEstudiante (ObtenerEstudianteRequest) returns (EstudianteProto);
   rpc CambiarEstadoEstudiante (CambiarEstadoEstudianteRequest) returns (Empty);
+  rpc CrearMatricula (GuardarMatriculaRequest) returns (MatriculaProto);
+  rpc ObtenerMatricula (ObtenerMatriculaRequest) returns (MatriculaProto);
+  rpc CambiarEstadoMatricula (CambiarEstadoMatriculaRequest) returns (Empty);
+  rpc ListarMatriculas (ListarMatriculasRequest) returns (ListarMatriculasResponse);
+  rpc ObtenerFicha (ObtenerFichaRequest) returns (FichaProto);
+  rpc GuardarFicha (GuardarFichaRequest) returns (FichaProto);
 }
 
 message Empty {
@@ -190,4 +196,83 @@ message ObtenerEstudianteRequest {
 message CambiarEstadoEstudianteRequest {
   int64 id_estudiante = 1;
   bool activo = 2;
+}
+
+message GuardarMatriculaRequest {
+  int64 id_estudiante = 1;
+  int64 id_grado = 2;
+  int64 id_paralelo = 3;
+  int64 id_ano_lectivo = 4;
+  string estado = 5; // vacio = ACTIVA
+  string observaciones = 6;
+  int64 id_usuario_registro = 7; // 0 = ninguno
+}
+
+message ObtenerMatriculaRequest {
+  int64 id_matricula = 1;
+}
+
+message CambiarEstadoMatriculaRequest {
+  int64 id_matricula = 1;
+  string estado = 2;
+}
+
+message ListarMatriculasRequest {
+  int64 id_ano_lectivo = 1; // 0 = ignora este filtro (usar junto con id_estudiante)
+  int64 id_estudiante = 2; // 0 = ignora este filtro (listado general del año)
+  string q = 3; // busqueda por nombre/apellido/cedula; solo aplica al listado por año
+  int32 page = 4; // 1-based; 0 o menor = 1
+  int32 limit = 5; // 0 o menor = usa un default razonable
+}
+
+message ListarMatriculasResponse {
+  repeated MatriculaProto matriculas = 1;
+  int64 total = 2;
+}
+
+message MatriculaProto {
+  int64 id_matricula = 1;
+  int64 id_estudiante = 2;
+  string estudiante_nombres = 3;
+  string estudiante_apellidos = 4;
+  string estudiante_cedula = 5;
+  string estudiante_codigo = 6;
+  int64 id_grado = 7;
+  int64 id_paralelo = 8;
+  int64 id_ano_lectivo = 9;
+  int32 numero_orden = 10;
+  string fecha_registro = 11;
+  string estado = 12;
+  string observaciones = 13;
+  string registrado_por = 14; // username, vacio si no se pudo resolver
+}
+
+message ObtenerFichaRequest {
+  int64 id_estudiante = 1;
+}
+
+message GuardarFichaRequest {
+  int64 id_estudiante = 1;
+  string tipo_sangre = 2;
+  bool enfermedad_catastrofica = 3;
+  string detalle_enfermedad = 4;
+  string medicacion_permanente = 5;
+  string alergias = 6;
+  string contacto_emergencia = 7;
+  string telefono_emergencia = 8;
+  string direccion_referencia = 9;
+}
+
+message FichaProto {
+  int64 id_ficha = 1;
+  int64 id_estudiante = 2;
+  string tipo_sangre = 3;
+  bool enfermedad_catastrofica = 4;
+  string detalle_enfermedad = 5;
+  string medicacion_permanente = 6;
+  string alergias = 7;
+  string contacto_emergencia = 8;
+  string telefono_emergencia = 9;
+  string direccion_referencia = 10;
+  string fecha_actualizacion = 11;
 }

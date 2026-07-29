@@ -4,17 +4,26 @@ import ec.edu.uteq.sga.grpc.principal.AnoLectivoProto;
 import ec.edu.uteq.sga.grpc.principal.AsignaturaProto;
 import ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest;
 import ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest;
+import ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest;
 import ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest;
 import ec.edu.uteq.sga.grpc.principal.Empty;
 import ec.edu.uteq.sga.grpc.principal.EstudianteProto;
+import ec.edu.uteq.sga.grpc.principal.FichaProto;
 import ec.edu.uteq.sga.grpc.principal.GradoProto;
 import ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest;
+import ec.edu.uteq.sga.grpc.principal.GuardarFichaRequest;
 import ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest;
+import ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest;
 import ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest;
 import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest;
 import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse;
+import ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse;
 import ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest;
+import ec.edu.uteq.sga.grpc.principal.MatriculaProto;
 import ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest;
+import ec.edu.uteq.sga.grpc.principal.ObtenerFichaRequest;
+import ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest;
 import ec.edu.uteq.sga.grpc.principal.ParaleloProto;
 import ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc;
 import ec.uteq.sga.secretaria.common.ApiException;
@@ -169,6 +178,55 @@ public class PrincipalGrpcClient {
                     .setIdParalelo(idParalelo).setActivo(activo).build());
         } catch (StatusRuntimeException e) {
             throw mapearError(e, "cambiar el estado de", "el paralelo");
+        }
+    }
+
+    public MatriculaProto crearMatricula(GuardarMatriculaRequest request) {
+        try {
+            return autenticado().crearMatricula(request);
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "crear", "la matrícula");
+        }
+    }
+
+    public MatriculaProto obtenerMatricula(long idMatricula) {
+        try {
+            return autenticado().obtenerMatricula(ObtenerMatriculaRequest.newBuilder().setIdMatricula(idMatricula).build());
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "obtener", "la matrícula");
+        }
+    }
+
+    public void cambiarEstadoMatricula(long idMatricula, String estado) {
+        try {
+            autenticado().cambiarEstadoMatricula(CambiarEstadoMatriculaRequest.newBuilder()
+                    .setIdMatricula(idMatricula).setEstado(estado).build());
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "cambiar el estado de", "la matrícula");
+        }
+    }
+
+    public ListarMatriculasResponse listarMatriculas(ListarMatriculasRequest request) {
+        try {
+            return autenticado().listarMatriculas(request);
+        } catch (StatusRuntimeException e) {
+            throw ApiException.badGateway("No se pudo listar matrículas en sga-principal: " + e.getStatus());
+        }
+    }
+
+    public FichaProto obtenerFicha(long idEstudiante) {
+        try {
+            return autenticado().obtenerFicha(ObtenerFichaRequest.newBuilder().setIdEstudiante(idEstudiante).build());
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "obtener", "la ficha");
+        }
+    }
+
+    public FichaProto guardarFicha(GuardarFichaRequest request) {
+        try {
+            return autenticado().guardarFicha(request);
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "guardar", "la ficha");
         }
     }
 
