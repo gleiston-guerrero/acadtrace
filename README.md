@@ -1,40 +1,40 @@
-# 🎓 SGA - Sistema de Gestión Académica Distribuido
+# SGA - Sistema de Gestion Academica Distribuido
 
-Sistema distribuido desacoplado bajo arquitectura de **Microservicios**, diseñado para la gestión académica, control docentes, asistencias, administración de matrícula y soporte técnico. La arquitectura se comunica mediante **Protocolos Híbridos (REST API y gRPC de alta velocidad)** con persistencia de datos distribuida en **PostgreSQL sobre AWS EC2**.
+Sistema distribuido desacoplado bajo arquitectura de Microservicios, disenado para la gestion academica, control docentes, asistencias, administracion de matricula y soporte tecnico. La arquitectura se comunica mediante Protocolos Hibridos (REST API y gRPC de alto rendimiento) con persistencia de datos distribuida en PostgreSQL sobre AWS EC2.
 
 ---
 
-## 🏛️ Arquitectura General y Mapeo de Puertos
+## Arquitectura General y Mapeo de Puertos
 
-El sistema está compuesto por un módulo principal y tres microservicios autónomos:
+El sistema esta compuesto por un modulo principal y tres microservicios autonomos:
 
-| Servicio | Tecnología Backend | Puerto REST | Puerto gRPC | Puerto Frontend | Responsabilidad Principal |
+| Servicio | Tecnologia Backend | Puerto REST | Puerto gRPC | Puerto Frontend | Responsabilidad Principal |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **SGA Principal** | Java 17 (Spring Boot) | `8080` | `9092` | `5173` | Core Académico, Usuarios, Autenticación y Módulos |
-| **Microservicio Docente** | Python 3.12 (Django REST) | `8081` | `9091` | `5174` | Gestión de Asistencia, Evaluaciones y Calificaciones |
-| **Microservicio Secretaría** | Node.js / Express | `8082` | `9093` | `5175` | Control de Trámites, Certificados y Admisiones |
-| **Microservicio Soporte** | Node.js / Express | `8083` | `9094` | `5176` | Tickets de Incidencias y Atención Técnica |
+| **SGA Principal** | Java 17 (Spring Boot) | 8080 | 9092 | 5173 | Core Academico, Usuarios, Autenticacion y Modulos |
+| **Microservicio Docente** | Python 3.12 (Django REST) | 8081 | 9091 | 5174 | Gestion de Asistencia, Evaluaciones y Calificaciones |
+| **Microservicio Secretaria** | Node.js / Express | 8082 | 9093 | 5175 | Control de Tramites, Certificados y Admisiones |
+| **Microservicio Soporte** | Node.js / Express | 8083 | 9094 | 5176 | Tickets de Incidencias y Atencion Tecnica |
 
 ---
 
-## 🗄️ Base de Datos Distribuida (AWS EC2)
+## Base de Datos Distribuida (AWS EC2)
 
 Todos los servicios convergen de forma distribuida en la base de datos alojada en la nube:
 
-* **Host:** `192.0.2.1`
-* **Puerto PostgreSQL:** `5433`
-* **Nombre de Base de Datos:** `sga`
-* **Esquemas:** `sga_principal`, `sga_docente`, `public`
+* **Host:** 192.0.2.1
+* **Puerto PostgreSQL:** 5433
+* **Nombre de Base de Datos:** sga
+* **Esquemas:** sga_principal, sga_docente, public
 
 ---
 
-## 🚀 Guía de Ejecución
+## Guia de Ejecucion
 
 Existen dos alternativas para poner en marcha el sistema:
 
 ---
 
-### 🔹 Opción A: Ejecución mediante Docker Compose (Recomendado)
+### Opcion A: Ejecucion mediante Docker Compose (Recomendado)
 
 Pone en marcha todos los contenedores de backend y microservicios con un solo comando:
 
@@ -47,15 +47,15 @@ cd sga-sistema-distribuido
 docker-compose up --build
 ```
 
-* Acceso Frontend Principal: `http://localhost:5173`
+* Acceso Frontend Principal: http://localhost:5173
 
 ---
 
-### 🔹 Opción B: Ejecución Manual Local Paso a Paso
+### Opcion B: Ejecucion Manual Local Paso a Paso
 
 Si se requiere ejecutar los componentes de manera individual en consolas independientes:
 
-#### 1️⃣ SGA Principal (Spring Boot)
+#### 1. SGA Principal (Spring Boot)
 ```bash
 cd sga-principal
 # En Windows (PowerShell):
@@ -64,9 +64,9 @@ cd sga-principal
 # En Linux/Mac:
 ./mvnw spring-boot:run
 ```
-* Servidor activo en: `http://localhost:8080`
+* Servidor activo en: http://localhost:8080
 
-#### 2️⃣ Microservicio Docente (Django REST & gRPC)
+#### 2. Microservicio Docente (Django REST & gRPC)
 Abrir dos consolas en la carpeta `microservicio-docente`:
 
 * **Consola 1 (Servidor REST):**
@@ -80,44 +80,44 @@ Abrir dos consolas en la carpeta `microservicio-docente`:
   python manage.py rungrpcserver
   ```
 
-#### 3️⃣ Microservicio Secretaría
+#### 3. Microservicio Secretaria
 ```bash
 cd microservicio-secretaria/backend
 npm install
 npm start
 ```
-* Servidor activo en: `http://localhost:8082`
+* Servidor activo en: http://localhost:8082
 
-#### 4️⃣ Microservicio Soporte
+#### 4. Microservicio Soporte
 ```bash
 cd microservicio-soporte/backend
 npm install
 npm start
 ```
-* Servidor activo en: `http://localhost:8083`
+* Servidor activo en: http://localhost:8083
 
-#### 5️⃣ Frontend Unificado React
+#### 5. Frontend Unificado React
 ```bash
 cd sga-principal/sga-frontend
 npm install
 npm run dev
 ```
-* Aplicación web lista en: `http://localhost:5173`
+* Aplicacion web lista en: http://localhost:5173
 
 ---
 
-## 🧪 Verificación de Comunicación gRPC y Tolerancia a Fallos
+## Verificacion de Comunicacion gRPC y Tolerancia a Fallos
 
-Para realizar la demostración práctica del protocolo **gRPC** en tiempo real:
+Para realizar la demostracion practica del protocolo gRPC en tiempo real:
 
-1. Iniciar el SGA Principal (`8080`) y el Servidor gRPC de Docente (`9091`).
-2. **Apagar** el servidor REST del docente (detener el proceso en puerto `8081`).
-3. Navegar en el Frontend a `http://localhost:5173/grados` y seleccionar un curso/materia.
-4. El SGA Principal continuará solicitando y recibiendo la información de la base de datos y notificando las transacciones directamente mediante el canal **gRPC (9092 ↔ 9091)** sin depender de la API REST de docente.
+1. Iniciar el SGA Principal (8080) y el Servidor gRPC de Docente (9091).
+2. Apagar el servidor REST del docente (detener el proceso en puerto 8081).
+3. Navegar en el Frontend a http://localhost:5173/grados y seleccionar un curso/materia.
+4. El SGA Principal continuara solicitando y recibiendo la informacion de la base de datos y notificando las transacciones directamente mediante el canal gRPC (9092 - 9091) sin depender de la API REST de docente.
 
 ---
 
-## 📊 Consulta SQL de Verificación de Datos
+## Consulta SQL de Verificacion de Datos
 
 Para verificar los registros insertados en el esquema docente desde cualquier cliente PostgreSQL (pgAdmin / DBeaver):
 
@@ -138,9 +138,9 @@ LIMIT 20;
 
 ---
 
-## 📋 Requisitos del Sistema
+## Requisitos del Sistema
 
 * **Java JDK:** 17 o superior
-* **Python:** 3.10 o superior (con `django`, `djangorestframework`, `grpcio`, `grpcio-tools`, `psycopg2-binary`)
-* **Node.js:** v18.0.0 o superior (`npm` v9+)
+* **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
+* **Node.js:** v18.0.0 o superior (npm v9+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
