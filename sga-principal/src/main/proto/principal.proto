@@ -6,15 +6,28 @@ option java_package = "ec.edu.uteq.sga.grpc.principal";
 option java_multiple_files = true;
 
 // Contrato expuesto por sga-principal para que otros microservicios
-// (Secretaría, Soporte, etc.) lean el catálogo institucional sin tocar la
-// base de datos directo. Estudiantes/matrículas/representantes ya no se
-// exponen aquí: esos datos son dominio exclusivo de sga-secretaria desde que
-// las tablas se movieron al esquema sga_secretaria.
+// (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+// lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+// directo. Estudiante (crear/actualizar/listar/obtener/cambiarEstado) vive
+// en el esquema sga_secretaria (tablas propias de Secretaría) y se maneja
+// aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+// Matrícula/Representante (ficha completa)/FichaEstudiante siguen siendo
+// SQL directo desde Secretaría por ahora (migración pendiente).
 service PrincipalService {
   rpc ListarAnosLectivos (Empty) returns (AnosLectivosResponse);
   rpc ListarGrados (Empty) returns (GradosResponse);
   rpc ListarParalelos (ListarParalelosRequest) returns (ParalelosResponse);
+  rpc CrearGrado (GuardarGradoRequest) returns (GradoProto);
+  rpc ActualizarGrado (GuardarGradoRequest) returns (GradoProto);
+  rpc CambiarEstadoGrado (CambiarEstadoGradoRequest) returns (Empty);
+  rpc CrearParalelo (GuardarParaleloRequest) returns (ParaleloProto);
+  rpc CambiarEstadoParalelo (CambiarEstadoParaleloRequest) returns (Empty);
   rpc ListarAsignaturas (Empty) returns (AsignaturasResponse);
+  rpc CrearEstudiante (GuardarEstudianteRequest) returns (EstudianteProto);
+  rpc ActualizarEstudiante (GuardarEstudianteRequest) returns (EstudianteProto);
+  rpc ListarEstudiantes (ListarEstudiantesRequest) returns (ListarEstudiantesResponse);
+  rpc ObtenerEstudiante (ObtenerEstudianteRequest) returns (EstudianteProto);
+  rpc CambiarEstadoEstudiante (CambiarEstadoEstudianteRequest) returns (Empty);
 }
 
 message Empty {
@@ -37,10 +50,27 @@ message GradoProto {
   string nombre = 2;
   int32 orden = 3;
   bool activo = 4;
+  int32 capacidad_max = 5;
+  int64 id_nivel = 6; // 0 = sin nivel asignado
+  string nivel_educativo = 7;
+  string tipo_escala = 8;
 }
 
 message GradosResponse {
   repeated GradoProto grados = 1;
+}
+
+message GuardarGradoRequest {
+  int64 id_grado = 1; // 0 en creacion, ignorado por CrearGrado
+  string nombre = 2;
+  int32 orden = 3;
+  int32 capacidad_max = 4;
+  int64 id_nivel = 5; // 0 = sin nivel
+}
+
+message CambiarEstadoGradoRequest {
+  int64 id_grado = 1;
+  bool activo = 2;
 }
 
 message ListarParalelosRequest {
@@ -53,10 +83,21 @@ message ParaleloProto {
   int64 id_grado = 2;
   string letra = 3;
   bool activo = 4;
+  int64 total_estudiantes = 5;
 }
 
 message ParalelosResponse {
   repeated ParaleloProto paralelos = 1;
+}
+
+message GuardarParaleloRequest {
+  int64 id_grado = 1;
+  string letra = 2;
+}
+
+message CambiarEstadoParaleloRequest {
+  int64 id_paralelo = 1;
+  bool activo = 2;
 }
 
 message AsignaturaProto {
@@ -68,4 +109,85 @@ message AsignaturaProto {
 
 message AsignaturasResponse {
   repeated AsignaturaProto asignaturas = 1;
+}
+
+// Petición de escritura de Estudiante (crear o actualizar). Los campos
+// direccion/telefono/tipo_discapacidad viajan ya cifrados (AES-256-GCM) por
+// Secretaría — sga-principal los persiste tal cual, sin interpretarlos ni
+// tener la clave de cifrado.
+message GuardarEstudianteRequest {
+  int64 id_estudiante = 1; // 0 = crear nuevo; >0 = actualizar ese id
+  string cedula = 2;
+  string nombres = 3;
+  string apellidos = 4;
+  string fecha_nacimiento = 5; // ISO yyyy-MM-dd, vacío = sin dato
+  string genero = 6;
+  string correo = 7;
+  string direccion = 8; // ya cifrado por Secretaría
+  string telefono = 9;  // ya cifrado por Secretaría
+  bool discapacidad = 10;
+  string tipo_discapacidad = 11; // ya cifrado por Secretaría
+  int32 porcentaje_disc = 12;
+  int64 id_representante = 13; // 0 = sin representante
+  int64 id_usuario_creador = 14; // 0 = desconocido
+  string codigo_estudiante = 15; // generado por Secretaría; vacío en ActualizarEstudiante = no tocar el código actual
+  string nacionalidad = 16;
+  string etnia = 17;
+  string lugar_nacimiento = 18;
+  string vive_con = 19;
+  int32 numeros_hermanos = 20; // 0 = sin dato
+  bool beneficio_social = 21;
+  string carnet_conadis = 22;
+  string foto_url = 23;
+}
+
+message EstudianteProto {
+  int64 id_estudiante = 1;
+  string cedula = 2;
+  string codigo_estudiante = 3;
+  string nombres = 4;
+  string apellidos = 5;
+  string fecha_nacimiento = 6;
+  string genero = 7;
+  string correo = 8;
+  string direccion = 9;
+  string telefono = 10;
+  bool discapacidad = 11;
+  string tipo_discapacidad = 12;
+  int32 porcentaje_disc = 13;
+  int64 id_representante = 14;
+  string estado = 15;
+  // Resumen del representante (join de solo lectura); la ficha completa de Representante sigue siendo SQL directo en Secretaría.
+  string rep_nombres = 16;
+  string rep_apellidos = 17;
+  string rep_telefono = 18;
+  string rep_parentesco = 19;
+  string nacionalidad = 20;
+  string etnia = 21;
+  string lugar_nacimiento = 22;
+  string vive_con = 23;
+  int32 numeros_hermanos = 24;
+  bool beneficio_social = 25;
+  string carnet_conadis = 26;
+  string foto_url = 27;
+}
+
+message ListarEstudiantesRequest {
+  string q = 1; // vacío = sin filtro
+  int32 page = 2; // 1-based; 0 o menor = 1
+  int32 limit = 3; // 0 o menor = usa un default razonable
+}
+
+message ListarEstudiantesResponse {
+  repeated EstudianteProto estudiantes = 1;
+  int64 total = 2;
+}
+
+message ObtenerEstudianteRequest {
+  int64 id_estudiante = 1;
+}
+
+message CambiarEstadoEstudianteRequest {
+  int64 id_estudiante = 1;
+  bool activo = 2;
 }

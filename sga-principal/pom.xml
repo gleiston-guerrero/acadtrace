@@ -107,6 +107,20 @@
             <version>3.0.2</version>
         </dependency>
 
+        <!-- Apache POI — para leer archivos Excel (.xlsx/.xls) de importación de estudiantes -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
+        <!-- Apache Commons CSV — para leer archivos .csv de importación de estudiantes -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
         <!-- gRPC cliente hacia MICRO-DOCENTE -->
         <dependency>
             <groupId>net.devh</groupId>

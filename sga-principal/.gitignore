@@ -33,3 +33,6 @@ build/
 .vscode/
 
 .claude/
+
+### Fotos de perfil subidas en tiempo de ejecución (no son código fuente) ###
+/uploads/
