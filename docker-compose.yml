@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: microservicio-docente
     ports:
-      - "8000:8000"   # REST
+      - "8081:8081"   # REST
       - "9091:9091"   # gRPC Server
     environment:
       - DB_HOST=192.0.2.1
@@ -48,7 +48,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: microservicio-secretaria
     ports:
-      - "5176:5176"
+      - "8082:8082"   # REST Backend
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -65,7 +65,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: microservicio-soporte
     ports:
-      - "5177:5177"
+      - "8083:8083"   # REST Backend
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
