@@ -84,6 +84,22 @@ services:
     networks:
       - sga-distribuido-net
 
+  # ─── 5. FRONTEND SGA (React + Vite) ───
+  sga-frontend:
+    image: node:20-alpine
+    container_name: sga-frontend
+    working_dir: /app
+    volumes:
+      - ./sga-principal/sga-frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+
 networks:
   sga-distribuido-net:
     driver: bridge

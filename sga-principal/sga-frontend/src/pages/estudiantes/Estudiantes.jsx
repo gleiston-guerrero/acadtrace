@@ -8,10 +8,12 @@ const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 const PAGE_SIZE = 10;
 
 const ORIGEN_CONFIG = {
-  MANUAL: { label: "Manual", color: "bg-blue-100 text-blue-700" },
-  EXCEL: { label: "Excel/CSV", color: "bg-lime-100 text-lime-700" },
-  CAS: { label: "Listado CAS", color: "bg-amber-100 text-amber-700" },
+  MANUAL: { label: "Manual", color: "bg-blue-100 text-blue-700", cardColor: "#3b82f6", icon: "M12 4v16m8-8H4" },
+  EXCEL: { label: "Excel/CSV", color: "bg-lime-100 text-lime-700", cardColor: "#84cc16", icon: "M9 17v-2a4 4 0 014-4h4M7 7h10M7 11h4m-4 4h4" },
+  CAS: { label: "Listado CAS", color: "bg-amber-100 text-amber-700", cardColor: "#f59e0b", icon: "M4 4h16v4H4zM4 12h16v4H4zM4 20h16" },
+  PRUEBA: { label: "Prueba", color: "bg-purple-100 text-purple-700", cardColor: "#a855f7", icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
 };
+const ORIGENES_KPI = ["MANUAL", "EXCEL", "CAS", "PRUEBA"];
 
 const menuItems = [
   { id: "lista", label: "Lista de estudiantes", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
@@ -31,6 +33,7 @@ export default function Estudiantes() {
   const [editId, setEditId] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
+  const [origenFiltro, setOrigenFiltro] = useState(null);
 
   const handleSeccion = (id) => {
     if (id === "nuevo") { setShowModal(true); return; }
@@ -56,9 +59,24 @@ export default function Estudiantes() {
     if (success) { const t = setTimeout(() => setSuccess(""), 4000); return () => clearTimeout(t); }
   }, [success]);
 
-  const totalPaginas = Math.max(1, Math.ceil(estudiantes.length / PAGE_SIZE));
+  const conteosOrigen = estudiantes.reduce((acc, e) => {
+    const k = e.origenListado || "SIN_ORIGEN";
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, {});
+
+  const filtrados = origenFiltro
+    ? estudiantes.filter(e => (e.origenListado || "SIN_ORIGEN") === origenFiltro)
+    : estudiantes;
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / PAGE_SIZE));
   const paginaReal = Math.min(pagina, totalPaginas);
-  const paginados = estudiantes.slice((paginaReal - 1) * PAGE_SIZE, paginaReal * PAGE_SIZE);
+  const paginados = filtrados.slice((paginaReal - 1) * PAGE_SIZE, paginaReal * PAGE_SIZE);
+
+  const toggleOrigen = (origen) => {
+    setPagina(1);
+    setOrigenFiltro(prev => prev === origen ? null : origen);
+  };
 
   return (
     <Layout
@@ -111,6 +129,68 @@ export default function Estudiantes() {
         </div>
       )}
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+        <button
+          type="button"
+          onClick={() => { setOrigenFiltro(null); setPagina(1); }}
+          className={`text-left bg-white rounded-2xl border p-4 shadow-sm transition hover:shadow-md ${origenFiltro === null ? "ring-2 ring-offset-1" : "border-slate-200"}`}
+          style={origenFiltro === null ? { "--tw-ring-color": PRIMARY, borderColor: PRIMARY } : {}}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Todos</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: PRIMARY }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-slate-700">{estudiantes.length}</p>
+          <p className="text-xs text-slate-400 mt-0.5">Registrados en total</p>
+        </button>
+
+        {ORIGENES_KPI.map(origen => {
+          const cfg = ORIGEN_CONFIG[origen];
+          const count = conteosOrigen[origen] || 0;
+          const active = origenFiltro === origen;
+          const pct = estudiantes.length ? Math.round((count / estudiantes.length) * 100) : 0;
+          return (
+            <button
+              key={origen}
+              type="button"
+              onClick={() => toggleOrigen(origen)}
+              className={`text-left bg-white rounded-2xl border p-4 shadow-sm transition hover:shadow-md ${active ? "ring-2 ring-offset-1" : "border-slate-200"}`}
+              style={active ? { "--tw-ring-color": cfg.cardColor, borderColor: cfg.cardColor } : {}}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{cfg.label}</span>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: cfg.cardColor }}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cfg.icon} />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-slate-700">{count}</p>
+                <p className="text-xs text-slate-400">{pct}%</p>
+              </div>
+              <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: cfg.cardColor }} />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {origenFiltro && (
+        <div className="mb-3 flex items-center gap-2 text-xs">
+          <span className="text-slate-500">Filtrado por origen:</span>
+          <span className={`font-semibold px-2 py-0.5 rounded-md ${ORIGEN_CONFIG[origenFiltro]?.color || "bg-slate-100 text-slate-600"}`}>
+            {ORIGEN_CONFIG[origenFiltro]?.label || origenFiltro}
+          </span>
+          <button onClick={() => setOrigenFiltro(null)} className="text-slate-400 hover:text-slate-600 underline">Quitar filtro</button>
+        </div>
+      )}
+
       <div className="mb-4">
         <div className="relative max-w-md">
           <input
@@ -136,12 +216,16 @@ export default function Estudiantes() {
             </svg>
             Cargando estudiantes...
           </div>
-        ) : estudiantes.length === 0 ? (
+        ) : filtrados.length === 0 ? (
           <div className="p-16 text-center text-slate-400 text-sm">
             <svg className="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {busqueda ? "No se encontraron estudiantes con esa búsqueda." : 'Aún no hay estudiantes registrados. Usa "Nuevo estudiante" o "Importar estudiantes".'}
+            {origenFiltro
+              ? `No hay estudiantes con origen "${ORIGEN_CONFIG[origenFiltro]?.label || origenFiltro}".`
+              : busqueda
+              ? "No se encontraron estudiantes con esa búsqueda."
+              : 'Aún no hay estudiantes registrados. Usa "Nuevo estudiante" o "Importar estudiantes".'}
           </div>
         ) : (
           <>
@@ -224,7 +308,7 @@ export default function Estudiantes() {
             {totalPaginas > 1 && (
               <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
                 <p className="text-xs text-slate-400">
-                  Mostrando {(paginaReal - 1) * PAGE_SIZE + 1}–{Math.min(paginaReal * PAGE_SIZE, estudiantes.length)} de {estudiantes.length}
+                  Mostrando {(paginaReal - 1) * PAGE_SIZE + 1}–{Math.min(paginaReal * PAGE_SIZE, filtrados.length)} de {filtrados.length}
                 </p>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={paginaReal === 1}

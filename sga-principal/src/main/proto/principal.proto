@@ -28,6 +28,9 @@ service PrincipalService {
   rpc ListarEstudiantes (ListarEstudiantesRequest) returns (ListarEstudiantesResponse);
   rpc ObtenerEstudiante (ObtenerEstudianteRequest) returns (EstudianteProto);
   rpc CambiarEstadoEstudiante (CambiarEstadoEstudianteRequest) returns (Empty);
+  // Representantes (mirror en sga_principal.representantes)
+  rpc ObtenerRepresentante (ObtenerRepresentanteRequest) returns (RepresentanteProto);
+  rpc ListarRepresentantesPorEstudiantes (ListarRepresentantesPorEstudiantesRequest) returns (RepresentantesResponse);
 }
 
 message Empty {
@@ -190,4 +193,39 @@ message ObtenerEstudianteRequest {
 message CambiarEstadoEstudianteRequest {
   int64 id_estudiante = 1;
   bool activo = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Representante (ficha del padre/madre/tutor). Servido por sga-principal
+// contra su mirror local sga_principal.representantes, para que cualquier
+// microservicio pueda leerlo por gRPC sin tocar la BD directamente.
+// ---------------------------------------------------------------------------
+message RepresentanteProto {
+  int64 id_representante = 1;
+  string cedula = 2;
+  string nombres = 3;
+  string apellidos = 4;
+  string parentesco = 5;
+  string telefono_principal = 6;
+  string telefono_alt = 7;
+  string correo = 8;
+  string direccion = 9;
+}
+
+message ObtenerRepresentanteRequest {
+  int64 id_representante = 1;
+}
+
+message ListarRepresentantesPorEstudiantesRequest {
+  repeated int64 id_estudiante = 1;
+}
+
+message RepresentantesResponse {
+  // Un item por cada id_estudiante solicitado que tenga representante asignado.
+  repeated RepresentanteEstudianteProto items = 1;
+}
+
+message RepresentanteEstudianteProto {
+  int64 id_estudiante = 1;
+  RepresentanteProto representante = 2;
 }

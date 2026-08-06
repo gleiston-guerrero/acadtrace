@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../config/axios";
 import Layout from "../../components/Layout";
+import DetalleEstudianteModal from "./DetalleEstudianteModal";
 
 
 const PRIMARY = "#243A76";
@@ -59,6 +60,7 @@ export default function Grados() {
   const [detalleEst, setDetalleEst] = useState(null);       // estudiante abierto en el ojito
   const [detalleNotas, setDetalleNotas] = useState([]);
   const [detalleAsist, setDetalleAsist] = useState([]);
+  const [detalleTab, setDetalleTab] = useState("estudiante"); // estudiante | representante | academico
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
   const [notasCurso, setNotasCurso] = useState([]);
   const [asistCurso, setAsistCurso] = useState([]);
@@ -159,6 +161,7 @@ export default function Grados() {
 
   const abrirDetalleEstudiante = async (est) => {
     setDetalleEst(est);
+    setDetalleTab("estudiante");
     setDetalleNotas([]); setDetalleAsist([]);
     setCargandoDetalle(true);
     try {
@@ -736,81 +739,15 @@ export default function Grados() {
 
           {/* MODAL: detalle completo del estudiante */}
           {detalleEst && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg}>
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
-                <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center font-bold">
-                      {detalleEst.nombres?.[0]}{detalleEst.apellidos?.[0]}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{detalleEst.apellidos} {detalleEst.nombres}</h3>
-                      <p className="text-xs text-white/70">{detalleEst.codigoEstudiante || "—"} · {detalleEst.cedula || "sin cédula"}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setDetalleEst(null)} className="text-white/70 hover:text-white">✕</button>
-                </div>
-                <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-xs text-slate-400 uppercase">Género</span><p className="text-slate-700">{detalleEst.genero || "—"}</p></div>
-                    <div><span className="text-xs text-slate-400 uppercase">Representante</span><p className="text-slate-700">{detalleEst.representante || "—"}</p></div>
-                    <div><span className="text-xs text-slate-400 uppercase">Estado matrícula</span><p className="text-slate-700">{detalleEst.estado}</p></div>
-                    <div><span className="text-xs text-slate-400 uppercase">N° orden</span><p className="text-slate-700">{detalleEst.numeroOrden ?? "—"}</p></div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Calificaciones</p>
-                    {cargandoDetalle ? <p className="text-slate-400 text-sm">Cargando...</p>
-                     : detalleNotas.length === 0 ? <p className="text-slate-400 text-sm">Sin calificaciones registradas.</p>
-                     : (
-                      <div className="border border-slate-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead><tr style={{ backgroundColor: "#f8f9fc" }}><th className="text-left px-3 py-2 text-xs text-slate-500">Actividad (id)</th><th className="text-center px-3 py-2 text-xs text-slate-500">Nota</th></tr></thead>
-                          <tbody>
-                            {detalleNotas.map(n => (
-                              <tr key={n.id_calificacion} className="border-t border-slate-100">
-                                <td className="px-3 py-2 text-slate-600">#{n.id_actividad}</td>
-                                <td className="px-3 py-2 text-center font-semibold" style={{ color: PRIMARY }}>{n.nota}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Asistencia (resumen)</p>
-                    {cargandoDetalle ? <p className="text-slate-400 text-sm">Cargando...</p>
-                     : detalleAsist.length === 0 ? <p className="text-slate-400 text-sm">Sin registros de asistencia.</p>
-                     : (
-                      <div className="grid grid-cols-4 gap-2">
-                        {(() => {
-                          const r = detalleAsist.reduce((a, x) => ({
-                            p: a.p + (x.total_presentes || 0), au: a.au + (x.total_ausentes || 0),
-                            j: a.j + (x.total_justificados || 0), t: a.t + (x.total_atrasos || 0),
-                          }), { p: 0, au: 0, j: 0, t: 0 });
-                          return [
-                            { l: "Presentes", v: r.p, c: "text-green-600" },
-                            { l: "Ausentes", v: r.au, c: "text-red-600" },
-                            { l: "Justif.", v: r.j, c: "text-blue-600" },
-                            { l: "Atrasos", v: r.t, c: "text-amber-600" },
-                          ].map(x => (
-                            <div key={x.l} className="border border-slate-200 rounded-lg p-3 text-center">
-                              <div className={`text-xl font-bold ${x.c}`}>{x.v}</div>
-                              <div className="text-[10px] text-slate-400 uppercase">{x.l}</div>
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="p-4 border-t border-slate-100 flex justify-end">
-                  <button onClick={() => setDetalleEst(null)} className="px-5 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100">Cerrar</button>
-                </div>
-              </div>
-            </div>
+            <DetalleEstudianteModal
+              detalleEst={detalleEst}
+              detalleTab={detalleTab}
+              setDetalleTab={setDetalleTab}
+              detalleNotas={detalleNotas}
+              detalleAsist={detalleAsist}
+              cargandoDetalle={cargandoDetalle}
+              onClose={() => setDetalleEst(null)}
+            />
           )}
         </div>
       ) : !gradoSel ? (

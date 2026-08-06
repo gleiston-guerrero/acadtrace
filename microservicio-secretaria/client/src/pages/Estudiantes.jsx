@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
 import api, { apiPrincipal } from '../utils/api';
+import FichaEstudianteModal from './FichaEstudianteModal';
 
 const PRIMARY = '#243A76';
 const PRINCIPAL_ORIGIN = (apiPrincipal.defaults.baseURL || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
@@ -239,53 +240,7 @@ export default function Estudiantes() {
 
       {/* MODAL VER */}
       {modal === 'ver' && selected && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="text-white font-semibold text-sm">Ficha del Estudiante</h2>
-              <button onClick={() => setModal(null)} className="text-white/70 hover:text-white">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-6 space-y-3">
-              <div className="text-center mb-5">
-                {selected.foto_url ? (
-                  <img src={`${PRINCIPAL_ORIGIN}${selected.foto_url}`} alt="" className="w-16 h-16 rounded-full object-cover mx-auto mb-2 border border-slate-200" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: '#e8edf7' }}>
-                    <span style={{ color: PRIMARY }} className="text-2xl font-bold">{selected.nombres?.charAt(0)}</span>
-                  </div>
-                )}
-                <p className="font-bold text-slate-700 text-base">{selected.nombres} {selected.apellidos}</p>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">{selected.codigo_estudiante || 'Sin código'}</p>
-              </div>
-              {[
-                ['Cédula', selected.cedula],
-                ['Fecha de nacimiento', selected.fecha_nacimiento ? new Date(selected.fecha_nacimiento).toLocaleDateString('es-EC') : null],
-                ['Género', selected.genero],
-                ['Teléfono', selected.telefono],
-                ['Correo', selected.correo],
-                ['Dirección', selected.direccion],
-                ['Nacionalidad', selected.nacionalidad],
-                ['Etnia', selected.etnia],
-                ['Lugar de nacimiento', selected.lugar_nacimiento],
-                ['Vive con', selected.vive_con],
-              ].filter(([, v]) => v).map(([k, v]) => (
-                <div key={k} className="flex justify-between text-sm py-1.5 border-b border-slate-100 last:border-0">
-                  <span className="text-slate-400 text-xs">{k}</span>
-                  <span className="text-slate-700 font-medium text-xs text-right max-w-48">{v}</span>
-                </div>
-              ))}
-              {selected.rep_nombres && (
-                <div className="bg-slate-50 rounded-xl p-4 mt-3">
-                  <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Representante</p>
-                  <p className="text-sm font-medium text-slate-700">{selected.rep_nombres} {selected.rep_apellidos}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{selected.parentesco} · {selected.rep_telefono}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <FichaEstudianteModal selected={selected} principalOrigin={PRINCIPAL_ORIGIN} primary={PRIMARY} onClose={() => setModal(null)} />
       )}
 
       {/* MODAL NUEVO/EDITAR */}
@@ -413,10 +368,6 @@ function EstudianteFormModal({ estudianteId, onCancel, onSuccess }) {
   const [seccion, setSeccion] = useState('estudiante');
   const [form, setForm] = useState(EMPTY);
   const [representante, setRepresentante] = useState(REPRESENTANTE_VACIO);
-  const [repBusqueda, setRepBusqueda] = useState('');
-  const [repResultados, setRepResultados] = useState([]);
-  const [repSeleccionado, setRepSeleccionado] = useState(null);
-  const [repModoNuevo, setRepModoNuevo] = useState(false);
   const [cargando, setCargando] = useState(esEdicion);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -438,23 +389,19 @@ function EstudianteFormModal({ estudianteId, onCancel, onSuccess }) {
           carnet_conadis: d.carnet_conadis || '', foto_url: d.foto_url || '',
           id_representante: d.id_representante || null,
         });
-        if (d.rep_nombres) {
-          setRepSeleccionado({ id_representante: d.id_representante, nombres: d.rep_nombres, apellidos: d.rep_apellidos, telefono_principal: d.rep_telefono, parentesco: d.parentesco });
+        if (d.rep_nombres || d.id_representante) {
+          setRepresentante({
+            cedula: d.rep_cedula || '', nombres: d.rep_nombres || '', apellidos: d.rep_apellidos || '',
+            parentesco: d.parentesco || '', telefono_principal: d.rep_telefono || '',
+            telefono_alt: d.rep_telefono_alt || '', correo: d.rep_correo || '', direccion: d.rep_direccion || '',
+          });
         }
       })
       .catch(() => setError('No se pudo cargar el estudiante'))
       .finally(() => setCargando(false));
   }, [estudianteId, esEdicion]);
 
-  useEffect(() => {
-    if (seccion !== 'representante' || repModoNuevo) return;
-    const t = setTimeout(() => {
-      api.get('/representantes', { params: { q: repBusqueda || undefined } })
-        .then(r => setRepResultados(r.data || []))
-        .catch(() => setRepResultados([]));
-    }, 300);
-    return () => clearTimeout(t);
-  }, [repBusqueda, seccion, repModoNuevo]);
+  // (Buscador de representantes eliminado: ahora se edita inline por estudiante)
 
   const set = (campo) => (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -462,20 +409,20 @@ function EstudianteFormModal({ estudianteId, onCancel, onSuccess }) {
   };
   const setRep = (campo) => (e) => setRepresentante({ ...representante, [campo]: e.target.value });
 
-  const seleccionarRepresentante = (r) => {
-    setRepSeleccionado(r);
-    setForm({ ...form, id_representante: r.id_representante });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true); setError('');
     try {
       let idRepresentante = form.id_representante;
 
-      if (repModoNuevo && (representante.nombres || representante.apellidos)) {
-        const nuevo = await api.post('/representantes', representante);
-        idRepresentante = nuevo.data.id_representante;
+      // Si hay datos de representante en el formulario, crear o actualizar
+      if (representante.nombres && representante.apellidos) {
+        if (idRepresentante) {
+          await api.put(`/representantes/${idRepresentante}`, representante);
+        } else {
+          const nuevo = await api.post('/representantes', representante);
+          idRepresentante = nuevo.data.id_representante;
+        }
       }
 
       const payload = {
@@ -645,84 +592,43 @@ function EstudianteFormModal({ estudianteId, onCancel, onSuccess }) {
                 {seccion === 'representante' && (
                   <div>
                     <SectionTitle>Representante legal</SectionTitle>
-
-                    {repSeleccionado && !repModoNuevo && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-700">{repSeleccionado.nombres} {repSeleccionado.apellidos}</p>
-                          <p className="text-xs text-slate-500">{repSeleccionado.parentesco} · {repSeleccionado.telefono_principal}</p>
-                        </div>
-                        <button type="button" onClick={() => { setRepSeleccionado(null); setForm({ ...form, id_representante: null }); }}
-                          className="text-xs text-red-500 hover:underline">Quitar</button>
-                      </div>
-                    )}
-
-                    {!repSeleccionado && !repModoNuevo && (
+                    <p className="text-xs text-slate-400 mb-3">
+                      Cada estudiante tiene su propio representante. Los datos se guardan junto al estudiante.
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <input value={repBusqueda} onChange={e => setRepBusqueda(e.target.value)}
-                          placeholder="Buscar representante existente por nombre o cédula..." className={inputCls} />
-                        <div className="mt-2 max-h-40 overflow-y-auto border border-slate-100 rounded-lg divide-y divide-slate-50">
-                          {repResultados.map(r => (
-                            <button type="button" key={r.id_representante} onClick={() => seleccionarRepresentante(r)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition">
-                              <span className="font-medium text-slate-700">{r.nombres} {r.apellidos}</span>
-                              <span className="text-xs text-slate-400 ml-2">{r.parentesco} · {r.telefono_principal}</span>
-                            </button>
-                          ))}
-                          {repResultados.length === 0 && (
-                            <p className="px-3 py-2 text-xs text-slate-400">Sin resultados. Puedes crear uno nuevo.</p>
-                          )}
-                        </div>
-                        <button type="button" onClick={() => setRepModoNuevo(true)}
-                          className="mt-2 text-xs font-medium underline" style={{ color: PRIMARY }}>
-                          + Registrar un representante nuevo
-                        </button>
+                        <label className={labelCls}>Cédula</label>
+                        <input value={representante.cedula} onChange={setRep('cedula')} maxLength={10} className={inputCls} />
                       </div>
-                    )}
-
-                    {repModoNuevo && (
                       <div>
-                        <div className="flex justify-end mb-2">
-                          <button type="button" onClick={() => setRepModoNuevo(false)} className="text-xs text-slate-400 hover:underline">
-                            Cancelar y buscar existente
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className={labelCls}>Cédula</label>
-                            <input value={representante.cedula} onChange={setRep('cedula')} className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Parentesco</label>
-                            <input value={representante.parentesco} onChange={setRep('parentesco')} placeholder="Ej: Madre" className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Nombres</label>
-                            <input value={representante.nombres} onChange={setRep('nombres')} required className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Apellidos</label>
-                            <input value={representante.apellidos} onChange={setRep('apellidos')} required className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Teléfono principal</label>
-                            <input value={representante.telefono_principal} onChange={setRep('telefono_principal')} required className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Teléfono alterno</label>
-                            <input value={representante.telefono_alt} onChange={setRep('telefono_alt')} className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Correo</label>
-                            <input value={representante.correo} onChange={setRep('correo')} className={inputCls} />
-                          </div>
-                          <div>
-                            <label className={labelCls}>Dirección</label>
-                            <input value={representante.direccion} onChange={setRep('direccion')} className={inputCls} />
-                          </div>
-                        </div>
+                        <label className={labelCls}>Parentesco</label>
+                        <input value={representante.parentesco} onChange={setRep('parentesco')} placeholder="Ej: Madre / Padre" className={inputCls} />
                       </div>
-                    )}
+                      <div>
+                        <label className={labelCls}>Nombres</label>
+                        <input value={representante.nombres} onChange={setRep('nombres')} required className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Apellidos</label>
+                        <input value={representante.apellidos} onChange={setRep('apellidos')} required className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Teléfono principal</label>
+                        <input value={representante.telefono_principal} onChange={setRep('telefono_principal')} required className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Teléfono alterno</label>
+                        <input value={representante.telefono_alt} onChange={setRep('telefono_alt')} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Correo</label>
+                        <input value={representante.correo} onChange={setRep('correo')} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Dirección</label>
+                        <input value={representante.direccion} onChange={setRep('direccion')} className={inputCls} />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

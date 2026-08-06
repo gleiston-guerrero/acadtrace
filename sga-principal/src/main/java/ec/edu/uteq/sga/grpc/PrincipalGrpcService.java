@@ -7,9 +7,12 @@ import ec.edu.uteq.sga.dto.grado.GradoResponseDTO;
 import ec.edu.uteq.sga.dto.grado.ParaleloDTO;
 import ec.edu.uteq.sga.entity.AnoLectivo;
 import ec.edu.uteq.sga.entity.Asignatura;
+import ec.edu.uteq.sga.entity.Representante;
 import ec.edu.uteq.sga.grpc.principal.*;
 import ec.edu.uteq.sga.repository.AnoLectivoRepository;
 import ec.edu.uteq.sga.repository.AsignaturaRepository;
+import ec.edu.uteq.sga.repository.EstudianteRepository;
+import ec.edu.uteq.sga.repository.RepresentanteRepository;
 import ec.edu.uteq.sga.service.EstudianteService;
 import ec.edu.uteq.sga.service.GradoService;
 import io.grpc.Status;
@@ -37,6 +40,8 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     private final AsignaturaRepository asignaturaRepository;
     private final EstudianteService estudianteService;
     private final GradoService gradoService;
+    private final RepresentanteRepository representanteRepository;
+    private final EstudianteRepository estudianteRepository;
 
     @Override
     public void listarAnosLectivos(Empty request, StreamObserver<AnosLectivosResponse> responseObserver) {
@@ -289,6 +294,60 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
                 .setBeneficioSocial(d.isBeneficioSocial())
                 .setCarnetConadis(nullToEmpty(d.getCarnetConadis()))
                 .setFotoUrl(nullToEmpty(d.getFotoUrl()))
+                .build();
+    }
+
+    // ---------------- Representantes (gRPC) ----------------
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public void obtenerRepresentante(ObtenerRepresentanteRequest request, StreamObserver<RepresentanteProto> responseObserver) {
+        Representante r = representanteRepository.findById(request.getIdRepresentante())
+                .orElse(null);
+        if (r == null) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("Representante no encontrado").asRuntimeException());
+            return;
+        }
+        responseObserver.onNext(toRepresentanteProto(r));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public void listarRepresentantesPorEstudiantes(ListarRepresentantesPorEstudiantesRequest request,
+                                                    StreamObserver<RepresentantesResponse> responseObserver) {
+        RepresentantesResponse.Builder resp = RepresentantesResponse.newBuilder();
+        List<Long> ids = request.getIdEstudianteList();
+        if (ids.isEmpty()) {
+            responseObserver.onNext(resp.build());
+            responseObserver.onCompleted();
+            return;
+        }
+        // JOIN estudiante->representante (mirror local sga_principal.representantes)
+        estudianteRepository.findAllById(ids).forEach(e -> {
+            Representante r = e.getRepresentante();
+            if (r != null) {
+                resp.addItems(RepresentanteEstudianteProto.newBuilder()
+                        .setIdEstudiante(e.getIdEstudiante())
+                        .setRepresentante(toRepresentanteProto(r))
+                        .build());
+            }
+        });
+        responseObserver.onNext(resp.build());
+        responseObserver.onCompleted();
+    }
+
+    private RepresentanteProto toRepresentanteProto(Representante r) {
+        return RepresentanteProto.newBuilder()
+                .setIdRepresentante(r.getIdRepresentante())
+                .setCedula(nullToEmpty(r.getCedula()))
+                .setNombres(nullToEmpty(r.getNombres()))
+                .setApellidos(nullToEmpty(r.getApellidos()))
+                .setParentesco(nullToEmpty(r.getParentesco()))
+                .setTelefonoPrincipal(nullToEmpty(r.getTelefonoPrincipal()))
+                .setTelefonoAlt(nullToEmpty(r.getTelefonoAlt()))
+                .setCorreo(nullToEmpty(r.getCorreo()))
+                .setDireccion(nullToEmpty(r.getDireccion()))
                 .build();
     }
 

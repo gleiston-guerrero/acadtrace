@@ -20,12 +20,16 @@ import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse;
 import ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest;
 import ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse;
 import ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest;
 import ec.edu.uteq.sga.grpc.principal.MatriculaProto;
 import ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest;
 import ec.edu.uteq.sga.grpc.principal.ObtenerFichaRequest;
 import ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest;
+import ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest;
 import ec.edu.uteq.sga.grpc.principal.ParaleloProto;
 import ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc;
+import ec.edu.uteq.sga.grpc.principal.RepresentanteProto;
+import ec.edu.uteq.sga.grpc.principal.RepresentantesResponse;
 import ec.uteq.sga.secretaria.common.ApiException;
 import io.grpc.Metadata;
 import io.grpc.Status;
@@ -126,6 +130,25 @@ public class PrincipalGrpcClient {
             return autenticado().obtenerEstudiante(ObtenerEstudianteRequest.newBuilder().setIdEstudiante(id).build());
         } catch (StatusRuntimeException e) {
             throw mapearError(e, "obtener", "el estudiante");
+        }
+    }
+
+    public RepresentanteProto obtenerRepresentante(long idRepresentante) {
+        try {
+            return autenticado().obtenerRepresentante(ObtenerRepresentanteRequest.newBuilder()
+                    .setIdRepresentante(idRepresentante).build());
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "obtener", "el representante");
+        }
+    }
+
+    public RepresentantesResponse listarRepresentantesPorEstudiantes(List<Long> idsEstudiantes) {
+        try {
+            return autenticado().listarRepresentantesPorEstudiantes(
+                    ListarRepresentantesPorEstudiantesRequest.newBuilder()
+                            .addAllIdEstudiante(idsEstudiantes).build());
+        } catch (StatusRuntimeException e) {
+            throw mapearError(e, "listar", "representantes por estudiantes");
         }
     }
 

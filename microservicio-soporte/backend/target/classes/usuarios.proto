@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package sga.principal;
+
+option java_package = "ec.uteq.sga.soporte.grpc.principal";
+option java_multiple_files = true;
+option java_outer_classname = "UsuariosProto";
+
+// Contrato compartido entre sga-soporte (cliente) y sga-principal (servidor).
+// Este mismo archivo debe copiarse tal cual a sga-principal, en
+// src/main/proto/usuarios.proto, para que ambos generen stubs compatibles.
+service UsuarioService {
+    // Lista usuarios activos. Si "rol" viene vacio, devuelve todos los
+    // usuarios activos; si viene con un valor (ej. "SOPORTE_TECNICO"),
+    // filtra solo los que tengan ese rol.
+    rpc ListarUsuarios (ListarUsuariosRequest) returns (ListarUsuariosResponse);
+}
+
+message ListarUsuariosRequest {
+    string rol = 1;
+}
+
+message Usuario {
+    int64 id = 1;
+    string username = 2;
+    string nombre = 3;
+    string apellido = 4;
+    string correo = 5;
+    bool activo = 6;
+    repeated string roles = 7;
+}
+
+message ListarUsuariosResponse {
+    repeated Usuario usuarios = 1;
+}
