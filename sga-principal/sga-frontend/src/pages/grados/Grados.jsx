@@ -741,11 +741,6 @@ export default function Grados() {
           {detalleEst && (
             <DetalleEstudianteModal
               detalleEst={detalleEst}
-              detalleTab={detalleTab}
-              setDetalleTab={setDetalleTab}
-              detalleNotas={detalleNotas}
-              detalleAsist={detalleAsist}
-              cargandoDetalle={cargandoDetalle}
               onClose={() => setDetalleEst(null)}
             />
           )}

@@ -135,23 +135,66 @@ export default function FichaEstudianteModal({ selected, principalOrigin, primar
 
           {tab === 'representante' && (
             tieneRep ? (
-              <Card title="Representante legal">
-                <div className="flex items-center gap-4 mb-5 pb-5 border-b border-slate-100">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: primary }}>
-                    {(selected.rep_nombres?.[0] || '') + (selected.rep_apellidos?.[0] || '')}
+              <>
+                <Card title="Datos personales">
+                  <div className="flex items-center gap-4 mb-5 pb-5 border-b border-slate-100">
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-lg" style={{ backgroundColor: primary }}>
+                      {(selected.rep_nombres?.[0] || '') + (selected.rep_apellidos?.[0] || '')}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-700 text-base truncate">{selected.rep_nombres} {selected.rep_apellidos}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {selected.parentesco || 'Sin parentesco'} · Cédula {selected.rep_cedula || '—'}
+                        {selected.rep_convive_con_estudiante && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-semibold">
+                            ✓ Convive con el estudiante
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-700 text-base truncate">{selected.rep_nombres} {selected.rep_apellidos}</p>
-                    <p className="text-xs text-slate-500">{selected.parentesco || 'Sin parentesco'} · Cédula {selected.rep_cedula || '—'}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Field label="Cédula"            value={selected.rep_cedula} mono />
+                    <Field label="Fecha nacimiento"  value={selected.rep_fecha_nacimiento} />
+                    <Field label="Género"            value={selected.rep_genero} />
+                    <Field label="Estado civil"      value={selected.rep_estado_civil} />
+                    <Field label="Nacionalidad"      value={selected.rep_nacionalidad} />
+                    <Field label="Nivel instrucción" value={selected.rep_nivel_instruccion} />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <Field label="Teléfono principal" value={selected.rep_telefono} mono />
-                  <Field label="Teléfono alterno" value={selected.rep_telefono_alt} mono />
-                  <Field label="Correo" value={selected.rep_correo} truncate />
-                  <Field label="Dirección" value={selected.rep_direccion} full />
-                </div>
-              </Card>
+                </Card>
+
+                <Card title="Contacto">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Field label="Teléfono principal" value={selected.rep_telefono} mono />
+                    <Field label="Teléfono alterno"   value={selected.rep_telefono_alt} mono />
+                    <Field label="Correo"             value={selected.rep_correo} truncate />
+                    <Field label="Dirección"          value={selected.rep_direccion} full />
+                  </div>
+                </Card>
+
+                <Card title="Datos laborales">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Field label="Ocupación"         value={selected.rep_ocupacion} />
+                    <Field label="Cargo"             value={selected.rep_cargo} />
+                    <Field label="Lugar de trabajo"  value={selected.rep_lugar_trabajo} truncate />
+                    <Field label="Teléfono trabajo"  value={selected.rep_telefono_trabajo} mono />
+                    <Field label="Ingreso mensual"   value={selected.rep_ingreso_mensual ? `$ ${Number(selected.rep_ingreso_mensual).toFixed(2)}` : null} />
+                  </div>
+                </Card>
+
+                <Card title="Contacto de emergencia">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Field label="Nombre"   value={selected.rep_contacto_emergencia_nombre} />
+                    <Field label="Teléfono" value={selected.rep_contacto_emergencia_telefono} mono />
+                  </div>
+                </Card>
+
+                {selected.rep_observaciones && (
+                  <Card title="Observaciones">
+                    <p className="text-sm text-slate-700 leading-relaxed">{selected.rep_observaciones}</p>
+                  </Card>
+                )}
+              </>
             ) : (
               <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
                 <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

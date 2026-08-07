@@ -348,6 +348,20 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
                 .setTelefonoAlt(nullToEmpty(r.getTelefonoAlt()))
                 .setCorreo(nullToEmpty(r.getCorreo()))
                 .setDireccion(nullToEmpty(r.getDireccion()))
+                .setFechaNacimiento(r.getFechaNacimiento() != null ? r.getFechaNacimiento().toString() : "")
+                .setGenero(nullToEmpty(r.getGenero()))
+                .setEstadoCivil(nullToEmpty(r.getEstadoCivil()))
+                .setNacionalidad(nullToEmpty(r.getNacionalidad()))
+                .setOcupacion(nullToEmpty(r.getOcupacion()))
+                .setLugarTrabajo(nullToEmpty(r.getLugarTrabajo()))
+                .setTelefonoTrabajo(nullToEmpty(r.getTelefonoTrabajo()))
+                .setCargo(nullToEmpty(r.getCargo()))
+                .setNivelInstruccion(nullToEmpty(r.getNivelInstruccion()))
+                .setIngresoMensual(r.getIngresoMensual() != null ? r.getIngresoMensual().doubleValue() : 0.0)
+                .setConviveConEstudiante(Boolean.TRUE.equals(r.getConviveConEstudiante()))
+                .setContactoEmergenciaNombre(nullToEmpty(r.getContactoEmergenciaNombre()))
+                .setContactoEmergenciaTelefono(nullToEmpty(r.getContactoEmergenciaTelefono()))
+                .setObservaciones(nullToEmpty(r.getObservaciones()))
                 .build();
     }
 

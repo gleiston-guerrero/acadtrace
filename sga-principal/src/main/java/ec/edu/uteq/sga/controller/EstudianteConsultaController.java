@@ -46,7 +46,20 @@ public class EstudianteConsultaController {
             map.put("apellidos", e.getApellidos());
             map.put("genero", e.getGenero());
             map.put("telefono", e.getTelefono());
+            map.put("telefonoAlt", e.getTelefonoAlt());
             map.put("correo", e.getCorreo());
+            map.put("direccion", e.getDireccion());
+            map.put("fechaNacimiento", e.getFechaNacimiento() != null ? e.getFechaNacimiento().toString() : null);
+            map.put("nacionalidad", e.getNacionalidad());
+            map.put("etnia", e.getEtnia());
+            map.put("lugarNacimiento", e.getLugarNacimiento());
+            map.put("viveCon", e.getViveCon());
+            map.put("numerosHermanos", e.getNumerosHermanos());
+            map.put("beneficioSocial", e.isBeneficioSocial());
+            map.put("discapacidad", e.isDiscapacidad());
+            map.put("tipoDiscapacidad", e.getTipoDiscapacidad());
+            map.put("porcentajeDisc", e.getPorcentajeDisc());
+            map.put("carnetConadis", e.getCarnetConadis());
             map.put("estado", m.getEstado());
             map.put("numeroOrden", m.getNumeroOrden());
             if (r != null) {
@@ -61,6 +74,20 @@ public class EstudianteConsultaController {
                 repMap.put("telefonoAlt", r.getTelefonoAlt());
                 repMap.put("correo", r.getCorreo());
                 repMap.put("direccion", r.getDireccion());
+                repMap.put("fechaNacimiento", r.getFechaNacimiento() != null ? r.getFechaNacimiento().toString() : null);
+                repMap.put("genero", r.getGenero());
+                repMap.put("estadoCivil", r.getEstadoCivil());
+                repMap.put("nacionalidad", r.getNacionalidad());
+                repMap.put("ocupacion", r.getOcupacion());
+                repMap.put("lugarTrabajo", r.getLugarTrabajo());
+                repMap.put("telefonoTrabajo", r.getTelefonoTrabajo());
+                repMap.put("cargo", r.getCargo());
+                repMap.put("nivelInstruccion", r.getNivelInstruccion());
+                repMap.put("ingresoMensual", r.getIngresoMensual());
+                repMap.put("conviveConEstudiante", r.getConviveConEstudiante());
+                repMap.put("contactoEmergenciaNombre", r.getContactoEmergenciaNombre());
+                repMap.put("contactoEmergenciaTelefono", r.getContactoEmergenciaTelefono());
+                repMap.put("observaciones", r.getObservaciones());
                 map.put("representanteDetalle", repMap);
             } else {
                 map.put("representante", null);

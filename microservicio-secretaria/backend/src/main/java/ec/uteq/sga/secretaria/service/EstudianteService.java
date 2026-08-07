@@ -128,6 +128,34 @@ public class EstudianteService {
                 new MapSqlParameterSource("id", id), GenericRowMapper.INSTANCE);
         if (!ficha.isEmpty()) row.putAll(descifrarFila(ficha.get(0)));
 
+        // Ficha completa del representante via gRPC → sga-principal.PrincipalService.ObtenerRepresentante
+        Long idRep = (Long) row.get("id_representante");
+        if (idRep != null && idRep > 0) {
+            try {
+                ec.edu.uteq.sga.grpc.principal.RepresentanteProto r = principalGrpcClient.obtenerRepresentante(idRep);
+                row.put("rep_cedula",                       blankToNull(r.getCedula()));
+                row.put("rep_direccion",                    blankToNull(r.getDireccion()));
+                row.put("rep_correo",                       blankToNull(r.getCorreo()));
+                row.put("rep_telefono_alt",                 blankToNull(r.getTelefonoAlt()));
+                row.put("rep_fecha_nacimiento",             blankToNull(r.getFechaNacimiento()));
+                row.put("rep_genero",                       blankToNull(r.getGenero()));
+                row.put("rep_estado_civil",                 blankToNull(r.getEstadoCivil()));
+                row.put("rep_nacionalidad",                 blankToNull(r.getNacionalidad()));
+                row.put("rep_ocupacion",                    blankToNull(r.getOcupacion()));
+                row.put("rep_lugar_trabajo",                blankToNull(r.getLugarTrabajo()));
+                row.put("rep_telefono_trabajo",             blankToNull(r.getTelefonoTrabajo()));
+                row.put("rep_cargo",                        blankToNull(r.getCargo()));
+                row.put("rep_nivel_instruccion",            blankToNull(r.getNivelInstruccion()));
+                row.put("rep_ingreso_mensual",              r.getIngresoMensual() > 0 ? r.getIngresoMensual() : null);
+                row.put("rep_convive_con_estudiante",       r.getConviveConEstudiante());
+                row.put("rep_contacto_emergencia_nombre",   blankToNull(r.getContactoEmergenciaNombre()));
+                row.put("rep_contacto_emergencia_telefono", blankToNull(r.getContactoEmergenciaTelefono()));
+                row.put("rep_observaciones",                blankToNull(r.getObservaciones()));
+            } catch (RuntimeException ignored) {
+                // Si gRPC falla, dejamos los datos basicos que ya traia el estudianteProto
+            }
+        }
+
         return row;
     }
 

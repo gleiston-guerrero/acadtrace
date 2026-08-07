@@ -210,6 +210,20 @@ message RepresentanteProto {
   string telefono_alt = 7;
   string correo = 8;
   string direccion = 9;
+  string fecha_nacimiento = 10; // ISO yyyy-MM-dd, vacio = sin dato
+  string genero = 11;
+  string estado_civil = 12;
+  string nacionalidad = 13;
+  string ocupacion = 14;
+  string lugar_trabajo = 15;
+  string telefono_trabajo = 16;
+  string cargo = 17;
+  string nivel_instruccion = 18;
+  double ingreso_mensual = 19; // 0 = sin dato
+  bool convive_con_estudiante = 20;
+  string contacto_emergencia_nombre = 21;
+  string contacto_emergencia_telefono = 22;
+  string observaciones = 23;
 }
 
 message ObtenerRepresentanteRequest {
