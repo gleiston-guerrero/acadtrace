@@ -112,6 +112,13 @@
       <version>${protobuf.version}</version>
     </dependency>
 
+    <!-- etcd (eleccion de lider entre replicas, ver LeaderElectionService) -->
+    <dependency>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-core</artifactId>
+      <version>0.7.7</version>
+    </dependency>
+
     <!-- gRPC -->
     <dependency>
       <groupId>net.devh</groupId>
