@@ -3,10 +3,15 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
+  # sga-principal corre con 2 replicas detras de HAProxy (deploy.replicas: 2 en
+  # docker-compose.yml) — se scrapea cada replica por separado (no el puerto de
+  # HAProxy) para no mezclar las metricas de las 2 instancias en Grafana.
   - job_name: "sga-principal"
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["sga-principal:8080"]
+      - targets:
+          - "sga-sistema-distribuido-sga-principal-1:8080"
+          - "sga-sistema-distribuido-sga-principal-2:8080"
         labels:
           application: sga-principal
 

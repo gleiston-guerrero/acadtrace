@@ -6,10 +6,10 @@ services:
     build:
       context: ./sga-principal
       dockerfile: Dockerfile
-    container_name: sga-principal
-    ports:
-      - "8080:8080"   # REST Gateway
-      - "9092:9092"   # gRPC Server
+    image: sga-principal:latest
+    expose:
+      - "8080"
+      - "9092"
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -19,6 +19,26 @@ services:
       - grpc.client.docente-service.address=static://microservicio-docente:9091
     networks:
       - sga-distribuido-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  # ─── 1b. HAPROXY (Load Balancer sga-principal) ───
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: sga-haproxy
+    depends_on:
+      - sga-principal
+    ports:
+      - "8080:8080"   # REST balanceado hacia las 2 replicas
+      - "9092:9092"   # gRPC balanceado hacia las 2 replicas
+      - "8404:8404"   # Panel de estadisticas HAProxy
+    volumes:
+      - ./infra/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - sga-distribuido-net
+
 
   # ─── 2. MICROSERVICIO DOCENTE (Django + gRPC) ───
   microservicio-docente:
