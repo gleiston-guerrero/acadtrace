@@ -136,6 +136,38 @@ services:
     depends_on:
       - microservicio-docente
 
+  # ─── 7. PROMETHEUS (observabilidad: scrapea los 4 servicios) ───
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: sga-prometheus
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+      - microservicio-docente
+      - microservicio-secretaria
+      - microservicio-soporte
+
+  # ─── 8. GRAFANA (dashboards sobre las metricas de Prometheus) ───
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: sga-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=***REMOVED-GRAFANA-SECRET***
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - prometheus
+
 networks:
   sga-distribuido-net:
     driver: bridge

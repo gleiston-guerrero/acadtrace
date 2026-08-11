@@ -98,8 +98,19 @@ export function Reportes() {
             {[
               { label: 'Certificado de matrícula', hint: 'ID de matrícula', url: (id) => `${BASE}/certificado-matricula/${id}` },
               { label: 'Ficha del estudiante', hint: 'ID de estudiante', url: (id) => `${BASE}/ficha-estudiante/${id}` },
+              {
+                label: 'Libreta de calificaciones', hint: 'ID de matrícula',
+                url: (id, periodo) => `${BASE}/libreta/${id}${periodo ? `?idPeriodo=${periodo}` : ''}`,
+                extraField: { type: 'number', placeholder: 'ID período (opc.)' },
+              },
+              {
+                label: 'Asistencia mensual', hint: 'ID de matrícula',
+                url: (id, mes) => `${BASE}/asistencia-mensual/${id}?mes=${mes}`,
+                extraField: { type: 'month', placeholder: 'Mes', required: true },
+              },
+              { label: 'Ficha del representante', hint: 'ID de representante', url: (id) => `${BASE}/ficha-representante/${id}` },
             ].map(r => (
-              <DocIndividual key={r.label} label={r.label} hint={r.hint} buildUrl={r.url} />
+              <DocIndividual key={r.label} label={r.label} hint={r.hint} buildUrl={r.url} extraField={r.extraField} />
             ))}
           </div>
         </div>
@@ -108,16 +119,22 @@ export function Reportes() {
   );
 }
 
-function DocIndividual({ label, hint, buildUrl }) {
+function DocIndividual({ label, hint, buildUrl, extraField }) {
   const [id, setId] = useState('');
+  const [extra, setExtra] = useState('');
+  const listo = id && (!extraField?.required || extra);
   return (
     <div className="border border-slate-200 rounded-xl p-4">
       <p className="text-sm font-semibold text-slate-700 mb-3">{label}</p>
       <div className="flex gap-2">
         <input type="number" value={id} onChange={e => setId(e.target.value)} placeholder={hint}
           className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" />
-        <button disabled={!id} onClick={() => window.open(buildUrl(id), '_blank')}
-          style={id ? { backgroundColor: PRIMARY } : {}}
+        {extraField && (
+          <input type={extraField.type} value={extra} onChange={e => setExtra(e.target.value)} placeholder={extraField.placeholder}
+            className="w-32 px-2 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" />
+        )}
+        <button disabled={!listo} onClick={() => window.open(buildUrl(id, extra), '_blank')}
+          style={listo ? { backgroundColor: PRIMARY } : {}}
           className="px-3 py-2 rounded-lg text-white text-sm hover:opacity-90 transition disabled:opacity-40 disabled:bg-slate-300 disabled:cursor-not-allowed">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
         </button>

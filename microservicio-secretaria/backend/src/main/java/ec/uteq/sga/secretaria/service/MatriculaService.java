@@ -140,7 +140,25 @@ public class MatriculaService {
                 .build();
         List<Map<String, Object>> filas = new ArrayList<>(List.of(fromProto(client.crearMatricula(request))));
         enriquecerConCatalogo(filas);
-        return filas.get(0);
+        Map<String, Object> matricula = filas.get(0);
+        notificarMatriculaCreada(idUsuario, matricula);
+        return matricula;
+    }
+
+    /**
+     * Notifica al usuario que registró la matrícula (no al representante: los representantes
+     * no tienen cuenta de usuario en sga_principal.usuarios, no existe portal de padres).
+     * Insert directo a sga_principal.notificaciones, mismo patron que historial_promocion.
+     */
+    private void notificarMatriculaCreada(Long idUsuario, Map<String, Object> matricula) {
+        if (idUsuario == null) return;
+        String mensaje = "Se registró la matrícula de %s en %s \"%s\".".formatted(
+                matricula.get("estudiante"), matricula.get("grado"), matricula.get("paralelo"));
+        jdbc.update("""
+                INSERT INTO sga_principal.notificaciones (id_usuario, tipo, titulo, mensaje, url_destino)
+                VALUES (:idUsuario, 'MATRICULA', 'Matrícula registrada', :mensaje, '/matriculas')
+                """,
+                new MapSqlParameterSource().addValue("idUsuario", idUsuario).addValue("mensaje", mensaje));
     }
 
     public void cambiarEstado(long id, String estado) {

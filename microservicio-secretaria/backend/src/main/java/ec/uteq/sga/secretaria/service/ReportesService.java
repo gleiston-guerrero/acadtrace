@@ -1,8 +1,12 @@
 package ec.uteq.sga.secretaria.service;
 
+import ec.uteq.sga.secretaria.common.ApiException;
 import ec.uteq.sga.secretaria.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.secretaria.pdf.AsistenciaMensualPdfBuilder;
 import ec.uteq.sga.secretaria.pdf.CertificadoMatriculaPdfBuilder;
 import ec.uteq.sga.secretaria.pdf.FichaEstudiantePdfBuilder;
+import ec.uteq.sga.secretaria.pdf.FichaRepresentantePdfBuilder;
+import ec.uteq.sga.secretaria.pdf.LibretaCalificacionesPdfBuilder;
 import ec.uteq.sga.secretaria.pdf.NominaMatriculasPdfBuilder;
 import ec.uteq.sga.secretaria.pdf.PdfTheme;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -10,8 +14,13 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeParseException;
+import java.time.format.TextStyle;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -20,14 +29,17 @@ public class ReportesService {
     private final NamedParameterJdbcTemplate jdbc;
     private final EstudianteService estudianteService;
     private final MatriculaService matriculaService;
+    private final RepresentanteService representanteService;
     private final CatalogoService catalogo;
     private final PdfTheme theme;
 
     public ReportesService(NamedParameterJdbcTemplate jdbc, EstudianteService estudianteService,
-                            MatriculaService matriculaService, CatalogoService catalogo, PdfTheme theme) {
+                            MatriculaService matriculaService, RepresentanteService representanteService,
+                            CatalogoService catalogo, PdfTheme theme) {
         this.jdbc = jdbc;
         this.estudianteService = estudianteService;
         this.matriculaService = matriculaService;
+        this.representanteService = representanteService;
         this.catalogo = catalogo;
         this.theme = theme;
     }
@@ -84,6 +96,85 @@ public class ReportesService {
         }
 
         return NominaMatriculasPdfBuilder.build(matriculas, anoNombre, gradoNombre, paraleloLetra, theme);
+    }
+
+    /**
+     * Datos de calificaciones vienen de sga_docente (microservicio-docente): promedios_trimestrales
+     * ligados a periodos_evaluacion (no un entero 1/2/3), y a asignaciones/asignaturas de sga_principal
+     * para el nombre de la materia. Se lee por SQL directo, igual que historial_promocion.
+     */
+    public byte[] libreta(long idMatricula, Long idPeriodo) throws IOException {
+        Map<String, Object> matricula = matriculaService.obtenerPorId(idMatricula);
+        Map<String, Object> periodo = resolverPeriodo(idPeriodo, (Long) matricula.get("id_ano_lectivo"));
+
+        List<Map<String, Object>> materias = jdbc.query("""
+                SELECT a.nombre AS asignatura, pt.promedio_formativo, pt.nota_sumativa,
+                       pt.promedio_trimestral, pt.nota_cualitativa
+                FROM sga_docente.promedios_trimestrales pt
+                JOIN sga_principal.asignaciones asg ON asg.id_asignacion = pt.id_asignacion
+                JOIN sga_principal.asignaturas a ON a.id_asignatura = asg.id_asignatura
+                WHERE pt.id_matricula = :idMatricula AND pt.id_periodo = :idPeriodo
+                ORDER BY a.nombre
+                """,
+                new MapSqlParameterSource()
+                        .addValue("idMatricula", idMatricula)
+                        .addValue("idPeriodo", periodo.get("id_periodo")),
+                GenericRowMapper.INSTANCE);
+
+        return LibretaCalificacionesPdfBuilder.build(matricula, periodo, materias, theme);
+    }
+
+    private Map<String, Object> resolverPeriodo(Long idPeriodo, Long idAnoLectivo) {
+        if (idPeriodo != null) {
+            List<Map<String, Object>> rows = jdbc.query(
+                    "SELECT id_periodo, nombre, tipo, fecha_inicio, fecha_fin FROM sga_docente.periodos_evaluacion WHERE id_periodo = :id",
+                    new MapSqlParameterSource("id", idPeriodo), GenericRowMapper.INSTANCE);
+            if (rows.isEmpty()) throw ApiException.notFound("Período de evaluación no encontrado");
+            return rows.get(0);
+        }
+        List<Map<String, Object>> rows = jdbc.query("""
+                SELECT id_periodo, nombre, tipo, fecha_inicio, fecha_fin
+                FROM sga_docente.periodos_evaluacion
+                WHERE id_ano_lectivo = :idAno AND activo = true
+                ORDER BY fecha_inicio DESC LIMIT 1
+                """, new MapSqlParameterSource("idAno", idAnoLectivo), GenericRowMapper.INSTANCE);
+        if (rows.isEmpty()) throw ApiException.notFound("No hay un período de evaluación activo para este año lectivo");
+        return rows.get(0);
+    }
+
+    public byte[] asistenciaMensual(long idMatricula, String mes) throws IOException {
+        Map<String, Object> matricula = matriculaService.obtenerPorId(idMatricula);
+
+        YearMonth ym;
+        try {
+            ym = YearMonth.parse(mes);
+        } catch (DateTimeParseException e) {
+            throw ApiException.badRequest("El parámetro 'mes' debe tener formato YYYY-MM");
+        }
+        LocalDate inicio = ym.atDay(1);
+        LocalDate fin = ym.atEndOfMonth();
+
+        List<Map<String, Object>> registros = jdbc.query("""
+                SELECT a.fecha, asig.nombre AS asignatura, a.estado, a.justificacion
+                FROM sga_docente.asistencias a
+                JOIN sga_principal.asignaciones asg ON asg.id_asignacion = a.id_asignacion
+                JOIN sga_principal.asignaturas asig ON asig.id_asignatura = asg.id_asignatura
+                WHERE a.id_matricula = :idMatricula AND a.fecha BETWEEN :inicio AND :fin
+                ORDER BY a.fecha, asig.nombre
+                """,
+                new MapSqlParameterSource()
+                        .addValue("idMatricula", idMatricula)
+                        .addValue("inicio", inicio)
+                        .addValue("fin", fin),
+                GenericRowMapper.INSTANCE);
+
+        String mesLabel = ym.getMonth().getDisplayName(TextStyle.FULL, new Locale("es", "EC")) + " " + ym.getYear();
+        return AsistenciaMensualPdfBuilder.build(matricula, mesLabel, registros, theme);
+    }
+
+    public byte[] fichaRepresentante(long idRepresentante) throws IOException {
+        Map<String, Object> representante = representanteService.obtenerPorId(idRepresentante);
+        return FichaRepresentantePdfBuilder.build(representante, theme);
     }
 
     public Map<String, Object> estadisticas(long idAno) {
