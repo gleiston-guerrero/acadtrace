@@ -1,0 +1,38 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "sga-principal"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["sga-principal:8080"]
+        labels:
+          application: sga-principal
+
+  - job_name: "microservicio-secretaria"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["microservicio-secretaria:5176"]
+        labels:
+          application: sga-secretaria-backend
+
+  # microservicio-soporte (Java/Spring Boot): pendiente que su dueño agregue
+  # micrometer-registry-prometheus + las properties management.* a su repo.
+  # El target ya queda listo para cuando exponga /actuator/prometheus.
+  - job_name: "microservicio-soporte"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["microservicio-soporte:5178"]
+        labels:
+          application: sga-soporte-backend
+
+  # microservicio-docente (Django): pendiente que su dueño agregue
+  # django-prometheus (requirements.txt + INSTALLED_APPS + middleware + urls.py).
+  # django-prometheus expone /metrics (no /actuator/prometheus) en el puerto REST interno (8000).
+  - job_name: "microservicio-docente"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["microservicio-docente:8000"]
+        labels:
+          application: sga-docente
