@@ -81,6 +81,21 @@ services:
       - JWT_SECRET=***REMOVED***
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
+      - ETCD_ENDPOINTS=http://etcd:2379
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - etcd
+
+  # ─── 4b. ETCD (coordinacion / eleccion de lider entre replicas de soporte) ───
+  etcd:
+    image: bitnami/etcd:3.5
+    container_name: etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - "2379:2379"
     networks:
       - sga-distribuido-net
 
