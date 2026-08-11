@@ -4,6 +4,7 @@ import Estudiantes from './pages/Estudiantes';
 import Grados from './pages/Grados';
 import Matriculas from './pages/Matriculas';
 import Usuarios from './pages/Usuarios';
+import Calendario from './pages/Calendario';
 import { Reportes, Historial, CambiarPassword } from './pages/Extras';
 
 // El login vive únicamente en el SGA Principal. Aquí solo se entra por handoff SSO
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/usuarios" element={<PrivateRoute><Usuarios /></PrivateRoute>} />
         <Route path="/historial" element={<PrivateRoute><Historial /></PrivateRoute>} />
         <Route path="/reportes" element={<PrivateRoute><Reportes /></PrivateRoute>} />
+        <Route path="/calendario" element={<PrivateRoute><Calendario /></PrivateRoute>} />
         <Route path="/cambiar-password" element={<PrivateRoute><CambiarPassword /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
