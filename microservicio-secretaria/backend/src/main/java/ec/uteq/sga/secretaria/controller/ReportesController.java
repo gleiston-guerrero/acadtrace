@@ -38,6 +38,25 @@ public class ReportesController {
         return pdfResponse(service.fichaEstudiante(id), "ficha-estudiante-" + id + ".pdf");
     }
 
+    @GetMapping("/libreta/{idMatricula}")
+    public ResponseEntity<byte[]> libreta(
+            @PathVariable Long idMatricula,
+            @RequestParam(name = "idPeriodo", required = false) Long idPeriodo) throws IOException {
+        return pdfResponse(service.libreta(idMatricula, idPeriodo), "libreta-" + idMatricula + ".pdf");
+    }
+
+    @GetMapping("/asistencia-mensual/{idMatricula}")
+    public ResponseEntity<byte[]> asistenciaMensual(
+            @PathVariable Long idMatricula,
+            @RequestParam(name = "mes") String mes) throws IOException {
+        return pdfResponse(service.asistenciaMensual(idMatricula, mes), "asistencia-" + idMatricula + "-" + mes + ".pdf");
+    }
+
+    @GetMapping("/ficha-representante/{idRepresentante}")
+    public ResponseEntity<byte[]> fichaRepresentante(@PathVariable Long idRepresentante) throws IOException {
+        return pdfResponse(service.fichaRepresentante(idRepresentante), "ficha-representante-" + idRepresentante + ".pdf");
+    }
+
     @GetMapping("/estadisticas/{idAno}")
     public Map<String, Object> estadisticas(@PathVariable Long idAno) {
         return service.estadisticas(idAno);
