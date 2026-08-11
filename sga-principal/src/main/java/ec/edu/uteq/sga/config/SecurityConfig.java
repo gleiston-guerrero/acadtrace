@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/prometheus", "/actuator/metrics", "/actuator/info").permitAll()
                         // Fotos de perfil servidas como recurso estatico: los <img src="..."> del navegador
                         // no pueden mandar el header Authorization, asi que la lectura debe ser publica
                         // (el nombre de archivo es un UUID, no enumerable).
@@ -86,6 +86,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/docente/**").hasAnyAuthority("ROLE_DOCENTE")
                         .requestMatchers("/api/docentes/**").hasAnyAuthority("ROLE_DOCENTE")
                         .requestMatchers("/api/rpc/**").permitAll()
+                        .requestMatchers("/api/notificaciones/masivo").permitAll()
+                        .requestMatchers("/api/notificaciones/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )

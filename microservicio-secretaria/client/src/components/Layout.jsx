@@ -8,6 +8,9 @@ const PRIMARY_LIGHT = '#2d4a96';
 
 export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle, menuItems = [], seccion, onSeccionChange }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [noLeidas, setNoLeidas] = useState(0);
   const [anoActual, setAnoActual] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,6 +21,33 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
   useEffect(() => {
     apiPrincipal.get('/anos-lectivos/actual').then(r => setAnoActual(r.data)).catch(() => {});
   }, []);
+
+  const cargarNotificaciones = () => {
+    apiPrincipal.get('/notificaciones/mias').then(r => {
+      setNotifs(r.data?.notificaciones || []);
+      setNoLeidas(r.data?.noLeidas || 0);
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    cargarNotificaciones();
+    const interval = setInterval(cargarNotificaciones, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const abrirNotificacion = (n) => {
+    apiPrincipal.post(`/notificaciones/marcar-leida/${n.idNotificacion}`).catch(() => {});
+    setNotifs(prev => prev.map(x => x.idNotificacion === n.idNotificacion ? { ...x, leida: true } : x));
+    setNoLeidas(prev => Math.max(0, prev - (n.leida ? 0 : 1)));
+    setShowNotifs(false);
+    if (n.urlDestino) navigate(n.urlDestino);
+  };
+
+  const marcarTodasLeidas = () => {
+    apiPrincipal.post('/notificaciones/marcar-todas-leidas').catch(() => {});
+    setNotifs(prev => prev.map(x => ({ ...x, leida: true })));
+    setNoLeidas(0);
+  };
 
   // El login vive en el SGA Principal: cerrar sesión vuelve allá, no a una ruta local.
   const handleLogout = () => { localStorage.clear(); window.location.href = 'http://localhost:5173/login'; };
@@ -45,7 +75,47 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
 
           <div className="relative">
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
+              onClick={() => { setShowNotifs(!showNotifs); setShowUserMenu(false); }}
+              style={{ backgroundColor: PRIMARY_LIGHT }}
+              className="relative flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-90 transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              {noLeidas > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                  {noLeidas > 9 ? '9+' : noLeidas}
+                </span>
+              )}
+            </button>
+            {showNotifs && (
+              <div className="absolute right-0 top-11 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center justify-between">
+                  <p className="text-white text-sm font-semibold">Notificaciones</p>
+                  {noLeidas > 0 && (
+                    <button onClick={marcarTodasLeidas} className="text-white/70 hover:text-white text-xs">Marcar todas leídas</button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifs.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-6">Sin notificaciones</p>
+                  )}
+                  {notifs.map(n => (
+                    <button
+                      key={n.idNotificacion}
+                      onClick={() => abrirNotificacion(n)}
+                      className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition ${n.leida ? '' : 'bg-blue-50/50'}`}
+                    >
+                      <p className={`text-xs ${n.leida ? 'text-slate-600' : 'text-slate-800 font-semibold'}`}>{n.titulo}</p>
+                      {n.mensaje && <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{n.mensaje}</p>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => { setShowUserMenu(!showUserMenu); setShowNotifs(false); }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg transition"
             >
@@ -148,7 +218,9 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
         Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
       </footer>
 
-      {showUserMenu && <div className="fixed inset-0 z-20" onClick={() => setShowUserMenu(false)} />}
+      {(showUserMenu || showNotifs) && (
+        <div className="fixed inset-0 z-20" onClick={() => { setShowUserMenu(false); setShowNotifs(false); }} />
+      )}
     </div>
   );
 }

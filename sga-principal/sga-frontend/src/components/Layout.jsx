@@ -8,6 +8,9 @@ const PRIMARY_LIGHT = "#2d4a96";
 export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle, menuItems = [], seccion, onSeccionChange }) {
   const [showPeriodo, setShowPeriodo] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [noLeidas, setNoLeidas] = useState(0);
   const [anoActual, setAnoActual] = useState(null);
   const navigate = useNavigate();
 
@@ -19,6 +22,33 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
       .then(r => setAnoActual(r.data))
       .catch(() => {});
   }, []);
+
+  const cargarNotificaciones = () => {
+    api.get("/api/notificaciones/mias").then(r => {
+      setNotifs(r.data?.notificaciones || []);
+      setNoLeidas(r.data?.noLeidas || 0);
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    cargarNotificaciones();
+    const interval = setInterval(cargarNotificaciones, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const abrirNotificacion = (n) => {
+    api.post(`/api/notificaciones/marcar-leida/${n.idNotificacion}`).catch(() => {});
+    setNotifs(prev => prev.map(x => x.idNotificacion === n.idNotificacion ? { ...x, leida: true } : x));
+    setNoLeidas(prev => Math.max(0, prev - (n.leida ? 0 : 1)));
+    setShowNotifs(false);
+    if (n.urlDestino) navigate(n.urlDestino);
+  };
+
+  const marcarTodasLeidas = () => {
+    api.post("/api/notificaciones/marcar-todas-leidas").catch(() => {});
+    setNotifs(prev => prev.map(x => ({ ...x, leida: true })));
+    setNoLeidas(0);
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -42,7 +72,7 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
           {/* Período */}
           <div className="relative">
             <button
-              onClick={() => { setShowPeriodo(!showPeriodo); setShowUserMenu(false); }}
+              onClick={() => { setShowPeriodo(!showPeriodo); setShowUserMenu(false); setShowNotifs(false); }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg text-xs font-medium transition"
             >
@@ -82,16 +112,51 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
           </div>
 
           {/* Notificaciones */}
-          <button className="relative p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => { setShowNotifs(!showNotifs); setShowPeriodo(false); setShowUserMenu(false); }}
+              className="relative p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {noLeidas > 0 && (
+                <span className="absolute top-0 right-0 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                  {noLeidas > 9 ? "9+" : noLeidas}
+                </span>
+              )}
+            </button>
+            {showNotifs && (
+              <div className="absolute right-0 top-11 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center justify-between">
+                  <p className="text-white text-sm font-semibold">Notificaciones</p>
+                  {noLeidas > 0 && (
+                    <button onClick={marcarTodasLeidas} className="text-white text-opacity-70 hover:text-opacity-100 text-xs">Marcar todas leídas</button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifs.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-6">Sin notificaciones</p>
+                  )}
+                  {notifs.map(n => (
+                    <button
+                      key={n.idNotificacion}
+                      onClick={() => abrirNotificacion(n)}
+                      className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition ${n.leida ? "" : "bg-blue-50/50"}`}
+                    >
+                      <p className={`text-xs ${n.leida ? "text-slate-600" : "text-slate-800 font-semibold"}`}>{n.titulo}</p>
+                      {n.mensaje && <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{n.mensaje}</p>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Usuario */}
           <div className="relative">
             <button
-              onClick={() => { setShowUserMenu(!showUserMenu); setShowPeriodo(false); }}
+              onClick={() => { setShowUserMenu(!showUserMenu); setShowPeriodo(false); setShowNotifs(false); }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg transition"
             >
@@ -216,8 +281,8 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
       </footer>
 
       {/* Overlay */}
-      {(showPeriodo || showUserMenu) && (
-        <div className="fixed inset-0 z-20" onClick={() => { setShowPeriodo(false); setShowUserMenu(false); }} />
+      {(showPeriodo || showUserMenu || showNotifs) && (
+        <div className="fixed inset-0 z-20" onClick={() => { setShowPeriodo(false); setShowUserMenu(false); setShowNotifs(false); }} />
       )}
     </div>
   );
