@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import Layout from '../components/Layout';
+import { MENU_PRINCIPAL } from '../config/menu';
 
 const PRIMARY = '#243A76';
 const modalBg = { backgroundColor: 'rgba(36, 58, 118, 0.5)' };
@@ -15,15 +16,9 @@ const NIVELES_CONFIG = {
 
 const nivelConfig = (nivel) => NIVELES_CONFIG[nivel] || { accent: '#64748b', accentLight: '#f1f5f9', accentMid: '#cbd5e1', textAccent: '#475569' };
 
-const menuItems = [
-  { id: 'cursos', label: 'Cursos', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg> },
-  { id: 'nuevo', label: 'Nuevo grado', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
-];
-
 export default function Grados() {
   const [grados, setGrados] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [seccion, setSeccion] = useState('cursos');
   const [gradoSel, setGradoSel] = useState(null);
   const [showCrearParalelo, setShowCrearParalelo] = useState(false);
   const [nuevaLetra, setNuevaLetra] = useState('');
@@ -52,12 +47,6 @@ export default function Grados() {
   useEffect(() => {
     if (success) { const t = setTimeout(() => setSuccess(''), 4000); return () => clearTimeout(t); }
   }, [success]);
-
-  const handleSeccion = (id) => {
-    setSeccion(id);
-    if (id === 'nuevo') { setGradoEditar(null); setShowModal(true); setError(''); }
-    if (id === 'cursos') { setGradoSel(null); }
-  };
 
   const nivelesAgrupados = {};
   grados.forEach(g => {
@@ -113,10 +102,8 @@ export default function Grados() {
   return (
     <Layout
       breadcrumb={gradoSel ? ['Inicio', 'Grados', gradoSel.nombre] : ['Inicio', 'Grados']}
-      sidebarTitle="Grados"
-      menuItems={menuItems}
-      seccion={seccion}
-      onSeccionChange={handleSeccion}
+      menuItems={MENU_PRINCIPAL}
+      seccion="grados"
     >
       {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError('')} className="text-red-400 ml-4">✕</button></div>}
       {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-green-600 text-sm">{success}</span><button onClick={() => setSuccess('')} className="text-green-400 ml-4">✕</button></div>}
