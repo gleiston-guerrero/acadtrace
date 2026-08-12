@@ -222,13 +222,13 @@ export default function Grados() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between">
               <h2 className="text-white font-bold text-base">{gradoEditar ? 'Editar Grado' : 'Nuevo Grado'}</h2>
-              <button onClick={() => { setShowModal(false); setSeccion('cursos'); }} className="text-white text-opacity-70 hover:text-opacity-100">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-white text-opacity-70 hover:text-opacity-100">✕</button>
             </div>
             <GradoForm
               grado={gradoEditar}
               niveles={niveles}
-              onCancel={() => { setShowModal(false); setSeccion('cursos'); }}
-              onSuccess={(msg) => { setShowModal(false); setSeccion('cursos'); setSuccess(msg); cargar(); }}
+              onCancel={() => setShowModal(false)}
+              onSuccess={(msg) => { setShowModal(false); setSuccess(msg); cargar(); }}
               onError={setError}
             />
           </div>

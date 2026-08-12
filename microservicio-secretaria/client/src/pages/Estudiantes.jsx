@@ -236,7 +236,7 @@ export default function Estudiantes() {
         <EstudianteFormModal
           estudianteId={editId}
           onCancel={() => setModal(null)}
-          onSuccess={(msg) => { setModal(null); setSeccion('lista'); setSuccess(msg); cargar(); }}
+          onSuccess={(msg) => { setModal(null); setSuccess(msg); cargar(); }}
         />
       )}
 
@@ -244,7 +244,7 @@ export default function Estudiantes() {
       {showImportModal && (
         <ImportarEstudiantesModal
           onCancel={() => setShowImportModal(false)}
-          onSuccess={(msg) => { setShowImportModal(false); setSeccion('lista'); setSuccess(msg); cargar(); }}
+          onSuccess={(msg) => { setShowImportModal(false); setSuccess(msg); cargar(); }}
         />
       )}
 
