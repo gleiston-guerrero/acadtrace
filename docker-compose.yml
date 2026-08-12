@@ -113,8 +113,8 @@ services:
   # ─── 4. MICROSERVICIO SOPORTE ───
   microservicio-soporte:
     build:
-      context: ./microservicio-soporte/backend
-      dockerfile: Dockerfile
+      context: ./microservicio-soporte
+      dockerfile: backend/Dockerfile
     container_name: microservicio-soporte
     ports:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
