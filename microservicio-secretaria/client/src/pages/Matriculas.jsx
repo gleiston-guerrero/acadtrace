@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
+import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 
 const PRIMARY = '#243A76';
@@ -113,7 +114,7 @@ export default function Matriculas() {
   };
 
   return (
-    <Layout breadcrumb={['Inicio', 'Matrículas']}>
+    <Layout breadcrumb={['Inicio', 'Matrículas']} menuItems={MENU_PRINCIPAL} seccion="matriculas">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Matrículas</h1>
