@@ -26,20 +26,20 @@ def convertir_nota_cualitativa(nota, nivel="EGB"):
 
     if nivel in {"INICIAL", "PREPARATORIA"}:
         if nota >= Decimal("9.00"):
-            return "DAR"
+            return "A_MAS"
         if nota >= Decimal("7.00"):
-            return "AAR"
+            return "B_MAS"
         if nota >= Decimal("4.01"):
-            return "PAR"
-        return "NAR"
+            return "C_MAS"
+        return "D"
 
     if nota >= Decimal("9.00"):
-        return "DAR"
+        return "A_MAS"
     if nota >= Decimal("7.00"):
-        return "AAR"
+        return "B_MAS"
     if nota > Decimal("4.00"):
-        return "PAR"
-    return "NAR"
+        return "C_MAS"
+    return "D"
 
 
 def calcular_promedio_formativo(id_matricula, id_asignacion, id_periodo):

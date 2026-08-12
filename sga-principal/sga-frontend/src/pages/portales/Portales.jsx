@@ -87,6 +87,10 @@ export default function Portales() {
             localStorage.setItem("username", sesion.username);
             localStorage.setItem("roles", JSON.stringify(sesion.roles));
             localStorage.setItem("primerIngreso", String(sesion.primerIngreso));
+            const idUsuario = Number(sesion.idUsuario);
+            if (Number.isInteger(idUsuario) && idUsuario > 0) {
+                localStorage.setItem("userId", String(idUsuario));
+            }
             navigate("/dashboard");
             return;
         }

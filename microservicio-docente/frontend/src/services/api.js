@@ -85,3 +85,36 @@ export const getCalificacionesPorActividad = (idActividad) =>
 // TODO: exponer como endpoint en el gateway Java cuando exista.
 export const getPeriodos = () =>
   axios.get(`${API_DOCENTE_REST}/periodos-evaluacion/`);
+
+export const getAnuncios = (idAsignacion) =>
+  axios.get(`${API_DOCENTE_REST}/anuncios/`, { params: { id_asignacion: idAsignacion } });
+
+export const createAnuncio = (data) =>
+  axios.post(`${API_DOCENTE_REST}/anuncios/`, data);
+
+export const deleteAnuncio = (idAnuncio) =>
+  axios.delete(`${API_DOCENTE_REST}/anuncios/${idAnuncio}/`);
+
+export const getMateriales = (idAsignacion) =>
+  axios.get(`${API_DOCENTE_REST}/materiales/`, { params: { id_asignacion: idAsignacion } });
+
+export const createMaterial = (data) =>
+  axios.post(`${API_DOCENTE_REST}/materiales/`, data);
+
+export const updateMaterial = (idMaterial, data) =>
+  axios.patch(`${API_DOCENTE_REST}/materiales/${idMaterial}/`, data);
+
+export const deleteMaterial = (idMaterial) =>
+  axios.delete(`${API_DOCENTE_REST}/materiales/${idMaterial}/`);
+
+export const getSeguimientos = (params) =>
+  axios.get(`${API_DOCENTE_REST}/seguimiento/`, { params });
+
+export const createSeguimiento = (data) =>
+  axios.post(`${API_DOCENTE_REST}/seguimiento/`, data);
+
+export const updateSeguimiento = (idSeguimiento, data) =>
+  axios.patch(`${API_DOCENTE_REST}/seguimiento/${idSeguimiento}/`, data);
+
+export const deleteSeguimiento = (idSeguimiento) =>
+  axios.delete(`${API_DOCENTE_REST}/seguimiento/${idSeguimiento}/`);

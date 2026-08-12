@@ -7,6 +7,7 @@ import java.util.List;
 public class AuthResponse {
 
     private String token;
+    private Long idUsuario;
     private String username;
     private String correo;
     private List<String> roles;

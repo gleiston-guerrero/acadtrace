@@ -39,6 +39,11 @@ export async function redirigirAMicroservicio(rol, sesion) {
     primerIngreso: String(sesion.primerIngreso),
   });
 
+  const idUsuario = Number(sesion.idUsuario);
+  if (Number.isInteger(idUsuario) && idUsuario > 0) {
+    params.set("idUsuario", String(idUsuario));
+  }
+
   window.location.href = `${host}/#${params.toString()}`;
   return true;
 }

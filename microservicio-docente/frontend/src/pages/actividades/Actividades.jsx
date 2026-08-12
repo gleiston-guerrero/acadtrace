@@ -10,7 +10,7 @@ import {
 
 const PRIMARY = "#243A76";
 
-const TIPOS = ["TAREA", "LECCION", "PROYECTO", "EXAMEN", "FORMATIVA", "SUMATIVA"];
+const TIPOS = ["LECCION_ORAL", "LECCION_ESCRITA", "TAREA", "TALLER", "CUADERNO", "TRABAJO_INDIVIDUAL", "EXPOSICION", "PROYECTO_INTERDISCIPLINARIO", "EXAMEN_TRIMESTRAL"];
 
 // ── Cálculo de semanas dentro de un trimestre ────────────────
 const MS_SEMANA = 7 * 24 * 3600 * 1000;

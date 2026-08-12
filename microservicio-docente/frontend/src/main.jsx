@@ -19,6 +19,13 @@ function capturarSesionSSO() {
   localStorage.setItem("roles", p.get("roles") || "[]");
   localStorage.setItem("primerIngreso", p.get("primerIngreso") || "false");
 
+  const idUsuario = Number(p.get("idUsuario"));
+  if (Number.isInteger(idUsuario) && idUsuario > 0) {
+    localStorage.setItem("userId", String(idUsuario));
+  } else {
+    localStorage.removeItem("userId");
+  }
+
   // Quita el token del URL para no dejarlo expuesto.
   window.history.replaceState({}, document.title, window.location.pathname);
 }

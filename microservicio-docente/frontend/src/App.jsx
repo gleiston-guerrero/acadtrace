@@ -5,6 +5,8 @@ import Asistencia from "./pages/asistencia/Asistencia";
 import Calificaciones from "./pages/calificaciones/Calificaciones";
 import Seguimiento from "./pages/seguimiento/Seguimiento";
 import Reportes from "./pages/reportes/Reportes";
+import Anuncios from "./pages/anuncios/Anuncios";
+import Material from "./pages/material/Material";
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/asistencia" element={<Asistencia />} />
         <Route path="/calificaciones" element={<Calificaciones />} />
         <Route path="/seguimiento" element={<Seguimiento />} />
+        <Route path="/anuncios" element={<Anuncios />} />
+        <Route path="/material" element={<Material />} />
         <Route path="/reportes" element={<Reportes />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
