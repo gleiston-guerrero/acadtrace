@@ -1,11 +1,15 @@
+from django.db import DatabaseError, connection
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from .models import (
     Actividad,
+    Anuncio,
     Asistencia,
     Calificacion,
+    Material,
     PeriodoEvaluacion,
     PromedioAnual,
     PromedioAnualDetalle,
@@ -15,8 +19,10 @@ from .models import (
 )
 from .serializers import (
     ActividadSerializer,
+    AnuncioSerializer,
     AsistenciaSerializer,
     CalificacionSerializer,
+    MaterialSerializer,
     PeriodoEvaluacionSerializer,
     PromedioAnualDetalleSerializer,
     PromedioAnualSerializer,
@@ -213,4 +219,43 @@ class SeguimientoAcademicoViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(requiere_followup=valor.lower() == "true")
             else:
                 queryset = queryset.filter(**{campo: valor})
+        id_paralelo = self.request.query_params.get("id_paralelo")
+        if id_paralelo:
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT id_matricula FROM sga_principal.matriculas "
+                        "WHERE id_paralelo = %s",
+                        [id_paralelo],
+                    )
+                    matriculas = [fila[0] for fila in cursor.fetchall()]
+                queryset = queryset.filter(id_matricula__in=matriculas)
+            except DatabaseError:
+                queryset = queryset.none()
+        return queryset
+
+
+class AnuncioViewSet(viewsets.ModelViewSet):
+    queryset = Anuncio.objects.all()
+    serializer_class = AnuncioSerializer
+    http_method_names = ["get", "post", "delete", "head", "options"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        id_asignacion = self.request.query_params.get("id_asignacion")
+        if id_asignacion:
+            queryset = queryset.filter(id_asignacion=id_asignacion)
+        return queryset
+
+
+class MaterialViewSet(viewsets.ModelViewSet):
+    queryset = Material.objects.all()
+    serializer_class = MaterialSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        id_asignacion = self.request.query_params.get("id_asignacion")
+        if id_asignacion:
+            queryset = queryset.filter(id_asignacion=id_asignacion)
         return queryset

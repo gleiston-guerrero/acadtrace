@@ -5,9 +5,13 @@ import {
   getEstudiantesPorAsignacion,
   getPromedioFinal,
   getResumenAsistencia,
+  getPeriodos,
+  getSeguimientos,
+  createSeguimiento,
+  updateSeguimiento,
+  deleteSeguimiento,
 } from "../../services/api";
 
-const PRIMARY = "#243A76";
 const NOTA_MINIMA = 7;
 const ASISTENCIA_MINIMA = 80;
 
@@ -30,7 +34,25 @@ const menuSeguimiento = [
       </svg>
     ),
   },
+  {
+    id: "observaciones",
+    label: "Observaciones",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20h9M12 4h9m-9 8h9M3 4h.01M3 12h.01M3 20h.01" />
+      </svg>
+    ),
+  },
 ];
+
+const observacionVacia = {
+  id_matricula: "",
+  categoria: "ACADEMICO",
+  descripcion: "",
+  acciones_tomadas: "",
+  requiere_followup: false,
+  fecha_evento: new Date().toISOString().slice(0, 10),
+};
 
 export default function Seguimiento() {
   const [seccion, setSeccion] = useState("rendimiento");
@@ -38,6 +60,13 @@ export default function Seguimiento() {
   const [asignacionSel, setAsignacionSel] = useState("");
   const [trimestre, setTrimestre] = useState(1);
   const [filas, setFilas] = useState([]);
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [periodos, setPeriodos] = useState([]);
+  const [periodoSeguimiento, setPeriodoSeguimiento] = useState("");
+  const [observaciones, setObservaciones] = useState([]);
+  const [formObservacion, setFormObservacion] = useState(observacionVacia);
+  const [edicionId, setEdicionId] = useState(null);
+  const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -45,15 +74,21 @@ export default function Seguimiento() {
   }, []);
 
   useEffect(() => {
-    if (asignacionSel) cargarSeguimiento();
+    if (asignacionSel) {
+      cargarSeguimiento();
+      cargarObservaciones();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [asignacionSel, trimestre]);
+  }, [asignacionSel, trimestre, periodoSeguimiento]);
 
   const cargarInicial = async () => {
     try {
-      const res = await getMisAsignaciones();
-      setAsignaciones(res.data || []);
-      if (res.data?.length > 0) setAsignacionSel(String(res.data[0].idAsignacion));
+      const [asignacionesRes, periodosRes] = await Promise.all([getMisAsignaciones(), getPeriodos()]);
+      setAsignaciones(asignacionesRes.data || []);
+      setPeriodos(periodosRes.data || []);
+      if (asignacionesRes.data?.length > 0) setAsignacionSel(String(asignacionesRes.data[0].idAsignacion));
+      const periodoActivo = (periodosRes.data || []).find((periodo) => periodo.activo) || periodosRes.data?.[0];
+      if (periodoActivo) setPeriodoSeguimiento(String(periodoActivo.id_periodo));
     } catch (error) {
       console.error("Error cargando asignaciones:", error);
     }
@@ -64,12 +99,13 @@ export default function Seguimiento() {
     try {
       const estRes = await getEstudiantesPorAsignacion(asignacionSel);
       const estudiantes = estRes.data || [];
+      setEstudiantes(estudiantes);
 
       let resumenes = [];
       try {
         const resRes = await getResumenAsistencia(asignacionSel);
         resumenes = resRes.data?.resumenes || [];
-      } catch (e) {
+      } catch {
         resumenes = [];
       }
       const resumenPorMatricula = {};
@@ -81,7 +117,7 @@ export default function Seguimiento() {
         try {
           const f = await getPromedioFinal(est.idMatricula, trimestre);
           nota = f.data ?? 0;
-        } catch (e) {
+        } catch {
           nota = 0;
         }
         const resumen = resumenPorMatricula[est.idMatricula];
@@ -103,6 +139,74 @@ export default function Seguimiento() {
     }
   };
 
+  const cargarObservaciones = async () => {
+    const asignacionActual = asignaciones.find((item) => String(item.idAsignacion) === String(asignacionSel));
+    if (!asignacionActual?.paralelo?.id) return;
+    try {
+      const params = { id_paralelo: asignacionActual.paralelo.id };
+      if (periodoSeguimiento) params.id_periodo = periodoSeguimiento;
+      const response = await getSeguimientos(params);
+      setObservaciones(response.data || []);
+    } catch (error) {
+      console.error("Error cargando observaciones:", error);
+      setMensaje("No se pudieron cargar las observaciones.");
+    }
+  };
+
+  const guardarObservacion = async (event) => {
+    event.preventDefault();
+    if (!periodoSeguimiento) {
+      setMensaje("Seleccione un período de evaluación.");
+      return;
+    }
+    // Pendiente de SSO: SGA Principal debe entregar idUsuario en el handoff/JWT o un endpoint autenticado.
+    const userId = Number(localStorage.getItem("userId"));
+    if (!Number.isInteger(userId) || userId <= 0) {
+      setMensaje("No se pudo identificar al usuario autenticado. Inicie sesión nuevamente.");
+      return;
+    }
+    const payload = {
+      ...formObservacion,
+      id_matricula: Number(formObservacion.id_matricula),
+      id_periodo: Number(periodoSeguimiento),
+      registrado_por: userId,
+    };
+    try {
+      if (edicionId) await updateSeguimiento(edicionId, payload);
+      else await createSeguimiento(payload);
+      setFormObservacion(observacionVacia);
+      setEdicionId(null);
+      setMensaje("Observación guardada.");
+      await cargarObservaciones();
+    } catch (error) {
+      console.error("Error guardando observación:", error);
+      setMensaje("No se pudo guardar la observación.");
+    }
+  };
+
+  const editarObservacion = (observacion) => {
+    setEdicionId(observacion.id_seguimiento);
+    setFormObservacion({
+      id_matricula: String(observacion.id_matricula),
+      categoria: observacion.categoria,
+      descripcion: observacion.descripcion,
+      acciones_tomadas: observacion.acciones_tomadas || "",
+      requiere_followup: observacion.requiere_followup,
+      fecha_evento: observacion.fecha_evento,
+    });
+    setSeccion("observaciones");
+  };
+
+  const eliminarObservacion = async (idSeguimiento) => {
+    if (!confirm("¿Eliminar esta observación?")) return;
+    try {
+      await deleteSeguimiento(idSeguimiento);
+      await cargarObservaciones();
+    } catch {
+      setMensaje("No se pudo eliminar la observación.");
+    }
+  };
+
   const nombreAsignacion = (a) =>
     `${a.asignatura?.nombre || "Asignatura"} — ${a.grado?.nombre || ""}`;
 
@@ -118,10 +222,14 @@ export default function Seguimiento() {
     >
       <h1 className="text-2xl font-bold text-slate-800 mb-1">Seguimiento Académico</h1>
       <p className="text-slate-500 mb-6">
-        {seccion === "alertas"
+        {seccion === "observaciones"
+          ? "Registre observaciones y derive los casos que requieren atención DECE."
+          : seccion === "alertas"
           ? `Estudiantes con nota menor a ${NOTA_MINIMA} o asistencia menor a ${ASISTENCIA_MINIMA}%.`
           : "Monitoree el rendimiento y la asistencia de sus estudiantes."}
       </p>
+
+      {mensaje && <p className="mb-4 text-sm text-[#243A76]">{mensaje}</p>}
 
       {/* Filtros */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -152,6 +260,31 @@ export default function Seguimiento() {
         </div>
       </div>
 
+      {seccion === "observaciones" ? (
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <form onSubmit={guardarObservacion} className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+            <h2 className="font-semibold text-slate-800">{edicionId ? "Editar observación" : "Nueva observación"}</h2>
+            <select required value={formObservacion.id_matricula} onChange={(event) => setFormObservacion({ ...formObservacion, id_matricula: event.target.value })} className="w-full border rounded-lg p-2 text-sm">
+              <option value="">Seleccione estudiante</option>
+              {estudiantes.map((estudiante) => <option key={estudiante.idMatricula} value={estudiante.idMatricula}>{estudiante.estudiante?.apellidos} {estudiante.estudiante?.nombres}</option>)}
+            </select>
+            <select value={periodoSeguimiento} onChange={(event) => setPeriodoSeguimiento(event.target.value)} className="w-full border rounded-lg p-2 text-sm">{periodos.map((periodo) => <option key={periodo.id_periodo} value={periodo.id_periodo}>{periodo.nombre}</option>)}</select>
+            <select value={formObservacion.categoria} onChange={(event) => setFormObservacion({ ...formObservacion, categoria: event.target.value })} className="w-full border rounded-lg p-2 text-sm"><option>ACADEMICO</option><option>CONDUCTUAL</option><option>DECE</option><option>MEDICO</option><option>FAMILIAR</option><option>OTRO</option></select>
+            <textarea required rows="4" value={formObservacion.descripcion} onChange={(event) => setFormObservacion({ ...formObservacion, descripcion: event.target.value })} placeholder="Observación" className="w-full border rounded-lg p-2 text-sm" />
+            <textarea rows="3" value={formObservacion.acciones_tomadas} onChange={(event) => setFormObservacion({ ...formObservacion, acciones_tomadas: event.target.value })} placeholder="Acciones tomadas" className="w-full border rounded-lg p-2 text-sm" />
+            <input type="date" value={formObservacion.fecha_evento} onChange={(event) => setFormObservacion({ ...formObservacion, fecha_evento: event.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+            <label className="flex gap-2 text-sm"><input type="checkbox" checked={formObservacion.requiere_followup} onChange={(event) => setFormObservacion({ ...formObservacion, requiere_followup: event.target.checked })} />Requiere atención DECE</label>
+            <button className="w-full bg-[#243A76] text-white py-2 rounded-lg">{edicionId ? "Actualizar" : "Guardar observación"}</button>
+          </form>
+          <div className="bg-white rounded-xl border border-slate-200 divide-y">
+            {observaciones.length === 0 && <p className="p-8 text-center text-slate-400">No hay observaciones para este paralelo.</p>}
+            {observaciones.map((observacion) => {
+              const estudiante = estudiantes.find((item) => Number(item.idMatricula) === Number(observacion.id_matricula));
+              return <article key={observacion.id_seguimiento} className="p-5"><div className="flex justify-between gap-3"><div><h3 className="font-semibold text-slate-700">{estudiante ? `${estudiante.estudiante?.apellidos} ${estudiante.estudiante?.nombres}` : `Matrícula ${observacion.id_matricula}`}</h3><p className="text-xs text-slate-400">{observacion.categoria} · {observacion.fecha_evento}</p></div>{observacion.requiere_followup && <span className="text-xs bg-red-100 text-red-700 rounded px-2 py-1 h-fit">DECE</span>}</div><p className="text-sm text-slate-600 mt-3 whitespace-pre-wrap">{observacion.descripcion}</p>{observacion.acciones_tomadas && <p className="text-xs text-slate-500 mt-2">Acciones: {observacion.acciones_tomadas}</p>}<div className="flex gap-3 mt-3 text-sm"><button onClick={() => editarObservacion(observacion)} type="button" className="text-[#243A76]">Editar</button><button onClick={() => eliminarObservacion(observacion.id_seguimiento)} type="button" className="text-red-600">Eliminar</button></div></article>;
+            })}
+          </div>
+        </div>
+      ) : (
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {loading ? (
           <p className="text-center text-slate-400 py-10">Cargando seguimiento...</p>
@@ -192,6 +325,7 @@ export default function Seguimiento() {
           </table>
         )}
       </div>
+      )}
     </Layout>
   );
 }

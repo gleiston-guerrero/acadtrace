@@ -32,6 +32,7 @@ services:
       - sga-principal
     ports:
       - "8080:8080"   # REST balanceado hacia las 2 replicas
+      - "8081:8081"   # REST balanceado hacia las replicas de docente
       - "9092:9092"   # gRPC balanceado hacia las 2 replicas
       - "8404:8404"   # Panel de estadisticas HAProxy
     volumes:
@@ -45,10 +46,9 @@ services:
     build:
       context: ./microservicio-docente
       dockerfile: Dockerfile
-    container_name: microservicio-docente
-    ports:
-      - "8081:8000"   # REST (el contenedor Django siempre escucha en 8000, ver Dockerfile)
-      - "9091:9091"   # gRPC Server
+    expose:
+      - "8000"
+      - "9091"
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -60,6 +60,32 @@ services:
       - sga-distribuido-net
     depends_on:
       - sga-principal
+    volumes:
+      - ./microservicio-docente/media:/app/media
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  spark:
+    image: apache/spark:3.5.1
+    container_name: sga-spark
+    command: /opt/spark/sbin/start-master.sh
+    ports:
+      - "7077:7077"
+      - "8090:8080"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - DB_HOST
+      - DB_PORT
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+    volumes:
+      - ./scripts/spark:/scripts
+      - ./scripts/spark/jars:/jars
+    networks:
+      - sga-distribuido-net
 
   # ─── 3. MICROSERVICIO SECRETARÍA ───
   microservicio-secretaria:
