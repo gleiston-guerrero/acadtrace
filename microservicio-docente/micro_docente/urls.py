@@ -14,8 +14,18 @@ def api_root(request):
     })
 
 
+def health_check(request):
+    return JsonResponse({
+        "status": "UP",
+        "service": "Microservicio Docente"
+    })
+
+
 urlpatterns = [
     path("", api_root),
+    path("health", health_check),
+    path("health/", health_check),
     path("admin/", admin.site.urls),
     path("api/docente/", include("docentes.urls")),
 ]
+
