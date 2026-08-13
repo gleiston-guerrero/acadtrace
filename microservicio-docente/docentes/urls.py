@@ -1,9 +1,12 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
     ActividadViewSet,
     AnuncioViewSet,
     AsistenciaViewSet,
+    AulaVirtualResumenView,
+    AulaVirtualSemanasView,
     CalificacionViewSet,
     MaterialViewSet,
     PeriodoEvaluacionViewSet,
@@ -29,4 +32,10 @@ router.register("seguimiento", SeguimientoAcademicoViewSet, basename="seguimient
 router.register("anuncios", AnuncioViewSet)
 router.register("materiales", MaterialViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("aula-virtual/resumen/", AulaVirtualResumenView.as_view()),
+    path(
+        "aula-virtual/<int:id_asignacion>/semanas/",
+        AulaVirtualSemanasView.as_view(),
+    ),
+] + router.urls

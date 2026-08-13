@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { getPeriodos } from "../services/api";
 
 const PRIMARY = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
@@ -8,11 +9,20 @@ const PRIMARY_LIGHT = "#2d4a96";
 export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle, menuItems = [], seccion, onSeccionChange }) {
   const [showPeriodo, setShowPeriodo] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [anoActual, setAnoActual] = useState(null);
   const navigate = useNavigate();
 
   const username = localStorage.getItem("username") || "Docente";
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-  const anoActual = { nombre: "2026 - Segundo Trimestre" };
+  useEffect(() => {
+    getPeriodos()
+      .then((response) => {
+        const periodos = response.data || [];
+        setAnoActual(periodos.find((periodo) => periodo.activo) || periodos[0] || null);
+      })
+      .catch(() => setAnoActual(null));
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -29,14 +39,14 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
         <div className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-8 h-8 rounded-full object-cover border-2 border-white border-opacity-40" />
           <span className="font-bold text-sm">SGA</span>
-          <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Portal Docente</span>
+          <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Sistema de Gestión Académica</span>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Período */}
           <div className="relative">
             <button
-              onClick={() => { setShowPeriodo(!showPeriodo); setShowUserMenu(false); }}
+              onClick={() => { setShowPeriodo(!showPeriodo); setShowUserMenu(false); setShowNotifs(false); }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg text-xs font-medium transition"
             >
@@ -48,7 +58,7 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            {showPeriodo && (
+            {showPeriodo && anoActual && (
               <div className="absolute right-0 top-11 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
                 <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center gap-2">
                   <svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,16 +82,29 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
           </div>
 
           {/* Notificaciones */}
-          <button className="relative p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => { setShowNotifs(!showNotifs); setShowPeriodo(false); setShowUserMenu(false); }}
+              className="relative p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition"
+              aria-label="Notificaciones"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+            {showNotifs && (
+              <div className="absolute right-0 top-11 z-50 w-72 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-2xl">
+                <p className="font-semibold text-slate-700">Notificaciones</p>
+                <p className="mt-2 text-xs leading-relaxed text-slate-400">Los anuncios y actividades próximas se muestran dentro de cada curso del Aula Virtual.</p>
+              </div>
+            )}
+          </div>
 
           {/* Usuario */}
           <div className="relative">
             <button
-              onClick={() => { setShowUserMenu(!showUserMenu); setShowPeriodo(false); }}
+              onClick={() => { setShowUserMenu(!showUserMenu); setShowPeriodo(false); setShowNotifs(false); }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg transition"
             >
@@ -199,8 +222,8 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
       </footer>
 
       {/* Overlay */}
-      {(showPeriodo || showUserMenu) && (
-        <div className="fixed inset-0 z-20" onClick={() => { setShowPeriodo(false); setShowUserMenu(false); }} />
+      {(showPeriodo || showUserMenu || showNotifs) && (
+        <div className="fixed inset-0 z-20" onClick={() => { setShowPeriodo(false); setShowUserMenu(false); setShowNotifs(false); }} />
       )}
     </div>
   );
