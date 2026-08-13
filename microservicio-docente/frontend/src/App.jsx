@@ -7,6 +7,8 @@ import Seguimiento from "./pages/seguimiento/Seguimiento";
 import Reportes from "./pages/reportes/Reportes";
 import Anuncios from "./pages/anuncios/Anuncios";
 import Material from "./pages/material/Material";
+import AulaVirtual from "./pages/aula-virtual/AulaVirtual";
+import AulaVirtualCurso from "./pages/aula-virtual/AulaVirtualCurso";
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/seguimiento" element={<Seguimiento />} />
         <Route path="/anuncios" element={<Anuncios />} />
         <Route path="/material" element={<Material />} />
+        <Route path="/aula-virtual" element={<AulaVirtual />} />
+        <Route path="/aula-virtual/:idAsignacion" element={<AulaVirtualCurso />} />
         <Route path="/reportes" element={<Reportes />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

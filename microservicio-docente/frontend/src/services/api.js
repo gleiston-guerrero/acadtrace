@@ -86,6 +86,19 @@ export const getCalificacionesPorActividad = (idActividad) =>
 export const getPeriodos = () =>
   axios.get(`${API_DOCENTE_REST}/periodos-evaluacion/`);
 
+export const getAulaVirtualResumen = (asignaciones) => {
+  const params = new URLSearchParams();
+  asignaciones.forEach((idAsignacion) => params.append("id_asignacion", idAsignacion));
+  return axios.get(`${API_DOCENTE_REST}/aula-virtual/resumen/?${params.toString()}`, {
+    headers: authHeaders(),
+  });
+};
+
+export const getAulaVirtualSemanas = (idAsignacion) =>
+  axios.get(`${API_DOCENTE_REST}/aula-virtual/${idAsignacion}/semanas/`, {
+    headers: authHeaders(),
+  });
+
 export const getAnuncios = (idAsignacion) =>
   axios.get(`${API_DOCENTE_REST}/anuncios/`, { params: { id_asignacion: idAsignacion } });
 
