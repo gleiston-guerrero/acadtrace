@@ -18,6 +18,7 @@ export default function Dashboard() {
     const username = localStorage.getItem("username") || "Director";
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
     const token = localStorage.getItem("token");
+    const idUsuario = localStorage.getItem("userId");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -33,6 +34,7 @@ export default function Dashboard() {
         if (m.handoff) {
             redirigirAMicroservicio(m.handoff, {
                 token,
+                idUsuario,
                 username,
                 roles,
                 primerIngreso: localStorage.getItem("primerIngreso") === "true",

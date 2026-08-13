@@ -2,25 +2,36 @@ from django.db import models
 
 
 class TipoPeriodo(models.TextChoices):
-    TRIMESTRE = "TRIMESTRE", "Trimestre"
-    QUIMESTRE = "QUIMESTRE", "Quimestre"
-    PARCIAL = "PARCIAL", "Parcial"
+    PRIMER_TRIMESTRE = "PRIMER_TRIMESTRE", "Primer trimestre"
+    SEGUNDO_TRIMESTRE = "SEGUNDO_TRIMESTRE", "Segundo trimestre"
+    TERCER_TRIMESTRE = "TERCER_TRIMESTRE", "Tercer trimestre"
+
+
+TipoPeriodo.TRIMESTRE = TipoPeriodo.PRIMER_TRIMESTRE
+TipoPeriodo.QUIMESTRE = TipoPeriodo.SEGUNDO_TRIMESTRE
+TipoPeriodo.PARCIAL = TipoPeriodo.TERCER_TRIMESTRE
 
 
 class TipoActividad(models.TextChoices):
-    FORMATIVA = "FORMATIVA", "Formativa"
-    SUMATIVA = "SUMATIVA", "Sumativa"
+    LECCION_ORAL = "LECCION_ORAL", "Lección oral"
+    LECCION_ESCRITA = "LECCION_ESCRITA", "Lección escrita"
     TAREA = "TAREA", "Tarea"
-    LECCION = "LECCION", "Leccion"
-    PROYECTO = "PROYECTO", "Proyecto"
-    EXAMEN = "EXAMEN", "Examen"
+    TALLER = "TALLER", "Taller"
+    CUADERNO = "CUADERNO", "Cuaderno"
+    TRABAJO_INDIVIDUAL = "TRABAJO_INDIVIDUAL", "Trabajo individual"
+    EXPOSICION = "EXPOSICION", "Exposición"
+    PROYECTO_INTERDISCIPLINARIO = "PROYECTO_INTERDISCIPLINARIO", "Proyecto interdisciplinario"
+    EXAMEN_TRIMESTRAL = "EXAMEN_TRIMESTRAL", "Examen trimestral"
 
 
 class NotaCualitativa(models.TextChoices):
-    DAR = "DAR", "Domina los aprendizajes requeridos"
-    AAR = "AAR", "Alcanza los aprendizajes requeridos"
-    PAR = "PAR", "Proximo a alcanzar los aprendizajes requeridos"
-    NAR = "NAR", "No alcanza los aprendizajes requeridos"
+    A_MAS = "A_MAS", "A+"
+    A_MENOS = "A_MENOS", "A-"
+    B_MAS = "B_MAS", "B+"
+    B_MENOS = "B_MENOS", "B-"
+    C_MAS = "C_MAS", "C+"
+    C_MENOS = "C_MENOS", "C-"
+    D = "D", "D"
 
 
 class EstadoAsistencia(models.TextChoices):
@@ -33,7 +44,8 @@ class EstadoAsistencia(models.TextChoices):
 class CategoriaSeguimiento(models.TextChoices):
     ACADEMICO = "ACADEMICO", "Academico"
     CONDUCTUAL = "CONDUCTUAL", "Conductual"
-    ASISTENCIA = "ASISTENCIA", "Asistencia"
+    DECE = "DECE", "DECE"
+    MEDICO = "MEDICO", "Medico"
     FAMILIAR = "FAMILIAR", "Familiar"
     OTRO = "OTRO", "Otro"
 
@@ -64,7 +76,7 @@ class Actividad(models.Model):
         db_column="id_periodo",
         related_name="actividades",
     )
-    tipo = models.CharField(max_length=20, choices=TipoActividad.choices)
+    tipo = models.CharField(max_length=30, choices=TipoActividad.choices)
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True, null=True)
     fecha_entrega = models.DateField()
@@ -92,7 +104,7 @@ class Calificacion(models.Model):
     id_matricula = models.IntegerField()
     nota = models.DecimalField(max_digits=4, decimal_places=2)
     nota_cualitativa = models.CharField(
-        max_length=3, choices=NotaCualitativa.choices, blank=True
+        max_length=7, choices=NotaCualitativa.choices, blank=True, null=True
     )
     observacion = models.TextField(blank=True, null=True)
     registrado_por = models.IntegerField(blank=True, null=True)
@@ -180,7 +192,7 @@ class PromedioTrimestral(models.Model):
     promedio_formativo = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     nota_sumativa = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     promedio_trimestral = models.DecimalField(max_digits=4, decimal_places=2, default=0)
-    nota_cualitativa = models.CharField(max_length=3, choices=NotaCualitativa.choices)
+    nota_cualitativa = models.CharField(max_length=7, choices=NotaCualitativa.choices)
     calculado_en = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -199,7 +211,7 @@ class PromedioAnual(models.Model):
     id_asignacion = models.IntegerField()
     id_ano_lectivo = models.IntegerField()
     promedio_anual = models.DecimalField(max_digits=4, decimal_places=2, default=0)
-    nota_cualitativa = models.CharField(max_length=3, choices=NotaCualitativa.choices)
+    nota_cualitativa = models.CharField(max_length=7, choices=NotaCualitativa.choices)
     registrado_por = models.IntegerField(blank=True, null=True)
     calculado_en = models.DateTimeField(auto_now=True)
 
@@ -258,3 +270,34 @@ class SeguimientoAcademico(models.Model):
     class Meta:
         db_table = 'sga_docente"."seguimiento_academico'
         ordering = ["-fecha_evento", "-fecha_registro"]
+
+
+class Anuncio(models.Model):
+    id_anuncio = models.AutoField(primary_key=True)
+    id_asignacion = models.IntegerField()
+    titulo = models.CharField(max_length=150, blank=True, null=True)
+    contenido = models.TextField(blank=True, null=True)
+    autor_id = models.IntegerField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    fijado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'sga_docente"."anuncios'
+        managed = False
+        ordering = ["-fijado", "-fecha"]
+
+
+class Material(models.Model):
+    id_material = models.AutoField(primary_key=True)
+    id_asignacion = models.IntegerField()
+    tipo = models.CharField(max_length=20, blank=True, null=True)
+    titulo = models.CharField(max_length=150, blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+    url = models.TextField()
+    tamano_bytes = models.BigIntegerField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'sga_docente"."materiales'
+        managed = False
+        ordering = ["-fecha"]

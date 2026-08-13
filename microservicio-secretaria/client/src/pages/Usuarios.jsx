@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import { MENU_PRINCIPAL } from '../config/menu';
 import api from '../utils/api';
 
 const PRIMARY = '#243A76';
@@ -105,7 +106,7 @@ export default function Usuarios() {
   };
 
   return (
-    <Layout breadcrumb={['Inicio', 'Usuarios']}>
+    <Layout breadcrumb={['Inicio', 'Usuarios']} menuItems={MENU_PRINCIPAL} seccion="usuarios">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Usuarios y Docentes</h1>

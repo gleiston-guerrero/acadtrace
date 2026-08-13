@@ -6,10 +6,10 @@ services:
     build:
       context: ./sga-principal
       dockerfile: Dockerfile
-    container_name: sga-principal
-    ports:
-      - "8080:8080"   # REST Gateway
-      - "9092:9092"   # gRPC Server
+    image: sga-principal:latest
+    expose:
+      - "8080"
+      - "9092"
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -19,16 +19,36 @@ services:
       - grpc.client.docente-service.address=static://microservicio-docente:9091
     networks:
       - sga-distribuido-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  # ─── 1b. HAPROXY (Load Balancer sga-principal) ───
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: sga-haproxy
+    depends_on:
+      - sga-principal
+    ports:
+      - "8080:8080"   # REST balanceado hacia las 2 replicas
+      - "8081:8081"   # REST balanceado hacia las replicas de docente
+      - "9092:9092"   # gRPC balanceado hacia las 2 replicas
+      - "8404:8404"   # Panel de estadisticas HAProxy
+    volumes:
+      - ./infra/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - sga-distribuido-net
+
 
   # ─── 2. MICROSERVICIO DOCENTE (Django + gRPC) ───
   microservicio-docente:
     build:
       context: ./microservicio-docente
       dockerfile: Dockerfile
-    container_name: microservicio-docente
-    ports:
-      - "8081:8000"   # REST (el contenedor Django siempre escucha en 8000, ver Dockerfile)
-      - "9091:9091"   # gRPC Server
+    expose:
+      - "8000"
+      - "9091"
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -40,6 +60,32 @@ services:
       - sga-distribuido-net
     depends_on:
       - sga-principal
+    volumes:
+      - ./microservicio-docente/media:/app/media
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  spark:
+    image: apache/spark:3.5.1
+    container_name: sga-spark
+    command: /opt/spark/sbin/start-master.sh
+    ports:
+      - "7077:7077"
+      - "8090:8080"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - DB_HOST
+      - DB_PORT
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+    volumes:
+      - ./scripts/spark:/scripts
+      - ./scripts/spark/jars:/jars
+    networks:
+      - sga-distribuido-net
 
   # ─── 3. MICROSERVICIO SECRETARÍA ───
   microservicio-secretaria:
@@ -67,8 +113,8 @@ services:
   # ─── 4. MICROSERVICIO SOPORTE ───
   microservicio-soporte:
     build:
-      context: ./microservicio-soporte/backend
-      dockerfile: Dockerfile
+      context: ./microservicio-soporte
+      dockerfile: backend/Dockerfile
     container_name: microservicio-soporte
     ports:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
@@ -89,21 +135,21 @@ services:
 
   # ─── 4b. ETCD (coordinacion / eleccion de lider entre replicas de soporte) ───
   etcd:
-    image: quay.io/coreos/etcd:v3.5.17
+    image: quay.io/coreos/etcd:v3.5.11
     container_name: etcd
-    environment:
-      - ETCD_NAME=etcd0
-      - ETCD_DATA_DIR=/etcd-data
-      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
-      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
-      - ETCD_INITIAL_CLUSTER=etcd0=http://etcd:2380
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd0
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --initial-cluster=etcd0=http://etcd:2380
+      - --initial-cluster-state=new
     ports:
       - "2379:2379"
     networks:
       - sga-distribuido-net
-    
 
   # ─── 5. FRONTEND SGA (React + Vite) ───
   sga-frontend:
@@ -136,6 +182,38 @@ services:
       - sga-distribuido-net
     depends_on:
       - microservicio-docente
+
+  # ─── 7. PROMETHEUS (observabilidad: scrapea los 4 servicios) ───
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: sga-prometheus
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+      - microservicio-docente
+      - microservicio-secretaria
+      - microservicio-soporte
+
+  # ─── 8. GRAFANA (dashboards sobre las metricas de Prometheus) ───
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: sga-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=***REMOVED-GRAFANA-SECRET***
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - prometheus
 
 networks:
   sga-distribuido-net:

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
+import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 import FichaEstudianteModal from './FichaEstudianteModal';
 
@@ -19,19 +20,12 @@ const REPRESENTANTE_VACIO = {
   telefono_principal: '', telefono_alt: '', correo: '', direccion: '',
 };
 
-const menuItems = [
-  { id: 'lista', label: 'Lista de estudiantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
-  { id: 'nuevo', label: 'Nuevo estudiante', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
-  { id: 'importar', label: 'Importar estudiantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 12v9m0-9l-3 3m3-3l3 3" /></svg> },
-];
-
 export default function Estudiantes() {
   const [estudiantes, setEstudiantes] = useState([]);
   const [meta, setMeta] = useState({});
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [seccion, setSeccion] = useState('lista');
   const [modal, setModal] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -58,12 +52,6 @@ export default function Estudiantes() {
     if (success) { const t = setTimeout(() => setSuccess(''), 4000); return () => clearTimeout(t); }
   }, [success]);
 
-  const handleSeccion = (id) => {
-    if (id === 'nuevo') { setEditId(null); setModal('form'); return; }
-    if (id === 'importar') { setShowImportModal(true); return; }
-    setSeccion(id);
-  };
-
   const abrirVer = async (id) => {
     try {
       const res = await api.get(`/estudiantes/${id}`);
@@ -86,7 +74,7 @@ export default function Estudiantes() {
   const esActivo = (e) => e.estado === true || e.estado === 'true';
 
   return (
-    <Layout breadcrumb={['Inicio', 'Estudiantes']} sidebarTitle="Estudiantes" menuItems={menuItems} seccion={seccion} onSeccionChange={handleSeccion}>
+    <Layout breadcrumb={['Inicio', 'Estudiantes']} menuItems={MENU_PRINCIPAL} seccion="estudiantes">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Estudiantes</h1>
@@ -248,7 +236,7 @@ export default function Estudiantes() {
         <EstudianteFormModal
           estudianteId={editId}
           onCancel={() => setModal(null)}
-          onSuccess={(msg) => { setModal(null); setSeccion('lista'); setSuccess(msg); cargar(); }}
+          onSuccess={(msg) => { setModal(null); setSuccess(msg); cargar(); }}
         />
       )}
 
@@ -256,7 +244,7 @@ export default function Estudiantes() {
       {showImportModal && (
         <ImportarEstudiantesModal
           onCancel={() => setShowImportModal(false)}
-          onSuccess={(msg) => { setShowImportModal(false); setSeccion('lista'); setSuccess(msg); cargar(); }}
+          onSuccess={(msg) => { setShowImportModal(false); setSuccess(msg); cargar(); }}
         />
       )}
 

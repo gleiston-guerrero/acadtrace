@@ -25,10 +25,18 @@ export default function Login() {
             const roles = res.data.roles || [];
             const sesion = {
                 token: res.data.token,
+                idUsuario: res.data.idUsuario,
                 username: res.data.username,
                 roles,
                 primerIngreso: res.data.primerIngreso,
             };
+            const idUsuario = Number(sesion.idUsuario);
+            const idUsuarioValido = Number.isInteger(idUsuario) && idUsuario > 0;
+            if (idUsuarioValido) {
+                localStorage.setItem("userId", String(idUsuario));
+            } else {
+                localStorage.removeItem("userId");
+            }
 
             // Primer ingreso: cambia la contraseña en el principal antes de continuar.
             if (res.data.primerIngreso) {
