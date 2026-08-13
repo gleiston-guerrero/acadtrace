@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Layout from "../components/Layout";
 
 const API = "/api/soporte";
 const PRIMARY = "#243A76";
@@ -436,89 +437,31 @@ export default function Soporte() {
     const modalBg = { backgroundColor: "rgba(36,58,118,0.5)" };
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50">
-
-            {/* TOPBAR */}
-            <header style={{ backgroundColor: PRIMARY }} className="h-14 flex items-center justify-between px-4 shadow z-30 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </div>
-                    <span className="text-white font-bold text-sm">SGA</span>
-                    <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Soporte Técnico</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div style={{ backgroundColor: PRIMARY_LIGHT }} className="flex items-center gap-2 px-3 py-1.5 rounded-lg">
-                        <div className="w-7 h-7 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">
-                            {username.charAt(0)}
-                        </div>
-                        <span className="text-white text-xs font-medium hidden sm:inline capitalize">{username}</span>
+        <Layout breadcrumb={["Inicio", "Tickets"]}>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-800">Módulo de Tickets</h1>
+                        <p className="text-xs text-slate-400">Gestión de atención e incidencias técnicas</p>
                     </div>
                     {esTecnico && (
-                        <>
+                        <div className="flex gap-1 bg-slate-200/60 rounded-xl p-1">
                             <button
-                                onClick={() => navigate("/usuarios")}
-                                className="text-white text-opacity-70 hover:text-opacity-100 text-xs px-3 py-1.5 border border-white border-opacity-20 rounded-lg transition hidden sm:flex items-center gap-1.5"
+                                onClick={() => setVista("kanban")}
+                                className={`text-xs px-3.5 py-1.5 rounded-lg font-medium transition ${vista === "kanban" ? "bg-white shadow-sm font-semibold text-[#243A76]" : "text-slate-600 hover:text-slate-900"}`}
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Usuarios
+                                Tablero
                             </button>
                             <button
-                                onClick={() => navigate("/dashboard")}
-                                className="text-white text-opacity-70 hover:text-opacity-100 text-xs px-3 py-1.5 border border-white border-opacity-20 rounded-lg transition hidden sm:flex items-center gap-1.5"
+                                onClick={() => setVista("dashboard")}
+                                className={`text-xs px-3.5 py-1.5 rounded-lg font-medium transition ${vista === "dashboard" ? "bg-white shadow-sm font-semibold text-[#243A76]" : "text-slate-600 hover:text-slate-900"}`}
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                                Monitor
+                                Estadísticas
                             </button>
-                        </>
+                        </div>
                     )}
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white hover:bg-white hover:bg-opacity-10 transition"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Salir
-                    </button>
                 </div>
-            </header>
 
-            {/* BREADCRUMB + TABS */}
-            <div className="bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between flex-wrap gap-2">
-                <nav className="text-xs text-slate-500 flex items-center gap-1">
-                    <span className="hover:underline cursor-pointer">Inicio</span>
-                    <span className="text-slate-300">/</span>
-                    <span style={{ color: PRIMARY }} className="font-medium">Soporte Técnico</span>
-                </nav>
-                {esTecnico && (
-                    <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
-                        <button
-                            onClick={() => setVista("kanban")}
-                            className={`text-xs px-3 py-1.5 rounded-md font-medium transition ${vista === "kanban" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                            style={vista === "kanban" ? { color: PRIMARY } : {}}
-                        >
-                            Tablero
-                        </button>
-                        <button
-                            onClick={() => setVista("dashboard")}
-                            className={`text-xs px-3 py-1.5 rounded-md font-medium transition ${vista === "dashboard" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                            style={vista === "dashboard" ? { color: PRIMARY } : {}}
-                        >
-                            Dashboard
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* CONTENIDO */}
-            <main className="flex-1 p-6">
 
                 {/* Alertas */}
                 {error && (
@@ -756,12 +699,7 @@ export default function Soporte() {
                         )}
                     </div>
                 )}
-            </main>
 
-            {/* FOOTER */}
-            <footer style={{ backgroundColor: PRIMARY }} className="text-white text-opacity-80 text-xs text-center py-2 flex-shrink-0">
-                Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
-            </footer>
 
             {/* MODAL NUEVO TICKET */}
             {showModal && (
@@ -1058,6 +996,7 @@ export default function Soporte() {
                     </div>
                 </div>
             )}
-        </div>
+            </div>
+        </Layout>
     );
 }

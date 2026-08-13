@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Layout from "../components/Layout";
 
 const PRIMARY       = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
 
 const SERVICIOS = [
     { nombre: "sga-principal",  url: "http://localhost:8080/actuator/health",     puerto: 8080, descripcion: "Sistema Principal" },
-    { nombre: "sga-docente",    url: "http://localhost:8081/api/docente/",        puerto: 8081, descripcion: "Microservicio Docente (Django)" },
-    { nombre: "sga-soporte",    url: "http://localhost:5178/health",              puerto: 5178, descripcion: "Soporte Técnico" },
+    { nombre: "sga-docente",    url: "http://localhost:8081/health",              puerto: 8081, descripcion: "Microservicio Docente (Django)" },
+    { nombre: "sga-soporte",    url: "http://localhost:8083/actuator/health",     puerto: 8083, descripcion: "Soporte Técnico" },
 ];
 
 const accionBadge = (accion) => {
@@ -34,7 +35,6 @@ const formatFecha = (iso) => {
 export default function Dashboard() {
     const navigate  = useNavigate();
     const token     = localStorage.getItem("token");
-    const username  = localStorage.getItem("username") || "";
     const roles     = JSON.parse(localStorage.getItem("roles") || "[]");
     const headers   = { Authorization: `Bearer ${token}` };
 
@@ -56,7 +56,7 @@ export default function Dashboard() {
         cargarAuditoria();
     }, []);
 
-    // ── Salud de microservicios ───────────────────────────────
+    // ── Salud de microservicios (SIN Authorization header) ───
     const verificarSalud = useCallback(async () => {
         setLoadingSalud(true);
         const resultados = {};
@@ -64,9 +64,11 @@ export default function Dashboard() {
             SERVICIOS.map(async (s) => {
                 const inicio = Date.now();
                 try {
-                    const r = await axios.get(s.url, { timeout: 4000, headers });
+                    // Los healthchecks son públicos, NO enviamos Authorization header para evitar fallos de preflight CORS
+                    const r = await axios.get(s.url, { timeout: 4000 });
+                    const isUp = r.data?.status === "UP" || r.data?.status === "active" || r.status === 200;
                     resultados[s.nombre] = {
-                        estado: r.data?.status === "UP" ? "UP" : "DEGRADED",
+                        estado: isUp ? "UP" : "DEGRADED",
                         latencia: Date.now() - inicio,
                         detalle: r.data,
                     };
@@ -125,46 +127,12 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50">
-
-            {/* TOPBAR */}
-            <header style={{ backgroundColor: PRIMARY }} className="h-14 flex items-center justify-between px-4 shadow z-30 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                    </div>
-                    <span className="text-white font-bold text-sm">SGA</span>
-                    <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Monitoreo del Sistema</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => navigate("/soporte")}
-                        className="text-white text-opacity-70 hover:text-opacity-100 text-xs px-3 py-1.5 border border-white border-opacity-20 rounded-lg transition"
-                    >
-                        ← Soporte
-                    </button>
-                    <button
-                        onClick={() => navigate("/usuarios")}
-                        className="text-white text-opacity-70 hover:text-opacity-100 text-xs px-3 py-1.5 border border-white border-opacity-20 rounded-lg transition"
-                    >
-                        Usuarios
-                    </button>
-                    <div style={{ backgroundColor: PRIMARY_LIGHT }} className="flex items-center gap-2 px-3 py-1.5 rounded-lg">
-                        <div className="w-7 h-7 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">
-                            {username.charAt(0)}
-                        </div>
-                        <span className="text-white text-xs font-medium hidden sm:inline capitalize">{username}</span>
-                    </div>
-                </div>
-            </header>
-
-            <main className="flex-1 p-4 max-w-7xl mx-auto w-full space-y-6">
+        <Layout breadcrumb={["Inicio", "Monitoreo del sistema"]}>
+            <div className="space-y-6">
 
                 {/* ── SECCIÓN: ESTADO SERVICIOS ─────────────────────── */}
                 <section>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-4">
                         <div>
                             <h2 className="text-base font-bold text-slate-800">Estado de microservicios</h2>
                             <p className="text-xs text-slate-400">
@@ -176,7 +144,7 @@ export default function Dashboard() {
                         <button
                             onClick={verificarSalud}
                             disabled={loadingSalud}
-                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition text-slate-600 disabled:opacity-50"
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition text-slate-600 disabled:opacity-50 shadow-sm"
                         >
                             <svg className={`w-3.5 h-3.5 ${loadingSalud ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -185,44 +153,67 @@ export default function Dashboard() {
                         </button>
                     </div>
 
-                    {/* Resumen */}
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                        <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-                            <p className="text-2xl font-bold text-slate-800">{totalServicios}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Total servicios</p>
+                    {/* Resumen Cards (rounded-2xl, sombra suave, ícono a la izquierda + número grande + label debajo) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition">
+                            <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#243A76] flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-2xl font-extrabold text-slate-800">{totalServicios}</p>
+                                <p className="text-xs font-medium text-slate-400 mt-0.5">Total de Servicios</p>
+                            </div>
                         </div>
-                        <div className="bg-white rounded-xl border border-green-200 p-4 text-center">
-                            <p className="text-2xl font-bold text-green-600">{serviciosUP}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Activos</p>
+
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition">
+                            <div className="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-2xl font-extrabold text-green-600">{serviciosUP}</p>
+                                <p className="text-xs font-medium text-slate-400 mt-0.5">Servicios Activos</p>
+                            </div>
                         </div>
-                        <div className="bg-white rounded-xl border border-red-200 p-4 text-center">
-                            <p className="text-2xl font-bold text-red-600">{serviciosDOWN}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Caídos</p>
+
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition">
+                            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-2xl font-extrabold text-red-600">{serviciosDOWN}</p>
+                                <p className="text-xs font-medium text-slate-400 mt-0.5">Servicios Caídos</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Tarjetas de servicios */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Tarjetas de microservicios (rounded-2xl) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {SERVICIOS.map(s => {
                             const info   = salud[s.nombre];
                             const estado = info?.estado || (loadingSalud ? "LOADING" : "UNKNOWN");
                             const c      = estadoColor(estado);
 
                             return (
-                                <div key={s.nombre} className="bg-white rounded-xl border border-slate-200 p-4">
+                                <div key={s.nombre} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
-                                            <p className="font-semibold text-slate-800 text-sm">{s.descripcion}</p>
-                                            <p className="text-xs text-slate-400 font-mono">:{s.puerto}</p>
+                                            <p className="font-bold text-slate-800 text-sm">{s.descripcion}</p>
+                                            <p className="text-xs text-slate-400 font-mono">Puerto :{s.puerto}</p>
                                         </div>
                                         {loadingSalud ? (
-                                            <div className="w-2.5 h-2.5 bg-slate-300 rounded-full animate-pulse mt-1" />
+                                            <div className="w-3 h-3 bg-slate-300 rounded-full animate-pulse mt-1" />
                                         ) : (
-                                            <div className={`w-2.5 h-2.5 rounded-full mt-1 ${c.dot}`} />
+                                            <div className={`w-3 h-3 rounded-full mt-1 ${c.dot}`} />
                                         )}
                                     </div>
 
-                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
+                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
                                         {loadingSalud ? (
                                             <span>Verificando…</span>
                                         ) : (
@@ -235,13 +226,13 @@ export default function Dashboard() {
                                         )}
                                     </div>
 
-                                    {/* Componentes internos si los hay */}
+                                    {/* Componentes internos Spring Boot Actuator */}
                                     {info?.detalle?.components && (
-                                        <div className="mt-3 space-y-1">
+                                        <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5">
                                             {Object.entries(info.detalle.components).map(([comp, val]) => (
                                                 <div key={comp} className="flex items-center justify-between text-xs text-slate-500">
                                                     <span className="capitalize">{comp}</span>
-                                                    <span className={val.status === "UP" ? "text-green-600" : "text-red-600"}>
+                                                    <span className={`font-semibold ${val.status === "UP" ? "text-green-600" : "text-red-600"}`}>
                                                         {val.status}
                                                     </span>
                                                 </div>
@@ -264,7 +255,7 @@ export default function Dashboard() {
                         <button
                             onClick={cargarAuditoria}
                             disabled={loadingAudit}
-                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition text-slate-600 disabled:opacity-50"
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition text-slate-600 disabled:opacity-50 shadow-sm"
                         >
                             <svg className={`w-3.5 h-3.5 ${loadingAudit ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -280,12 +271,12 @@ export default function Dashboard() {
                             placeholder="Buscar por usuario, acción, IP..."
                             value={filtroBusq}
                             onChange={e => setFiltroBusq(e.target.value)}
-                            className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                            className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
                         />
                         <select
                             value={filtroAccion}
                             onChange={e => setFiltroAccion(e.target.value)}
-                            className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white"
+                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none bg-white text-slate-700"
                         >
                             {accionesUnicas.map(a => (
                                 <option key={a} value={a}>{a}</option>
@@ -294,15 +285,15 @@ export default function Dashboard() {
                     </div>
 
                     {loadingAudit ? (
-                        <div className="flex items-center justify-center h-32 text-slate-400 text-sm">
-                            <svg className="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <div className="flex items-center justify-center h-32 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">
+                            <svg className="w-5 h-5 mr-2 animate-spin text-[#243A76]" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                             </svg>
                             Cargando auditoría...
                         </div>
                     ) : auditoria.length === 0 ? (
-                        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400 text-sm">
+                        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-sm shadow-sm">
                             <svg className="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
@@ -310,7 +301,7 @@ export default function Dashboard() {
                             <span className="text-xs">Verifica que el endpoint <code className="bg-slate-100 px-1 rounded">/api/auditoria</code> esté disponible en sga-principal.</span>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
@@ -355,12 +346,7 @@ export default function Dashboard() {
                         </div>
                     )}
                 </section>
-            </main>
-
-            {/* FOOTER */}
-            <footer style={{ backgroundColor: PRIMARY }} className="text-white text-opacity-80 text-xs text-center py-2 flex-shrink-0">
-                Sistema de Gestión Académica · Escuela Provincias Unidas © 2026
-            </footer>
-        </div>
+            </div>
+        </Layout>
     );
 }

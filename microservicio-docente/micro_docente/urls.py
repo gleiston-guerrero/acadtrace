@@ -16,12 +16,24 @@ def api_root(request):
     })
 
 
+def health_check(request):
+    return JsonResponse({
+        "status": "UP",
+        "service": "Microservicio Docente"
+    })
+
+
 urlpatterns = [
     path("", api_root),
+    path("health", health_check),
+    path("health/", health_check),
     path("admin/", admin.site.urls),
     path("api/docente/", include("docentes.urls")),
     path("", include("django_prometheus.urls")),
 ]
 
+<<<<<<< HEAD
+=======
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+>>>>>>> de8866e6423acff01ffdc304ac29bc97ad14ff7d

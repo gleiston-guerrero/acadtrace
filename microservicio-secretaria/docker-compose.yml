@@ -1,27 +1,136 @@
+version: '3.8'
+
 services:
-  postgres:
-    image: postgres:17
-    container_name: sga-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sga
-    ports:
-      - "5433:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  # No depende del servicio "postgres" de arriba: la app se conecta a Supabase
-  # (DB_HOST/DB_PORT en .env), no a este Postgres local.
-  secretaria:
+  # ─── 1. SGA PRINCIPAL (Java Spring Boot) ───
+  sga-principal:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
-    container_name: sga-secretaria
-    env_file:
-      - .env
+      context: ./sga-principal
+      dockerfile: Dockerfile
+    container_name: sga-principal
     ports:
-      - "${PORT:-5176}:5176"
+      - "8080:8080"   # REST Gateway
+      - "9092:9092"   # gRPC Server
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - grpc.client.docente-service.address=static://microservicio-docente:9091
+    networks:
+      - sga-distribuido-net
 
-volumes:
-  pgdata:
+  # ─── 2. MICROSERVICIO DOCENTE (Django + gRPC) ───
+  microservicio-docente:
+    build:
+      context: ./microservicio-docente
+      dockerfile: Dockerfile
+    container_name: microservicio-docente
+    ports:
+      - "8081:8000"   # REST (el contenedor Django siempre escucha en 8000, ver Dockerfile)
+      - "9091:9091"   # gRPC Server
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+
+  # ─── 3. MICROSERVICIO SECRETARÍA ───
+  microservicio-secretaria:
+    build:
+      context: ./microservicio-secretaria
+      dockerfile: backend/Dockerfile
+    container_name: microservicio-secretaria
+    ports:
+      - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - JWT_SECRET=***REMOVED***
+      - AES_SECRET_KEY=***REMOVED-AES-SECRET***=
+      - GRPC_PRINCIPAL_HOST=sga-principal
+      - GRPC_PRINCIPAL_PORT=9092
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+
+  # ─── 4. MICROSERVICIO SOPORTE ───
+  microservicio-soporte:
+    build:
+      context: ./microservicio-soporte/backend
+      dockerfile: Dockerfile
+    container_name: microservicio-soporte
+    ports:
+      - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
+    environment:
+      - DB_HOST=192.0.2.1
+      - DB_PORT=5433
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - JWT_SECRET=***REMOVED***
+      - PRINCIPAL_GRPC_HOST=sga-principal
+      - PRINCIPAL_GRPC_PORT=9092
+      - ETCD_ENDPOINTS=http://etcd:2379
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - etcd
+
+  # ─── 4b. ETCD (coordinacion / eleccion de lider entre replicas de soporte) ───
+  etcd:
+    image: bitnami/etcd:3.5
+    container_name: etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - "2379:2379"
+    networks:
+      - sga-distribuido-net
+
+  # ─── 5. FRONTEND SGA (React + Vite) ───
+  sga-frontend:
+    image: node:20-alpine
+    container_name: sga-frontend
+    working_dir: /app
+    volumes:
+      - ./sga-principal/sga-frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - sga-principal
+
+  # ─── 6. FRONTEND DOCENTE (React + Vite) ───
+  docente-frontend:
+    image: node:20-alpine
+    container_name: docente-frontend
+    working_dir: /app
+    volumes:
+      - ./microservicio-docente/frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
+    networks:
+      - sga-distribuido-net
+    depends_on:
+      - microservicio-docente
+
+networks:
+  sga-distribuido-net:
+    driver: bridge
