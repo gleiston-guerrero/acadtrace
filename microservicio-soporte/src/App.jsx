@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Soporte  from "./pages/Soporte";
 import Usuarios from "./pages/Usuarios";
 import Dashboard from "./pages/Dashboard";
+import Reportes  from "./pages/Reportes";
 
 // El login vive únicamente en el SGA Principal. Aquí solo se entra por handoff SSO
 // (ver capturarSesionSSO en main.jsx). Sin token, se redirige al login del principal.
@@ -20,6 +21,7 @@ function App() {
             <Routes>
                 <Route path="/"          element={<Navigate to="/dashboard" />} />
                 <Route path="/soporte"   element={<PrivateRoute><Soporte /></PrivateRoute>} />
+                <Route path="/reportes"  element={<PrivateRoute><Reportes /></PrivateRoute>} />
                 <Route path="/usuarios"  element={<PrivateRoute><Usuarios /></PrivateRoute>} />
                 <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                 <Route path="*"          element={<Navigate to="/dashboard" />} />

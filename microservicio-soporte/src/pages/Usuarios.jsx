@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Layout from "../components/Layout";
 
 const API_PRINCIPAL = "http://localhost:8080/api";
 const PRIMARY = "#243A76";
@@ -212,52 +213,23 @@ export default function Usuarios() {
     const modalBg = { backgroundColor: "rgba(36,58,118,0.5)" };
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50">
-
-            {/* TOPBAR */}
-            <header style={{ backgroundColor: PRIMARY }} className="h-14 flex items-center justify-between px-4 shadow z-30 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        <Layout breadcrumb={["Inicio", "Usuarios"]}>
+            <div className="space-y-4">
+                {/* ALERTAS */}
+                {success && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 text-green-700 text-sm flex items-center gap-2 shadow-sm">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
+                        {success}
                     </div>
-                    <span className="text-white font-bold text-sm">SGA</span>
-                    <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Gestión de Usuarios</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => navigate("/soporte")}
-                        className="text-white text-opacity-70 hover:text-opacity-100 text-xs px-3 py-1.5 border border-white border-opacity-20 rounded-lg transition"
-                    >
-                        ← Soporte
-                    </button>
-                    <div style={{ backgroundColor: PRIMARY_LIGHT }} className="flex items-center gap-2 px-3 py-1.5 rounded-lg">
-                        <div className="w-7 h-7 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">
-                            {username.charAt(0)}
-                        </div>
-                        <span className="text-white text-xs font-medium hidden sm:inline capitalize">{username}</span>
+                )}
+                {error && !showModal && !showReset && !showRoles && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-red-600 text-sm shadow-sm">
+                        {error}
                     </div>
-                </div>
-            </header>
+                )}
 
-            {/* ALERTAS */}
-            {success && (
-                <div className="mx-4 mt-3 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 text-green-700 text-sm flex items-center gap-2">
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {success}
-                </div>
-            )}
-            {error && !showModal && !showReset && !showRoles && (
-                <div className="mx-4 mt-3 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-red-600 text-sm">
-                    {error}
-                </div>
-            )}
-
-            {/* MAIN */}
-            <main className="flex-1 p-4 max-w-7xl mx-auto w-full">
 
                 {/* CABECERA */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -420,12 +392,7 @@ export default function Usuarios() {
                         </div>
                     </div>
                 )}
-            </main>
 
-            {/* FOOTER */}
-            <footer style={{ backgroundColor: PRIMARY }} className="text-white text-opacity-80 text-xs text-center py-2 flex-shrink-0">
-                Sistema de Gestión Académica · Escuela Provincias Unidas © 2026
-            </footer>
 
             {/* ── MODAL CREAR / EDITAR ─────────────────────────────── */}
             {showModal && (
@@ -646,6 +613,7 @@ export default function Usuarios() {
                     </div>
                 </div>
             )}
-        </div>
+            </div>
+        </Layout>
     );
 }

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Layout from "../components/Layout";
 
 const API = "/api/soporte";
 const PRIMARY = "#243A76";
-const PRIMARY_LIGHT = "#2d4a96";
 
 const categoriaBadge = (c) => {
     const map = {
@@ -46,7 +46,6 @@ export default function Reportes() {
 
     const navigate  = useNavigate();
     const token     = localStorage.getItem("token");
-    const username  = localStorage.getItem("username") || "";
     const roles     = JSON.parse(localStorage.getItem("roles") || "[]");
     const esTecnico = roles.includes("SOPORTE_TECNICO") || roles.includes("ADMINISTRADOR");
     const headers   = { Authorization: `Bearer ${token}` };
@@ -60,107 +59,52 @@ export default function Reportes() {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleLogout = () => {
-        localStorage.clear();
-        window.location.href = "http://localhost:5173/login";
-    };
-
     const maxCategoria = data ? Math.max(...data.porCategoria.map(c => c.total), 1) : 1;
     const maxTecnico   = data ? Math.max(...data.porTecnico.map(t => t.total), 1) : 1;
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50">
-
-            {/* TOPBAR */}
-            <header style={{ backgroundColor: PRIMARY }} className="h-14 flex items-center justify-between px-4 shadow z-30 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </div>
-                    <span className="text-white font-bold text-sm">SGA</span>
-                    <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Reportes de Soporte</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div style={{ backgroundColor: PRIMARY_LIGHT }} className="flex items-center gap-2 px-3 py-1.5 rounded-lg">
-                        <div className="w-7 h-7 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">
-                            {username.charAt(0)}
-                        </div>
-                        <span className="text-white text-xs font-medium hidden sm:inline capitalize">{username}</span>
-                    </div>
-                    <button
-                        onClick={() => navigate("/soporte")}
-                        className="text-white text-opacity-70 hover:text-opacity-100 text-xs px-3 py-1.5 border border-white border-opacity-20 rounded-lg transition hidden sm:flex items-center gap-1.5"
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-                        </svg>
-                        Tickets
-                    </button>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white hover:bg-white hover:bg-opacity-10 transition"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Salir
-                    </button>
-                </div>
-            </header>
-
-            {/* BREADCRUMB */}
-            <div className="bg-white border-b border-slate-200 px-6 py-2">
-                <nav className="text-xs text-slate-500 flex items-center gap-1">
-                    <span className="hover:underline cursor-pointer" onClick={() => navigate("/soporte")}>Soporte Técnico</span>
-                    <span className="text-slate-300">/</span>
-                    <span style={{ color: PRIMARY }} className="font-medium">Reportes</span>
-                </nav>
-            </div>
-
-            {/* CONTENIDO */}
-            <main className="flex-1 p-6">
+        <Layout breadcrumb={["Inicio", "Reportes"]}>
+            <div className="space-y-6">
                 {error && (
-                    <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+                    <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-sm">
                         <span className="text-red-600 text-sm">{error}</span>
                         <button onClick={() => setError("")} className="text-red-400 hover:text-red-600">✕</button>
                     </div>
                 )}
 
-                <div className="mb-5">
-                    <h1 className="text-lg font-bold text-slate-700">Reportes</h1>
-                    <p className="text-xs text-slate-400">Tickets por categoría, por técnico y tiempos de resolución</p>
+                <div>
+                    <h1 className="text-xl font-bold text-slate-800">Reportes de Soporte</h1>
+                    <p className="text-xs text-slate-400 mt-0.5">Tickets por categoría, por técnico y tiempos de resolución</p>
                 </div>
 
                 {loading ? (
-                    <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-400 text-sm">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-sm shadow-sm">
                         Cargando reportes...
                     </div>
                 ) : !data ? null : (
-                    <div className="space-y-5">
+                    <div className="space-y-6">
 
                         {/* Tiempo promedio general */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-white rounded-xl border border-slate-200 p-4">
-                                <p className="text-xs text-slate-400 mb-1">Tiempo promedio de resolución</p>
-                                <p className="text-2xl font-bold" style={{ color: PRIMARY }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+                                <p className="text-xs font-medium text-slate-400 mb-1">Tiempo promedio de resolución</p>
+                                <p className="text-3xl font-extrabold" style={{ color: PRIMARY }}>
                                     {formatHoras(data.tiempoPromedioGeneral.horasPromedio)}
                                 </p>
                             </div>
-                            <div className="bg-white rounded-xl border border-slate-200 p-4">
-                                <p className="text-xs text-slate-400 mb-1">Tickets resueltos considerados</p>
-                                <p className="text-2xl font-bold text-slate-700">
+                            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+                                <p className="text-xs font-medium text-slate-400 mb-1">Tickets resueltos considerados</p>
+                                <p className="text-3xl font-extrabold text-slate-700">
                                     {data.tiempoPromedioGeneral.ticketsResueltos}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                             {/* Por categoría */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                                <h2 className="text-sm font-bold text-slate-700 mb-4">Tickets por categoría</h2>
+                            <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 p-6">
+                                <h2 className="text-sm font-bold text-slate-800 mb-4">Tickets por categoría</h2>
                                 {data.porCategoria.length === 0 ? (
                                     <p className="text-xs text-slate-400 italic">Sin datos aún.</p>
                                 ) : (
@@ -176,9 +120,9 @@ export default function Reportes() {
                                         ))}
                                     </div>
                                 )}
-                                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
+                                <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
                                     {data.porCategoria.map(c => (
-                                        <span key={c.categoria} className={`text-[11px] px-2 py-1 rounded-lg font-medium ${categoriaBadge(c.categoria)}`}>
+                                        <span key={c.categoria} className={`text-[11px] px-2.5 py-1 rounded-lg font-medium ${categoriaBadge(c.categoria)}`}>
                                             {c.categoria}: {c.resueltos}/{c.total} resueltos
                                         </span>
                                     ))}
@@ -186,8 +130,8 @@ export default function Reportes() {
                             </div>
 
                             {/* Por técnico */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                                <h2 className="text-sm font-bold text-slate-700 mb-4">Tickets por técnico</h2>
+                            <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 p-6">
+                                <h2 className="text-sm font-bold text-slate-800 mb-4">Tickets por técnico</h2>
                                 {data.porTecnico.length === 0 ? (
                                     <p className="text-xs text-slate-400 italic">Aún no hay tickets asignados.</p>
                                 ) : (
@@ -204,21 +148,21 @@ export default function Reportes() {
                                     </div>
                                 )}
                                 {data.porTecnico.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t border-slate-100 overflow-x-auto">
+                                    <div className="mt-5 pt-4 border-t border-slate-100 overflow-x-auto">
                                         <table className="w-full text-xs">
                                             <thead>
-                                                <tr className="text-slate-400 text-left">
-                                                    <th className="pb-1 font-medium">Técnico</th>
-                                                    <th className="pb-1 font-medium text-right">Resueltos</th>
-                                                    <th className="pb-1 font-medium text-right">Prom.</th>
+                                                <tr className="text-slate-400 text-left border-b border-slate-100">
+                                                    <th className="pb-2 font-medium">Técnico</th>
+                                                    <th className="pb-2 font-medium text-right">Resueltos</th>
+                                                    <th className="pb-2 font-medium text-right">Promedio</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
                                                 {data.porTecnico.map(t => (
                                                     <tr key={t.tecnico}>
-                                                        <td className="py-1.5 text-slate-600">{t.tecnico}</td>
-                                                        <td className="py-1.5 text-right text-slate-600">{t.resueltos}/{t.total}</td>
-                                                        <td className="py-1.5 text-right font-medium text-slate-700">
+                                                        <td className="py-2 text-slate-600 font-medium">{t.tecnico}</td>
+                                                        <td className="py-2 text-right text-slate-600">{t.resueltos}/{t.total}</td>
+                                                        <td className="py-2 text-right font-semibold text-slate-700">
                                                             {formatHoras(t.horasPromedio)}
                                                         </td>
                                                     </tr>
@@ -231,21 +175,21 @@ export default function Reportes() {
                         </div>
 
                         {/* Tiempo promedio por categoría */}
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                            <h2 className="text-sm font-bold text-slate-700 mb-4">Tiempo promedio de resolución por categoría</h2>
+                        <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 p-6">
+                            <h2 className="text-sm font-bold text-slate-800 mb-4">Tiempo promedio de resolución por categoría</h2>
                             {data.tiempoPromedioPorCategoria.length === 0 ? (
                                 <p className="text-xs text-slate-400 italic">Sin datos aún.</p>
                             ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                                     {data.tiempoPromedioPorCategoria.map(c => (
-                                        <div key={c.categoria} className="rounded-lg border border-slate-200 p-3 text-center">
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${categoriaBadge(c.categoria)}`}>
+                                        <div key={c.categoria} className="rounded-xl border border-slate-200 p-4 text-center bg-slate-50/50">
+                                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-medium ${categoriaBadge(c.categoria)}`}>
                                                 {c.categoria}
                                             </span>
-                                            <p className="text-lg font-bold text-slate-700 mt-2">
+                                            <p className="text-xl font-bold text-slate-800 mt-2">
                                                 {formatHoras(c.horasPromedio)}
                                             </p>
-                                            <p className="text-[11px] text-slate-400">{c.ticketsResueltos} resueltos</p>
+                                            <p className="text-[11px] text-slate-400 mt-0.5">{c.ticketsResueltos} resueltos</p>
                                         </div>
                                     ))}
                                 </div>
@@ -253,7 +197,7 @@ export default function Reportes() {
                         </div>
                     </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </Layout>
     );
 }
