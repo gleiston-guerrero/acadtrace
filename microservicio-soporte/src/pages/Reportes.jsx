@@ -89,13 +89,13 @@ export default function Reportes() {
                             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
                                 <p className="text-xs font-medium text-slate-400 mb-1">Tiempo promedio de resolución</p>
                                 <p className="text-3xl font-extrabold" style={{ color: PRIMARY }}>
-                                    {formatHoras(data.tiempoPromedioGeneral.horasPromedio)}
+                                    {formatHoras(data.general.tiempoPromedioHoras)}
                                 </p>
                             </div>
                             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
                                 <p className="text-xs font-medium text-slate-400 mb-1">Tickets resueltos considerados</p>
                                 <p className="text-3xl font-extrabold text-slate-700">
-                                    {data.tiempoPromedioGeneral.ticketsResueltos}
+                                    {data.general.ticketsResueltos}
                                 </p>
                             </div>
                         </div>
@@ -163,7 +163,7 @@ export default function Reportes() {
                                                         <td className="py-2 text-slate-600 font-medium">{t.tecnico}</td>
                                                         <td className="py-2 text-right text-slate-600">{t.resueltos}/{t.total}</td>
                                                         <td className="py-2 text-right font-semibold text-slate-700">
-                                                            {formatHoras(t.horasPromedio)}
+                                                            {formatHoras(t.tiempoPromedioHoras)}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -177,19 +177,19 @@ export default function Reportes() {
                         {/* Tiempo promedio por categoría */}
                         <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 p-6">
                             <h2 className="text-sm font-bold text-slate-800 mb-4">Tiempo promedio de resolución por categoría</h2>
-                            {data.tiempoPromedioPorCategoria.length === 0 ? (
+                            {data.porCategoria.length === 0 ? (
                                 <p className="text-xs text-slate-400 italic">Sin datos aún.</p>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                                    {data.tiempoPromedioPorCategoria.map(c => (
+                                    {data.porCategoria.map(c => (
                                         <div key={c.categoria} className="rounded-xl border border-slate-200 p-4 text-center bg-slate-50/50">
                                             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-medium ${categoriaBadge(c.categoria)}`}>
                                                 {c.categoria}
                                             </span>
                                             <p className="text-xl font-bold text-slate-800 mt-2">
-                                                {formatHoras(c.horasPromedio)}
+                                                {formatHoras(c.tiempoPromedioHoras)}
                                             </p>
-                                            <p className="text-[11px] text-slate-400 mt-0.5">{c.ticketsResueltos} resueltos</p>
+                                            <p className="text-[11px] text-slate-400 mt-0.5">{c.resueltos} resueltos</p>
                                         </div>
                                     ))}
                                 </div>
