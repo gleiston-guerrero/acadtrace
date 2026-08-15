@@ -30,13 +30,36 @@ function Icono({ tipo }) {
   return <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={paths[tipo]} /></svg>;
 }
 
+const ICONO_MENU = {
+  cursos: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+  calendario: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+  pendientes: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  asistencia: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+  notas: "M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 0h6m-6 0H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-4",
+};
+
+const IconoSvg = ({ path }) => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={path} />
+  </svg>
+);
+
 export default function AulaVirtual() {
   const [asignaciones, setAsignaciones] = useState([]);
   const [resumenes, setResumenes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [seccion, setSeccion] = useState("cursos");
   const navigate = useNavigate();
   const username = localStorage.getItem("username") || "Docente";
+
+  const menuItems = [
+    { id: "cursos",      label: "Mis cursos",              icon: <IconoSvg path={ICONO_MENU.cursos} /> },
+    { id: "calendario",  label: "Calendario académico",    icon: <IconoSvg path={ICONO_MENU.calendario} /> },
+    { id: "pendientes",  label: "Actividades pendientes",  icon: <IconoSvg path={ICONO_MENU.pendientes} /> },
+    { id: "asistencia",  label: "Asistencia rápida",       icon: <IconoSvg path={ICONO_MENU.asistencia} /> },
+    { id: "notas",       label: "Calificaciones",          icon: <IconoSvg path={ICONO_MENU.notas} /> },
+  ];
 
   useEffect(() => {
     const cargarCursos = async () => {
@@ -64,19 +87,45 @@ export default function AulaVirtual() {
     cargarCursos();
   }, []);
 
+  const titulos = {
+    cursos:      { titulo: "Aula Virtual",              subtitulo: "Selecciona uno de tus cursos para revisar su agenda académica." },
+    calendario:  { titulo: "Calendario académico",      subtitulo: "Vista global de los trimestres y fechas clave del año lectivo." },
+    pendientes:  { titulo: "Actividades pendientes",    subtitulo: "Tareas y exámenes por calificar, filtrables por curso y estudiante." },
+    asistencia:  { titulo: "Asistencia rápida",         subtitulo: "Registra la asistencia del día sin entrar a cada curso." },
+    notas:       { titulo: "Calificaciones",            subtitulo: "Consolidado de promedios por curso y estudiante." },
+  };
+  const cabecera = titulos[seccion] || titulos.cursos;
+
   return (
-    <Layout breadcrumb={["Inicio", "Aula Virtual"]} sidebarTitle="AULA VIRTUAL">
+    <Layout
+      breadcrumb={["Inicio", "Aula Virtual"]}
+      sidebarTitle="AULA VIRTUAL"
+      menuItems={menuItems}
+      seccion={seccion}
+      onSeccionChange={setSeccion}
+    >
       <section className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2d4a96]">Portal docente</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-800">Aula Virtual</h1>
-          <p className="mt-1 text-sm text-slate-500">Selecciona uno de tus cursos para revisar su agenda académica.</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-800">{cabecera.titulo}</h1>
+          <p className="mt-1 text-sm text-slate-500">{cabecera.subtitulo}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm">
           <p className="text-xs text-slate-400">Docente titular</p>
           <p className="text-sm font-semibold capitalize text-slate-700">{username}</p>
         </div>
       </section>
+
+      {seccion !== "cursos" && (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">Próximamente</p>
+          <p className="mt-1 text-xs text-slate-400">Esta sección se habilitará en la siguiente iteración del aula virtual.</p>
+        </div>
+      )}
+
+      {seccion === "cursos" && (
+      <>
+
 
       {loading && (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -168,6 +217,8 @@ export default function AulaVirtual() {
             );
           })}
         </div>
+      )}
+      </>
       )}
     </Layout>
   );
