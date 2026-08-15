@@ -32,8 +32,5 @@ urlpatterns = [
     path("", include("django_prometheus.urls")),
 ]
 
-<<<<<<< HEAD
-=======
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
->>>>>>> de8866e6423acff01ffdc304ac29bc97ad14ff7d
