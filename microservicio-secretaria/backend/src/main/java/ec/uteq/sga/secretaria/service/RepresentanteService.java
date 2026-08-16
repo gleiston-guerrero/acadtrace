@@ -26,10 +26,12 @@ public class RepresentanteService {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final CryptoService crypto;
+    private final AuditoriaService auditoriaService;
 
-    public RepresentanteService(NamedParameterJdbcTemplate jdbc, CryptoService crypto) {
+    public RepresentanteService(NamedParameterJdbcTemplate jdbc, CryptoService crypto, AuditoriaService auditoriaService) {
         this.jdbc = jdbc;
         this.crypto = crypto;
+        this.auditoriaService = auditoriaService;
     }
 
     private Map<String, Object> descifrarFila(Map<String, Object> row) {
@@ -106,7 +108,11 @@ public class RepresentanteService {
                    :contactoEmergenciaNombre, :contactoEmergenciaTelefono, :observaciones)
                 RETURNING *
                 """;
-        return descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
+        Map<String, Object> creado = descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
+        Long idCreado = ((Number) creado.get("id_representante")).longValue();
+        auditoriaService.registrarCrud("CREAR", "representante", idCreado,
+                "Representante creado: " + dto.nombres() + " " + dto.apellidos());
+        return creado;
     }
 
     public Map<String, Object> actualizar(long id, RepresentanteRequest dto) {
@@ -150,7 +156,10 @@ public class RepresentanteService {
                 WHERE id_representante = :id
                 RETURNING *
                 """;
-        return descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
+        Map<String, Object> actualizado = descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
+        auditoriaService.registrarCrud("EDITAR", "representante", id,
+                "Representante actualizado: " + actualizado.get("nombres") + " " + actualizado.get("apellidos"));
+        return actualizado;
     }
 
     private MapSqlParameterSource camposExtendidos(RepresentanteRequest dto) {

@@ -41,11 +41,14 @@ public class EstudianteService {
     private final NamedParameterJdbcTemplate jdbc;
     private final CryptoService crypto;
     private final PrincipalGrpcClient principalGrpcClient;
+    private final AuditoriaService auditoriaService;
 
-    public EstudianteService(NamedParameterJdbcTemplate jdbc, CryptoService crypto, PrincipalGrpcClient principalGrpcClient) {
+    public EstudianteService(NamedParameterJdbcTemplate jdbc, CryptoService crypto,
+                              PrincipalGrpcClient principalGrpcClient, AuditoriaService auditoriaService) {
         this.jdbc = jdbc;
         this.crypto = crypto;
         this.principalGrpcClient = principalGrpcClient;
+        this.auditoriaService = auditoriaService;
     }
 
     /**
@@ -197,6 +200,8 @@ public class EstudianteService {
                 .build();
 
         EstudianteProto creado = principalGrpcClient.crearEstudiante(request);
+        auditoriaService.registrarCrud("CREAR", "estudiante", creado.getIdEstudiante(),
+                "Estudiante creado: " + dto.nombres() + " " + dto.apellidos() + " (via gRPC a sga-principal)");
         return posprocesar(fromProto(creado));
     }
 
@@ -259,6 +264,8 @@ public class EstudianteService {
                 .build();
 
         EstudianteProto actualizado = principalGrpcClient.actualizarEstudiante(request);
+        auditoriaService.registrarCrud("EDITAR", "estudiante", id,
+                "Estudiante actualizado: " + nombres + " " + apellidos + " (via gRPC a sga-principal)");
         return posprocesar(fromProto(actualizado));
     }
 
