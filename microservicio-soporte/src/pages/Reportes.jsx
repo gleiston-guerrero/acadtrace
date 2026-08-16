@@ -6,6 +6,20 @@ import Layout from "../components/Layout";
 const API = "/api/soporte";
 const PRIMARY = "#243A76";
 
+const REPORTES_MENU_ITEMS = [
+    {
+        id: "reportes",
+        label: "Reportes",
+        color: "bg-rose-50",
+        iconColor: "text-rose-500",
+        icon: (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        ),
+    },
+];
+
 const categoriaBadge = (c) => {
     const map = {
         HARDWARE: "bg-purple-100 text-purple-600",
@@ -63,7 +77,7 @@ export default function Reportes() {
     const maxTecnico   = data ? Math.max(...data.porTecnico.map(t => t.total), 1) : 1;
 
     return (
-        <Layout breadcrumb={["Inicio", "Reportes"]}>
+        <Layout breadcrumb={["Inicio", "Reportes"]} sidebarTitle="Reportes" menuItems={REPORTES_MENU_ITEMS} seccion="reportes">
             <div className="space-y-6">
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-sm">
@@ -89,13 +103,13 @@ export default function Reportes() {
                             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
                                 <p className="text-xs font-medium text-slate-400 mb-1">Tiempo promedio de resolución</p>
                                 <p className="text-3xl font-extrabold" style={{ color: PRIMARY }}>
-                                    {formatHoras(data.tiempoPromedioGeneral.horasPromedio)}
+                                    {formatHoras(data.general.tiempoPromedioHoras)}
                                 </p>
                             </div>
                             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
                                 <p className="text-xs font-medium text-slate-400 mb-1">Tickets resueltos considerados</p>
                                 <p className="text-3xl font-extrabold text-slate-700">
-                                    {data.tiempoPromedioGeneral.ticketsResueltos}
+                                    {data.general.ticketsResueltos}
                                 </p>
                             </div>
                         </div>
@@ -163,7 +177,7 @@ export default function Reportes() {
                                                         <td className="py-2 text-slate-600 font-medium">{t.tecnico}</td>
                                                         <td className="py-2 text-right text-slate-600">{t.resueltos}/{t.total}</td>
                                                         <td className="py-2 text-right font-semibold text-slate-700">
-                                                            {formatHoras(t.horasPromedio)}
+                                                            {formatHoras(t.tiempoPromedioHoras)}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -177,19 +191,19 @@ export default function Reportes() {
                         {/* Tiempo promedio por categoría */}
                         <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 p-6">
                             <h2 className="text-sm font-bold text-slate-800 mb-4">Tiempo promedio de resolución por categoría</h2>
-                            {data.tiempoPromedioPorCategoria.length === 0 ? (
+                            {data.porCategoria.length === 0 ? (
                                 <p className="text-xs text-slate-400 italic">Sin datos aún.</p>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                                    {data.tiempoPromedioPorCategoria.map(c => (
+                                    {data.porCategoria.map(c => (
                                         <div key={c.categoria} className="rounded-xl border border-slate-200 p-4 text-center bg-slate-50/50">
                                             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-medium ${categoriaBadge(c.categoria)}`}>
                                                 {c.categoria}
                                             </span>
                                             <p className="text-xl font-bold text-slate-800 mt-2">
-                                                {formatHoras(c.horasPromedio)}
+                                                {formatHoras(c.tiempoPromedioHoras)}
                                             </p>
-                                            <p className="text-[11px] text-slate-400 mt-0.5">{c.ticketsResueltos} resueltos</p>
+                                            <p className="text-[11px] text-slate-400 mt-0.5">{c.resueltos} resueltos</p>
                                         </div>
                                     ))}
                                 </div>
