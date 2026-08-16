@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../config/axios";
 import logo from "../assets/logo.png";
 
@@ -113,6 +113,7 @@ export default function Layout({
   const [lastRefreshNotif, setLastRefreshNotif] = useState(new Date());
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const username = localStorage.getItem("username") || "Usuario";
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
@@ -163,6 +164,11 @@ export default function Layout({
     localStorage.clear();
     window.location.href = "http://localhost:5173/login";
   };
+
+  // menuItems === undefined -> nadie definió nada, usar el sidebar genérico.
+  // menuItems === [] (arreglo vacío explícito) -> esta página no quiere sidebar.
+  const finalMenuItems = menuItems === undefined ? DEFAULT_SOPORTE_MENU_ITEMS : menuItems;
+  const hasSidebar = finalMenuItems.length > 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
@@ -566,10 +572,65 @@ export default function Layout({
       </div>
 
       {/* ================================
-          CONTENIDO
-          SIN SIDEBAR
+          SIDEBAR + CONTENIDO
       ================================= */}
       <div className="flex flex-1 overflow-hidden">
+
+        {hasSidebar && (
+          <aside
+            className="w-56 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200 bg-white overflow-y-auto"
+            style={{ height: "calc(100vh - 7rem)" }}
+          >
+            <div className="p-3">
+              <div className="bg-white rounded-xl border-2 border-dashed border-slate-200 overflow-hidden shadow-sm">
+                {sidebarTitle && (
+                  <p className="px-4 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                    {sidebarTitle}
+                  </p>
+                )}
+                <nav className="py-1 px-2 space-y-1">
+                  {finalMenuItems.map((item) => {
+                    const isActive = seccion ? seccion === item.id : location.pathname === item.path;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          if (item.path) {
+                            navigate(item.path);
+                          }
+                          if (onSeccionChange) {
+                            onSeccionChange(item.id);
+                          }
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-left transition ${
+                          isActive
+                            ? "bg-blue-50 font-medium"
+                            : "text-slate-500 hover:bg-slate-50"
+                        }`}
+                        style={isActive ? { color: PRIMARY } : {}}
+                      >
+                        <span className={`${item.color || "bg-slate-100"} ${item.iconColor || "text-slate-500"} p-1.5 rounded-lg flex-shrink-0`}>
+                          {item.icon}
+                        </span>
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+                <hr className="border-slate-100 mt-1" />
+                <button
+                  onClick={() => (window.location.href = "http://localhost:5173/dashboard")}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left text-slate-400 hover:bg-slate-50 transition"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  Volver al SGA Principal
+                </button>
+              </div>
+            </div>
+          </aside>
+        )}
 
         <main
           className="flex-1 min-w-0 overflow-y-auto p-5"
@@ -579,6 +640,7 @@ export default function Layout({
         </main>
 
       </div>
+
 
       {/* ================================
           FOOTER

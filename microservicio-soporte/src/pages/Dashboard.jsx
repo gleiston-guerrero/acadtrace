@@ -127,7 +127,7 @@ export default function Dashboard() {
     };
 
     return (
-        <Layout breadcrumb={["Inicio", "Monitoreo del sistema"]}>
+        <Layout breadcrumb={["Inicio", "Monitoreo del sistema"]} menuItems={[]}>
             <div className="space-y-6">
 
                 {/* ── SECCIÓN: ACCESOS RÁPIDOS ──────────────────────── */}
