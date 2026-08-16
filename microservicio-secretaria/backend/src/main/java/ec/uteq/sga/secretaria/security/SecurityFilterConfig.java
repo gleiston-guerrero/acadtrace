@@ -1,12 +1,22 @@
 package ec.uteq.sga.secretaria.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ec.uteq.sga.secretaria.common.TraceIdFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SecurityFilterConfig {
+
+    @Bean
+    public FilterRegistrationBean<TraceIdFilter> traceIdFilterRegistration() {
+        FilterRegistrationBean<TraceIdFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new TraceIdFilter());
+        registration.addUrlPatterns("/api/secretario/*");
+        registration.setOrder(0);
+        return registration;
+    }
 
     @Bean
     public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilterRegistration(

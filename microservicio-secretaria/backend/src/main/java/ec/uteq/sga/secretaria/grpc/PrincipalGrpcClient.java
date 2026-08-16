@@ -31,15 +31,20 @@ import ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc;
 import ec.edu.uteq.sga.grpc.principal.RepresentanteProto;
 import ec.edu.uteq.sga.grpc.principal.RepresentantesResponse;
 import ec.uteq.sga.secretaria.common.ApiException;
+import ec.uteq.sga.secretaria.common.TraceContext;
+import ec.uteq.sga.secretaria.security.AuthenticatedUser;
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.MetadataUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +74,10 @@ public class PrincipalGrpcClient {
 
     private static final Metadata.Key<String> INTERNAL_TOKEN_KEY =
             Metadata.Key.of("internal_token", Metadata.ASCII_STRING_MARSHALLER);
+    private static final Metadata.Key<String> TRACE_ID_KEY =
+            Metadata.Key.of("trace_id", Metadata.ASCII_STRING_MARSHALLER);
+    private static final Metadata.Key<String> ACTOR_KEY =
+            Metadata.Key.of("actor_username", Metadata.ASCII_STRING_MARSHALLER);
 
     private static final long DEADLINE_SEGUNDOS = 3;
     private static final int MAX_REINTENTOS = 2;
@@ -80,11 +89,33 @@ public class PrincipalGrpcClient {
     @Value("${app.grpc.internal-token}")
     private String internalToken;
 
+    /**
+     * Reenvia el trace_id del request HTTP actual (TraceContext, poblado por
+     * TraceIdFilter) y el username autenticado como metadata gRPC, para que
+     * sga-principal pueda auditar del otro lado correlacionado con el mismo
+     * trace_id y sabiendo quien origino la accion (ver InternalAuthInterceptor
+     * en sga-principal).
+     */
     private PrincipalServiceGrpc.PrincipalServiceBlockingStub autenticado() {
         Metadata metadata = new Metadata();
         metadata.put(INTERNAL_TOKEN_KEY, internalToken);
+        String traceId = TraceContext.current();
+        if (traceId != null) metadata.put(TRACE_ID_KEY, traceId);
+        String actor = usernameActual();
+        if (actor != null) metadata.put(ACTOR_KEY, actor);
         return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
                 .withDeadlineAfter(DEADLINE_SEGUNDOS, TimeUnit.SECONDS);
+    }
+
+    private static String usernameActual() {
+        try {
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+            HttpServletRequest request = attrs.getRequest();
+            AuthenticatedUser user = (AuthenticatedUser) request.getAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE);
+            return user != null ? user.username() : null;
+        } catch (IllegalStateException e) {
+            return null;
+        }
     }
 
     /** Ejecuta una llamada gRPC reintentando ante caidas transitorias de sga-principal. */
