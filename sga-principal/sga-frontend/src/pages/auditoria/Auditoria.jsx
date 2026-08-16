@@ -14,6 +14,19 @@ const BADGE_ORIGEN = {
   DOCENTE: "bg-purple-50 text-purple-600",
 };
 
+const SECCIONES = [
+  { id: "todos", label: "Todos los eventos", categoria: null,
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+  { id: "crud", label: "CRUD sensible", categoria: "CRUD",
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg> },
+  { id: "accesos", label: "Accesos", categoria: "ACCESOS",
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> },
+  { id: "config", label: "Config y roles", categoria: "CONFIG",
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
+  { id: "grpc", label: "Llamadas entre microservicios", categoria: "GRPC",
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-4 4a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l4-4a4 4 0 015.656 5.656l-1.5 1.5" /></svg> },
+];
+
 function fmtFecha(f) {
   if (!f) return "—";
   return new Date(f).toLocaleString("es-EC", { dateStyle: "short", timeStyle: "medium" });
@@ -26,24 +39,32 @@ export default function Auditoria() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filtros, setFiltros] = useState({ schemaOrigen: "", accion: "", tablaAfectada: "", resultado: "", username: "" });
+  const [seccion, setSeccion] = useState("todos");
   const [cadena, setCadena] = useState(null); // { traceId, eventos }
   const [cargandoCadena, setCargandoCadena] = useState(false);
 
   const cargar = useCallback(() => {
     setLoading(true);
+    const categoria = SECCIONES.find(s => s.id === seccion)?.categoria;
     const params = { page, size: 20 };
+    if (categoria) params.categoria = categoria;
     Object.entries(filtros).forEach(([k, v]) => { if (v) params[k] = v; });
     api.get("/api/auditoria", { params })
       .then(r => { setFilas(r.data.content); setTotalPages(r.data.totalPages); })
       .catch(() => setError("Error al cargar la auditoría"))
       .finally(() => setLoading(false));
-  }, [page, filtros]);
+  }, [page, filtros, seccion]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
   const cambiarFiltro = (campo, valor) => {
     setPage(0);
     setFiltros(f => ({ ...f, [campo]: valor }));
+  };
+
+  const cambiarSeccion = (id) => {
+    setPage(0);
+    setSeccion(id);
   };
 
   const verCadena = (traceId) => {
@@ -56,7 +77,8 @@ export default function Auditoria() {
   };
 
   return (
-    <Layout breadcrumb={["Inicio", "Auditoría"]}>
+    <Layout breadcrumb={["Inicio", "Auditoría"]} sidebarTitle="Auditoría"
+      menuItems={SECCIONES} seccion={seccion} onSeccionChange={cambiarSeccion}>
       <div className="mb-4">
         <h1 className="text-lg font-bold text-slate-700">Auditoría del sistema</h1>
         <p className="text-xs text-slate-400">
