@@ -83,7 +83,7 @@ public class RepresentanteService {
             if (!dup.isEmpty()) throw ApiException.conflict("Ya existe un representante con esa cédula");
         }
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
+        MapSqlParameterSource params = camposExtendidos(dto)
                 .addValue("cedula", cedula)
                 .addValue("nombres", dto.nombres())
                 .addValue("apellidos", dto.apellidos())
@@ -95,8 +95,14 @@ public class RepresentanteService {
 
         String sql = """
                 INSERT INTO sga_secretaria.representantes
-                  (cedula, nombres, apellidos, parentesco, telefono_principal, telefono_alt, correo, direccion)
-                VALUES (:cedula, :nombres, :apellidos, :parentesco, :telefonoPrincipal, :telefonoAlt, :correo, :direccion)
+                  (cedula, nombres, apellidos, parentesco, telefono_principal, telefono_alt, correo, direccion,
+                   fecha_nacimiento, genero, estado_civil, nacionalidad, ocupacion, lugar_trabajo, telefono_trabajo,
+                   cargo, nivel_instruccion, ingreso_mensual, convive_con_estudiante,
+                   contacto_emergencia_nombre, contacto_emergencia_telefono, observaciones)
+                VALUES (:cedula, :nombres, :apellidos, :parentesco, :telefonoPrincipal, :telefonoAlt, :correo, :direccion,
+                   :fechaNacimiento, :genero, :estadoCivil, :nacionalidad, :ocupacion, :lugarTrabajo, :telefonoTrabajo,
+                   :cargo, :nivelInstruccion, :ingresoMensual, :conviveConEstudiante,
+                   :contactoEmergenciaNombre, :contactoEmergenciaTelefono, :observaciones)
                 RETURNING *
                 """;
         return descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
@@ -105,7 +111,7 @@ public class RepresentanteService {
     public Map<String, Object> actualizar(long id, RepresentanteRequest dto) {
         obtenerPorId(id);
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
+        MapSqlParameterSource params = camposExtendidos(dto)
                 .addValue("cedula", blankToNull(dto.cedula()))
                 .addValue("nombres", blankToNull(dto.nombres()))
                 .addValue("apellidos", blankToNull(dto.apellidos()))
@@ -118,18 +124,50 @@ public class RepresentanteService {
 
         String sql = """
                 UPDATE sga_secretaria.representantes SET
-                  cedula              = COALESCE(:cedula, cedula),
-                  nombres             = COALESCE(:nombres, nombres),
-                  apellidos           = COALESCE(:apellidos, apellidos),
-                  parentesco          = COALESCE(:parentesco, parentesco),
-                  telefono_principal  = COALESCE(:telefonoPrincipal, telefono_principal),
-                  telefono_alt        = COALESCE(:telefonoAlt, telefono_alt),
-                  correo              = COALESCE(:correo, correo),
-                  direccion           = COALESCE(:direccion, direccion)
+                  cedula                        = COALESCE(:cedula, cedula),
+                  nombres                       = COALESCE(:nombres, nombres),
+                  apellidos                     = COALESCE(:apellidos, apellidos),
+                  parentesco                    = COALESCE(:parentesco, parentesco),
+                  telefono_principal            = COALESCE(:telefonoPrincipal, telefono_principal),
+                  telefono_alt                  = COALESCE(:telefonoAlt, telefono_alt),
+                  correo                        = COALESCE(:correo, correo),
+                  direccion                     = COALESCE(:direccion, direccion),
+                  fecha_nacimiento              = :fechaNacimiento,
+                  genero                        = :genero,
+                  estado_civil                  = :estadoCivil,
+                  nacionalidad                  = :nacionalidad,
+                  ocupacion                     = :ocupacion,
+                  lugar_trabajo                 = :lugarTrabajo,
+                  telefono_trabajo              = :telefonoTrabajo,
+                  cargo                         = :cargo,
+                  nivel_instruccion             = :nivelInstruccion,
+                  ingreso_mensual               = :ingresoMensual,
+                  convive_con_estudiante        = :conviveConEstudiante,
+                  contacto_emergencia_nombre    = :contactoEmergenciaNombre,
+                  contacto_emergencia_telefono  = :contactoEmergenciaTelefono,
+                  observaciones                 = :observaciones
                 WHERE id_representante = :id
                 RETURNING *
                 """;
         return descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
+    }
+
+    private MapSqlParameterSource camposExtendidos(RepresentanteRequest dto) {
+        return new MapSqlParameterSource()
+                .addValue("fechaNacimiento", blankToNull(dto.fecha_nacimiento()))
+                .addValue("genero", blankToNull(dto.genero()))
+                .addValue("estadoCivil", blankToNull(dto.estado_civil()))
+                .addValue("nacionalidad", blankToNull(dto.nacionalidad()))
+                .addValue("ocupacion", blankToNull(dto.ocupacion()))
+                .addValue("lugarTrabajo", blankToNull(dto.lugar_trabajo()))
+                .addValue("telefonoTrabajo", blankToNull(dto.telefono_trabajo()))
+                .addValue("cargo", blankToNull(dto.cargo()))
+                .addValue("nivelInstruccion", blankToNull(dto.nivel_instruccion()))
+                .addValue("ingresoMensual", dto.ingreso_mensual())
+                .addValue("conviveConEstudiante", dto.convive_con_estudiante())
+                .addValue("contactoEmergenciaNombre", blankToNull(dto.contacto_emergencia_nombre()))
+                .addValue("contactoEmergenciaTelefono", blankToNull(dto.contacto_emergencia_telefono()))
+                .addValue("observaciones", blankToNull(dto.observaciones()));
     }
 
     /** Estudiantes a cargo de este representante (FK sga_secretaria.estudiantes.id_representante). */
