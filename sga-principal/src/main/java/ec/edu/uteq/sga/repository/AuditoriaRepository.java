@@ -26,10 +26,22 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
      * entre accion_auditoria_t y varchar y lo rechaza. Con SQL nativo se
      * puede castear el parametro explicitamente.
      */
+    /**
+     * categoria agrupa varias acciones para las secciones del submenu del
+     * lado del frontend (CRUD/ACCESOS/CONFIG/GRPC): comparando CAST(accion AS text)
+     * en vez del enum se evita el problema de cast de mas arriba sin
+     * necesitar una lista dinamica de parametros.
+     */
     @Query(value = """
             SELECT * FROM sga_principal.auditoria WHERE
             (:schemaOrigen IS NULL OR schema_origen = :schemaOrigen) AND
             (:accion IS NULL OR accion = CAST(:accion AS sga_principal.accion_auditoria_t)) AND
+            (:categoria IS NULL OR
+                (:categoria = 'CRUD' AND CAST(accion AS text) IN ('CREAR','EDITAR','ELIMINAR')) OR
+                (:categoria = 'ACCESOS' AND CAST(accion AS text) IN ('LOGIN','LOGIN_FALLIDO','LOGOUT','CAMBIO_PASSWORD','BLOQUEO','DESBLOQUEO')) OR
+                (:categoria = 'CONFIG' AND CAST(accion AS text) IN ('ROL_ASIGNADO')) OR
+                (:categoria = 'GRPC' AND CAST(accion AS text) IN ('LLAMADA_GRPC'))
+            ) AND
             (:tablaAfectada IS NULL OR tabla_afectada = :tablaAfectada) AND
             (:resultado IS NULL OR resultado = :resultado) AND
             (:username IS NULL OR username = :username)
@@ -39,6 +51,12 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
             SELECT count(*) FROM sga_principal.auditoria WHERE
             (:schemaOrigen IS NULL OR schema_origen = :schemaOrigen) AND
             (:accion IS NULL OR accion = CAST(:accion AS sga_principal.accion_auditoria_t)) AND
+            (:categoria IS NULL OR
+                (:categoria = 'CRUD' AND CAST(accion AS text) IN ('CREAR','EDITAR','ELIMINAR')) OR
+                (:categoria = 'ACCESOS' AND CAST(accion AS text) IN ('LOGIN','LOGIN_FALLIDO','LOGOUT','CAMBIO_PASSWORD','BLOQUEO','DESBLOQUEO')) OR
+                (:categoria = 'CONFIG' AND CAST(accion AS text) IN ('ROL_ASIGNADO')) OR
+                (:categoria = 'GRPC' AND CAST(accion AS text) IN ('LLAMADA_GRPC'))
+            ) AND
             (:tablaAfectada IS NULL OR tabla_afectada = :tablaAfectada) AND
             (:resultado IS NULL OR resultado = :resultado) AND
             (:username IS NULL OR username = :username)
@@ -46,6 +64,7 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
             nativeQuery = true)
     Page<Auditoria> buscar(@Param("schemaOrigen") String schemaOrigen,
                             @Param("accion") String accion,
+                            @Param("categoria") String categoria,
                             @Param("tablaAfectada") String tablaAfectada,
                             @Param("resultado") String resultado,
                             @Param("username") String username,

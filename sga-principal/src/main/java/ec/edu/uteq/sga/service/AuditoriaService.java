@@ -130,9 +130,9 @@ public class AuditoriaService {
 
     // ---- Lectura (para AuditoriaController) ----
 
-    public Page<AuditoriaResponseDTO> buscar(String schemaOrigen, String accion, String tablaAfectada,
+    public Page<AuditoriaResponseDTO> buscar(String schemaOrigen, String accion, String categoria, String tablaAfectada,
                                               String resultado, String username, Pageable pageable) {
-        return repo.buscar(blankToNull(schemaOrigen), blankToNull(accion), blankToNull(tablaAfectada),
+        return repo.buscar(blankToNull(schemaOrigen), blankToNull(accion), blankToNull(categoria), blankToNull(tablaAfectada),
                         blankToNull(resultado), blankToNull(username), pageable)
                 .map(this::toDTO);
     }

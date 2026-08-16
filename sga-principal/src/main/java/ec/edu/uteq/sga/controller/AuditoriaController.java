@@ -23,13 +23,14 @@ public class AuditoriaController {
     public ResponseEntity<Page<AuditoriaResponseDTO>> buscar(
             @RequestParam(required = false) String schemaOrigen,
             @RequestParam(required = false) String accion,
+            @RequestParam(required = false) String categoria,
             @RequestParam(required = false) String tablaAfectada,
             @RequestParam(required = false) String resultado,
             @RequestParam(required = false) String username,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size) {
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fecha"));
-        return ResponseEntity.ok(auditoriaService.buscar(schemaOrigen, accion, tablaAfectada, resultado, username, pageable));
+        return ResponseEntity.ok(auditoriaService.buscar(schemaOrigen, accion, categoria, tablaAfectada, resultado, username, pageable));
     }
 
     @GetMapping("/trace/{traceId}")
