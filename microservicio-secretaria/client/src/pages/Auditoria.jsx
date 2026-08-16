@@ -47,6 +47,8 @@ export default function Auditoria() {
   const [error, setError] = useState('');
   const [filtros, setFiltros] = useState({ schemaOrigen: '', accion: '', tablaAfectada: '', resultado: '', username: '' });
   const [seccion, setSeccion] = useState('todos');
+  const [cadena, setCadena] = useState(null); // { traceId, eventos }
+  const [cargandoCadena, setCargandoCadena] = useState(false);
 
   const cargar = useCallback(() => {
     setLoading(true);
@@ -70,6 +72,15 @@ export default function Auditoria() {
   const cambiarSeccion = (id) => {
     setPage(0);
     setSeccion(id);
+  };
+
+  const verCadena = (traceId) => {
+    setCargandoCadena(true);
+    setCadena({ traceId, eventos: [] });
+    apiPrincipal.get(`/auditoria/trace/${traceId}`)
+      .then(r => setCadena({ traceId, eventos: r.data }))
+      .catch(() => setError('Error al cargar la cadena de eventos'))
+      .finally(() => setCargandoCadena(false));
   };
 
   return (
@@ -130,6 +141,7 @@ export default function Auditoria() {
                   <th className="text-left px-4 py-3 font-semibold">Descripción</th>
                   <th className="text-center px-4 py-3 font-semibold">Resultado</th>
                   <th className="text-center px-4 py-3 font-semibold">Integridad</th>
+                  <th className="text-center px-4 py-3 font-semibold">Traza</th>
                 </tr>
               </thead>
               <tbody>
@@ -153,6 +165,14 @@ export default function Auditoria() {
                     <td className="px-4 py-2.5 text-center" title={f.hmacValido ? 'Fila intacta (HMAC valido)' : 'Posible alteracion: el HMAC no coincide'}>
                       {f.hmacValido ? <span className="text-green-500">✓</span> : <span className="text-red-500">⚠</span>}
                     </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <button onClick={() => verCadena(f.traceId)} title="Ver cadena de eventos correlacionados"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-4 4a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l4-4a4 4 0 015.656 5.656l-1.5 1.5" />
+                        </svg>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -170,6 +190,47 @@ export default function Auditoria() {
           </div>
         )}
       </div>
+
+      {/* MODAL CADENA DE TRAZA */}
+      {cadena && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setCadena(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between flex-shrink-0">
+              <div>
+                <h2 className="text-white font-bold text-base">Cadena de eventos correlacionados</h2>
+                <p className="text-white/70 text-[11px] font-mono mt-0.5">trace_id: {cadena.traceId}</p>
+              </div>
+              <button onClick={() => setCadena(null)} className="text-white/70 hover:text-white">✕</button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-3">
+              {cargandoCadena ? (
+                <p className="text-sm text-slate-400 text-center py-6">Cargando...</p>
+              ) : cadena.eventos.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-6">No hay eventos para esta traza.</p>
+              ) : (
+                cadena.eventos.map((ev, i) => (
+                  <div key={ev.idAuditoria} className="flex gap-3">
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <span className={`w-2.5 h-2.5 rounded-full ${ev.resultado === 'EXITO' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      {i < cadena.eventos.length - 1 && <span className="w-px flex-1 bg-slate-200" />}
+                    </div>
+                    <div className="pb-3 min-w-0">
+                      <p className="text-xs text-slate-400">{fmtFecha(ev.fecha)}</p>
+                      <p className="text-sm font-medium text-slate-700">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded mr-1.5 ${BADGE_ORIGEN[ev.schemaOrigen] || 'bg-slate-100 text-slate-500'}`}>
+                          {ev.schemaOrigen}
+                        </span>
+                        {ev.accion} {ev.tablaAfectada ? `— ${ev.tablaAfectada}` : ''} {ev.username ? `(${ev.username})` : ''}
+                      </p>
+                      {ev.descripcion && <p className="text-xs text-slate-500 mt-0.5">{ev.descripcion}</p>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
