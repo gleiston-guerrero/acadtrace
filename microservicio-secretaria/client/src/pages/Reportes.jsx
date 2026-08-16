@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 
 const PRIMARY = '#243A76';
@@ -35,7 +34,7 @@ export default function Reportes() {
   const BASE = 'http://localhost:3000/api/secretario/reportes';
 
   return (
-    <Layout breadcrumb={['Inicio', 'Reportes']} menuItems={MENU_PRINCIPAL} seccion="reportes">
+    <Layout breadcrumb={['Inicio', 'Reportes']}>
       <div className="mb-4">
         <h1 className="text-base font-bold text-slate-700">Reportes y Certificados</h1>
         <p className="text-xs text-slate-400">Genera documentos PDF del sistema</p>

@@ -6,11 +6,13 @@ import ec.edu.uteq.sga.dto.usuario.CambioPasswordDTO;
 import ec.edu.uteq.sga.entity.Usuario;
 import ec.edu.uteq.sga.repository.UsuarioRepository;
 import ec.edu.uteq.sga.security.JwtUtil;
+import ec.edu.uteq.sga.service.AuditoriaService;
 import ec.edu.uteq.sga.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,16 +29,24 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioService usuarioService; // ← agregar esto
+    private final AuditoriaService auditoriaService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        Authentication auth;
+        try {
+            auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+        } catch (AuthenticationException e) {
+            auditoriaService.registrarAuth("LOGIN_FALLIDO", request.getUsername(), null, "FALLO",
+                    "Credenciales invalidas: " + e.getMessage());
+            throw e;
+        }
 
         Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
                 .orElseThrow();
@@ -46,6 +56,8 @@ public class AuthController {
                 .collect(Collectors.toList());
 
         String token = jwtUtil.generarToken(usuario.getUsername(), roles);
+
+        auditoriaService.registrarAuth("LOGIN", usuario.getUsername(), usuario.getIdUsuario(), "EXITO", null);
 
         return ResponseEntity.ok(AuthResponse.builder()
                 .token(token)
@@ -62,6 +74,7 @@ public class AuthController {
             Authentication auth,
             @Valid @RequestBody CambioPasswordDTO dto) {
         usuarioService.cambiarPassword(auth.getName(), dto);
+        auditoriaService.registrarAuth("CAMBIO_PASSWORD", auth.getName(), null, "EXITO", null);
         return ResponseEntity.noContent().build();
     }
 }

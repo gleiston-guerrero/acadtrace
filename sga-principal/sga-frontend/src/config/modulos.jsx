@@ -50,6 +50,9 @@ export const modulos = [
       </svg>
     )
   },
+  { id: "auditoria", label: "Auditoría", desc: "CRUD sensible, accesos y llamadas entre microservicios", color: "bg-red-50", iconColor: "text-red-500", icon: (
+      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    )},
   {
     id: "configuracion/calificacion",
     label: "Esquema de Calificación",

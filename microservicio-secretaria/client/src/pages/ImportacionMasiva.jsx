@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 
 const PRIMARY = '#243A76';
@@ -79,7 +78,7 @@ export default function ImportacionMasiva() {
   };
 
   return (
-    <Layout breadcrumb={['Inicio', 'Importación masiva']} menuItems={MENU_PRINCIPAL} seccion="importacion">
+    <Layout breadcrumb={['Inicio', 'Importación masiva']}>
       <div className="mb-4">
         <h1 className="text-base font-bold text-slate-700">Importación masiva de estudiantes</h1>
         <p className="text-xs text-slate-400">Desde Excel, CSV o PDF (listado CAS)</p>

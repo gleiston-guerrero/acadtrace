@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 
 const PRIMARY = '#243A76';
+
+const menuItems = [
+  { id: 'lista', label: 'Lista de matrículas', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+  { id: 'nueva', label: 'Nueva matrícula', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+];
 
 const ESTADO_BADGE = {
   ACTIVA:       'bg-green-100 text-green-700',
@@ -113,8 +117,12 @@ export default function Matriculas() {
     }
   };
 
+  const handleSeccion = (id) => {
+    if (id === 'nueva') { abrirModal(); return; }
+  };
+
   return (
-    <Layout breadcrumb={['Inicio', 'Matrículas']} menuItems={MENU_PRINCIPAL} seccion="matriculas">
+    <Layout breadcrumb={['Inicio', 'Matrículas']} sidebarTitle="Matrículas" menuItems={menuItems} seccion="lista" onSeccionChange={handleSeccion}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Matrículas</h1>

@@ -10,6 +10,7 @@ import Reportes from './pages/Reportes';
 import Representantes from './pages/Representantes';
 import ImportacionMasiva from './pages/ImportacionMasiva';
 import Historial from './pages/Historial';
+import Auditoria from './pages/Auditoria';
 import { CambiarPassword } from './pages/Extras';
 
 // El login vive únicamente en el SGA Principal. Aquí solo se entra por handoff SSO
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/importacion-masiva" element={<PrivateRoute><ImportacionMasiva /></PrivateRoute>} />
         <Route path="/historial" element={<PrivateRoute><Historial /></PrivateRoute>} />
         <Route path="/calendario" element={<PrivateRoute><Calendario /></PrivateRoute>} />
+        <Route path="/auditoria" element={<PrivateRoute><Auditoria /></PrivateRoute>} />
         <Route path="/cambiar-password" element={<PrivateRoute><CambiarPassword /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

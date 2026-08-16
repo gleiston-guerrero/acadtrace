@@ -66,4 +66,9 @@ public class RepresentanteController {
     public Map<String, Object> actualizar(@PathVariable Long id, @Valid @RequestBody RepresentanteRequest dto) {
         return service.actualizar(id, dto);
     }
+
+    @GetMapping("/{id}/estudiantes")
+    public List<Map<String, Object>> listarEstudiantes(@PathVariable Long id) {
+        return service.listarEstudiantes(id);
+    }
 }

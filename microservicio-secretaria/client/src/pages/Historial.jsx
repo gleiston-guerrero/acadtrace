@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api from '../utils/api';
 
 const PRIMARY = '#243A76';
@@ -54,7 +53,7 @@ export default function Historial() {
   };
 
   return (
-    <Layout breadcrumb={['Inicio', 'Historial académico']} menuItems={MENU_PRINCIPAL} seccion="historial">
+    <Layout breadcrumb={['Inicio', 'Historial académico']}>
       <div className="mb-4">
         <h1 className="text-base font-bold text-slate-700">Historial académico</h1>
         <p className="text-xs text-slate-400">Años cursados, promedios anuales y promociones de un estudiante</p>
