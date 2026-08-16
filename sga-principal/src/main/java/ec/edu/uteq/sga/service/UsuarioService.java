@@ -24,6 +24,7 @@ public class UsuarioService {
     private final RolRepository rolRepo;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final AuditoriaService auditoriaService;
 
     private static final String CHARS = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!";
 
@@ -62,6 +63,8 @@ public class UsuarioService {
         String nombreCompleto = dto.getNombres() + " " + dto.getApellidos();
         emailService.enviarCredenciales(dto.getCorreo(), nombreCompleto, username, passwordPlano);
         log.info("Usuario creado: {} ({})", username, dto.getCorreo());
+        auditoriaService.registrarCrud("CREAR", "usuario", usuario.getIdUsuario(),
+                "Usuario creado: " + username + " con roles " + dto.getRoles());
 
         return UsuarioCreacionResponseDTO.builder()
                 .idUsuario(usuario.getIdUsuario())
@@ -80,8 +83,17 @@ public class UsuarioService {
     public UsuarioResponseDTO actualizar(Long id, UsuarioUpdateDTO dto) {
         Usuario usuario = buscarPorId(id);
         if (dto.getCorreo() != null) usuario.setCorreo(dto.getCorreo());
-        if (dto.getRoles() != null) usuario.setRoles(resolverRoles(dto.getRoles()));
-        return toDTO(usuarioRepo.save(usuario));
+        boolean cambioRoles = dto.getRoles() != null;
+        if (cambioRoles) usuario.setRoles(resolverRoles(dto.getRoles()));
+        UsuarioResponseDTO resultado = toDTO(usuarioRepo.save(usuario));
+
+        if (cambioRoles) {
+            auditoriaService.registrarConfig("ROL_ASIGNADO", "usuario", id,
+                    "Roles de " + usuario.getUsername() + " actualizados a " + resultado.getRoles());
+        } else {
+            auditoriaService.registrarCrud("EDITAR", "usuario", id, "Datos de " + usuario.getUsername() + " actualizados");
+        }
+        return resultado;
     }
 
     @Transactional
@@ -89,6 +101,8 @@ public class UsuarioService {
         Usuario usuario = buscarPorId(id);
         usuario.setEstado(true);
         usuarioRepo.save(usuario);
+        auditoriaService.registrarConfig(usuario.getEstado() ? "DESBLOQUEO" : "BLOQUEO", "usuario", id,
+                "Estado de " + usuario.getUsername() + " -> " + usuario.getEstado());
     }
 
     @Transactional
@@ -107,6 +121,8 @@ public class UsuarioService {
                 usuario.getUsername(),
                 passwordPlano
         );
+        auditoriaService.registrarConfig("CAMBIO_PASSWORD", "usuario", id,
+                "Password de " + usuario.getUsername() + " reseteada por un administrador");
     }
 
     @Transactional
@@ -188,8 +204,8 @@ public class UsuarioService {
     }
     @Transactional
     public void eliminar(Long id) {
-        if (!usuarioRepo.existsById(id))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        Usuario usuario = buscarPorId(id);
         usuarioRepo.deleteById(id);
+        auditoriaService.registrarCrud("ELIMINAR", "usuario", id, "Usuario eliminado: " + usuario.getUsername());
     }
 }

@@ -13,6 +13,7 @@ import ec.edu.uteq.sga.repository.AnoLectivoRepository;
 import ec.edu.uteq.sga.repository.AsignaturaRepository;
 import ec.edu.uteq.sga.repository.EstudianteRepository;
 import ec.edu.uteq.sga.repository.RepresentanteRepository;
+import ec.edu.uteq.sga.service.AuditoriaService;
 import ec.edu.uteq.sga.service.EstudianteService;
 import ec.edu.uteq.sga.service.GradoService;
 import io.grpc.Status;
@@ -42,6 +43,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     private final GradoService gradoService;
     private final RepresentanteRepository representanteRepository;
     private final EstudianteRepository estudianteRepository;
+    private final AuditoriaService auditoriaService;
 
     @Override
     public void listarAnosLectivos(Empty request, StreamObserver<AnosLectivosResponse> responseObserver) {
@@ -189,9 +191,13 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     public void crearEstudiante(GuardarEstudianteRequest request, StreamObserver<EstudianteProto> responseObserver) {
         try {
             EstudianteDetalleDTO creado = estudianteService.crear(fromProto(request));
+            auditoriaService.registrarGrpcRecibida("estudiante", creado.getIdEstudiante(),
+                    "Llamada gRPC recibida: crearEstudiante", "EXITO", null);
             responseObserver.onNext(toProto(creado));
             responseObserver.onCompleted();
         } catch (ResponseStatusException e) {
+            auditoriaService.registrarGrpcRecibida("estudiante", null,
+                    "Llamada gRPC recibida: crearEstudiante", "FALLO", e.getReason());
             responseObserver.onError(toGrpcStatus(e).asRuntimeException());
         }
     }
@@ -200,9 +206,13 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     public void actualizarEstudiante(GuardarEstudianteRequest request, StreamObserver<EstudianteProto> responseObserver) {
         try {
             EstudianteDetalleDTO actualizado = estudianteService.actualizar(request.getIdEstudiante(), fromProto(request));
+            auditoriaService.registrarGrpcRecibida("estudiante", actualizado.getIdEstudiante(),
+                    "Llamada gRPC recibida: actualizarEstudiante", "EXITO", null);
             responseObserver.onNext(toProto(actualizado));
             responseObserver.onCompleted();
         } catch (ResponseStatusException e) {
+            auditoriaService.registrarGrpcRecibida("estudiante", request.getIdEstudiante(),
+                    "Llamada gRPC recibida: actualizarEstudiante", "FALLO", e.getReason());
             responseObserver.onError(toGrpcStatus(e).asRuntimeException());
         }
     }
