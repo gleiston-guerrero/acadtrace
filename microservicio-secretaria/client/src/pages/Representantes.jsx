@@ -1,14 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api from '../utils/api';
 
 const PRIMARY = '#243A76';
+
+const menuItems = [
+  { id: 'lista', label: 'Lista de representantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+  { id: 'nuevo', label: 'Nuevo representante', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+];
 
 const EMPTY = {
   cedula: '', nombres: '', apellidos: '', parentesco: '',
   telefono_principal: '', telefono_alt: '', correo: '', direccion: '',
 };
+
+function Field({ label, value, mono, truncate, full }) {
+  return (
+    <div className={`min-w-0 ${full ? 'col-span-2' : ''}`}>
+      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
+      <p className={`text-sm text-slate-700 ${mono ? 'font-mono' : ''} ${truncate ? 'truncate' : ''}`}>{value || '—'}</p>
+    </div>
+  );
+}
+
+function Card({ title, children }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 bg-slate-50/70">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">{title}</h4>
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
 
 export default function Representantes() {
   const [representantes, setRepresentantes] = useState([]);
@@ -21,6 +45,8 @@ export default function Representantes() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [estudiantesRep, setEstudiantesRep] = useState([]);
+  const [loadingEstudiantes, setLoadingEstudiantes] = useState(false);
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -70,8 +96,27 @@ export default function Representantes() {
     }
   };
 
+  const handleSeccion = (id) => {
+    if (id === 'nuevo') { abrirNuevo(); return; }
+  };
+
+  const verDetalle = async (r) => {
+    setSelected(r);
+    setModal('ver');
+    setEstudiantesRep([]);
+    setLoadingEstudiantes(true);
+    try {
+      const res = await api.get(`/representantes/${r.id_representante}/estudiantes`);
+      setEstudiantesRep(res.data || []);
+    } catch (e) {
+      console.error('Error cargando estudiantes del representante:', e);
+    } finally {
+      setLoadingEstudiantes(false);
+    }
+  };
+
   return (
-    <Layout breadcrumb={['Inicio', 'Representantes']} menuItems={MENU_PRINCIPAL} seccion="representantes">
+    <Layout breadcrumb={['Inicio', 'Representantes']} sidebarTitle="Representantes" menuItems={menuItems} seccion="lista" onSeccionChange={handleSeccion}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Representantes</h1>
@@ -149,7 +194,7 @@ export default function Representantes() {
                 <td className="px-4 py-2.5 text-slate-500 text-xs">{r.correo || '—'}</td>
                 <td className="px-4 py-2.5 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <button onClick={() => { setSelected(r); setModal('ver'); }} title="Ver detalle"
+                    <button onClick={() => verDetalle(r)} title="Ver detalle"
                       className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -219,36 +264,77 @@ export default function Representantes() {
 
       {/* MODAL VER */}
       {modal === 'ver' && selected && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="text-white font-semibold text-sm">Detalle del representante</h2>
-              <button onClick={() => setModal(null)} className="text-white/70 hover:text-white">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-6 space-y-3">
-              <div className="text-center mb-4">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: '#e8edf7' }}>
-                  <span style={{ color: PRIMARY }} className="text-xl font-bold">
-                    {selected.nombres?.charAt(0)?.toUpperCase()}
-                  </span>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setModal(null)}>
+          <div className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, #3d5a9e 100%)` }} className="px-6 py-5 text-white flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg">
+                  {(selected.nombres?.[0] || '') + (selected.apellidos?.[0] || '')}
                 </div>
-                <p className="font-bold text-slate-700">{selected.apellidos}, {selected.nombres}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{selected.parentesco || 'Representante'}</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-lg truncate">{selected.apellidos} {selected.nombres}</h3>
+                  <div className="flex items-center gap-2 text-xs text-white/80 mt-0.5 flex-wrap">
+                    <span className="font-semibold bg-white/15 px-2 py-0.5 rounded-md">{selected.parentesco || 'Representante'}</span>
+                    <span>·</span>
+                    <span>Cédula {selected.cedula || '—'}</span>
+                  </div>
+                </div>
               </div>
-              {[
-                ['Cédula', selected.cedula],
-                ['Teléfono principal', selected.telefono_principal],
-                ['Teléfono alternativo', selected.telefono_alt],
-                ['Correo', selected.correo],
-                ['Dirección', selected.direccion],
-              ].filter(([, v]) => v).map(([k, v]) => (
-                <div key={k} className="flex justify-between py-1.5 border-b border-slate-100 last:border-0">
-                  <span className="text-slate-400 text-xs">{k}</span>
-                  <span className="text-slate-700 font-medium text-xs text-right max-w-48">{v}</span>
+              <button onClick={() => setModal(null)} className="text-white/70 hover:text-white text-xl flex-shrink-0 ml-3 w-8 h-8 rounded-lg hover:bg-white/10 transition">✕</button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <Card title="Datos personales">
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Cédula" value={selected.cedula} mono />
+                  <Field label="Parentesco" value={selected.parentesco} />
                 </div>
-              ))}
+              </Card>
+
+              <Card title="Contacto">
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Teléfono principal" value={selected.telefono_principal} mono />
+                  <Field label="Teléfono alterno" value={selected.telefono_alt} mono />
+                  <Field label="Correo" value={selected.correo} truncate full />
+                  <Field label="Dirección" value={selected.direccion} full />
+                </div>
+              </Card>
+
+              <Card title={`Estudiantes a cargo${estudiantesRep.length ? ` (${estudiantesRep.length})` : ''}`}>
+                {loadingEstudiantes ? (
+                  <p className="text-xs text-slate-400">Cargando...</p>
+                ) : estudiantesRep.length === 0 ? (
+                  <p className="text-xs text-slate-400">No tiene estudiantes registrados a su cargo.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {estudiantesRep.map(est => (
+                      <div key={est.id_estudiante}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                          style={{ backgroundColor: '#e8edf7', color: PRIMARY }}>
+                          {(est.nombres?.[0] || '') + (est.apellidos?.[0] || '')}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-700 truncate">{est.apellidos} {est.nombres}</p>
+                          <p className="text-[11px] text-slate-400 font-mono">{est.codigo_estudiante || est.cedula || '—'}</p>
+                        </div>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0 ${
+                          est.estado === 'ACTIVO' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {est.estado || '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-end bg-white flex-shrink-0">
+              <button onClick={() => setModal(null)} style={{ backgroundColor: PRIMARY }}
+                className="px-6 py-2 rounded-lg text-sm text-white font-semibold hover:opacity-90 transition shadow-sm">
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 import FichaEstudianteModal from './FichaEstudianteModal';
 
 const PRIMARY = '#243A76';
 const PRINCIPAL_ORIGIN = (apiPrincipal.defaults.baseURL || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+
+const menuItems = [
+  { id: 'lista', label: 'Lista de estudiantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+  { id: 'nuevo', label: 'Nuevo estudiante', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+  { id: 'importar', label: 'Importar estudiantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 12v9m0-9l-3 3m3-3l3 3" /></svg> },
+];
 
 const EMPTY = {
   cedula: '', nombres: '', apellidos: '', fecha_nacimiento: '',
@@ -73,8 +78,13 @@ export default function Estudiantes() {
 
   const esActivo = (e) => e.estado === true || e.estado === 'true';
 
+  const handleSeccion = (id) => {
+    if (id === 'nuevo') { setEditId(null); setModal('form'); return; }
+    if (id === 'importar') { setShowImportModal(true); return; }
+  };
+
   return (
-    <Layout breadcrumb={['Inicio', 'Estudiantes']} menuItems={MENU_PRINCIPAL} seccion="estudiantes">
+    <Layout breadcrumb={['Inicio', 'Estudiantes']} sidebarTitle="Estudiantes" menuItems={menuItems} seccion="lista" onSeccionChange={handleSeccion}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Estudiantes</h1>

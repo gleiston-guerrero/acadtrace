@@ -132,6 +132,19 @@ public class RepresentanteService {
         return descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));
     }
 
+    /** Estudiantes a cargo de este representante (FK sga_secretaria.estudiantes.id_representante). */
+    public List<Map<String, Object>> listarEstudiantes(long idRepresentante) {
+        obtenerPorId(idRepresentante);
+        String sql = """
+                SELECT id_estudiante, cedula, codigo_estudiante, nombres, apellidos,
+                       estado, foto_url
+                FROM sga_secretaria.estudiantes
+                WHERE id_representante = :id
+                ORDER BY apellidos, nombres
+                """;
+        return jdbc.query(sql, new MapSqlParameterSource("id", idRepresentante), GenericRowMapper.INSTANCE);
+    }
+
     private static String blankToNull(String value) {
         return (value == null || value.isBlank()) ? null : value;
     }

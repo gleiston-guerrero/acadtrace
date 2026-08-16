@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 
 const PRIMARY = '#243A76';
+
+const menuItems = [
+  { id: 'resumen', label: 'Resumen de promoción', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> },
+  { id: 'nuevo', label: 'Registrar resultado', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+];
 
 export default function Promocion() {
   const [anos, setAnos] = useState([]);
@@ -54,8 +58,12 @@ export default function Promocion() {
     setModal(true);
   };
 
+  const handleSeccion = (id) => {
+    if (id === 'nuevo') { abrirModalPara(null); return; }
+  };
+
   return (
-    <Layout breadcrumb={['Inicio', 'Promoción']} menuItems={MENU_PRINCIPAL} seccion="promocion">
+    <Layout breadcrumb={['Inicio', 'Promoción']} sidebarTitle="Promoción" menuItems={menuItems} seccion="resumen" onSeccionChange={handleSeccion}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Promoción de estudiantes</h1>

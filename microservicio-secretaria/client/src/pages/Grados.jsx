@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 
 const PRIMARY = '#243A76';
+
+const menuItems = [
+  { id: 'grados', label: 'Grados y niveles', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+  { id: 'nuevo', label: 'Nuevo grado', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+];
 const modalBg = { backgroundColor: 'rgba(36, 58, 118, 0.5)' };
 
-const NIVELES_CONFIG = {
-  Inicial:             { accent: '#c4956a', accentLight: '#faf5ef', accentMid: '#e8d5c0', textAccent: '#8b6842' },
-  Preparatoria:        { accent: '#7c8a6e', accentLight: '#f3f6ef', accentMid: '#d4ddc8', textAccent: '#5a6b48' },
-  'Básica Elemental':  { accent: '#6a8a9a', accentLight: '#eef4f7', accentMid: '#c5d9e2', textAccent: '#446778' },
-  'Básica Media':      { accent: '#6e7499', accentLight: '#f0f1f7', accentMid: '#c8cce0', textAccent: '#4a4f78' },
-  'Básica Superior':   { accent: '#243A76', accentLight: '#eef0f7', accentMid: '#c0c8e0', textAccent: '#1a2d5f' },
-};
-
-const nivelConfig = (nivel) => NIVELES_CONFIG[nivel] || { accent: '#64748b', accentLight: '#f1f5f9', accentMid: '#cbd5e1', textAccent: '#475569' };
+const CARD_PALETTES = [
+  { id: 'navy', header: 'bg-[#2b3c66]' },
+  { id: 'slate', header: 'bg-[#475569]' },
+  { id: 'indigo', header: 'bg-[#3b4266]' },
+  { id: 'teal', header: 'bg-[#33535e]' },
+  { id: 'olive', header: 'bg-[#4a5840]' },
+  { id: 'zinc', header: 'bg-[#52525b]' },
+];
 
 export default function Grados() {
   const [grados, setGrados] = useState([]);
@@ -99,11 +102,18 @@ export default function Grados() {
     }
   };
 
+  const handleSeccion = (id) => {
+    if (id === 'grados') { setGradoSel(null); return; }
+    if (id === 'nuevo') { setGradoEditar(null); setShowModal(true); return; }
+  };
+
   return (
     <Layout
       breadcrumb={gradoSel ? ['Inicio', 'Grados', gradoSel.nombre] : ['Inicio', 'Grados']}
-      menuItems={MENU_PRINCIPAL}
+      sidebarTitle="Grados"
+      menuItems={menuItems}
       seccion="grados"
+      onSeccionChange={handleSeccion}
     >
       {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError('')} className="text-red-400 ml-4">✕</button></div>}
       {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-green-600 text-sm">{success}</span><button onClick={() => setSuccess('')} className="text-green-400 ml-4">✕</button></div>}
@@ -116,39 +126,31 @@ export default function Grados() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-bold text-slate-700">Grados y Cursos</h1>
-              <p className="text-sm text-slate-400 mt-0.5">{grados.length} grados configurados</p>
+              <p className="text-sm text-slate-400 mt-0.5">{grados.length} grados configurados — Escuela Provincias Unidas</p>
             </div>
-            <button onClick={() => { setGradoEditar(null); setShowModal(true); }} style={{ backgroundColor: PRIMARY }}
-              className="flex items-center gap-2 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition shadow-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Nuevo grado
-            </button>
           </div>
 
           {grados.length === 0 ? (
             <div className="p-12 text-center text-slate-400 text-sm bg-white rounded-xl border border-slate-200">
               No hay grados configurados todavía.
             </div>
-          ) : Object.entries(nivelesAgrupados).map(([nivel, gradosNivel]) => {
-            const c = nivelConfig(nivel);
-            return (
-              <div key={nivel} className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1.5 h-7 rounded-full" style={{ backgroundColor: c.accent }} />
-                  <h2 className="text-base font-bold uppercase tracking-wide" style={{ color: c.textAccent }}>{nivel}</h2>
-                  <span className="text-sm text-slate-400 ml-1">({gradosNivel.length} grado{gradosNivel.length !== 1 ? 's' : ''})</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {gradosNivel.map(g => (
-                    <GradoCard key={g.id_grado} grado={g} config={c}
-                      onClick={() => setGradoSel(g)}
-                      onEditar={() => { setGradoEditar(g); setShowModal(true); }}
-                      onToggleEstado={() => cambiarEstadoGrado(g)} />
-                  ))}
-                </div>
+          ) : Object.entries(nivelesAgrupados).map(([nivel, gradosNivel]) => (
+            <div key={nivel} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1.5 h-5 rounded-full" style={{ backgroundColor: PRIMARY }} />
+                <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: PRIMARY }}>{nivel}</h2>
+                <span className="text-xs text-slate-400 ml-1">({gradosNivel.length} grado{gradosNivel.length !== 1 ? 's' : ''})</span>
               </div>
-            );
-          })}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {gradosNivel.map(g => (
+                  <GradoCard key={g.id_grado} grado={g}
+                    onClick={() => setGradoSel(g)}
+                    onEditar={() => { setGradoEditar(g); setShowModal(true); }}
+                    onToggleEstado={() => cambiarEstadoGrado(g)} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         /* ── VISTA DETALLE: Paralelos del grado seleccionado ── */
@@ -178,10 +180,9 @@ export default function Grados() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {gradoSel.paralelos.map(p => {
-                const c = nivelConfig(gradoSel.nivel_educativo);
-                return <ParaleloCard key={p.id_paralelo} paralelo={p} grado={gradoSel} config={c} onToggleEstado={() => cambiarEstadoParalelo(p)} />;
-              })}
+              {gradoSel.paralelos.map(p => (
+                <ParaleloCard key={p.id_paralelo} paralelo={p} grado={gradoSel} onToggleEstado={() => cambiarEstadoParalelo(p)} />
+              ))}
             </div>
           )}
         </div>
@@ -238,129 +239,199 @@ export default function Grados() {
   );
 }
 
-/* ── TARJETA DE GRADO ── */
-function GradoCard({ grado, config, onClick, onEditar, onToggleEstado }) {
+/* ── TARJETA DE GRADO — mismo diseño de dos tonos que sga-principal ── */
+function GradoCard({ grado, onClick, onEditar, onToggleEstado }) {
   const totalParalelos = grado.paralelos?.length || 0;
   const paralelosActivos = grado.paralelos?.filter(p => p.activo).length || 0;
 
+  const storageKey = `grado_color_${grado.id_grado}`;
+  const [colorIdx, setColorIdx] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved !== null ? parseInt(saved, 10) : (grado.id_grado % CARD_PALETTES.length);
+  });
+  const [showMenu, setShowMenu] = useState(false);
+
+  const cambiarColor = (e) => {
+    e.stopPropagation();
+    const nextIdx = (colorIdx + 1) % CARD_PALETTES.length;
+    setColorIdx(nextIdx);
+    localStorage.setItem(storageKey, String(nextIdx));
+    setShowMenu(false);
+  };
+
+  const currentPalette = CARD_PALETTES[colorIdx % CARD_PALETTES.length];
+
   return (
-    <div onClick={onClick} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
-      style={{ border: `1px solid ${config.accentMid}`, borderLeft: `5px solid ${config.accent}` }}>
-      <div className="px-5 pt-5 pb-4" style={{ backgroundColor: config.accentLight }}>
-        <div className="flex items-start gap-3.5">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style={{ backgroundColor: config.accent }}>
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-bold text-[15px] leading-snug text-slate-800">{grado.nombre}</h3>
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: config.accentMid, color: config.textAccent }}>
-                {grado.nivel_educativo || 'Sin nivel'}
-              </span>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${grado.activo ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
-                {grado.activo ? 'Activo' : 'Inactivo'}
-              </span>
+    <div onClick={onClick}
+      className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-400 transition-all duration-200 flex flex-col text-left group cursor-pointer relative">
+      {/* BANDA DE ENCABEZADO */}
+      <div className={`${currentPalette.header} p-4 text-white relative`}>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+            {grado.nivel_educativo || 'EGB'}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${grado.activo ? 'bg-emerald-600 text-white' : 'bg-slate-500 text-white'}`}>
+              {grado.activo ? 'ACTIVO' : 'INACTIVO'}
+            </span>
+
+            <div className="relative">
+              <button type="button" onClick={e => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold transition cursor-pointer"
+                title="Opciones">
+                •••
+              </button>
+
+              {showMenu && (
+                <div className="absolute right-0 top-7 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-30 text-slate-700"
+                  onClick={e => e.stopPropagation()}>
+                  <button type="button" onClick={cambiarColor} className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition">
+                    Cambiar color
+                  </button>
+                  <button type="button" onClick={e => { e.stopPropagation(); setShowMenu(false); onEditar(); }}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition">
+                    Editar grado
+                  </button>
+                  <button type="button" onClick={e => { e.stopPropagation(); setShowMenu(false); onToggleEstado(); }}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition">
+                    {grado.activo ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button type="button" onClick={e => { e.stopPropagation(); setShowMenu(false); onClick(); }}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition">
+                    Abrir paralelos
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        <h3 className="text-base font-bold uppercase tracking-wide leading-snug line-clamp-2">{grado.nombre}</h3>
+        <p className="text-[11px] text-slate-200 font-medium mt-0.5">Escuela Provincias Unidas</p>
       </div>
 
-      <div className="px-5 py-4 flex items-center divide-x divide-slate-100">
-        <div className="flex-1 text-center pr-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{totalParalelos}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Paralelos</p>
+      {/* CUERPO INFERIOR */}
+      <div className="p-4 bg-white flex-1 flex flex-col justify-between space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">PARALELOS</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{totalParalelos}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ACTIVOS</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{paralelosActivos}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ESTADO</span>
+            <span className="block text-xs font-bold text-emerald-600 mt-0.5">{grado.activo ? 'Vigente' : 'Inactivo'}</span>
+          </div>
         </div>
-        <div className="flex-1 text-center px-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{paralelosActivos}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Activos</p>
-        </div>
-        <div className="flex-1 text-center pl-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{grado.capacidad_max || 35}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Cap. Máx</p>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-600 group-hover:text-[#243A76] transition-colors">Abrir paralelos</span>
+          <span className="text-xs font-bold text-slate-400 group-hover:text-[#243A76] transition-colors">→</span>
         </div>
       </div>
 
-      <div className="px-5 pb-3 flex items-center gap-4 text-xs text-slate-400">
-        <span className="flex items-center gap-1">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-          {grado.tipo_escala === 'CUALITATIVA' ? 'Cualitativa' : 'Cuantitativa'}
-        </span>
-        <span className="flex items-center gap-1">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
-          Orden {grado.orden}
-        </span>
-      </div>
-
-      <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: `1px solid ${config.accentMid}` }}>
-        <div className="flex items-center gap-1">
-          <button className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400" title="Editar"
-            onClick={e => { e.stopPropagation(); onEditar(); }}>
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-          </button>
-          <button className={`p-2 rounded-lg hover:bg-slate-100 transition ${grado.activo ? 'text-red-400' : 'text-green-500'}`}
-            title={grado.activo ? 'Desactivar' : 'Activar'} onClick={e => { e.stopPropagation(); onToggleEstado(); }}>
-            {grado.activo
-              ? <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-              : <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-          </button>
-        </div>
-        <button className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition shadow-sm"
-          style={{ backgroundColor: config.accent }} onClick={e => { e.stopPropagation(); onClick(); }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          Ver paralelos
-        </button>
-      </div>
+      {showMenu && (
+        <div className="fixed inset-0 z-20 cursor-default" onClick={e => { e.stopPropagation(); setShowMenu(false); }} />
+      )}
     </div>
   );
 }
 
-/* ── TARJETA DE PARALELO ── */
-function ParaleloCard({ paralelo, grado, config, onToggleEstado }) {
+/* ── TARJETA DE PARALELO — mismo diseño de dos tonos que sga-principal ── */
+function ParaleloCard({ paralelo, grado, onToggleEstado }) {
+  const storageKey = `paralelo_color_${paralelo.id_paralelo}`;
+  const [colorIdx, setColorIdx] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved !== null ? parseInt(saved, 10) : (paralelo.id_paralelo % CARD_PALETTES.length);
+  });
+  const [showMenu, setShowMenu] = useState(false);
+
+  const cambiarColor = (e) => {
+    e.stopPropagation();
+    const nextIdx = (colorIdx + 1) % CARD_PALETTES.length;
+    setColorIdx(nextIdx);
+    localStorage.setItem(storageKey, String(nextIdx));
+    setShowMenu(false);
+  };
+
+  const currentPalette = CARD_PALETTES[colorIdx % CARD_PALETTES.length];
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all"
-      style={{ border: `1px solid ${config.accentMid}`, borderLeft: `5px solid ${config.accent}` }}>
-      <div className="px-5 pt-5 pb-4" style={{ backgroundColor: config.accentLight }}>
-        <div className="flex items-start gap-3.5">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style={{ backgroundColor: config.accent }}>
-            <span className="text-white text-xl font-bold">{paralelo.letra}</span>
+    <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-400 transition-all duration-200 flex flex-col text-left group relative">
+      <div className={`${currentPalette.header} p-4 text-white relative`}>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+              {grado.nivel_educativo || 'Sin nivel'}
+            </span>
+            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${paralelo.activo ? 'bg-emerald-600 text-white' : 'bg-slate-500 text-white'}`}>
+              {paralelo.activo ? 'ACTIVO' : 'INACTIVO'}
+            </span>
           </div>
-          <div className="min-w-0">
-            <h3 className="font-bold text-[15px] leading-snug text-slate-800">{grado.nombre} "{paralelo.letra}"</h3>
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: config.accentMid, color: config.textAccent }}>
-                {grado.nivel_educativo || 'Sin nivel'}
-              </span>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${paralelo.activo ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
-                {paralelo.activo ? 'Activo' : 'Inactivo'}
-              </span>
-            </div>
+
+          <div className="relative">
+            <button type="button" onClick={e => { e.stopPropagation(); setShowMenu(!showMenu); }}
+              className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold transition cursor-pointer"
+              title="Opciones">
+              •••
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-7 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-30 text-slate-700"
+                onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={cambiarColor} className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition">
+                  Cambiar color
+                </button>
+                <button type="button" onClick={e => { e.stopPropagation(); setShowMenu(false); onToggleEstado(); }}
+                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 text-slate-700 transition">
+                  {paralelo.activo ? 'Desactivar' : 'Activar'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 mt-1">
+          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+            {paralelo.letra}
+          </div>
+          <div>
+            <h3 className="text-base font-bold uppercase tracking-wide leading-tight">{grado.nombre} "{paralelo.letra}"</h3>
+            <p className="text-[11px] text-slate-200 font-medium mt-0.5">Escuela Provincias Unidas</p>
           </div>
         </div>
       </div>
 
-      <div className="px-5 py-4 flex items-center divide-x divide-slate-100">
-        <div className="flex-1 text-center pr-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{paralelo.total_estudiantes ?? 0}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Estudiantes</p>
+      <div className="p-4 bg-white flex-1 flex flex-col justify-between space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ALUMNOS</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{paralelo.total_estudiantes ?? 0}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">CAPACIDAD</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{grado.capacidad_max || 35}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-center">
+            <span className="block text-[10px] font-semibold text-slate-400 uppercase">ESCALA</span>
+            <span className="block text-xs font-bold text-slate-700 mt-0.5">{grado.tipo_escala === 'CUALITATIVA' ? 'C' : 'N'}</span>
+          </div>
         </div>
-        <div className="flex-1 text-center px-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{grado.capacidad_max || 35}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Capacidad</p>
-        </div>
-        <div className="flex-1 text-center pl-3">
-          <p className="text-2xl font-bold" style={{ color: config.accent }}>{grado.tipo_escala === 'CUALITATIVA' ? 'C' : 'N'}</p>
-          <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Escala</p>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <button type="button" onClick={onToggleEstado} className="text-xs font-medium text-slate-600 group-hover:text-[#243A76] transition-colors">
+            {paralelo.activo ? 'Desactivar curso' : 'Activar curso'}
+          </button>
         </div>
       </div>
 
-      <div className="px-5 pb-4 flex items-center justify-end" style={{ borderTop: `1px solid ${config.accentMid}`, paddingTop: '0.75rem' }}>
-        <button className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition ${paralelo.activo ? 'text-red-500 border border-red-200 hover:bg-red-50' : 'text-white hover:opacity-90'}`}
-          style={!paralelo.activo ? { backgroundColor: config.accent } : {}} onClick={onToggleEstado}>
-          {paralelo.activo ? 'Desactivar' : 'Activar'}
-        </button>
-      </div>
+      {showMenu && (
+        <div className="fixed inset-0 z-20 cursor-default" onClick={e => { e.stopPropagation(); setShowMenu(false); }} />
+      )}
     </div>
   );
 }
