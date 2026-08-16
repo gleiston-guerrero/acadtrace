@@ -20,7 +20,7 @@ export const modulos = [
   { id: "asignaciones", label: "Asignaciones", desc: "Asignación de docentes a cursos", color: "bg-indigo-50", iconColor: "text-indigo-500", icon: (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
     )},
-  { id: "horarios", label: "Horarios", desc: "Gestión de horarios anuales", color: "bg-teal-50", iconColor: "text-teal-500", icon: (
+  { id: "horarios", label: "Horarios", desc: "Grilla por curso y docente con validación de choques", color: "bg-teal-50", iconColor: "text-teal-500", icon: (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     )},
   { id: "reportes", label: "Reportes", desc: "Generación de reportes en PDF", color: "bg-rose-50", iconColor: "text-rose-500", icon: (

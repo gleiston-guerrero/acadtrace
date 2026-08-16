@@ -11,6 +11,7 @@ import Asignaciones from "./pages/asignaciones/Asignaciones";
 import Asignaturas from "./pages/asignaturas/Asignaturas";
 import ConfiguracionCalificacion from "./pages/configuracion/ConfiguracionCalificacion";
 import ConsultaAsistencias from "./pages/asistencias/ConsultaAsistencias";
+import Horarios from "./pages/horarios/Horarios";
 
 import Estudiantes from "./pages/estudiantes/Estudiantes";
 
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/grados" element={<Grados />} />
                 <Route path="/asignaciones" element={<Asignaciones />} />
                 <Route path="/asignaturas" element={<Asignaturas />} />
+                <Route path="/horarios" element={<Horarios />} />
                 <Route path="/configuracion/calificacion" element={<ConfiguracionCalificacion />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>

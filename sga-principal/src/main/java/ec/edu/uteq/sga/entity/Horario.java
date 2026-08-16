@@ -29,4 +29,7 @@ public class Horario {
 
     @Column(length = 50)
     private String aula;
+
+    @Column(name = "id_periodo")
+    private Integer idPeriodo;
 }

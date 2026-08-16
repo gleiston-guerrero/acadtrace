@@ -46,4 +46,7 @@ public class Asignacion {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asignado_por")
     private Usuario asignadoPor;
+
+    @Column(name = "horas_semanales")
+    private Integer horasSemanales = 4;
 }
