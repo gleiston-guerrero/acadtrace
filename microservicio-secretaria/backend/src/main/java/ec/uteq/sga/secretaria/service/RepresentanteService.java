@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -154,7 +155,7 @@ public class RepresentanteService {
 
     private MapSqlParameterSource camposExtendidos(RepresentanteRequest dto) {
         return new MapSqlParameterSource()
-                .addValue("fechaNacimiento", blankToNull(dto.fecha_nacimiento()))
+                .addValue("fechaNacimiento", parseFecha(dto.fecha_nacimiento()))
                 .addValue("genero", blankToNull(dto.genero()))
                 .addValue("estadoCivil", blankToNull(dto.estado_civil()))
                 .addValue("nacionalidad", blankToNull(dto.nacionalidad()))
@@ -185,5 +186,15 @@ public class RepresentanteService {
 
     private static String blankToNull(String value) {
         return (value == null || value.isBlank()) ? null : value;
+    }
+
+    private static LocalDate parseFecha(String value) {
+        String v = blankToNull(value);
+        if (v == null) return null;
+        try {
+            return LocalDate.parse(v);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw ApiException.badRequest("Fecha de nacimiento inválida, formato esperado AAAA-MM-DD");
+        }
     }
 }
