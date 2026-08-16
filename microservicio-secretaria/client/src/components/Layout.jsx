@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 const PRIMARY = '#243A76';
 const PRIMARY_LIGHT = '#2d4a96';
 
-export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle, menuItems = [], seccion, onSeccionChange }) {
+export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle, menuItems = [], seccion, onSeccionChange, headerRight }) {
   const [showPeriodo, setShowPeriodo] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -213,6 +213,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
             </span>
           ))}
         </nav>
+        {headerRight}
       </div>
 
       {/* SIDEBAR + CONTENT */}

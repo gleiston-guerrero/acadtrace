@@ -66,11 +66,18 @@ const MODULOS = [
     color: 'bg-indigo-50', iconColor: 'text-indigo-500',
     icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   },
+  {
+    id: 'auditoria', label: 'Auditoría', path: '/auditoria',
+    desc: 'CRUD sensible, accesos y llamadas entre microservicios',
+    color: 'bg-red-50', iconColor: 'text-red-500', soloDirector: true,
+    icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  },
 ];
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [anoActual, setAnoActual] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
   const navigate = useNavigate();
   const username = localStorage.getItem('username') || 'Secretario';
 
@@ -83,8 +90,31 @@ export default function Dashboard() {
     }).catch(() => {});
   }, []);
 
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+  const esDirector = roles.includes('DIRECTOR');
+
+  const modulosFiltrados = MODULOS
+    .filter(m => !m.soloDirector || esDirector)
+    .filter(m =>
+      m.label.toLowerCase().includes(busqueda.toLowerCase()) ||
+      m.desc.toLowerCase().includes(busqueda.toLowerCase())
+    );
+
   return (
-    <Layout breadcrumb={['Inicio']}>
+    <Layout breadcrumb={['Inicio']} headerRight={
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Buscar..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          className="pl-3 pr-8 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none bg-slate-50 w-44"
+        />
+        <svg className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    }>
       <div className="flex gap-4 items-start">
 
         {/* PANEL IZQUIERDO — igual al de sga-principal */}
@@ -138,7 +168,7 @@ export default function Dashboard() {
 
           {/* Módulos — mismo estilo de card que sga-principal (icono arriba, centrado) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {MODULOS.map((m) => (
+            {modulosFiltrados.map((m) => (
               <button
                 key={m.id}
                 onClick={() => navigate(m.path)}
@@ -153,6 +183,11 @@ export default function Dashboard() {
                 </div>
               </button>
             ))}
+            {modulosFiltrados.length === 0 && (
+              <div className="col-span-2 sm:col-span-3 md:col-span-4 text-center py-10 text-slate-400 text-sm">
+                No se encontraron módulos con "{busqueda}"
+              </div>
+            )}
           </div>
         </div>
       </div>
