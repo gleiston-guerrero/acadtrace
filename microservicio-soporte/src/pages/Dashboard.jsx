@@ -50,7 +50,11 @@ export default function Dashboard() {
     const [filtroAccion, setFiltroAccion] = useState("TODAS");
 
     useEffect(() => {
-        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
+        if (!token) {
+            const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+            window.location.href = `http://${host}:5174/login`;
+            return;
+        }
         if (!esAdmin) { navigate("/soporte"); return; }
         verificarSalud();
         cargarAuditoria();

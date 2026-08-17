@@ -120,8 +120,9 @@ export default function Layout({
 
   // Año lectivo actual
   useEffect(() => {
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
     api
-      .get("http://localhost:8080/api/anos-lectivos/actual")
+      .get(`http://${host}:8080/api/anos-lectivos/actual`)
       .then((r) => setAnoActual(r.data))
       .catch(() => {});
   }, []);
@@ -162,7 +163,8 @@ export default function Layout({
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "http://localhost:5173/login";
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    window.location.href = `http://${host}:5174/login`;
   };
 
   // menuItems === undefined -> nadie definió nada, usar el sidebar genérico.
@@ -476,10 +478,10 @@ export default function Layout({
                   </button>
 
                   <button
-                    onClick={() =>
-                      (window.location.href =
-                        "http://localhost:5173/cambiar-password")
-                    }
+                    onClick={() => {
+                      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+                      window.location.href = `http://${host}:5174/cambiar-password`;
+                    }}
                     className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
                   >
                     <svg
@@ -619,7 +621,10 @@ export default function Layout({
                 </nav>
                 <hr className="border-slate-100 mt-1" />
                 <button
-                  onClick={() => (window.location.href = "http://localhost:5173/dashboard")}
+                  onClick={() => {
+                    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+                    window.location.href = `http://${host}:5174/dashboard`;
+                  }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left text-slate-400 hover:bg-slate-50 transition"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

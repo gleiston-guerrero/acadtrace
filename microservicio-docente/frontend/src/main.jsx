@@ -33,7 +33,8 @@ capturarSesionSSO();
 
 // Sin token = acceso directo no autorizado → al login del principal.
 if (!localStorage.getItem("token")) {
-  window.location.href = "http://localhost:5173/login";
+  const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+  window.location.href = `http://${host}:5174/login`;
 }
 
 // ── Interceptor 401 ──────────────────────────────────────────
@@ -43,7 +44,8 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.clear();
-      window.location.href = "http://localhost:5173/login";
+      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+      window.location.href = `http://${host}:5174/login`;
     }
     return Promise.reject(error);
   }

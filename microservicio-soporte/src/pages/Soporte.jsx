@@ -263,7 +263,11 @@ export default function Soporte() {
     };
 
     useEffect(() => {
-        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
+        if (!token) {
+            const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+            window.location.href = `http://${host}:5174/login`;
+            return;
+        }
         cargar();
         cargarTecnicos();
     }, []);
@@ -420,7 +424,8 @@ export default function Soporte() {
 
     const handleLogout = () => {
         localStorage.clear();
-        window.location.href = "http://localhost:5173/login";
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        window.location.href = `http://${host}:5174/login`;
     };
 
     /* ── Datos para el dashboard (calculados en el cliente) ──── */

@@ -192,7 +192,11 @@ export default function Usuarios() {
     const [savingRoles,  setSavingRoles]  = useState(false);
 
     useEffect(() => {
-        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
+        if (!token) {
+            const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+            window.location.href = `http://${host}:5174/login`;
+            return;
+        }
         if (!puedeGestionar) { navigate("/soporte"); return; }
         cargar();
     }, []);
