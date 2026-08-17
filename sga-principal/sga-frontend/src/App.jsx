@@ -13,6 +13,7 @@ import ConfiguracionCalificacion from "./pages/configuracion/ConfiguracionCalifi
 import ConsultaAsistencias from "./pages/asistencias/ConsultaAsistencias";
 import Horarios from "./pages/horarios/Horarios";
 import Auditoria from "./pages/auditoria/Auditoria";
+import Matriculas from "./pages/matriculas/Matriculas";
 
 import Estudiantes from "./pages/estudiantes/Estudiantes";
 
@@ -36,6 +37,7 @@ function App() {
                 <Route path="/horarios" element={<Horarios />} />
                 <Route path="/configuracion/calificacion" element={<ConfiguracionCalificacion />} />
                 <Route path="/auditoria" element={<Auditoria />} />
+                <Route path="/matriculas" element={<Matriculas />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
         </BrowserRouter>

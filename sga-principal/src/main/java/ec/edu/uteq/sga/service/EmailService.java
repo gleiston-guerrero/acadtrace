@@ -66,7 +66,7 @@ public class EmailService {
                     <p style="color: #ef4444; font-size: 13px; font-weight: bold;">
                         ⚠️ Por seguridad, deberá cambiar su contraseña en el primer ingreso.
                     </p>
-                    <a href="http://localhost:5173/login"
+                    <a href="http://localhost:5174/login"
                        style="display: inline-block; background-color: #243A76; color: white;
                               padding: 12px 24px; border-radius: 8px; text-decoration: none;
                               font-size: 14px; margin-top: 8px;">

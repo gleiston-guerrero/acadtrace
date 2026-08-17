@@ -25,4 +25,7 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
     @Query("SELECT m FROM Matricula m JOIN FETCH m.estudiante e LEFT JOIN FETCH e.representante WHERE m.grado.idGrado = :idGrado AND m.paralelo.idParalelo = :idParalelo AND m.anoLectivo.idAnoLectivo = :idAnoLectivo")
     List<Matricula> findByGradoParaleloAndAnoLectivoWithEstudiante(@Param("idGrado") Long idGrado, @Param("idParalelo") Long idParalelo, @Param("idAnoLectivo") Long idAnoLectivo);
+
+    @Query("SELECT m FROM Matricula m JOIN FETCH m.estudiante e WHERE m.anoLectivo.idAnoLectivo = :idAnoLectivo ORDER BY e.apellidos, e.nombres")
+    List<Matricula> findByAnoLectivoWithEstudiante(@Param("idAnoLectivo") Long idAnoLectivo);
 }

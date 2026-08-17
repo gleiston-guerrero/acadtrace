@@ -5,6 +5,8 @@ import ec.edu.uteq.sga.dto.EstudianteDetalleDTO;
 import ec.edu.uteq.sga.dto.grado.GradoRequestDTO;
 import ec.edu.uteq.sga.dto.grado.GradoResponseDTO;
 import ec.edu.uteq.sga.dto.grado.ParaleloDTO;
+import ec.edu.uteq.sga.dto.matricula.MatriculaRequestDTO;
+import ec.edu.uteq.sga.dto.matricula.MatriculaResponseDTO;
 import ec.edu.uteq.sga.entity.AnoLectivo;
 import ec.edu.uteq.sga.entity.Asignatura;
 import ec.edu.uteq.sga.entity.Representante;
@@ -16,6 +18,7 @@ import ec.edu.uteq.sga.repository.RepresentanteRepository;
 import ec.edu.uteq.sga.service.AuditoriaService;
 import ec.edu.uteq.sga.service.EstudianteService;
 import ec.edu.uteq.sga.service.GradoService;
+import ec.edu.uteq.sga.service.MatriculaService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +47,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
     private final RepresentanteRepository representanteRepository;
     private final EstudianteRepository estudianteRepository;
     private final AuditoriaService auditoriaService;
+    private final MatriculaService matriculaService;
 
     @Override
     public void listarAnosLectivos(Empty request, StreamObserver<AnosLectivosResponse> responseObserver) {
@@ -245,6 +249,91 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
         } catch (ResponseStatusException e) {
             responseObserver.onError(toGrpcStatus(e).asRuntimeException());
         }
+    }
+
+    // ---------------- Matriculas (gRPC) ----------------
+
+    @Override
+    public void crearMatricula(GuardarMatriculaRequest request, StreamObserver<MatriculaProto> responseObserver) {
+        try {
+            Long idUsuarioRegistro = request.getIdUsuarioRegistro() > 0 ? request.getIdUsuarioRegistro() : null;
+            MatriculaResponseDTO creada = matriculaService.crear(fromProto(request), idUsuarioRegistro);
+            auditoriaService.registrarGrpcRecibida("matricula", creada.getIdMatricula(),
+                    "Llamada gRPC recibida: crearMatricula", "EXITO", null);
+            responseObserver.onNext(toProto(creada));
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            auditoriaService.registrarGrpcRecibida("matricula", null,
+                    "Llamada gRPC recibida: crearMatricula", "FALLO", e.getReason());
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void obtenerMatricula(ObtenerMatriculaRequest request, StreamObserver<MatriculaProto> responseObserver) {
+        try {
+            responseObserver.onNext(toProto(matriculaService.obtener(request.getIdMatricula())));
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void listarMatriculas(ListarMatriculasRequest request, StreamObserver<ListarMatriculasResponse> responseObserver) {
+        MatriculaService.PaginaMatriculas pagina = matriculaService.listar(
+                request.getIdAnoLectivo() > 0 ? request.getIdAnoLectivo() : null,
+                request.getIdEstudiante() > 0 ? request.getIdEstudiante() : null,
+                request.getQ(), request.getPage(), request.getLimit());
+        ListarMatriculasResponse.Builder response = ListarMatriculasResponse.newBuilder().setTotal(pagina.total());
+        pagina.items().forEach(d -> response.addMatriculas(toProto(d)));
+        responseObserver.onNext(response.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void cambiarEstadoMatricula(CambiarEstadoMatriculaRequest request, StreamObserver<Empty> responseObserver) {
+        try {
+            matriculaService.cambiarEstado(request.getIdMatricula(), request.getEstado());
+            auditoriaService.registrarGrpcRecibida("matricula", request.getIdMatricula(),
+                    "Llamada gRPC recibida: cambiarEstadoMatricula", "EXITO", null);
+            responseObserver.onNext(Empty.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (ResponseStatusException e) {
+            auditoriaService.registrarGrpcRecibida("matricula", request.getIdMatricula(),
+                    "Llamada gRPC recibida: cambiarEstadoMatricula", "FALLO", e.getReason());
+            responseObserver.onError(toGrpcStatus(e).asRuntimeException());
+        }
+    }
+
+    private MatriculaRequestDTO fromProto(GuardarMatriculaRequest r) {
+        return MatriculaRequestDTO.builder()
+                .idEstudiante(r.getIdEstudiante())
+                .idGrado(r.getIdGrado())
+                .idParalelo(r.getIdParalelo() > 0 ? r.getIdParalelo() : null)
+                .idAnoLectivo(r.getIdAnoLectivo())
+                .estado(r.getEstado().isBlank() ? null : r.getEstado())
+                .observaciones(r.getObservaciones().isBlank() ? null : r.getObservaciones())
+                .build();
+    }
+
+    private MatriculaProto toProto(MatriculaResponseDTO d) {
+        return MatriculaProto.newBuilder()
+                .setIdMatricula(d.getIdMatricula())
+                .setIdEstudiante(d.getIdEstudiante())
+                .setEstudianteNombres(nullToEmpty(d.getEstudianteNombres()))
+                .setEstudianteApellidos(nullToEmpty(d.getEstudianteApellidos()))
+                .setEstudianteCedula(nullToEmpty(d.getEstudianteCedula()))
+                .setEstudianteCodigo(nullToEmpty(d.getEstudianteCodigo()))
+                .setIdGrado(d.getIdGrado())
+                .setIdParalelo(d.getIdParalelo() != null ? d.getIdParalelo() : 0)
+                .setIdAnoLectivo(d.getIdAnoLectivo())
+                .setNumeroOrden(d.getNumeroOrden() != null ? d.getNumeroOrden() : 0)
+                .setFechaRegistro(d.getFechaRegistro() != null ? d.getFechaRegistro().toString() : "")
+                .setEstado(nullToEmpty(d.getEstado()))
+                .setObservaciones(nullToEmpty(d.getObservaciones()))
+                .setRegistradoPor(nullToEmpty(d.getRegistradoPor()))
+                .build();
     }
 
     private CrearEstudianteDTO fromProto(GuardarEstudianteRequest r) {
