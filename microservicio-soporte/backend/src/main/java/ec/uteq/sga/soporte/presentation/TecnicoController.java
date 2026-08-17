@@ -1,4 +1,4 @@
-package ec.uteq.sga.soporte.controller;
+package ec.uteq.sga.soporte.presentation;
 
 import ec.uteq.sga.soporte.service.TecnicoService;
 import org.springframework.web.bind.annotation.GetMapping;
