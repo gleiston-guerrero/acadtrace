@@ -6,10 +6,9 @@ import axios from "axios";
 // docente (Django) para actividades, asistencia y calificaciones.
 // (Patrón API Gateway — el frontend nunca habla gRPC ni toca Django.)
 // ─────────────────────────────────────────────────────────────
-const API = "http://localhost:8080/api";
-
-// Datos de referencia (períodos) que aún solo expone Django por REST.
-const API_DOCENTE_REST = "http://localhost:8081/api/docente";
+const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+const API = `http://${host}:8080/api`;
+const API_DOCENTE_REST = `http://${host}:8081/api/docente`;
 
 const authHeaders = () => {
   const token = localStorage.getItem("token");

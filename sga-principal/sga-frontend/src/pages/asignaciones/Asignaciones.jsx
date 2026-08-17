@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Layout from "../../components/Layout";
 
-const API = "http://localhost:8080/api";
+const API = `http://${window.location.hostname}:8080/api`;
 const PRIMARY = "#243A76";
 
 const menuItems = [

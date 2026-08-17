@@ -33,7 +33,7 @@ const Detalle = ({ label, value, mono = false }) => (
   </div>
 );
 
-const IMG_BASE = "http://localhost:8080";
+const IMG_BASE = `http://${window.location.hostname}:8080`;
 const ID_DOCENTE = 3;
 
 const formInicial = {
