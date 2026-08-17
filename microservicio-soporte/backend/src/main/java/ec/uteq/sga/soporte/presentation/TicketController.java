@@ -1,11 +1,11 @@
 package ec.uteq.sga.soporte.controller;
 
+import ec.uteq.sga.soporte.application.TicketService;
 import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;
 import ec.uteq.sga.soporte.dto.ComentarioRequest;
 import ec.uteq.sga.soporte.dto.EscalarTicketRequest;
 import ec.uteq.sga.soporte.dto.TicketRequest;
 import ec.uteq.sga.soporte.security.AuthenticatedUser;
-import ec.uteq.sga.soporte.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
