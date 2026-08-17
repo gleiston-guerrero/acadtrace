@@ -348,14 +348,17 @@ export default function AulaVirtualCurso() {
           setError("El curso solicitado no está disponible entre tus asignaciones.");
           return;
         }
-        setCurso(asignacion);
-        const agendaResponse = await getAulaVirtualSemanas(idAsignacion);
-        const data = agendaResponse.data || { trimestres: [], pendientes: [] };
-        setAgenda(data);
-        if (data.trimestres?.[0]) {
-          setTrimestreActivo(String(data.trimestres[0].id_periodo));
-          setSemanaAbierta(`${data.trimestres[0].id_periodo}-1`);
-          setNumeroSemana(1);
+        try {
+          const agendaResponse = await getAulaVirtualSemanas(idAsignacion);
+          const data = agendaResponse.data || { trimestres: [], pendientes: [] };
+          setAgenda(data);
+          if (data.trimestres?.[0]) {
+            setTrimestreActivo(String(data.trimestres[0].id_periodo));
+            setSemanaAbierta(`${data.trimestres[0].id_periodo}-1`);
+            setNumeroSemana(1);
+          }
+        } catch (_) {
+          setAgenda({ trimestres: [], pendientes: [] });
         }
       } catch (requestError) {
         setError(requestError.response?.status === 401
