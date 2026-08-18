@@ -375,10 +375,6 @@ export default function Asignaciones() {
       menuItems={menuItems}
       seccion={seccion}
       onSeccionChange={handleSeccion}
-    >
-      {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError("")} className="text-red-400 ml-4">✕</button></div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3"><span className="text-green-700 text-sm">{success}</span></div>}
-
       <h1 className="text-lg font-bold text-slate-700 mb-1">Asignaciones</h1>
       <p className="text-slate-400 text-xs mb-5">Asigne docentes a cursos, asignaturas y paralelos.</p>
 

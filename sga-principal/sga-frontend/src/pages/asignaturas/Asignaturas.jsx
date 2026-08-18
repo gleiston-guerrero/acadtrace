@@ -221,8 +221,7 @@ export default function Asignaturas() {
 
   return (
     <Layout breadcrumb={["Inicio", "Asignaturas"]} sidebarTitle="Asignaturas" menuItems={menuItems} seccion={seccion} onSeccionChange={setSeccion}>
-      {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError("")} className="text-red-400 ml-4">✕</button></div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3"><span className="text-green-700 text-sm">{success}</span></div>}
+
 
       {/* CATÁLOGO */}
       {seccion === "catalogo" && (
