@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../../config/axios";
 import Layout from "../../components/Layout";
+import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
@@ -122,12 +124,27 @@ export default function Matriculas() {
     setModal("ver");
   };
 
+  const toast = useToast();
+  const confirm = useConfirm();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.idEstudiante) { setError("Busca y selecciona un estudiante de la lista"); return; }
-    if (!form.idGrado) { setError("Selecciona un grado"); return; }
-    if (!form.idParalelo) { setError("Selecciona un paralelo"); return; }
-    if (!form.idAnoLectivo) { setError("Selecciona un año lectivo"); return; }
+    if (!form.idEstudiante) {
+      toast.warning("Estudiante no seleccionado", "Busca y selecciona un estudiante de la lista desplegable.");
+      return;
+    }
+    if (!form.idGrado) {
+      toast.warning("Grado requerido", "Selecciona el grado para la matrícula.");
+      return;
+    }
+    if (!form.idParalelo) {
+      toast.warning("Paralelo requerido", "Selecciona el paralelo para la matrícula.");
+      return;
+    }
+    if (!form.idAnoLectivo) {
+      toast.warning("Año lectivo requerido", "Selecciona el período académico.");
+      return;
+    }
     setSaving(true); setError("");
     try {
       await api.post("/api/matriculas", {
@@ -137,11 +154,13 @@ export default function Matriculas() {
         idAnoLectivo: Number(form.idAnoLectivo),
         observaciones: form.observaciones || null,
       });
-      setSuccess("Matrícula registrada correctamente.");
+      toast.success("Matrícula registrada", "El estudiante fue matriculado exitosamente en el grado seleccionado.");
       setModal(null);
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "Error al registrar la matrícula");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "Error al registrar la matrícula.";
+      setError(errMsg);
+      toast.error("Error de matrícula", errMsg);
     } finally {
       setSaving(false);
     }
@@ -149,14 +168,28 @@ export default function Matriculas() {
 
   const guardarEstado = async () => {
     if (!selected || nuevoEstado === selected.estado) { setModal(null); return; }
+    
+    if (nuevoEstado === "RETIRADA" || nuevoEstado === "REPROBADA") {
+      const isOk = await confirm({
+        title: `¿Cambiar estado a ${nuevoEstado}?`,
+        message: `La matrícula del estudiante pasará a estar ${nuevoEstado.toLowerCase()}. ¿Estás seguro de continuar?`,
+        confirmText: "Sí, cambiar estado",
+        cancelText: "Cancelar",
+        type: "danger"
+      });
+      if (!isOk) return;
+    }
+
     setSaving(true); setError("");
     try {
       await api.patch(`/api/matriculas/${selected.idMatricula}/estado`, null, { params: { estado: nuevoEstado } });
-      setSuccess("Estado de la matrícula actualizado.");
+      toast.success("Estado actualizado", `La matrícula pasó a estado ${nuevoEstado}.`);
       setModal(null);
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || "Error al cambiar el estado");
+      const errMsg = err.response?.data?.message || "Error al cambiar el estado.";
+      setError(errMsg);
+      toast.error("Error de actualización", errMsg);
     } finally {
       setSaving(false);
     }
@@ -165,6 +198,22 @@ export default function Matriculas() {
   const handleSeccion = (id) => {
     setSeccion(id);
     if (id === "nueva") abrirNueva();
+  };
+
+  const descargarPdf = async (idMatricula, nombreEstudiante) => {
+    try {
+      const res = await api.get(`/api/matriculas/${idMatricula}/pdf`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Ficha_Matricula_${(nombreEstudiante || idMatricula).replace(/\s+/g, "_")}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("PDF generado", "Ficha de Matrícula descargada con éxito.");
+    } catch {
+      toast.error("Error al generar PDF", "No se pudo descargar la Ficha de Matrícula.");
+    }
   };
 
   return (
@@ -188,19 +237,6 @@ export default function Matriculas() {
           </button>
         </div>
       </div>
-
-      {error && !modal && (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
-          <span className="text-red-600 text-sm">{error}</span>
-          <button onClick={() => setError("")} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
-      {success && (
-        <div className="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between">
-          <span className="text-green-600 text-sm">{success}</span>
-          <button onClick={() => setSuccess("")} className="text-green-400 hover:text-green-600">✕</button>
-        </div>
-      )}
 
       <div className="bg-white border border-slate-200 rounded-xl p-3 mb-4">
         <div className="relative">
@@ -250,13 +286,21 @@ export default function Matriculas() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-center">
-                      <button onClick={() => abrirVer(m)} title="Ver detalle"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => abrirVer(m)} title="Ver detalle"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button onClick={() => descargarPdf(m.idMatricula, `${m.estudianteApellidos}_${m.estudianteNombres}`)} title="Descargar Ficha PDF"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -413,7 +457,16 @@ export default function Matriculas() {
               {error && <div className="bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2 rounded-lg">{error}</div>}
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-200 flex justify-end bg-white flex-shrink-0">
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-white flex-shrink-0">
+              <button
+                onClick={() => descargarPdf(selected.idMatricula, `${selected.estudianteApellidos}_${selected.estudianteNombres}`)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition font-semibold"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Descargar Ficha PDF
+              </button>
               <button onClick={() => setModal(null)} className="px-6 py-2 rounded-lg text-sm text-slate-600 border border-slate-200 hover:bg-slate-50 transition">
                 Cerrar
               </button>
