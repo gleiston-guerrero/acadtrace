@@ -258,7 +258,8 @@ export default function Usuarios() {
       await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
         correo: usuarioEdit.correo,
         roles: usuarioEdit.roles.map(r => {
-          const found = ROLES.find(x => x.nombre === r);
+          const norm = String(r).replace(/\s+/g, "_");
+          const found = ROLES.find(x => x.nombre === r || x.nombre === norm);
           return found ? found.id : null;
         }).filter(Boolean),
       });
@@ -272,7 +273,7 @@ export default function Usuarios() {
         if (editDocente) {
           Object.assign(payload, {
             fechaNacimiento: usuarioEdit.fechaNacimiento || null,
-            genero: usuarioEdit.genero || null,
+            genero: usuarioEdit.genero ? String(usuarioEdit.genero).toUpperCase() : null,
             telefono: usuarioEdit.telefono || null,
             telefonoAlt: usuarioEdit.telefonoAlt || null,
             direccion: usuarioEdit.direccion || null,

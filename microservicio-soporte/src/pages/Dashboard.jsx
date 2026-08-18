@@ -6,10 +6,12 @@ import Layout from "../components/Layout";
 const PRIMARY       = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
 
-const SERVICIOS = [
-    { nombre: "sga-principal",  url: "http://localhost:8080/actuator/health",     puerto: 8080, descripcion: "Sistema Principal" },
-    { nombre: "sga-docente",    url: "http://localhost:8081/health",              puerto: 8081, descripcion: "Microservicio Docente (Django)" },
-    { nombre: "sga-soporte",    url: "http://localhost:8083/actuator/health",     puerto: 8083, descripcion: "Soporte Técnico" },
+const getHost = () => typeof window !== "undefined" ? window.location.hostname : "localhost";
+
+const getServicios = () => [
+    { nombre: "sga-principal",  url: `http://${getHost()}:8080/actuator/health`,     puerto: 8080, descripcion: "Sistema Principal" },
+    { nombre: "sga-docente",    url: `http://${getHost()}:8081/health`,              puerto: 8081, descripcion: "Microservicio Docente (Django)" },
+    { nombre: "sga-soporte",    url: `http://${getHost()}:8083/actuator/health`,     puerto: 8083, descripcion: "Soporte Técnico" },
 ];
 
 const accionBadge = (accion) => {
@@ -65,7 +67,7 @@ export default function Dashboard() {
         setLoadingSalud(true);
         const resultados = {};
         await Promise.all(
-            SERVICIOS.map(async (s) => {
+            getServicios().map(async (s) => {
                 const inicio = Date.now();
                 try {
                     // Los healthchecks son públicos, NO enviamos Authorization header para evitar fallos de preflight CORS
@@ -99,7 +101,8 @@ export default function Dashboard() {
     // ── Log de auditoría ──────────────────────────────────────
     const cargarAuditoria = () => {
         setLoadingAudit(true);
-        axios.get("http://localhost:8080/api/auditoria", { headers })
+        const host = getHost();
+        axios.get(`http://${host}:8080/api/auditoria`, { headers })
             .then(r => setAuditoria(r.data))
             .catch(() => setAuditoria([]))
             .finally(() => setLoadingAudit(false));
