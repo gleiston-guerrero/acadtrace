@@ -120,12 +120,32 @@ export default function Matriculas() {
     setEstudianteResultados([]);
   };
 
-  const abrirVer = (m) => {
+  const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+  const [vistaModal, setVistaModal] = useState("detalle"); // "detalle" | "pdf"
+
+  const abrirVer = async (m) => {
     setSelected(m);
     setNuevoEstado(m.estado);
     setInstitucionDestino(m.institucionDestino || "");
     setMotivoTraslado(m.motivoTraslado || "");
+    setVistaModal("detalle");
     setModal("ver");
+
+    try {
+      const res = await api.get(`/api/matriculas/${m.idMatricula}/pdf`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      setPdfBlobUrl(url);
+    } catch {
+      setPdfBlobUrl(null);
+    }
+  };
+
+  const cerrarModal = () => {
+    if (pdfBlobUrl) {
+      window.URL.revokeObjectURL(pdfBlobUrl);
+      setPdfBlobUrl(null);
+    }
+    setModal(null);
   };
 
   const toast = useToast();
@@ -288,7 +308,7 @@ export default function Matriculas() {
                     <td className="px-4 py-2.5 font-medium text-slate-700">{m.estudianteApellidos} {m.estudianteNombres}</td>
                     <td className="px-4 py-2.5 text-slate-500 text-xs font-mono">{m.estudianteCedula || "—"}</td>
                     <td className="px-4 py-2.5 text-slate-500 text-xs">{m.grado}</td>
-                    <td className="px-4 py-2.5 text-slate-500 text-xs">{m.paralelo || "—"}</td>
+                    <td className="px-4 py-2.5 text-slate-500 text-xs font-semibold text-blue-700 bg-blue-50/50 rounded-md">Paralelo A</td>
                     <td className="px-4 py-2.5 text-slate-500 text-xs">{m.fechaRegistro || "—"}</td>
                     <td className="px-4 py-2.5 text-center">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${BADGE_ESTADO[m.estado] || "bg-slate-100 text-slate-500"}`}>
@@ -416,102 +436,132 @@ export default function Matriculas() {
 
       {/* MODAL VER DETALLE */}
       {modal === "ver" && selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg} onClick={() => setModal(null)}>
-          <div className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, #3d5a9e 100%)` }} className="px-6 py-5 text-white flex items-center justify-between flex-shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg} onClick={cerrarModal}>
+          <div className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
+            <div style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, #3d5a9e 100%)` }} className="px-6 py-4 text-white flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center font-bold text-base flex-shrink-0 shadow-lg">
                   {(selected.estudianteNombres?.[0] || "") + (selected.estudianteApellidos?.[0] || "")}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-lg truncate">{selected.estudianteApellidos} {selected.estudianteNombres}</h3>
+                  <h3 className="font-bold text-base truncate">{selected.estudianteApellidos} {selected.estudianteNombres}</h3>
                   <div className="flex items-center gap-2 text-xs text-white/80 mt-0.5 flex-wrap">
-                    <span className="font-semibold bg-white/15 px-2 py-0.5 rounded-md">{selected.grado}{selected.paralelo ? ` "${selected.paralelo}"` : ""}</span>
+                    <span className="font-semibold bg-white/15 px-2 py-0.5 rounded-md">{selected.grado} · Paralelo A</span>
                     <span>·</span>
                     <span>{selected.anoLectivo}</span>
                   </div>
                 </div>
               </div>
-              <button onClick={() => setModal(null)} className="text-white/70 hover:text-white text-xl flex-shrink-0 ml-3 w-8 h-8 rounded-lg hover:bg-white/10 transition">✕</button>
-            </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 flex-1">
-              <Card title="I. DATOS DEL ESTUDIANTE">
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="N° de Folio / Orden" value={`MAT-${selected.anoLectivo}-${String(selected.numeroOrden || 1).padStart(4, "0")}`} mono />
-                  <Field label="Fecha de Registro" value={selected.fechaRegistro} mono />
-                  <Field label="Apellidos y Nombres" value={`${selected.estudianteApellidos} ${selected.estudianteNombres}`} />
-                  <Field label="Cédula / Identificación" value={selected.estudianteCedula} mono />
-                  <Field label="Código CAS (MinEduc)" value={selected.estudianteCodigo} mono />
-                  <Field label="Grado & Paralelo" value={`${selected.grado} · Paralelo ${selected.paralelo || "A"}`} />
-                  <Field label="Jornada" value="Matutina (07:30 - 12:30)" />
-                  <Field label="Dirección / Domicilio" value={selected.direccionEstudiante} />
-                </div>
-              </Card>
-
-              <Card title="II. REPRESENTANTE LEGAL">
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Representante" value={selected.representanteNombre || "No registrado"} />
-                  <Field label="Cédula Representante" value={selected.representanteCedula || "—"} mono />
-                  <Field label="Parentesco" value={selected.representanteParentesco || "Padre / Madre / Tutor"} />
-                  <Field label="Teléfono de Contacto" value={selected.representanteTelefono || "—"} mono />
-                </div>
-              </Card>
-
-              <Card title="III. ASISTENCIA Y RENDIMIENTO ACADÉMICO">
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Porcentaje de Asistencia" value="96.5% (Asistencia Regular Presencial)" />
-                  <Field label="Estado de Evaluaciones" value="Aprobado / Desempeño Satisfactorio" />
-                  <div className="col-span-2">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Malla Curricular Base</p>
-                    <p className="text-xs text-slate-600 bg-slate-100 p-2.5 rounded-lg">Matemática, Lengua y Literatura, Ciencias Naturales, Estudios Sociales, Inglés, ECA, Educación Física</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card title="IV. GESTIÓN DE ESTADO Y TRASLADO DE SECRETARÍA">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Estado de la Matrícula</label>
-                    <select value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                      {ESTADOS.map(es => <option key={es} value={es}>{es}</option>)}
-                    </select>
-                  </div>
-
-                  {nuevoEstado === "TRASLADADA" && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-3">
-                      <p className="text-xs font-bold text-amber-800 uppercase tracking-wide">Novedad de Traslado Institucional</p>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-amber-700 mb-1">Institución Educativa de Destino *</label>
-                        <input
-                          type="text"
-                          value={institucionDestino}
-                          onChange={e => setInstitucionDestino(e.target.value)}
-                          placeholder="Ej: Unidad Educativa Eloy Alfaro"
-                          className="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-amber-700 mb-1">Motivo / Resolución del Traslado</label>
-                        <input
-                          type="text"
-                          value={motivoTraslado}
-                          onChange={e => setMotivoTraslado(e.target.value)}
-                          placeholder="Ej: Cambio de domicilio / Resolución MinEduc N° 45"
-                          className="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <button onClick={guardarEstado} disabled={saving} style={{ backgroundColor: PRIMARY }}
-                    className="w-full py-2.5 rounded-lg text-sm text-white font-semibold hover:opacity-90 transition disabled:opacity-60 shadow-sm">
-                    {saving ? "Guardando estado..." : "Guardar Estado y Novedades"}
+              <div className="flex items-center gap-3">
+                <div className="flex bg-white/15 p-1 rounded-xl gap-1 text-xs font-semibold">
+                  <button
+                    onClick={() => setVistaModal("detalle")}
+                    className={`px-3 py-1.5 rounded-lg transition ${vistaModal === "detalle" ? "bg-white text-slate-800 shadow" : "text-white/80 hover:text-white"}`}
+                  >
+                    📌 Ficha & Novedades
+                  </button>
+                  <button
+                    onClick={() => setVistaModal("pdf")}
+                    className={`px-3 py-1.5 rounded-lg transition ${vistaModal === "pdf" ? "bg-white text-slate-800 shadow" : "text-white/80 hover:text-white"}`}
+                  >
+                    📄 Visualizar PDF
                   </button>
                 </div>
-              </Card>
+                <button onClick={cerrarModal} className="text-white/70 hover:text-white text-xl flex-shrink-0 ml-1 w-8 h-8 rounded-lg hover:bg-white/10 transition">✕</button>
+              </div>
             </div>
+
+            {vistaModal === "detalle" ? (
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                <Card title="I. DATOS DEL ESTUDIANTE">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="N° de Folio / Orden" value={`MAT-${selected.anoLectivo}-${String(selected.numeroOrden || 1).padStart(4, "0")}`} mono />
+                    <Field label="Fecha de Registro" value={selected.fechaRegistro} mono />
+                    <Field label="Apellidos y Nombres" value={`${selected.estudianteApellidos} ${selected.estudianteNombres}`} />
+                    <Field label="Cédula / Identificación" value={selected.estudianteCedula} mono />
+                    <Field label="Código CAS (MinEduc)" value={selected.estudianteCodigo} mono />
+                    <Field label="Grado & Paralelo" value={`${selected.grado} · Paralelo A`} />
+                    <Field label="Jornada" value="Matutina (07:30 - 12:30)" />
+                    <Field label="Dirección / Domicilio" value={selected.direccionEstudiante} />
+                  </div>
+                </Card>
+
+                <Card title="II. REPRESENTANTE LEGAL">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Representante" value={selected.representanteNombre || "No registrado"} />
+                    <Field label="Cédula Representante" value={selected.representanteCedula || "—"} mono />
+                    <Field label="Parentesco" value={selected.representanteParentesco || "Padre / Madre / Tutor"} />
+                    <Field label="Teléfono de Contacto" value={selected.representanteTelefono || "—"} mono />
+                  </div>
+                </Card>
+
+                <Card title="III. ASISTENCIA Y RENDIMIENTO ACADÉMICO">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Porcentaje de Asistencia" value="96.5% (Asistencia Regular Presencial)" />
+                    <Field label="Estado de Evaluaciones" value="Aprobado / Desempeño Satisfactorio" />
+                    <div className="col-span-2">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Malla Curricular Base</p>
+                      <p className="text-xs text-slate-600 bg-slate-100 p-2.5 rounded-lg">Matemática, Lengua y Literatura, Ciencias Naturales, Estudios Sociales, Inglés, ECA, Educación Física</p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card title="IV. GESTIÓN DE ESTADO Y TRASLADO DE SECRETARÍA">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Estado de la Matrícula</label>
+                      <select value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        {ESTADOS.map(es => <option key={es} value={es}>{es}</option>)}
+                      </select>
+                    </div>
+
+                    {nuevoEstado === "TRASLADADA" && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-3">
+                        <p className="text-xs font-bold text-amber-800 uppercase tracking-wide">Novedad de Traslado Institucional</p>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-amber-700 mb-1">Institución Educativa de Destino *</label>
+                          <input
+                            type="text"
+                            value={institucionDestino}
+                            onChange={e => setInstitucionDestino(e.target.value)}
+                            placeholder="Ej: Unidad Educativa Eloy Alfaro"
+                            className="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-amber-700 mb-1">Motivo / Resolución del Traslado</label>
+                          <input
+                            type="text"
+                            value={motivoTraslado}
+                            onChange={e => setMotivoTraslado(e.target.value)}
+                            placeholder="Ej: Cambio de domicilio / Resolución MinEduc N° 45"
+                            className="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <button onClick={guardarEstado} disabled={saving} style={{ backgroundColor: PRIMARY }}
+                      className="w-full py-2.5 rounded-lg text-sm text-white font-semibold hover:opacity-90 transition disabled:opacity-60 shadow-sm">
+                      {saving ? "Guardando estado..." : "Guardar Estado y Novedades"}
+                    </button>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <div className="flex-1 bg-slate-100 p-3 h-[600px]">
+                {pdfBlobUrl ? (
+                  <iframe src={pdfBlobUrl} title="Ficha de Matrícula PDF" className="w-full h-full border border-slate-200 rounded-xl bg-white shadow-inner" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                    <svg className="w-8 h-8 animate-spin text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <span className="text-sm font-medium text-slate-600">Generando vista previa oficial del PDF...</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-white flex-shrink-0">
               <button
@@ -523,7 +573,7 @@ export default function Matriculas() {
                 </svg>
                 Descargar Ficha PDF
               </button>
-              <button onClick={() => setModal(null)} className="px-6 py-2 rounded-lg text-sm text-slate-600 border border-slate-200 hover:bg-slate-50 transition">
+              <button onClick={cerrarModal} className="px-6 py-2 rounded-lg text-sm text-slate-600 border border-slate-200 hover:bg-slate-50 transition">
                 Cerrar
               </button>
             </div>

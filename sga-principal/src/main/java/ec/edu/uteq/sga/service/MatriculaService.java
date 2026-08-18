@@ -54,6 +54,13 @@ public class MatriculaService {
             todas = todas.stream().filter(m -> coincide(m.getEstudiante(), needle)).toList();
         }
 
+        // Ordenar por Grado (Primero EGB -> Décimo EGB) y por Apellidos, Nombres en orden alfabético
+        todas = todas.stream()
+                .sorted(java.util.Comparator.comparing((Matricula m) -> m.getGrado() != null ? m.getGrado().getIdGrado() : 0L)
+                        .thenComparing(m -> m.getEstudiante() != null ? m.getEstudiante().getApellidos() : "")
+                        .thenComparing(m -> m.getEstudiante() != null ? m.getEstudiante().getNombres() : ""))
+                .toList();
+
         int total = todas.size();
         int limiteReal = limit > 0 ? limit : 20;
         int paginaReal = page > 0 ? page : 1;
