@@ -431,8 +431,14 @@ export default function Usuarios() {
                         <td className="px-4 py-3 text-slate-400 text-xs">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div style={{ backgroundColor: PRIMARY }} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase flex-shrink-0">
-                              {u.username?.charAt(0)}
+                            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {u.fotoUrl ? (
+                                <img src={resolveFotoUrl(u.fotoUrl)} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span style={{ backgroundColor: PRIMARY }} className="w-full h-full flex items-center justify-center text-white text-xs font-bold uppercase">
+                                  {u.username?.charAt(0)}
+                                </span>
+                              )}
                             </div>
                             <span className="font-medium text-slate-700">{u.username}</span>
                           </div>

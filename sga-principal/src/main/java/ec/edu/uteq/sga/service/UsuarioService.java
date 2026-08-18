@@ -15,6 +15,9 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import ec.edu.uteq.sga.repository.PersonaRepository;
+import ec.edu.uteq.sga.entity.Persona;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -22,6 +25,7 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepo;
     private final RolRepository rolRepo;
+    private final PersonaRepository personaRepo;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AuditoriaService auditoriaService;
@@ -190,6 +194,9 @@ public class UsuarioService {
     }
 
     private UsuarioResponseDTO toDTO(Usuario u) {
+        String fotoUrl = personaRepo.findByUsuario_IdUsuario(u.getIdUsuario())
+                .map(Persona::getFotoUrl)
+                .orElse(null);
         return UsuarioResponseDTO.builder()
                 .idUsuario(u.getIdUsuario())
                 .username(u.getUsername())
@@ -200,6 +207,7 @@ public class UsuarioService {
                 .ultimoAcceso(u.getUltimoAcceso())
                 .fechaCreacion(u.getFechaCreacion())
                 .roles(u.getRoles().stream().map(Rol::getNombre).collect(Collectors.toSet()))
+                .fotoUrl(fotoUrl)
                 .build();
     }
     @Transactional
