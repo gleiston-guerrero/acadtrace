@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class FotoUploadController {
 
-    private static final long MAX_BYTES = 3 * 1024 * 1024;
+    private static final long MAX_BYTES = 10 * 1024 * 1024;
 
     @Value("${app.uploads.dir:uploads}")
     private String baseDir;
