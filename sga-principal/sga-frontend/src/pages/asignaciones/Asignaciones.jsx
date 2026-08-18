@@ -246,7 +246,7 @@ export default function Asignaciones() {
       setSuccess("Asignación eliminada correctamente.");
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || "No se pudo eliminar la asignación.");
+      setError(err.response?.data?.message || err.response?.data?.error || "No se pudo eliminar la asignación.");
     }
   };
 

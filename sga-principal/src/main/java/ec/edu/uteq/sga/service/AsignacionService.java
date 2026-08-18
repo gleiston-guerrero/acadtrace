@@ -25,6 +25,7 @@ public class AsignacionService {
     private final ParaleloRepository paraleloRepo;
     private final AnoLectivoRepository anoLectivoRepo;
     private final UsuarioRepository usuarioRepo;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarDocentes() {
@@ -129,7 +130,18 @@ public class AsignacionService {
         if (!asignacionRepo.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada");
         }
-        asignacionRepo.deleteById(id);
+        try {
+            jdbcTemplate.update("DELETE FROM sga_docente.promedios_anuales WHERE id_asignacion = ?", id);
+            jdbcTemplate.update("DELETE FROM sga_docente.promedios_trimestrales WHERE id_asignacion = ?", id);
+            jdbcTemplate.update("DELETE FROM sga_docente.resumen_asistencia WHERE id_asignacion = ?", id);
+            jdbcTemplate.update("DELETE FROM sga_docente.asistencias WHERE id_asignacion = ?", id);
+            jdbcTemplate.update("DELETE FROM sga_docente.actividades WHERE id_asignacion = ?", id);
+            jdbcTemplate.update("DELETE FROM sga_principal.horarios WHERE id_asignacion = ?", id);
+            asignacionRepo.deleteById(id);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "No se pudo eliminar la asignación: " + ex.getMessage());
+        }
     }
 
     @Transactional

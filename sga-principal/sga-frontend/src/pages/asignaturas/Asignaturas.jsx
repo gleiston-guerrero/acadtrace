@@ -393,13 +393,25 @@ export default function Asignaturas() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {malla.materias.map((m) => (
-                        <tr key={m.idMalla} className="hover:bg-slate-50 transition-colors">
+                        <tr key={m.idMalla || m.idAsignatura} className="hover:bg-slate-50 transition-colors">
                           <td className="px-5 py-3.5 font-medium text-slate-700">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800">{m.asignatura}</span>
-                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-normal">
-                                {m.codigo}
-                              </span>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-slate-800">{m.asignatura}</span>
+                                <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-normal">
+                                  {m.codigo}
+                                </span>
+                                {m.origen === "ASIGNACION" && (
+                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    De Asignaciones
+                                  </span>
+                                )}
+                              </div>
+                              {m.docentes && m.docentes.length > 0 && (
+                                <span className="text-xs text-slate-500 mt-0.5">
+                                  Docente: <strong className="text-slate-700 font-medium">{m.docentes.join(", ")}</strong>
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="px-5 py-3.5 text-center">
