@@ -10,7 +10,7 @@ const menuItems = [
   { id: "nuevo", label: "Nuevo período", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
 ];
 
-export default function AnosLectivos() {
+export default function AnosLectivos({ embed = false }) {
   const [anos, setAnos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
@@ -73,7 +73,7 @@ export default function AnosLectivos() {
       setShowEditModal(false);
       cargar();
     } catch (e) {
-      setError(e.response?.data?.message || "Error al actualizar");
+      setError(e.response?.data?.message || "Error al actualizar el año lectivo");
     } finally {
       setSaving(false);
     }
@@ -81,11 +81,11 @@ export default function AnosLectivos() {
 
   const handleEstablecerActual = async (id) => {
     try {
-      await api.patch(`/api/anos-lectivos/${id}/establecer-actual`, {});
-      setSuccess("Año lectivo establecido como actual.");
+      await api.post(`/api/anos-lectivos/${id}/activar`);
+      setSuccess("Año lectivo actual actualizado correctamente.");
       cargar();
-    } catch {
-      setError("Error al establecer el año lectivo actual");
+    } catch (e) {
+      setError(e.response?.data?.message || "Error al cambiar el año lectivo actual");
     }
     setShowConfirm(null);
   };
@@ -95,15 +95,8 @@ export default function AnosLectivos() {
     if (id === "nuevo") { setShowModal(true); setError(""); }
   };
 
-  return (
-    <Layout
-      breadcrumb={["Inicio", "Años Lectivos"]}
-      sidebarTitle="Años Lectivos"
-      menuItems={menuItems}
-      seccion={seccion}
-      onSeccionChange={handleSeccion}
-    >
-
+  const mainContent = (
+    <div className={embed ? "" : "p-6"}>
       {error && (
         <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
           <span className="text-red-600 text-sm">{error}</span>
@@ -355,6 +348,20 @@ export default function AnosLectivos() {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  if (embed) return mainContent;
+
+  return (
+    <Layout
+      breadcrumb={["Inicio", "Años Lectivos"]}
+      sidebarTitle="Años Lectivos"
+      menuItems={menuItems}
+      seccion={seccion}
+      onSeccionChange={handleSeccion}
+    >
+      {mainContent}
     </Layout>
   );
 }

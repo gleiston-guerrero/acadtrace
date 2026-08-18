@@ -41,8 +41,8 @@ public class MatriculaController {
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id, @RequestParam String estado) {
-        matriculaService.cambiarEstado(id, estado);
+    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id, @RequestParam String estado, @RequestParam(required = false) String observaciones) {
+        matriculaService.cambiarEstado(id, estado, observaciones);
         return ResponseEntity.noContent().build();
     }
 

@@ -11,11 +11,11 @@ import AnosLectivos from "./pages/anos-lectivos/AnosLectivos";
 import Grados from "./pages/grados/Grados";
 import Asignaciones from "./pages/asignaciones/Asignaciones";
 import Asignaturas from "./pages/asignaturas/Asignaturas";
-import ConfiguracionCalificacion from "./pages/configuracion/ConfiguracionCalificacion";
+import ConfiguracionGeneral from "./pages/configuracion/ConfiguracionGeneral";
+import Estudiantes from "./pages/estudiantes/Estudiantes";
 import ConsultaAsistencias from "./pages/asistencias/ConsultaAsistencias";
 import Horarios from "./pages/horarios/Horarios";
 import Auditoria from "./pages/auditoria/Auditoria";
-import Estudiantes from "./pages/estudiantes/Estudiantes";
 import Matriculas from "./pages/matriculas/Matriculas";
 
 function App() {
@@ -28,16 +28,17 @@ function App() {
                     <Route path="/portales" element={<Portales />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/cambiar-password" element={<CambiarPassword />} />
-                    <Route path="/usuarios" element={<Usuarios />} />
+                    <Route path="/usuarios" element={<ConfiguracionGeneral />} />
                     <Route path="/estudiantes" element={<Estudiantes />} />
                     <Route path="/asistencias" element={<ConsultaAsistencias />} />
                     <Route path="/calificaciones" element={<Calificaciones />} />
-                    <Route path="/anos-lectivos" element={<AnosLectivos />} />
+                    <Route path="/anos-lectivos" element={<ConfiguracionGeneral />} />
                     <Route path="/grados" element={<Grados />} />
                     <Route path="/asignaciones" element={<Asignaciones />} />
                     <Route path="/asignaturas" element={<Asignaturas />} />
                     <Route path="/horarios" element={<Horarios />} />
-                    <Route path="/configuracion/calificacion" element={<ConfiguracionCalificacion />} />
+                    <Route path="/configuracion" element={<ConfiguracionGeneral />} />
+                    <Route path="/configuracion/calificacion" element={<ConfiguracionGeneral />} />
                     <Route path="/auditoria" element={<Auditoria />} />
                     <Route path="/matriculas" element={<Matriculas />} />
                     <Route path="*" element={<Navigate to="/dashboard" />} />
