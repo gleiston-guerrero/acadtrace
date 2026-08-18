@@ -345,6 +345,7 @@ export default function AnosLectivos({ embed = false }) {
                 </button>
               </div>
             </div>
+          </div>
         </div>
       )}
     </div>
