@@ -376,8 +376,6 @@ export default function Asignaturas() {
             </div>
 
             {/* Barra de Acciones del Modal */}
-            <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
-            {/* Barra de Acciones del Modal */}
             <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
               {(() => {
                 const total = malla?.totalHoras || 0;
