@@ -12,8 +12,13 @@ public class MatriculaRequestDTO {
     @NotNull(message = "El grado es obligatorio")
     private Long idGrado;
 
+    @NotNull(message = "El paralelo es obligatorio")
+    private Long idParalelo;
+
     @NotNull(message = "El año lectivo es obligatorio")
     private Long idAnoLectivo;
+
+    private String estado;
 
     private String observaciones;
 }

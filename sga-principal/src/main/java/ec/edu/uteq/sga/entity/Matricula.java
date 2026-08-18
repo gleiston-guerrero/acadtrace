@@ -29,7 +29,7 @@ public class Matricula {
     private AnoLectivo anoLectivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_paralelo")
+    @JoinColumn(name = "id_paralelo", nullable = false)
     private Paralelo paralelo;
 
     @Column(name = "numero_orden")
