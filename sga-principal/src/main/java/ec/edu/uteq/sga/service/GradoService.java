@@ -122,7 +122,7 @@ public class GradoService {
     }
 
     private GradoResponseDTO toDTO(Grado g, Long idAnoActivo) {
-        List<ParaleloDTO> paralelos = paraleloRepo.findByGradoIdGradoOrderByLetra(g.getIdGrado())
+        List<ParaleloDTO> paralelos = paraleloRepo.findByGradoIdGradoAndActivoTrueOrderByLetra(g.getIdGrado())
                 .stream().map(p -> toParaleloDTO(p, idAnoActivo)).collect(Collectors.toList());
 
         return GradoResponseDTO.builder()

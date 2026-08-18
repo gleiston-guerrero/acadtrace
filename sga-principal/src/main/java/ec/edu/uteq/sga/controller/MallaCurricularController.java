@@ -97,6 +97,55 @@ public class MallaCurricularController {
         return ResponseEntity.ok(Map.of("totalHoras", total, "materias", items));
     }
 
+    @GetMapping("/resumen-grados")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<Long, Map<String, Object>>> resumenGrados(@RequestParam Long idAnoLectivo) {
+        List<MallaCurricular> mallas = mallaRepo.findAll().stream()
+                .filter(m -> m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))
+                .collect(Collectors.toList());
+
+        List<Asignacion> asignaciones = asignacionRepo.findAll().stream()
+                .filter(a -> a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo) && a.isActivo())
+                .collect(Collectors.toList());
+
+        Map<Long, Map<Long, Map<String, Object>>> mapaGrados = new HashMap<>();
+
+        for (MallaCurricular m : mallas) {
+            Long idG = m.getGrado().getIdGrado();
+            Long idA = m.getAsignatura().getIdAsignatura();
+            mapaGrados.putIfAbsent(idG, new HashMap<>());
+            Map<String, Object> item = new HashMap<>();
+            item.put("horas", m.getHorasSemana() != null ? m.getHorasSemana() : 4);
+            mapaGrados.get(idG).put(idA, item);
+        }
+
+        for (Asignacion a : asignaciones) {
+            Long idG = a.getGrado().getIdGrado();
+            Long idA = a.getAsignatura().getIdAsignatura();
+            int h = a.getHorasSemanales() != null && a.getHorasSemanales() > 0 ? a.getHorasSemanales() : 4;
+            mapaGrados.putIfAbsent(idG, new HashMap<>());
+            Map<Long, Map<String, Object>> mapG = mapaGrados.get(idG);
+            if (mapG.containsKey(idA)) {
+                int hActual = Integer.parseInt(mapG.get(idA).get("horas").toString());
+                if (h > hActual) mapG.get(idA).put("horas", h);
+            } else {
+                Map<String, Object> item = new HashMap<>();
+                item.put("horas", h);
+                mapG.put(idA, item);
+            }
+        }
+
+        Map<Long, Map<String, Object>> res = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Map<String, Object>>> entry : mapaGrados.entrySet()) {
+            Long idG = entry.getKey();
+            Map<Long, Map<String, Object>> mapG = entry.getValue();
+            int totalH = mapG.values().stream().mapToInt(v -> Integer.parseInt(v.get("horas").toString())).sum();
+            res.put(idG, Map.of("totalHoras", totalH, "cantMaterias", mapG.size()));
+        }
+
+        return ResponseEntity.ok(res);
+    }
+
     @PostMapping
     @Transactional
     public ResponseEntity<Void> agregar(@RequestBody Map<String, Object> body) {

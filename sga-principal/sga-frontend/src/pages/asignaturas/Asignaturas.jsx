@@ -49,6 +49,8 @@ export default function Asignaturas() {
   const [cardColors, setCardColors] = useState({});
   const [activeMenuId, setActiveMenuId] = useState(null);
 
+  const [resumenGrados, setResumenGrados] = useState({});
+
   useEffect(() => { cargarAsignaturas(); cargarBase(); }, []);
   useEffect(() => { if (success) { const t = setTimeout(() => setSuccess(""), 3500); return () => clearTimeout(t); } }, [success]);
   useEffect(() => {
@@ -65,7 +67,14 @@ export default function Asignaturas() {
 
   const cargarBase = () => {
     api.get(`/api/grados`).then(r => setGrados(r.data || [])).catch(() => {});
-    api.get(`/api/anos-lectivos/actual`).then(r => setAnoActual(r.data)).catch(() => {});
+    api.get(`/api/anos-lectivos/actual`).then(r => {
+      setAnoActual(r.data);
+      if (r.data?.idAnoLectivo) {
+        api.get(`/api/malla/resumen-grados`, { params: { idAnoLectivo: r.data.idAnoLectivo } })
+          .then(res => setResumenGrados(res.data || {}))
+          .catch(() => {});
+      }
+    }).catch(() => {});
   };
 
   const cargarMalla = (idTarget) => {
@@ -301,10 +310,21 @@ export default function Asignaturas() {
                       {/* CUERPO INFERIOR CON RESUMEN Y ACCIONES */}
                       <div className="p-4 bg-white flex-1 flex flex-col justify-between space-y-3">
                         <div className="grid grid-cols-3 gap-2 py-1">
-                          <div className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center">
-                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-tight">MALLA</span>
-                            <span className="block text-xs font-extrabold text-slate-700 mt-0.5">30 HRS</span>
-                          </div>
+                          {(() => {
+                            const infoG = resumenGrados[g.idGrado] || {};
+                            const hrs = infoG.totalHoras || 0;
+                            let styleHrs = "bg-slate-50 border-slate-100 text-slate-700";
+                            if (hrs > 30) styleHrs = "bg-rose-50 border-rose-200 text-rose-700 font-extrabold";
+                            else if (hrs === 30) styleHrs = "bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold";
+                            else if (hrs > 0) styleHrs = "bg-amber-50 border-amber-200 text-amber-800 font-extrabold";
+
+                            return (
+                              <div className={`border rounded-xl p-2 text-center ${styleHrs}`}>
+                                <span className="block text-[10px] font-bold uppercase tracking-tight opacity-75">MALLA</span>
+                                <span className="block text-xs mt-0.5">{hrs > 0 ? `${hrs} / 30 HRS` : "0 / 30 HRS"}</span>
+                              </div>
+                            );
+                          })()}
                           <div className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center">
                             <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-tight">NIVEL</span>
                             <span className="block text-xs font-extrabold text-slate-700 mt-0.5">EGB</span>
@@ -357,17 +377,38 @@ export default function Asignaturas() {
 
             {/* Barra de Acciones del Modal */}
             <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
-              <span className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${
-                malla?.totalHoras === 30
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : "bg-amber-50 text-amber-700 border-amber-200"
-              }`}>
-                {malla?.totalHoras || 0} / 30 Horas semanales
-              </span>
+            {/* Barra de Acciones del Modal */}
+            <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
+              {(() => {
+                const total = malla?.totalHoras || 0;
+                const dif = total - 30;
+                if (total > 30) {
+                  return (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-800 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
+                      <span>⚠️ EXCESO:</span>
+                      <span><strong>{total} / 30 Horas semanales</strong> (Te estás pasando por <span className="bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded font-black">+{dif}h</span>)</span>
+                    </div>
+                  );
+                } else if (total < 30) {
+                  return (
+                    <div className="bg-amber-50 border border-amber-200 text-amber-900 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
+                      <span>ℹ️ MALLA INCOMPLETA:</span>
+                      <span><strong>{total} / 30 Horas semanales</strong> (Faltan <span className="bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-black">{Math.abs(dif)}h</span> para completar 30h)</span>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
+                      <span>✅ MALLA COMPLETA:</span>
+                      <span><strong>30 / 30 Horas semanales</strong> asignadas perfectamente</span>
+                    </div>
+                  );
+                }
+              })()}
               <button
                 onClick={() => { setShowAgregar(true); setNuevaMalla({ idAsignatura: "", horasSemana: "" }); setError(""); }}
                 style={{ backgroundColor: PRIMARY }}
-                className="text-white text-xs font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition shadow-sm"
+                className="text-white text-xs font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition shadow-sm self-end sm:self-auto"
               >
                 + Agregar materia
               </button>
@@ -396,20 +437,30 @@ export default function Asignaturas() {
                         <tr key={m.idMalla || m.idAsignatura} className="hover:bg-slate-50 transition-colors">
                           <td className="px-5 py-3.5 font-medium text-slate-700">
                             <div className="flex flex-col">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-slate-800">{m.asignatura}</span>
-                                <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-normal">
+                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-normal">
                                   {m.codigo}
                                 </span>
-                                {m.origen === "ASIGNACION" && (
-                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                    De Asignaciones
+                                {m.origen === "ASIGNACION" ? (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> De Asignaciones
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                                    📙 Malla Base
                                   </span>
                                 )}
                               </div>
-                              {m.docentes && m.docentes.length > 0 && (
-                                <span className="text-xs text-slate-500 mt-0.5">
+                              {m.docentes && m.docentes.length > 0 ? (
+                                <span className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
                                   Docente: <strong className="text-slate-700 font-medium">{m.docentes.join(", ")}</strong>
+                                </span>
+                              ) : (
+                                <span className="text-xs text-amber-600 mt-1 font-medium flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                                  Sin docente asignado en el distributivo
                                 </span>
                               )}
                             </div>

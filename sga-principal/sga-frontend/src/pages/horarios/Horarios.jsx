@@ -67,7 +67,7 @@ export default function Horarios() {
     });
     const arr = [];
     (grados || []).forEach((g) => {
-      (g.paralelos || []).filter((p) => p.activo !== false).forEach((p) => {
+      (g.paralelos || []).filter((p) => p.activo !== false && (p.letra === "A" || p.nombre === "A")).forEach((p) => {
         const key = `${g.idGrado}-${p.idParalelo}`;
         const materias = asigsPorCurso.get(key) || [];
         arr.push({
