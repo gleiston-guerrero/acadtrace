@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import api, { apiPrincipal } from '../utils/api';
+import { apiPrincipal } from '../utils/api';
 
 const PRIMARY = '#243A76';
 
@@ -93,19 +93,13 @@ const MODULOS = [
 ];
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
   const [anoActual, setAnoActual] = useState(null);
   const [busqueda, setBusqueda] = useState('');
   const navigate = useNavigate();
   const username = localStorage.getItem('username') || 'Secretario';
 
   useEffect(() => {
-    apiPrincipal.get('/anos-lectivos/actual').then(r => {
-      setAnoActual(r.data);
-      if (r.data?.idAnoLectivo) {
-        api.get(`/reportes/estadisticas/${r.data.idAnoLectivo}`).then(s => setStats(s.data)).catch(() => {});
-      }
-    }).catch(() => {});
+    apiPrincipal.get('/anos-lectivos/actual').then(r => setAnoActual(r.data)).catch(() => {});
   }, []);
 
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
@@ -166,23 +160,6 @@ export default function Dashboard() {
               </p>
             )}
           </div>
-
-          {/* Stats */}
-          {stats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              {[
-                { label: 'Total matrículas', val: stats.totales?.total || 0, color: 'text-blue-600', bg: 'bg-blue-50' },
-                { label: 'Activas', val: stats.totales?.activas || 0, color: 'text-green-600', bg: 'bg-green-50' },
-                { label: 'Masculino', val: stats.totales?.masculino || 0, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                { label: 'Femenino', val: stats.totales?.femenino || 0, color: 'text-pink-600', bg: 'bg-pink-50' },
-              ].map(s => (
-                <div key={s.label} className={`${s.bg} rounded-xl p-4 border border-white shadow-sm`}>
-                  <p className={`text-2xl font-bold ${s.color}`}>{s.val}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Módulos — mismo estilo de card que sga-principal (icono arriba, centrado) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
