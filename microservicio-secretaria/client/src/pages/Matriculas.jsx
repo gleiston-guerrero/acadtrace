@@ -34,6 +34,9 @@ export default function Matriculas() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [pdfError, setPdfError] = useState('');
+  const [verModal, setVerModal] = useState(null);
+  const [vistaModal, setVistaModal] = useState('detalle');
+  const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
 
   // Cargar años lectivos y grados de sga-principal (camelCase)
   useEffect(() => {
@@ -133,6 +136,24 @@ export default function Matriculas() {
     } catch {
       setPdfError('No se pudo descargar la Ficha de Matrícula.');
     }
+  };
+
+  const abrirVer = async (m) => {
+    setVerModal(m);
+    setVistaModal('detalle');
+    setPdfBlobUrl(null);
+    try {
+      const res = await apiPrincipal.get(`/matriculas/${m.id_matricula}/pdf`, { responseType: 'blob' });
+      setPdfBlobUrl(window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' })));
+    } catch {
+      setPdfBlobUrl(null);
+    }
+  };
+
+  const cerrarVer = () => {
+    if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
+    setPdfBlobUrl(null);
+    setVerModal(null);
   };
 
   const handleSeccion = (id) => {
@@ -254,12 +275,21 @@ export default function Matriculas() {
                   </select>
                 </td>
                 <td className="px-4 py-2.5 text-center">
-                  <button onClick={() => descargarPdf(m.id_matricula, m.estudiante)} title="Descargar Ficha PDF"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center justify-center gap-1">
+                    <button onClick={() => abrirVer(m)} title="Ver ficha / vista previa PDF"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button onClick={() => descargarPdf(m.id_matricula, m.estudiante)} title="Descargar Ficha PDF"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -373,6 +403,85 @@ export default function Matriculas() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL VER FICHA / PREVIEW PDF */}
+      {verModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={cerrarVer}>
+          <div className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
+            <div style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, #3d5a9e 100%)` }} className="px-6 py-4 text-white flex items-center justify-between flex-shrink-0">
+              <div className="min-w-0">
+                <h3 className="font-bold text-base truncate">{verModal.estudiante}</h3>
+                <p className="text-xs text-white/80 mt-0.5">{verModal.grado} "{verModal.paralelo}" · N° {verModal.numero_orden}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex bg-white/15 p-1 rounded-xl gap-1 text-xs font-semibold">
+                  <button onClick={() => setVistaModal('detalle')}
+                    className={`px-3 py-1.5 rounded-lg transition ${vistaModal === 'detalle' ? 'bg-white text-slate-800 shadow' : 'text-white/80 hover:text-white'}`}>
+                    Detalle
+                  </button>
+                  <button onClick={() => setVistaModal('pdf')}
+                    className={`px-3 py-1.5 rounded-lg transition ${vistaModal === 'pdf' ? 'bg-white text-slate-800 shadow' : 'text-white/80 hover:text-white'}`}>
+                    Visualizar PDF
+                  </button>
+                </div>
+                <button onClick={cerrarVer} className="text-white/70 hover:text-white text-xl flex-shrink-0 w-8 h-8 rounded-lg hover:bg-white/10 transition">✕</button>
+              </div>
+            </div>
+
+            {vistaModal === 'detalle' ? (
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                <div className="bg-white border border-slate-200 rounded-xl p-5 grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Estudiante</p>
+                    <p className="text-sm text-slate-700">{verModal.estudiante}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Cédula</p>
+                    <p className="text-sm text-slate-700 font-mono">{verModal.cedula || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Grado / Paralelo</p>
+                    <p className="text-sm text-slate-700">{verModal.grado} "{verModal.paralelo}"</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Fecha de registro</p>
+                    <p className="text-sm text-slate-700 font-mono">{verModal.fecha_registro ? new Date(verModal.fecha_registro).toLocaleDateString('es-EC') : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado</p>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_BADGE[verModal.estado] || 'bg-slate-100 text-slate-600'}`}>{verModal.estado}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-400 px-1">Para cambiar el estado (retiro, promoción, traslado) esa acción la realiza Dirección.</p>
+              </div>
+            ) : (
+              <div className="flex-1 bg-slate-100 p-3 h-[500px]">
+                {pdfBlobUrl ? (
+                  <iframe src={pdfBlobUrl} title="Ficha de Matrícula PDF" className="w-full h-full border border-slate-200 rounded-xl bg-white shadow-inner" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                    <svg className="w-8 h-8 animate-spin text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <span className="text-sm font-medium text-slate-600">Generando vista previa oficial del PDF...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-white flex-shrink-0">
+              <button onClick={() => descargarPdf(verModal.id_matricula, verModal.estudiante)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition font-semibold">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z" />
+                </svg>
+                Descargar Ficha PDF
+              </button>
+              <button onClick={cerrarVer} className="px-6 py-2 rounded-lg text-sm text-slate-600 border border-slate-200 hover:bg-slate-50 transition">
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
