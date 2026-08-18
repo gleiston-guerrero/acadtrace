@@ -284,6 +284,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
         MatriculaService.PaginaMatriculas pagina = matriculaService.listar(
                 request.getIdAnoLectivo() > 0 ? request.getIdAnoLectivo() : null,
                 request.getIdEstudiante() > 0 ? request.getIdEstudiante() : null,
+                null,
                 request.getQ(), request.getPage(), request.getLimit());
         ListarMatriculasResponse.Builder response = ListarMatriculasResponse.newBuilder().setTotal(pagina.total());
         pagina.items().forEach(d -> response.addMatriculas(toProto(d)));
