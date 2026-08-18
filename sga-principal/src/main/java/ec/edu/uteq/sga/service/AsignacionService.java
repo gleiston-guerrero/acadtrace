@@ -72,9 +72,10 @@ public class AsignacionService {
 
     @Transactional
     public AsignacionResponseDTO crear(AsignacionRequestDTO dto, String username) {
-        if (asignacionRepo.existsByDocente_IdPersonaAndAsignatura_IdAsignaturaAndGrado_IdGradoAndAnoLectivo_IdAnoLectivo(
-                dto.getIdDocente(), dto.getIdAsignatura(), dto.getIdGrado(), dto.getIdAnoLectivo()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe esa asignación");
+        if (asignacionRepo.existsByAsignatura_IdAsignaturaAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivo(
+                dto.getIdAsignatura(), dto.getIdParalelo(), dto.getIdAnoLectivo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta asignatura ya fue asignada a este curso y paralelo en el año lectivo seleccionado.");
+        }
 
         Persona docente = personaRepo.findById(dto.getIdDocente())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Docente no encontrado"));
@@ -107,7 +108,11 @@ public class AsignacionService {
                 .asignadoPor(asignadoPor)
                 .build();
 
-        return toDTO(asignacionRepo.save(asignacion));
+        try {
+            return toDTO(asignacionRepo.save(asignacion));
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede guardar: la asignatura o tutoría ya está asignada para este curso.");
+        }
     }
 
     @Transactional

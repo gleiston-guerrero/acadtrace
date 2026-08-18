@@ -64,6 +64,34 @@ export default function Asignaciones() {
   const [personasDocentes, setPersonasDocentes] = useState([]);
   const [loadingDocentes, setLoadingDocentes] = useState(false);
 
+  const ALIASES = {
+    lenguaje: "lengua",
+    literatura: "lengua",
+    mate: "matemática",
+    matematica: "matemática",
+    matematicas: "matemática",
+    ciencias: "ciencias",
+    naturales: "ciencias",
+    cn: "ciencias",
+    sociales: "estudios",
+    estudios: "estudios",
+    "ee.ss": "estudios",
+    fisica: "física",
+    deporte: "física",
+    ef: "física",
+    eca: "cultural",
+    arte: "cultural",
+    cultural: "cultural",
+    ingles: "inglés",
+    english: "inglés",
+    lectura: "lectura",
+    animacion: "lectura",
+    tutor: "acompañamiento",
+    "acompañamiento": "acompañamiento",
+    curriculo: "currículo",
+    integrado: "currículo",
+  };
+
   const opcionesAsignaturas = (() => {
     const mapa = new Map();
     (materiasMalla || []).forEach(m => {
@@ -76,8 +104,12 @@ export default function Asignaciones() {
     });
     let list = Array.from(mapa.entries()).map(([id, nombre]) => ({ idAsignatura: id, nombre }));
     if (filtroAsignatura.trim()) {
-      const q = filtroAsignatura.toLowerCase();
-      list = list.filter(item => item.nombre.toLowerCase().includes(q));
+      const qRaw = filtroAsignatura.toLowerCase().trim();
+      const qAlias = ALIASES[qRaw] || qRaw;
+      list = list.filter(item => {
+        const nom = item.nombre.toLowerCase();
+        return nom.includes(qRaw) || nom.includes(qAlias);
+      });
     }
     return list;
   })();
