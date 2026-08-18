@@ -35,20 +35,27 @@ public class MatriculaService {
     public record PaginaMatriculas(List<MatriculaResponseDTO> items, long total) {}
 
     @Transactional(readOnly = true)
-    public PaginaMatriculas listar(Long idAnoLectivo, Long idEstudiante, String q, int page, int limit) {
+    public PaginaMatriculas listar(Long idAnoLectivo, Long idEstudiante, Long idGrado, String q, int page, int limit) {
         if (idEstudiante != null && idEstudiante > 0) {
             List<Matricula> filas = matriculaRepo.findByEstudiante_IdEstudiante(idEstudiante);
             if (idAnoLectivo != null && idAnoLectivo > 0) {
                 filas = filas.stream().filter(m -> m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo)).toList();
             }
+            if (idGrado != null && idGrado > 0) {
+                filas = filas.stream().filter(m -> m.getGrado() != null && m.getGrado().getIdGrado().equals(idGrado)).toList();
+            }
             List<MatriculaResponseDTO> items = filas.stream().map(this::toDTO).toList();
             return new PaginaMatriculas(items, items.size());
         }
 
-        if (idAnoLectivo == null || idAnoLectivo <= 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe indicar idAnoLectivo o idEstudiante");
+        List<Matricula> todas = (idAnoLectivo != null && idAnoLectivo > 0)
+                ? matriculaRepo.findByAnoLectivoWithEstudiante(idAnoLectivo)
+                : matriculaRepo.findAll();
 
-        List<Matricula> todas = matriculaRepo.findByAnoLectivoWithEstudiante(idAnoLectivo);
+        if (idGrado != null && idGrado > 0) {
+            todas = todas.stream().filter(m -> m.getGrado() != null && m.getGrado().getIdGrado().equals(idGrado)).toList();
+        }
+
         if (q != null && !q.isBlank()) {
             String needle = q.trim().toLowerCase();
             todas = todas.stream().filter(m -> coincide(m.getEstudiante(), needle)).toList();
@@ -62,7 +69,7 @@ public class MatriculaService {
                 .toList();
 
         int total = todas.size();
-        int limiteReal = limit > 0 ? limit : 20;
+        int limiteReal = limit > 0 ? limit : 500;
         int paginaReal = page > 0 ? page : 1;
         int desde = Math.min((paginaReal - 1) * limiteReal, total);
         int hasta = Math.min(desde + limiteReal, total);

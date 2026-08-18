@@ -23,10 +23,11 @@ public class MatriculaController {
     public ResponseEntity<MatriculaService.PaginaMatriculas> listar(
             @RequestParam(required = false) Long idAnoLectivo,
             @RequestParam(required = false) Long idEstudiante,
+            @RequestParam(required = false) Long idGrado,
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int limit) {
-        return ResponseEntity.ok(matriculaService.listar(idAnoLectivo, idEstudiante, q, page, limit));
+            @RequestParam(defaultValue = "500") int limit) {
+        return ResponseEntity.ok(matriculaService.listar(idAnoLectivo, idEstudiante, idGrado, q, page, limit));
     }
 
     @GetMapping("/{id}")

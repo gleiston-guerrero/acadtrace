@@ -75,12 +75,20 @@ export default function ConsultaAsistencias() {
   const actualizarGrado = useCallback(() => {
     if (!gradoSel) return;
 
-    // Alumnos reales del grado seleccionados en la BD
-    const filtradosMat = todasMatriculas.filter(
-      (m) => String(m.idGrado || m.grado?.idGrado) === String(gradoSel)
-    );
-    setEstudiantesMatriculados(filtradosMat);
-    setEstudianteSel(filtradosMat.length > 0 ? filtradosMat[0] : null);
+    // Obtener los estudiantes matriculados reales directamente del backend para este grado
+    api.get("/api/matriculas", { params: { idGrado: gradoSel, limit: 500 } })
+      .then((r) => {
+        const items = r.data?.items || r.data || [];
+        setEstudiantesMatriculados(items);
+        setEstudianteSel(items.length > 0 ? items[0] : null);
+      })
+      .catch(() => {
+        const filtradosMat = todasMatriculas.filter(
+          (m) => String(m.idGrado || m.grado?.idGrado) === String(gradoSel)
+        );
+        setEstudiantesMatriculados(filtradosMat);
+        setEstudianteSel(filtradosMat.length > 0 ? filtradosMat[0] : null);
+      });
 
     // Asignaciones reales de docentes a materias en este grado de la BD
     const asigGrado = todasAsignaciones.filter(
