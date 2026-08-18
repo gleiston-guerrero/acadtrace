@@ -170,7 +170,11 @@ public class AsignacionService {
             asignacion.setHorasSemanales(dto.getHorasSemanales());
         }
 
-        return toDTO(asignacionRepo.save(asignacion));
+        try {
+            return toDTO(asignacionRepo.save(asignacion));
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se pudo actualizar: la asignatura o tutoría entra en conflicto con otra asignación existente.");
+        }
     }
 
     private AsignacionResponseDTO toDTO(Asignacion a) {

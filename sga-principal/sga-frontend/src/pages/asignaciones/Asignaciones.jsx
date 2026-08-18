@@ -811,6 +811,18 @@ export default function Asignaciones() {
             </div>
             <form onSubmit={guardarEdicionAsign} className="p-6 space-y-4">
               {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Docente Asignado</label>
+                <select required value={asignEdit.idDocente} onChange={(e) => setAsignEdit({ ...asignEdit, idDocente: e.target.value })}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 font-medium">
+                  <option value="">Seleccione docente...</option>
+                  {personasDocentes.map((p) => (
+                    <option key={p.idPersona} value={p.idPersona}>
+                      {p.nombres} {p.apellidos} ({p.cedula || p.username})
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Grado</label>
