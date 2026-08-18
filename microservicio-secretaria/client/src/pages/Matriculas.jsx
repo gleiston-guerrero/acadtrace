@@ -33,6 +33,7 @@ export default function Matriculas() {
   const [form, setForm] = useState({ id_estudiante: '', id_grado: '', id_paralelo: '', id_ano_lectivo: '', observaciones: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [pdfError, setPdfError] = useState('');
 
   // Cargar años lectivos y grados de sga-principal (camelCase)
   useEffect(() => {
@@ -117,6 +118,23 @@ export default function Matriculas() {
     }
   };
 
+  const descargarPdf = async (idMatricula, nombreEstudiante) => {
+    setPdfError('');
+    try {
+      const res = await apiPrincipal.get(`/matriculas/${idMatricula}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Ficha_Matricula_${(nombreEstudiante || idMatricula).replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setPdfError('No se pudo descargar la Ficha de Matrícula.');
+    }
+  };
+
   const handleSeccion = (id) => {
     if (id === 'nueva') { abrirModal(); return; }
   };
@@ -136,6 +154,13 @@ export default function Matriculas() {
           Nueva matrícula
         </button>
       </div>
+
+      {pdfError && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+          <span className="text-red-600 text-sm">{pdfError}</span>
+          <button onClick={() => setPdfError('')} className="text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="bg-white border border-slate-200 rounded-xl p-3 mb-4 flex flex-wrap gap-3 items-center">
@@ -182,15 +207,16 @@ export default function Matriculas() {
               <th className="px-4 py-3 text-left">F. Matrícula</th>
               <th className="px-4 py-3 text-center">Estado</th>
               <th className="px-4 py-3 text-center">Cambiar estado</th>
+              <th className="px-4 py-3 text-center">Ficha</th>
             </tr>
           </thead>
           <tbody>
             {!anoSel ? (
-              <tr><td colSpan={7} className="text-center py-12 text-slate-400 text-sm">
+              <tr><td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
                 Selecciona un año lectivo para ver las matrículas
               </td></tr>
             ) : loading ? (
-              <tr><td colSpan={7} className="text-center py-12">
+              <tr><td colSpan={8} className="text-center py-12">
                 <div className="flex items-center justify-center gap-2 text-slate-400">
                   <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
@@ -200,7 +226,7 @@ export default function Matriculas() {
                 </div>
               </td></tr>
             ) : matriculas.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-12 text-slate-400 text-sm">
+              <tr><td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
                 No se encontraron matrículas
               </td></tr>
             ) : matriculas.map((m, i) => (
@@ -226,6 +252,14 @@ export default function Matriculas() {
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <button onClick={() => descargarPdf(m.id_matricula, m.estudiante)} title="Descargar Ficha PDF"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z" />
+                    </svg>
+                  </button>
                 </td>
               </tr>
             ))}
