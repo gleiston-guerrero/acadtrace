@@ -119,6 +119,11 @@ public class MatriculaService {
     }
 
     @Transactional
+    public void cambiarEstado(Long id, String estado) {
+        cambiarEstado(id, estado, null);
+    }
+
+    @Transactional
     public void cambiarEstado(Long id, String estado, String observaciones) {
         Matricula matricula = buscarPorId(id);
         matricula.setEstado(validarEstado(estado, matricula.getEstado()));
@@ -160,6 +165,17 @@ public class MatriculaService {
             com.lowagie.text.Font fSecTitle = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.BOLD, com.lowagie.text.html.WebColors.getRGBColor("#243A76"));
             com.lowagie.text.Font fLabel = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9, com.lowagie.text.Font.BOLD, java.awt.Color.BLACK);
             com.lowagie.text.Font fValue = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9, com.lowagie.text.Font.NORMAL, java.awt.Color.DARK_GRAY);
+
+            // Intentar cargar e insertar Logo Institucional
+            try {
+                java.net.URL logoUrl = getClass().getResource("/logo.png");
+                if (logoUrl != null) {
+                    com.lowagie.text.Image logoImg = com.lowagie.text.Image.getInstance(logoUrl);
+                    logoImg.scaleToFit(55, 55);
+                    logoImg.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+                    doc.add(logoImg);
+                }
+            } catch (Exception ignored) {}
 
             com.lowagie.text.Paragraph pRep = new com.lowagie.text.Paragraph("REPÚBLICA DEL ECUADOR — MINISTERIO DE EDUCACIÓN", fHeader);
             pRep.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
@@ -238,8 +254,8 @@ public class MatriculaService {
 
             doc.close();
             return baos.toByteArray();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar Ficha PDF: " + e.getMessage());
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar Ficha PDF: " + ex.getMessage());
         }
     }
 
