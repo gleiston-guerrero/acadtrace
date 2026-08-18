@@ -4,9 +4,11 @@ import axios from 'axios';
 // En desarrollo, Vite hace proxy de /api → :3000 automáticamente.
 // Por eso usamos rutas relativas — funciona en ambos casos.
 
+const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+
 // Login contra sga-principal (Spring Boot en :8080)
 export const apiPrincipal = axios.create({
-  baseURL: import.meta.env.VITE_API_PRINCIPAL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_PRINCIPAL || `http://${host}:8080/api`,
 });
 
 // API del microservicio secretario (mismo servidor)
@@ -27,7 +29,7 @@ export const api = axios.create({
     (err) => {
       if (err.response?.status === 401) {
         localStorage.clear();
-        window.location.href = 'http://localhost:5174/login';
+        window.location.href = `http://${host}:5174/login`;
       }
       return Promise.reject(err);
     }

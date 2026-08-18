@@ -70,12 +70,16 @@ export default function AulaVirtual() {
         const cursos = asignacionesResponse.data || [];
         setAsignaciones(cursos);
         if (!cursos.length) return;
-        const resumenResponse = await getAulaVirtualResumen(cursos.map((curso) => curso.idAsignacion));
-        const porAsignacion = (resumenResponse.data?.cursos || []).reduce((acumulado, curso) => {
-          acumulado[curso.id_asignacion] = curso;
-          return acumulado;
-        }, {});
-        setResumenes(porAsignacion);
+        try {
+          const resumenResponse = await getAulaVirtualResumen(cursos.map((curso) => curso.idAsignacion));
+          const porAsignacion = (resumenResponse.data?.cursos || []).reduce((acumulado, curso) => {
+            acumulado[curso.id_asignacion] = curso;
+            return acumulado;
+          }, {});
+          setResumenes(porAsignacion);
+        } catch (resumenErr) {
+          // Si el microservicio secundario falla en resumen, no bloquea la vista de asignaciones
+        }
       } catch (requestError) {
         setError(requestError.response?.status === 401
           ? "Tu sesión expiró. Inicia sesión nuevamente."

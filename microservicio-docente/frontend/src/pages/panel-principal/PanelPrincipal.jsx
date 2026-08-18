@@ -29,7 +29,8 @@ export default function PanelPrincipal() {
 
     const handleLogout = () => {
         localStorage.clear();
-        window.location.href = "http://localhost:5173/login";
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        window.location.href = `http://${host}:5174/login`;
     };
 
     return (

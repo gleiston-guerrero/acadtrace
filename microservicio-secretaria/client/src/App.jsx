@@ -18,7 +18,8 @@ import { CambiarPassword } from './pages/Extras';
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   if (!token) {
-    window.location.href = 'http://localhost:5174/login';
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    window.location.href = `http://${host}:5174/login`;
     return null;
   }
   return children;

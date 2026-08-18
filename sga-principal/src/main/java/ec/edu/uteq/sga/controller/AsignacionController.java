@@ -62,4 +62,10 @@ public class AsignacionController {
                                                             @Valid @RequestBody AsignacionRequestDTO dto) {
         return ResponseEntity.ok(asignacionService.actualizar(id, dto));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        asignacionService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

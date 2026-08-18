@@ -1,10 +1,12 @@
 package ec.edu.uteq.sga.controller;
 
 import ec.edu.uteq.sga.entity.AnoLectivo;
+import ec.edu.uteq.sga.entity.Asignacion;
 import ec.edu.uteq.sga.entity.Asignatura;
 import ec.edu.uteq.sga.entity.Grado;
 import ec.edu.uteq.sga.entity.MallaCurricular;
 import ec.edu.uteq.sga.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.repository.AsignacionRepository;
 import ec.edu.uteq.sga.repository.AsignaturaRepository;
 import ec.edu.uteq.sga.repository.GradoRepository;
 import ec.edu.uteq.sga.repository.MallaCurricularRepository;
@@ -15,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,24 +33,67 @@ public class MallaCurricularController {
     private final GradoRepository gradoRepo;
     private final AsignaturaRepository asignaturaRepo;
     private final AnoLectivoRepository anoLectivoRepo;
+    private final AsignacionRepository asignacionRepo;
 
     @GetMapping("/grado/{idGrado}")
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> porGrado(@PathVariable Long idGrado,
                                                         @RequestParam Long idAnoLectivo) {
         List<MallaCurricular> malla = mallaRepo.findByGradoAnoWithAsignatura(idGrado, idAnoLectivo);
-        int total = malla.stream().mapToInt(m -> m.getHorasSemana() != null ? m.getHorasSemana() : 0).sum();
-        List<Map<String, Object>> items = malla.stream().map(m -> {
-            Map<String, Object> map = new java.util.HashMap<>();
-            map.put("idMalla", m.getIdMalla());
-            map.put("idAsignatura", m.getAsignatura().getIdAsignatura());
-            map.put("asignatura", m.getAsignatura().getNombre());
-            map.put("codigo", m.getAsignatura().getCodigo());
-            map.put("horasSemana", m.getHorasSemana());
-            map.put("diasSemana", m.getDiasSemana());
-            map.put("duracion", m.getDuracion());
-            return map;
-        }).collect(Collectors.toList());
+        List<Asignacion> asignaciones = asignacionRepo.findAll().stream()
+                .filter(a -> a.getGrado().getIdGrado().equals(idGrado) 
+                        && a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo)
+                        && a.isActivo())
+                .collect(Collectors.toList());
+
+        Map<Long, Map<String, Object>> mapaMaterias = new LinkedHashMap<>();
+
+        for (MallaCurricular m : malla) {
+            Asignatura asig = m.getAsignatura();
+            Map<String, Object> item = new HashMap<>();
+            item.put("idMalla", m.getIdMalla());
+            item.put("idAsignatura", asig.getIdAsignatura());
+            item.put("asignatura", asig.getNombre());
+            item.put("codigo", asig.getCodigo());
+            item.put("horasSemana", m.getHorasSemana() != null ? m.getHorasSemana() : 4);
+            item.put("diasSemana", m.getDiasSemana());
+            item.put("duracion", m.getDuracion());
+            item.put("docentes", new ArrayList<String>());
+            item.put("origen", "MALLA");
+            mapaMaterias.put(asig.getIdAsignatura(), item);
+        }
+
+        for (Asignacion a : asignaciones) {
+            Asignatura asig = a.getAsignatura();
+            Long idAsig = asig.getIdAsignatura();
+            String nombreDocente = a.getDocente().getNombres() + " " + a.getDocente().getApellidos();
+            int horas = a.getHorasSemanales() != null && a.getHorasSemanales() > 0 ? a.getHorasSemanales() : 4;
+
+            if (mapaMaterias.containsKey(idAsig)) {
+                Map<String, Object> item = mapaMaterias.get(idAsig);
+                @SuppressWarnings("unchecked")
+                List<String> docs = (List<String>) item.get("docentes");
+                if (!docs.contains(nombreDocente)) docs.add(nombreDocente);
+                int hActual = Integer.parseInt(item.get("horasSemana").toString());
+                if (horas > hActual) item.put("horasSemana", horas);
+            } else {
+                Map<String, Object> item = new HashMap<>();
+                item.put("idMalla", null);
+                item.put("idAsignatura", asig.getIdAsignatura());
+                item.put("asignatura", asig.getNombre());
+                item.put("codigo", asig.getCodigo());
+                item.put("horasSemana", horas);
+                List<String> docs = new ArrayList<>();
+                docs.add(nombreDocente);
+                item.put("docentes", docs);
+                item.put("origen", "ASIGNACION");
+                mapaMaterias.put(idAsig, item);
+            }
+        }
+
+        List<Map<String, Object>> items = new ArrayList<>(mapaMaterias.values());
+        int total = items.stream().mapToInt(i -> Integer.parseInt(i.get("horasSemana").toString())).sum();
+
         return ResponseEntity.ok(Map.of("totalHoras", total, "materias", items));
     }
 

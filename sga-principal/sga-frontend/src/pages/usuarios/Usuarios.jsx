@@ -33,7 +33,7 @@ const Detalle = ({ label, value, mono = false }) => (
   </div>
 );
 
-const IMG_BASE = "http://localhost:8080";
+const IMG_BASE = `http://${window.location.hostname}:8080`;
 const ID_DOCENTE = 3;
 
 const formInicial = {
@@ -129,6 +129,11 @@ const menuItems = [
   { id: "nuevo", label: "Nuevo usuario", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
 ];
 
+const resolveFotoUrl = (url) => {
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${IMG_BASE}${url}`;
+};
+
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -150,7 +155,7 @@ export default function Usuarios() {
     const fd = new FormData();
     fd.append("archivo", file);
     try {
-      const { data } = await api.post(`/api/uploads/foto`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.post(`/api/uploads/foto`, fd);
       setter(data.url);
     } catch (err) {
       setError(err.response?.data?.message || "No se pudo subir la imagen.");
@@ -258,7 +263,8 @@ export default function Usuarios() {
       await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
         correo: usuarioEdit.correo,
         roles: usuarioEdit.roles.map(r => {
-          const found = ROLES.find(x => x.nombre === r);
+          const norm = String(r).replace(/\s+/g, "_");
+          const found = ROLES.find(x => x.nombre === r || x.nombre === norm);
           return found ? found.id : null;
         }).filter(Boolean),
       });
@@ -272,7 +278,7 @@ export default function Usuarios() {
         if (editDocente) {
           Object.assign(payload, {
             fechaNacimiento: usuarioEdit.fechaNacimiento || null,
-            genero: usuarioEdit.genero || null,
+            genero: usuarioEdit.genero ? String(usuarioEdit.genero).toUpperCase() : null,
             telefono: usuarioEdit.telefono || null,
             telefonoAlt: usuarioEdit.telefonoAlt || null,
             direccion: usuarioEdit.direccion || null,
@@ -425,8 +431,14 @@ export default function Usuarios() {
                         <td className="px-4 py-3 text-slate-400 text-xs">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div style={{ backgroundColor: PRIMARY }} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase flex-shrink-0">
-                              {u.username?.charAt(0)}
+                            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {u.fotoUrl ? (
+                                <img src={resolveFotoUrl(u.fotoUrl)} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span style={{ backgroundColor: PRIMARY }} className="w-full h-full flex items-center justify-center text-white text-xs font-bold uppercase">
+                                  {u.username?.charAt(0)}
+                                </span>
+                              )}
                             </div>
                             <span className="font-medium text-slate-700">{u.username}</span>
                           </div>
@@ -819,7 +831,7 @@ export default function Usuarios() {
                   <div className="flex items-center gap-4 pb-3 border-b border-slate-100">
                     <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
                       {detalle.persona?.fotoUrl ? (
-                          <img src={detalle.persona.fotoUrl} alt="" className="w-full h-full object-cover" />
+                          <img src={resolveFotoUrl(detalle.persona.fotoUrl)} alt="" className="w-full h-full object-cover" />
                       ) : (
                           <span className="text-slate-400 text-xl font-bold">{detalle.usuario.username?.[0]?.toUpperCase() || "?"}</span>
                       )}

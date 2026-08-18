@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../components/Layout";
 
-const API = "http://localhost:8080/api/configuracion/calificacion";
+const API = `http://${window.location.hostname}:8080/api/configuracion/calificacion`;
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 

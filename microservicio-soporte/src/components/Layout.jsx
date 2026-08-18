@@ -11,9 +11,21 @@ export const DEFAULT_SOPORTE_MENU_ITEMS = [
     id: "dashboard",
     label: "Panel",
     path: "/dashboard",
+    color: "bg-blue-50",
+    iconColor: "text-blue-500",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+        />
       </svg>
     ),
   },
@@ -21,9 +33,21 @@ export const DEFAULT_SOPORTE_MENU_ITEMS = [
     id: "soporte",
     label: "Tickets",
     path: "/soporte",
+    color: "bg-amber-50",
+    iconColor: "text-amber-500",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 14a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 00-2-2H5z" />
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 14a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 00-2-2v-3a2 2 0 00-2-2H5z"
+        />
       </svg>
     ),
   },
@@ -31,9 +55,21 @@ export const DEFAULT_SOPORTE_MENU_ITEMS = [
     id: "reportes",
     label: "Reportes",
     path: "/reportes",
+    color: "bg-rose-50",
+    iconColor: "text-rose-500",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        />
       </svg>
     ),
   },
@@ -41,9 +77,21 @@ export const DEFAULT_SOPORTE_MENU_ITEMS = [
     id: "usuarios",
     label: "Usuarios",
     path: "/usuarios",
+    color: "bg-purple-50",
+    iconColor: "text-purple-500",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+        />
       </svg>
     ),
   },
@@ -70,89 +118,190 @@ export default function Layout({
   const username = localStorage.getItem("username") || "Usuario";
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
 
-  // Año lectivo actual desde backend principal (URL explícita http://localhost:8080)
+  // Año lectivo actual
   useEffect(() => {
-    api.get("http://localhost:8080/api/anos-lectivos/actual")
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    api
+      .get(`http://${host}:8080/api/anos-lectivos/actual`)
       .then((r) => setAnoActual(r.data))
       .catch(() => {});
   }, []);
 
-
-  // Campana de notificaciones con auto-refresh cada 30s
+  // Notificaciones de tickets
   useEffect(() => {
     const fetchNotificaciones = () => {
       const token = localStorage.getItem("token");
+
       if (!token) return;
-      api.get("/api/soporte/tickets", { headers: { Authorization: `Bearer ${token}` } })
+
+      api
+        .get("/api/soporte/tickets", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         .then((r) => {
           if (Array.isArray(r.data)) {
-            const abiertas = r.data.filter((t) => t.estado === "ABIERTO").length;
+            const abiertas = r.data.filter(
+              (t) => t.estado === "ABIERTO"
+            ).length;
+
             setNotifCount(abiertas);
           }
+
           setLastRefreshNotif(new Date());
         })
         .catch(() => {});
     };
 
     fetchNotificaciones();
+
     const interval = setInterval(fetchNotificaciones, 30000);
+
     return () => clearInterval(interval);
   }, []);
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "http://localhost:5173/login";
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    window.location.href = `http://${host}:5174/login`;
   };
 
-  const finalMenuItems = menuItems && menuItems.length > 0 ? menuItems : DEFAULT_SOPORTE_MENU_ITEMS;
+  // menuItems === undefined -> nadie definió nada, usar el sidebar genérico.
+  // menuItems === [] (arreglo vacío explícito) -> esta página no quiere sidebar.
+  const finalMenuItems = menuItems === undefined ? DEFAULT_SOPORTE_MENU_ITEMS : menuItems;
   const hasSidebar = finalMenuItems.length > 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
 
-      {/* TOP BAR — FIJO */}
-      <header style={{ backgroundColor: PRIMARY }} className="fixed top-0 left-0 right-0 text-white h-14 flex items-center justify-between px-4 shadow z-40 flex-shrink-0">
+      {/* ================================
+          BARRA SUPERIOR
+      ================================= */}
+      <header
+        style={{ backgroundColor: PRIMARY }}
+        className="fixed top-0 left-0 right-0 text-white h-14 flex items-center justify-between px-4 shadow z-40 flex-shrink-0"
+      >
+        {/* Logo y nombre */}
         <div className="flex items-center gap-3">
-          <img src={logo} alt="Logo" className="w-8 h-8 rounded-full object-cover border-2 border-white border-opacity-40" />
-          <span className="font-bold text-sm">SGA</span>
-          <span className="text-white text-opacity-60 text-sm hidden sm:inline">| Microservicio Soporte Técnico</span>
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-8 h-8 rounded-full object-cover border-2 border-white border-opacity-40"
+          />
+
+          <span className="font-bold text-sm">
+            SGA
+          </span>
+
+          <span className="text-white text-opacity-60 text-sm hidden sm:inline">
+            | Microservicio Soporte Técnico
+          </span>
         </div>
 
+        {/* Controles superiores */}
         <div className="flex items-center gap-2">
-          {/* Período */}
+
+          {/* ================================
+              AÑO LECTIVO
+          ================================= */}
           <div className="relative">
             <button
-              onClick={() => { setShowPeriodo(!showPeriodo); setShowUserMenu(false); setShowNotifMenu(false); }}
+              onClick={() => {
+                setShowPeriodo(!showPeriodo);
+                setShowUserMenu(false);
+                setShowNotifMenu(false);
+              }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg text-xs font-medium transition"
             >
-              <svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="w-4 h-4 opacity-80"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5v12a2 2 0 002 2z"
+                />
               </svg>
-              <span className="hidden sm:inline">{anoActual?.nombre || "Sin período"}</span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+
+              <span className="hidden sm:inline">
+                {anoActual?.nombre || "Sin período"}
+              </span>
+
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
+
             {showPeriodo && (
               <div className="absolute right-0 top-11 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-slate-800">
-                <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+
+                <div
+                  style={{ backgroundColor: PRIMARY }}
+                  className="px-4 py-3 flex items-center gap-2"
+                >
+                  <svg
+                    className="w-4 h-4 text-white opacity-80"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5v12a2 2 0 002 2z"
+                    />
                   </svg>
-                  <span className="text-white text-sm font-semibold">Año Lectivo</span>
+
+                  <span className="text-white text-sm font-semibold">
+                    Año Lectivo
+                  </span>
                 </div>
+
                 <div className="p-3">
                   {anoActual ? (
-                    <div style={{ color: PRIMARY }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 font-semibold text-sm">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <div
+                      style={{ color: PRIMARY }}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 font-semibold text-sm"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
+
                       {anoActual.nombre} (Actual)
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 text-center px-2">No hay año lectivo activo</p>
+                    <p className="text-xs text-slate-400 text-center px-2">
+                      No hay año lectivo activo
+                    </p>
                   )}
+
                   <p className="text-xs text-slate-400 text-center mt-2 px-2">
                     Gestiona los años lectivos desde el SGA Principal
                   </p>
@@ -161,42 +310,90 @@ export default function Layout({
             )}
           </div>
 
-          {/* Notificaciones con auto-refresh (30s) */}
+          {/* ================================
+              NOTIFICACIONES
+          ================================= */}
           <div className="relative">
             <button
-              onClick={() => { setShowNotifMenu(!showNotifMenu); setShowPeriodo(false); setShowUserMenu(false); }}
+              onClick={() => {
+                setShowNotifMenu(!showNotifMenu);
+                setShowPeriodo(false);
+                setShowUserMenu(false);
+              }}
               className="relative p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition"
-              title="Notificaciones de tickets (auto-refresh 30s)"
+              title="Notificaciones de tickets"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
               </svg>
+
               {notifCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                   {notifCount > 9 ? "9+" : notifCount}
                 </span>
               )}
             </button>
+
             {showNotifMenu && (
               <div className="absolute right-0 top-11 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-slate-800">
-                <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center justify-between text-white">
-                  <span className="text-sm font-semibold">Notificaciones</span>
-                  <span className="text-[10px] text-white/70">Refresh: 30s</span>
+
+                <div
+                  style={{ backgroundColor: PRIMARY }}
+                  className="px-4 py-3 flex items-center justify-between text-white"
+                >
+                  <span className="text-sm font-semibold">
+                    Notificaciones
+                  </span>
+
+                  <span className="text-[10px] text-white/70">
+                    Refresh: 30s
+                  </span>
                 </div>
+
                 <div className="p-3">
                   <div className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 text-[#243A76]">
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+
+                    <svg
+                      className="w-4 h-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
+
                     <div className="text-xs">
-                      <p className="font-semibold">{notifCount} ticket(s) abiertos</p>
+                      <p className="font-semibold">
+                        {notifCount} ticket(s) abiertos
+                      </p>
+
                       <p className="text-[11px] text-slate-500 mt-0.5">
-                        Última actualización: {lastRefreshNotif.toLocaleTimeString("es-EC")}
+                        Última actualización:{" "}
+                        {lastRefreshNotif.toLocaleTimeString("es-EC")}
                       </p>
                     </div>
                   </div>
+
                   <button
-                    onClick={() => { setShowNotifMenu(false); navigate("/soporte"); }}
+                    onClick={() => {
+                      setShowNotifMenu(false);
+                      navigate("/soporte");
+                    }}
                     className="w-full mt-2 py-1.5 text-xs text-[#243A76] font-medium hover:underline text-center block"
                   >
                     Ver panel de tickets →
@@ -206,38 +403,124 @@ export default function Layout({
             )}
           </div>
 
-          {/* Usuario */}
+          {/* ================================
+              USUARIO
+          ================================= */}
           <div className="relative">
             <button
-              onClick={() => { setShowUserMenu(!showUserMenu); setShowPeriodo(false); setShowNotifMenu(false); }}
+              onClick={() => {
+                setShowUserMenu(!showUserMenu);
+                setShowPeriodo(false);
+                setShowNotifMenu(false);
+              }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg transition"
             >
               <div className="w-7 h-7 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs font-bold uppercase border border-white border-opacity-30">
                 {username.charAt(0)}
               </div>
-              <span className="hidden sm:inline text-xs font-medium capitalize">{username}</span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+
+              <span className="hidden sm:inline text-xs font-medium capitalize">
+                {username}
+              </span>
+
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
+
             {showUserMenu && (
               <div className="absolute right-0 top-11 w-52 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-slate-800">
-                <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3">
-                  <p className="text-white text-sm font-semibold capitalize">{username}</p>
-                  <p className="text-white text-opacity-60 text-xs">{roles.join(", ") || "SOPORTE_TECNICO"}</p>
+
+                <div
+                  style={{ backgroundColor: PRIMARY }}
+                  className="px-4 py-3"
+                >
+                  <p className="text-white text-sm font-semibold capitalize">
+                    {username}
+                  </p>
+
+                  <p className="text-white text-opacity-60 text-xs">
+                    {roles.join(", ") || "SOPORTE_TECNICO"}
+                  </p>
                 </div>
+
                 <div className="p-2">
-                  <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition">
-                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+
+                  <button
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
+                  >
+                    <svg
+                      className="w-4 h-4 text-slate-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+
                     Mi perfil
                   </button>
+
+                  <button
+                    onClick={() => {
+                      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+                      window.location.href = `http://${host}:5174/cambiar-password`;
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
+                  >
+                    <svg
+                      className="w-4 h-4 text-slate-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                      />
+                    </svg>
+
+                    Cambiar contraseña
+                  </button>
+
                   <hr className="my-1 border-slate-100" />
+
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition font-medium"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
+                    </svg>
+
                     Cerrar sesión
                   </button>
                 </div>
@@ -247,43 +530,67 @@ export default function Layout({
         </div>
       </header>
 
-      {/* Spacer del header fijo */}
+      {/* Espacio para la barra superior */}
       <div className="h-14 flex-shrink-0" />
 
-      {/* BREADCRUMB */}
+      {/* ================================
+          BREADCRUMB
+      ================================= */}
       <div className="bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between">
         <nav className="text-xs text-slate-500 flex items-center gap-1">
+
           {breadcrumb.map((item, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <span className="text-slate-300">/</span>}
+            <span
+              key={i}
+              className="flex items-center gap-1"
+            >
+              {i > 0 && (
+                <span className="text-slate-300">
+                  /
+                </span>
+              )}
+
               <span
-                style={i === breadcrumb.length - 1 ? { color: PRIMARY } : {}}
-                className={i === breadcrumb.length - 1 ? "font-medium" : "hover:underline cursor-pointer"}
-                onClick={() => i === 0 && navigate("/dashboard")}
+                style={
+                  i === breadcrumb.length - 1
+                    ? { color: PRIMARY }
+                    : {}
+                }
+                className={
+                  i === breadcrumb.length - 1
+                    ? "font-medium"
+                    : "hover:underline cursor-pointer"
+                }
+                onClick={() =>
+                  i === 0 && navigate("/dashboard")
+                }
               >
                 {item}
               </span>
             </span>
           ))}
+
         </nav>
       </div>
 
-      {/* SIDEBAR + CONTENT */}
+      {/* ================================
+          SIDEBAR + CONTENIDO
+      ================================= */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* SIDEBAR FIJO */}
         {hasSidebar && (
-          <aside className="w-56 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200 bg-white overflow-y-auto"
+          <aside
+            className="w-56 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200 bg-white overflow-y-auto"
             style={{ height: "calc(100vh - 7rem)" }}
           >
             <div className="p-3">
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="bg-white rounded-xl border-2 border-dashed border-slate-200 overflow-hidden shadow-sm">
                 {sidebarTitle && (
                   <p className="px-4 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                     {sidebarTitle}
                   </p>
                 )}
-                <nav className="py-1">
+                <nav className="py-1 px-2 space-y-1">
                   {finalMenuItems.map((item) => {
                     const isActive = seccion ? seccion === item.id : location.pathname === item.path;
                     return (
@@ -297,22 +604,27 @@ export default function Layout({
                             onSeccionChange(item.id);
                           }
                         }}
-                        className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition ${
+                        className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-left transition ${
                           isActive
-                            ? "bg-blue-50 font-medium border-l-[3px]"
-                            : "border-l-[3px] border-l-transparent text-slate-500 hover:bg-slate-50"
+                            ? "bg-blue-50 font-medium"
+                            : "text-slate-500 hover:bg-slate-50"
                         }`}
-                        style={isActive ? { color: PRIMARY, borderLeftColor: PRIMARY } : {}}
+                        style={isActive ? { color: PRIMARY } : {}}
                       >
-                        {item.icon}
+                        <span className={`${item.color || "bg-slate-100"} ${item.iconColor || "text-slate-500"} p-1.5 rounded-lg flex-shrink-0`}>
+                          {item.icon}
+                        </span>
                         {item.label}
                       </button>
                     );
                   })}
                 </nav>
-                <hr className="border-slate-100" />
+                <hr className="border-slate-100 mt-1" />
                 <button
-                  onClick={() => (window.location.href = "http://localhost:5173/dashboard")}
+                  onClick={() => {
+                    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+                    window.location.href = `http://${host}:5174/dashboard`;
+                  }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left text-slate-400 hover:bg-slate-50 transition"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -325,21 +637,38 @@ export default function Layout({
           </aside>
         )}
 
-        {/* CONTENIDO scrollable */}
-        <main className="flex-1 min-w-0 overflow-y-auto p-5" style={{ paddingBottom: "4rem" }}>
+        <main
+          className="flex-1 min-w-0 overflow-y-auto p-5"
+          style={{ paddingBottom: "4rem" }}
+        >
           {children}
         </main>
+
       </div>
 
-      {/* FOOTER — FIJO */}
-      <footer style={{ backgroundColor: PRIMARY }} className="fixed bottom-0 left-0 right-0 text-white text-opacity-80 text-xs text-center py-2 z-40">
+
+      {/* ================================
+          FOOTER
+      ================================= */}
+      <footer
+        style={{ backgroundColor: PRIMARY }}
+        className="fixed bottom-0 left-0 right-0 text-white text-opacity-80 text-xs text-center py-2 z-40"
+      >
         Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
       </footer>
 
-      {/* Overlay */}
+      {/* Overlay para cerrar menús */}
       {(showPeriodo || showUserMenu || showNotifMenu) && (
-        <div className="fixed inset-0 z-20" onClick={() => { setShowPeriodo(false); setShowUserMenu(false); setShowNotifMenu(false); }} />
+        <div
+          className="fixed inset-0 z-20"
+          onClick={() => {
+            setShowPeriodo(false);
+            setShowUserMenu(false);
+            setShowNotifMenu(false);
+          }}
+        />
       )}
+
     </div>
   );
 }

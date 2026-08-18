@@ -49,8 +49,11 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
     setNoLeidas(0);
   };
 
-  // El login vive en el SGA Principal: cerrar sesión vuelve allá, no a una ruta local.
-  const handleLogout = () => { localStorage.clear(); window.location.href = 'http://localhost:5174/login'; };
+  const handleLogout = () => {
+    localStorage.clear();
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    window.location.href = `http://${host}:5174/login`;
+  };
 
   const hasSidebar = menuItems.length > 0;
 

@@ -34,12 +34,15 @@ public class Asignacion {
     @JoinColumn(name = "id_ano_lectivo", nullable = false)
     private AnoLectivo anoLectivo;
 
+    @Builder.Default
     @Column(name = "es_tutor")
     private boolean esTutor = false;
 
+    @Builder.Default
     @Column
     private boolean activo = true;
 
+    @Builder.Default
     @Column(name = "fecha_asignacion")
     private Instant fechaAsignacion = Instant.now();
 
@@ -47,6 +50,7 @@ public class Asignacion {
     @JoinColumn(name = "asignado_por")
     private Usuario asignadoPor;
 
+    @Builder.Default
     @Column(name = "horas_semanales")
     private Integer horasSemanales = 4;
 }

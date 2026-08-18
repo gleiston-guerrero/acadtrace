@@ -5,41 +5,43 @@
 // Al iniciar sesión, el principal detecta automáticamente en cuál está vivo.
 //
 // Para agregar más puertos, solo añade más entradas al arreglo "hosts".
+const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+
 export const MICROSERVICIOS = {
   DOCENTE: {
     nombre: "Portal Docente",
     hosts: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-      "http://localhost:3003",
-      "http://localhost:3004",
-      "http://localhost:5174",
+      `http://${host}:3000`,
+      `http://${host}:3001`,
+      `http://${host}:3002`,
+      `http://${host}:3003`,
+      `http://${host}:3004`,
+      `http://${host}:5174`,
     ],
   },
   SECRETARIA: {
     nombre: "Portal Secretaría",
     hosts: [
-      "http://localhost:8082",
-      "http://localhost:5175",
-      "http://localhost:5174",
-      "http://localhost:4000",
-      "http://localhost:4001",
-      "http://localhost:4002",
-      "http://localhost:4003",
-      "http://localhost:4004",
+      `http://${host}:8082`,
+      `http://${host}:5175`,
+      `http://${host}:5174`,
+      `http://${host}:4000`,
+      `http://${host}:4001`,
+      `http://${host}:4002`,
+      `http://${host}:4003`,
+      `http://${host}:4004`,
     ],
   },
   SOPORTE_TECNICO: {
     nombre: "Portal Soporte",
     hosts: [
-      "http://localhost:8083",
-      "http://localhost:5176",
-      "http://localhost:5177",
-      "http://localhost:6001",
-      "http://localhost:6002",
-      "http://localhost:6003",
-      "http://localhost:6004",
+      `http://${host}:8083`,
+      `http://${host}:5176`,
+      `http://${host}:5177`,
+      `http://${host}:6001`,
+      `http://${host}:6002`,
+      `http://${host}:6003`,
+      `http://${host}:6004`,
     ],
   },
 };

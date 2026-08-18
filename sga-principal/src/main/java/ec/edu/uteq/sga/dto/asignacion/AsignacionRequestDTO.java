@@ -21,5 +21,7 @@ public class AsignacionRequestDTO {
     @NotNull(message = "El año lectivo es obligatorio")
     private Long idAnoLectivo;
 
+    @Builder.Default
     private boolean esTutor = false;
+    private Integer horasSemanales;
 }

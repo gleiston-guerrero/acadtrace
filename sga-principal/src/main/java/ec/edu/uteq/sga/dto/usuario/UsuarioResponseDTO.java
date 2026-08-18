@@ -16,4 +16,5 @@ public class UsuarioResponseDTO {
     private Instant ultimoAcceso;
     private Instant fechaCreacion;
     private Set<String> roles;
+    private String fotoUrl;
 }

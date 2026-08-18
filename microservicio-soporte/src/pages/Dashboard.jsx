@@ -6,10 +6,12 @@ import Layout from "../components/Layout";
 const PRIMARY       = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
 
-const SERVICIOS = [
-    { nombre: "sga-principal",  url: "http://localhost:8080/actuator/health",     puerto: 8080, descripcion: "Sistema Principal" },
-    { nombre: "sga-docente",    url: "http://localhost:8081/health",              puerto: 8081, descripcion: "Microservicio Docente (Django)" },
-    { nombre: "sga-soporte",    url: "http://localhost:8083/actuator/health",     puerto: 8083, descripcion: "Soporte Técnico" },
+const getHost = () => typeof window !== "undefined" ? window.location.hostname : "localhost";
+
+const getServicios = () => [
+    { nombre: "sga-principal",  url: `http://${getHost()}:8080/actuator/health`,     puerto: 8080, descripcion: "Sistema Principal" },
+    { nombre: "sga-docente",    url: `http://${getHost()}:8081/health`,              puerto: 8081, descripcion: "Microservicio Docente (Django)" },
+    { nombre: "sga-soporte",    url: `http://${getHost()}:8083/actuator/health`,     puerto: 8083, descripcion: "Soporte Técnico" },
 ];
 
 const accionBadge = (accion) => {
@@ -50,7 +52,11 @@ export default function Dashboard() {
     const [filtroAccion, setFiltroAccion] = useState("TODAS");
 
     useEffect(() => {
-        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
+        if (!token) {
+            const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+            window.location.href = `http://${host}:5174/login`;
+            return;
+        }
         if (!esAdmin) { navigate("/soporte"); return; }
         verificarSalud();
         cargarAuditoria();
@@ -61,7 +67,7 @@ export default function Dashboard() {
         setLoadingSalud(true);
         const resultados = {};
         await Promise.all(
-            SERVICIOS.map(async (s) => {
+            getServicios().map(async (s) => {
                 const inicio = Date.now();
                 try {
                     // Los healthchecks son públicos, NO enviamos Authorization header para evitar fallos de preflight CORS
@@ -95,7 +101,8 @@ export default function Dashboard() {
     // ── Log de auditoría ──────────────────────────────────────
     const cargarAuditoria = () => {
         setLoadingAudit(true);
-        axios.get("http://localhost:8080/api/auditoria", { headers })
+        const host = getHost();
+        axios.get(`http://${host}:8080/api/auditoria`, { headers })
             .then(r => setAuditoria(r.data))
             .catch(() => setAuditoria([]))
             .finally(() => setLoadingAudit(false));
@@ -127,8 +134,72 @@ export default function Dashboard() {
     };
 
     return (
-        <Layout breadcrumb={["Inicio", "Monitoreo del sistema"]}>
+        <Layout breadcrumb={["Inicio", "Monitoreo del sistema"]} menuItems={[]}>
             <div className="space-y-6">
+
+                {/* ── SECCIÓN: ACCESOS RÁPIDOS ──────────────────────── */}
+                <section>
+                    <div className="mb-4">
+                        <h2 className="text-base font-bold text-slate-800">Accesos rápidos</h2>
+                        <p className="text-xs text-slate-400">Ir directo a una sección del módulo</p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {[
+                            {
+                                label: "Tickets",
+                                desc: "Gestión de tickets de soporte",
+                                color: "bg-amber-50",
+                                iconColor: "text-amber-500",
+                                path: "/soporte",
+                                icon: (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 14a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 00-2-2H5z" />
+                                    </svg>
+                                ),
+                            },
+                            {
+                                label: "Reportes",
+                                desc: "Historial y estadísticas",
+                                color: "bg-rose-50",
+                                iconColor: "text-rose-500",
+                                path: "/reportes",
+                                icon: (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                ),
+                            },
+                            {
+                                label: "Usuarios",
+                                desc: "Técnicos y usuarios del sistema",
+                                color: "bg-purple-50",
+                                iconColor: "text-purple-500",
+                                path: "/usuarios",
+                                icon: (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                ),
+                            },
+                        ].map((m) => (
+                            <button
+                                key={m.label}
+                                onClick={() => navigate(m.path)}
+                                className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col items-center gap-3 hover:shadow-md transition-all group text-center"
+                                onMouseEnter={(e) => (e.currentTarget.style.borderColor = PRIMARY)}
+                                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "")}
+                            >
+                                <div className={`${m.color} ${m.iconColor} p-3 rounded-xl`}>
+                                    {m.icon}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-700 group-hover:text-[#243A76] transition">{m.label}</p>
+                                    <p className="text-xs text-slate-400 mt-0.5 leading-tight">{m.desc}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </section>
 
                 {/* ── SECCIÓN: ESTADO SERVICIOS ─────────────────────── */}
                 <section>

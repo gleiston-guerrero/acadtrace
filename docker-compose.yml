@@ -17,6 +17,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
       - grpc.client.docente-service.address=static://microservicio-docente:9091
+    volumes:
+      - ./sga-principal/uploads:/app/uploads
     networks:
       - sga-distribuido-net
     deploy:
@@ -218,3 +220,6 @@ services:
 networks:
   sga-distribuido-net:
     driver: bridge
+
+volumes:
+  sga_uploads:
