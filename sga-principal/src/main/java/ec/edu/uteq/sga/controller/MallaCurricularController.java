@@ -1,10 +1,12 @@
 package ec.edu.uteq.sga.controller;
 
 import ec.edu.uteq.sga.entity.AnoLectivo;
+import ec.edu.uteq.sga.entity.Asignacion;
 import ec.edu.uteq.sga.entity.Asignatura;
 import ec.edu.uteq.sga.entity.Grado;
 import ec.edu.uteq.sga.entity.MallaCurricular;
 import ec.edu.uteq.sga.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.repository.AsignacionRepository;
 import ec.edu.uteq.sga.repository.AsignaturaRepository;
 import ec.edu.uteq.sga.repository.GradoRepository;
 import ec.edu.uteq.sga.repository.MallaCurricularRepository;

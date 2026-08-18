@@ -34,9 +34,11 @@ public class Asignacion {
     @JoinColumn(name = "id_ano_lectivo", nullable = false)
     private AnoLectivo anoLectivo;
 
+    @Builder.Default
     @Column(name = "es_tutor")
     private boolean esTutor = false;
 
+    @Builder.Default
     @Column
     private boolean activo = true;
 
