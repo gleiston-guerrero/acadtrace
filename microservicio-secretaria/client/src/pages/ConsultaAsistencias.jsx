@@ -74,11 +74,20 @@ export default function ConsultaAsistencias() {
   const actualizarGrado = useCallback(() => {
     if (!gradoSel) return;
 
-    const filtrados = todasMatriculas.filter(
-      (m) => String(m.idGrado || m.grado?.idGrado) === String(gradoSel)
-    );
-    setEstudiantesMatriculados(filtrados);
-    setEstudianteSel(filtrados.length > 0 ? filtrados[0] : null);
+    // Estudiantes matriculados reales del grado, directo del backend
+    apiPrincipal.get("/matriculas", { params: { idGrado: gradoSel, limit: 500 } })
+      .then((r) => {
+        const items = r.data?.items || r.data || [];
+        setEstudiantesMatriculados(items);
+        setEstudianteSel(items.length > 0 ? items[0] : null);
+      })
+      .catch(() => {
+        const filtrados = todasMatriculas.filter(
+          (m) => String(m.idGrado || m.grado?.idGrado) === String(gradoSel)
+        );
+        setEstudiantesMatriculados(filtrados);
+        setEstudianteSel(filtrados.length > 0 ? filtrados[0] : null);
+      });
 
     const asigGrado = todasAsignaciones.filter(
       (a) => String(a.idGrado || a.grado?.idGrado) === String(gradoSel)
