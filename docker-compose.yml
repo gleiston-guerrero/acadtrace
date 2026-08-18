@@ -118,6 +118,7 @@ services:
     container_name: microservicio-soporte
     ports:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
+      - "9094:9094"   # gRPC servidor (IncidenciaService): otros microservicios reportan fallas aqui
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -127,6 +128,7 @@ services:
       - JWT_SECRET=***REMOVED***
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
+      - GRPC_PORT=9094
       - ETCD_ENDPOINTS=http://etcd:2379
     networks:
       - sga-distribuido-net
@@ -160,7 +162,7 @@ services:
       - ./sga-principal/sga-frontend:/app
       - /app/node_modules
     ports:
-      - "5173:5173"
+      - "5174:5173"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     networks:
       - sga-distribuido-net

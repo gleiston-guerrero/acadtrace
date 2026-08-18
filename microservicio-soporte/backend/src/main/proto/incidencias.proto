@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package sga.soporte;
+
+option java_package = "ec.uteq.sga.soporte.grpc.incidencias";
+option java_multiple_files = true;
+option java_outer_classname = "IncidenciasProto";
+
+// Contrato para que sga-principal, sga-docente y sga-secretaria reporten
+// automaticamente una falla propia como ticket de soporte, sin pasar por el
+// REST protegido con JWT de usuario (ese sigue siendo solo para personas).
+// Este mismo archivo debe copiarse tal cual al microservicio que llame, en
+// su carpeta de protos, para generar el stub cliente correspondiente (mismo
+// patron que usuarios.proto con sga-principal).
+service IncidenciaService {
+    rpc ReportarIncidencia (ReportarIncidenciaRequest) returns (ReportarIncidenciaResponse);
+}
+
+message ReportarIncidenciaRequest {
+    // "sga-principal" | "sga-docente" | "sga-secretaria"
+    string servicio_origen = 1;
+    string titulo = 2;
+    string descripcion = 3;
+    // HARDWARE | SOFTWARE | RED | CUENTA | OTRO; si no coincide, cae a OTRO
+    string categoria = 4;
+    // BAJO | MEDIO | ALTO | CRITICO; si no coincide, cae a ALTO (una falla
+    // reportada por otro servicio se asume urgente por defecto)
+    string prioridad = 5;
+}
+
+message ReportarIncidenciaResponse {
+    int64 id_ticket = 1;
+    string numero_ticket = 2;
+    string estado = 3;
+}
