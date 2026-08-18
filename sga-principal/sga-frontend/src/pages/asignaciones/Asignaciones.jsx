@@ -26,6 +26,7 @@ const formVacio = {
   idParalelo: "",
   idAnoLectivo: "",
   esTutor: false,
+  horasSemanales: 4,
 };
 
 const CARD_PALETTES = [
@@ -238,6 +239,17 @@ export default function Asignaciones() {
         `${p.nombres} ${p.apellidos} ${p.cedula}`.toLowerCase().includes(nombreQuery.trim().toLowerCase())
       ).slice(0, 8);
 
+  const eliminarAsignacion = async (id, nombreMateria) => {
+    if (!window.confirm(`¿Estás seguro de eliminar la asignación de "${nombreMateria || 'esta materia'}"?`)) return;
+    try {
+      await axios.delete(`${API}/asignaciones/${id}`, { headers: H });
+      setSuccess("Asignación eliminada correctamente.");
+      cargar();
+    } catch (err) {
+      setError(err.response?.data?.message || "No se pudo eliminar la asignación.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -262,6 +274,7 @@ export default function Asignaciones() {
         idParalelo: parseInt(form.idParalelo),
         idAnoLectivo: parseInt(form.idAnoLectivo),
         esTutor: form.esTutor,
+        horasSemanales: form.horasSemanales ? parseInt(form.horasSemanales) : 4,
       }, { headers: H });
       setSuccess("Asignación creada correctamente.");
       setForm(formVacio);
@@ -295,6 +308,7 @@ export default function Asignaciones() {
       idParalelo: String(a.idParalelo || ""),
       idAnoLectivo: String(a.idAnoLectivo || ""),
       esTutor: a.esTutor,
+      horasSemanales: a.horasSemanales || 4,
     });
     if (a.idGrado) {
       axios.get(`${API}/asignaciones/grado/${a.idGrado}/paralelos`, { headers: H })
@@ -314,6 +328,7 @@ export default function Asignaciones() {
         idParalelo: parseInt(asignEdit.idParalelo),
         idAnoLectivo: parseInt(asignEdit.idAnoLectivo),
         esTutor: asignEdit.esTutor,
+        horasSemanales: asignEdit.horasSemanales ? parseInt(asignEdit.horasSemanales) : 4,
       }, { headers: H });
       setSuccess("Asignación actualizada.");
       setAsignEdit(null);
@@ -414,14 +429,19 @@ export default function Asignaciones() {
                   <div className="divide-y divide-slate-100">
                     {items.map((a) => (
                       <div key={a.idAsignacion} className="px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-700 truncate">{a.asignatura}</p>
-                          <p className="text-xs text-slate-500 truncate">
+                        <div className="min-w-0 flex-1 pr-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-slate-700 truncate">{a.asignatura}</p>
+                            <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-indigo-100 flex-shrink-0">
+                              {a.horasSemanales || 4} hrs/sem
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">
                             {a.docente}
                             {a.esTutor && <span className="ml-2 bg-blue-50 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">TUTOR</span>}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <button onClick={() => setAsignVer(a)} title="Ver detalle"
                             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -429,6 +449,10 @@ export default function Asignaciones() {
                           <button onClick={() => abrirEditar(a)} title="Editar"
                             className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                          </button>
+                          <button onClick={() => eliminarAsignacion(a.idAsignacion, a.asignatura)} title="Eliminar asignación"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                           <button onClick={() => toggleEstado(a)}
                             className={`text-xs font-semibold px-2 py-1 rounded transition ${a.activo ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
@@ -602,6 +626,22 @@ export default function Asignaciones() {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
+                    Horas Semanales <span className="text-slate-400 normal-case font-normal">— asignación según distributivo</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={40}
+                    required
+                    value={form.horasSemanales}
+                    onChange={(e) => setForm({ ...form, horasSemanales: Math.max(1, parseInt(e.target.value) || 1) })}
+                    placeholder="Ej. 1, 3, 4, 5, 20..."
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold text-slate-700"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Configura cuántas horas periódicas o bloques recibe el curso.</p>
+                </div>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-slate-600 mt-5 select-none cursor-pointer">
@@ -741,6 +781,7 @@ export default function Asignaciones() {
                 </div>
               </div>
               <Detalle label="Asignatura" value={asignVer.asignatura} />
+              <Detalle label="Horas semanales" value={`${asignVer.horasSemanales || 4} horas / semana`} />
               <Detalle label="Grado" value={asignVer.grado} />
               <Detalle label="Paralelo" value={asignVer.paralelo} />
               <Detalle label="Año lectivo" value={asignVer.anoLectivo} />
@@ -822,6 +863,18 @@ export default function Asignaciones() {
                   </option>
                   {materiasMallaEdit.map((m) => <option key={m.idAsignatura} value={m.idAsignatura}>{m.asignatura}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Horas Semanales</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={40}
+                  required
+                  value={asignEdit.horasSemanales || 4}
+                  onChange={(e) => setAsignEdit({ ...asignEdit, horasSemanales: Math.max(1, parseInt(e.target.value) || 1) })}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold"
+                />
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" checked={asignEdit.esTutor} onChange={(e) => setAsignEdit({ ...asignEdit, esTutor: e.target.checked })} />

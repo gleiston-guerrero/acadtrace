@@ -22,4 +22,5 @@ public class AsignacionRequestDTO {
     private Long idAnoLectivo;
 
     private boolean esTutor = false;
+    private Integer horasSemanales;
 }

@@ -25,4 +25,5 @@ public class AsignacionResponseDTO {
     private String correoDocente;
     private String tituloDocente;
     private String fotoDocente;
+    private Integer horasSemanales;
 }

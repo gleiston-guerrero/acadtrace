@@ -104,6 +104,7 @@ public class AsignacionService {
                 .anoLectivo(anoLectivo)
                 .esTutor(dto.isEsTutor())
                 .activo(true)
+                .horasSemanales(dto.getHorasSemanales() != null && dto.getHorasSemanales() > 0 ? dto.getHorasSemanales() : 4)
                 .fechaAsignacion(java.time.Instant.now())
                 .asignadoPor(asignadoPor)
                 .build();
@@ -121,6 +122,14 @@ public class AsignacionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada"));
         asignacion.setActivo(activo);
         asignacionRepo.save(asignacion);
+    }
+
+    @Transactional
+    public void eliminar(Long id) {
+        if (!asignacionRepo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada");
+        }
+        asignacionRepo.deleteById(id);
     }
 
     @Transactional
@@ -145,6 +154,9 @@ public class AsignacionService {
         asignacion.setParalelo(paralelo);
         asignacion.setAnoLectivo(anoLectivo);
         asignacion.setEsTutor(dto.isEsTutor());
+        if (dto.getHorasSemanales() != null && dto.getHorasSemanales() > 0) {
+            asignacion.setHorasSemanales(dto.getHorasSemanales());
+        }
 
         return toDTO(asignacionRepo.save(asignacion));
     }
@@ -170,6 +182,7 @@ public class AsignacionService {
                 .correoDocente(a.getDocente().getUsuario() != null ? a.getDocente().getUsuario().getCorreo() : null)
                 .tituloDocente(a.getDocente().getTituloAcademico())
                 .fotoDocente(a.getDocente().getFotoUrl())
+                .horasSemanales(a.getHorasSemanales() != null ? a.getHorasSemanales() : 4)
                 .build();
     }
 }
