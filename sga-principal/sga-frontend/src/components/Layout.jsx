@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useConfirm } from "../context/ConfirmContext";
 import api from "../config/axios";
 import logo from "../assets/logo.png";
 const PRIMARY = "#243A76";
@@ -50,9 +51,20 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
     setNoLeidas(0);
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+  const confirm = useConfirm();
+
+  const handleLogout = async () => {
+    const isOk = await confirm({
+      title: "¿Cerrar sesión?",
+      message: "Tu sesión actual se cerrará y tendrás que volver a ingresar.",
+      confirmText: "Sí, cerrar sesión",
+      cancelText: "Cancelar",
+      type: "danger"
+    });
+    if (isOk) {
+      localStorage.clear();
+      navigate("/login");
+    }
   };
 
   const hasSidebar = menuItems.length > 0;

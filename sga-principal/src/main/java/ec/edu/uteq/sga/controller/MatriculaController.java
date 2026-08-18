@@ -45,4 +45,13 @@ public class MatriculaController {
         matriculaService.cambiarEstado(id, estado);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> descargarPdf(@PathVariable Long id) {
+        byte[] pdf = matriculaService.generarPdfMatricula(id);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Ficha_Matricula_" + id + ".pdf\"")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
 }

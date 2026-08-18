@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -179,6 +180,54 @@ public class MallaCurricularController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro no existe"));
         m.setHorasSemana(horasSemana);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/actualizar-horas-grado")
+    @Transactional
+    public ResponseEntity<Void> actualizarHorasGrado(@RequestBody Map<String, Object> body) {
+        Long idGrado = Long.valueOf(body.get("idGrado").toString());
+        Long idAnoLectivo = Long.valueOf(body.get("idAnoLectivo").toString());
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> cambios = (List<Map<String, Object>>) body.get("cambios");
+
+        if (cambios != null) {
+            for (Map<String, Object> cambio : cambios) {
+                Long idAsignatura = Long.valueOf(cambio.get("idAsignatura").toString());
+                int nuevasHoras = Integer.parseInt(cambio.get("horasSemana").toString());
+
+                Optional<MallaCurricular> optMalla = mallaRepo.findAll().stream()
+                        .filter(m -> m.getGrado().getIdGrado().equals(idGrado)
+                                && m.getAsignatura().getIdAsignatura().equals(idAsignatura)
+                                && m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))
+                        .findFirst();
+
+                if (optMalla.isPresent()) {
+                    optMalla.get().setHorasSemana((short) nuevasHoras);
+                    mallaRepo.save(optMalla.get());
+                } else {
+                    Grado g = gradoRepo.findById(idGrado).orElse(null);
+                    Asignatura asig = asignaturaRepo.findById(idAsignatura).orElse(null);
+                    AnoLectivo ano = anoLectivoRepo.findById(idAnoLectivo).orElse(null);
+                    if (g != null && asig != null && ano != null) {
+                        mallaRepo.save(MallaCurricular.builder()
+                                .grado(g).asignatura(asig).anoLectivo(ano).horasSemana((short) nuevasHoras)
+                                .build());
+                    }
+                }
+
+                List<Asignacion> asigs = asignacionRepo.findAll().stream()
+                        .filter(a -> a.getGrado().getIdGrado().equals(idGrado)
+                                && a.getAsignatura().getIdAsignatura().equals(idAsignatura)
+                                && a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))
+                        .collect(Collectors.toList());
+
+                for (Asignacion a : asigs) {
+                    a.setHorasSemanales(nuevasHoras);
+                    asignacionRepo.save(a);
+                }
+            }
+        }
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")

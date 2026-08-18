@@ -140,6 +140,79 @@ public class MatriculaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Matrícula no encontrada"));
     }
 
+    @Transactional(readOnly = true)
+    public byte[] generarPdfMatricula(Long idMatricula) {
+        Matricula m = buscarPorId(idMatricula);
+        try (java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
+            com.lowagie.text.Document doc = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4, 36, 36, 36, 36);
+            com.lowagie.text.pdf.PdfWriter.getInstance(doc, baos);
+            doc.open();
+
+            com.lowagie.text.Font fTitle = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 16, com.lowagie.text.Font.BOLD, new java.awt.Color(36, 58, 118));
+            com.lowagie.text.Font fSub = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.BOLD, java.awt.Color.DARK_GRAY);
+            com.lowagie.text.Font fLabel = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.BOLD, java.awt.Color.BLACK);
+            com.lowagie.text.Font fValue = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.NORMAL, java.awt.Color.DARK_GRAY);
+
+            com.lowagie.text.Paragraph p1 = new com.lowagie.text.Paragraph("ESCUELA DE EDUCACIÓN BÁSICA PROVINCIAS UNIDAS", fTitle);
+            p1.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            doc.add(p1);
+
+            com.lowagie.text.Paragraph p2 = new com.lowagie.text.Paragraph("FICHA OFICIAL DE MATRÍCULA — AÑO LECTIVO " + m.getAnoLectivo().getNombre(), fSub);
+            p2.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            p2.setSpacingAfter(15);
+            doc.add(p2);
+
+            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(2);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10);
+            table.setSpacingAfter(20);
+
+            addCell(table, "N° Folio / Orden:", "MAT-" + m.getAnoLectivo().getNombre() + "-" + String.format("%04d", m.getNumeroOrden() != null ? m.getNumeroOrden() : 1), fLabel, fValue);
+            addCell(table, "Estudiante:", m.getEstudiante().getApellidos() + " " + m.getEstudiante().getNombres(), fLabel, fValue);
+            addCell(table, "Cédula / Identificación:", m.getEstudiante().getCedula() != null ? m.getEstudiante().getCedula() : "—", fLabel, fValue);
+            addCell(table, "Código Estudiante (CAS):", m.getEstudiante().getCodigoEstudiante() != null ? m.getEstudiante().getCodigoEstudiante() : "—", fLabel, fValue);
+            addCell(table, "Grado Asignado:", m.getGrado().getNombre(), fLabel, fValue);
+            addCell(table, "Paralelo:", m.getParalelo() != null ? "Paralelo " + m.getParalelo().getLetra() : "Paralelo A", fLabel, fValue);
+            addCell(table, "Jornada:", "Matutina (07:30 - 12:30)", fLabel, fValue);
+            addCell(table, "Estado de Matrícula:", m.getEstado(), fLabel, fValue);
+            addCell(table, "Observaciones:", m.getObservaciones() != null ? m.getObservaciones() : "Ninguna", fLabel, fValue);
+
+            doc.add(table);
+
+            com.lowagie.text.Paragraph pFirmas = new com.lowagie.text.Paragraph("\n\n\n\n\n", fValue);
+            doc.add(pFirmas);
+
+            com.lowagie.text.pdf.PdfPTable fTable = new com.lowagie.text.pdf.PdfPTable(2);
+            fTable.setWidthPercentage(100);
+            com.lowagie.text.pdf.PdfPCell cellF1 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph("_____________________________\nFirma del Representante Legal\nC.I.: ", fValue));
+            cellF1.setBorder(com.lowagie.text.Rectangle.NO_BORDER);
+            cellF1.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+
+            com.lowagie.text.pdf.PdfPCell cellF2 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph("_____________________________\nSecretaría / Dirección Institucional\nEscuela Provincias Unidas", fValue));
+            cellF2.setBorder(com.lowagie.text.Rectangle.NO_BORDER);
+            cellF2.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+
+            fTable.addCell(cellF1);
+            fTable.addCell(cellF2);
+            doc.add(fTable);
+
+            doc.close();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar Ficha PDF: " + e.getMessage());
+        }
+    }
+
+    private void addCell(com.lowagie.text.pdf.PdfPTable table, String label, String value, com.lowagie.text.Font fLabel, com.lowagie.text.Font fValue) {
+        com.lowagie.text.pdf.PdfPCell c1 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph(label, fLabel));
+        c1.setPadding(8);
+        c1.setBackgroundColor(new java.awt.Color(245, 247, 250));
+        com.lowagie.text.pdf.PdfPCell c2 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph(value, fValue));
+        c2.setPadding(8);
+        table.addCell(c1);
+        table.addCell(c2);
+    }
+
     private MatriculaResponseDTO toDTO(Matricula m) {
         Estudiante e = m.getEstudiante();
         return MatriculaResponseDTO.builder()

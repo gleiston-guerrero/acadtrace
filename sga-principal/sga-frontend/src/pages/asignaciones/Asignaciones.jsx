@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Layout from "../../components/Layout";
+import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const API = `http://${window.location.hostname}:8080/api`;
 const PRIMARY = "#243A76";
@@ -239,14 +241,25 @@ export default function Asignaciones() {
         `${p.nombres} ${p.apellidos} ${p.cedula}`.toLowerCase().includes(nombreQuery.trim().toLowerCase())
       ).slice(0, 8);
 
+  const toast = useToast();
+  const confirm = useConfirm();
+
   const eliminarAsignacion = async (id, nombreMateria) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la asignación de "${nombreMateria || 'esta materia'}"?`)) return;
+    const isOk = await confirm({
+      title: "¿Eliminar asignación?",
+      message: `Se eliminará la materia "${nombreMateria || 'esta materia'}" del distributivo de este curso.`,
+      confirmText: "Sí, eliminar",
+      cancelText: "Cancelar",
+      type: "danger"
+    });
+    if (!isOk) return;
     try {
       await axios.delete(`${API}/asignaciones/${id}`, { headers: H });
-      setSuccess("Asignación eliminada correctamente.");
+      toast.success("Asignación eliminada", "Se ha retirado la asignatura del curso correctamente.");
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "No se pudo eliminar la asignación.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "No se pudo eliminar la asignación.";
+      toast.error("Error al eliminar", errMsg);
     }
   };
 
@@ -262,6 +275,7 @@ export default function Asignaciones() {
     if (!form.idAnoLectivo) faltantes.push("año lectivo");
     if (faltantes.length > 0) {
       setError("Falta seleccionar: " + faltantes.join(", ") + ".");
+      toast.warning("Formulario incompleto", "Por favor completa todos los campos obligatorios.");
       return;
     }
 
@@ -276,12 +290,15 @@ export default function Asignaciones() {
         esTutor: form.esTutor,
         horasSemanales: form.horasSemanales ? parseInt(form.horasSemanales) : 4,
       }, { headers: H });
+      toast.success("Asignación creada", "Materia agregada al distributivo docente correctamente.");
       setSuccess("Asignación creada correctamente.");
       setForm(formVacio);
       setSeccion("lista");
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "No se pudo crear la asignación.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "No se pudo crear la asignación.";
+      setError(errMsg);
+      toast.error("Error al crear asignación", errMsg);
     } finally {
       setSaving(false);
     }
@@ -290,9 +307,10 @@ export default function Asignaciones() {
   const toggleEstado = async (a) => {
     try {
       await axios.patch(`${API}/asignaciones/${a.idAsignacion}/estado?activo=${!a.activo}`, {}, { headers: H });
+      toast.info("Estado actualizado", "Se cambió el estado de la asignación.");
       cargar();
     } catch {
-      setError("No se pudo cambiar el estado.");
+      toast.error("Error de estado", "No se pudo cambiar el estado de la asignación.");
     }
   };
 
@@ -330,11 +348,14 @@ export default function Asignaciones() {
         esTutor: asignEdit.esTutor,
         horasSemanales: asignEdit.horasSemanales ? parseInt(asignEdit.horasSemanales) : 4,
       }, { headers: H });
+      toast.success("Asignación actualizada", "Los cambios en el distributivo se guardaron con éxito.");
       setSuccess("Asignación actualizada.");
       setAsignEdit(null);
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || "No se pudo actualizar la asignación.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "No se pudo actualizar la asignación.";
+      setError(errMsg);
+      toast.error("Error al actualizar", errMsg);
     } finally {
       setSaving(false);
     }
@@ -355,9 +376,6 @@ export default function Asignaciones() {
       seccion={seccion}
       onSeccionChange={handleSeccion}
     >
-      {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError("")} className="text-red-400 ml-4">✕</button></div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3"><span className="text-green-700 text-sm">{success}</span></div>}
-
       <h1 className="text-lg font-bold text-slate-700 mb-1">Asignaciones</h1>
       <p className="text-slate-400 text-xs mb-5">Asigne docentes a cursos, asignaturas y paralelos.</p>
 

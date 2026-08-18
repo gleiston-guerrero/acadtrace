@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import api from "../../config/axios";
 import Layout from "../../components/Layout";
+import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
@@ -77,14 +79,60 @@ export default function Asignaturas() {
     }).catch(() => {});
   };
 
+  const [horasEditMap, setHorasEditMap] = useState({});
+
   const cargarMalla = (idTarget) => {
     const idGradoVal = idTarget || gradoMalla;
     if (!idGradoVal || !anoActual) return;
     setLoadingMalla(true);
     api.get(`/api/malla/grado/${idGradoVal}`, { params: { idAnoLectivo: anoActual.idAnoLectivo } })
-      .then(r => setMalla(r.data))
+      .then(r => {
+        setMalla(r.data);
+        const map = {};
+        (r.data?.materias || []).forEach(m => {
+          map[m.idAsignatura] = m.horasSemana || 4;
+        });
+        setHorasEditMap(map);
+      })
       .catch(() => setMalla({ totalHoras: 0, materias: [] }))
       .finally(() => setLoadingMalla(false));
+  };
+
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const guardarCambiosMalla = async () => {
+    if (!gradoMalla || !anoActual) return;
+
+    const total = Object.values(horasEditMap).reduce((a, b) => a + (parseInt(b) || 0), 0);
+    if (total > 30) {
+      toast.error("Exceso de carga horaria", `La suma total de la malla (${total}h) no puede superar el límite máximo de 30 horas semanales. Por favor ajusta las horas.`);
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    try {
+      const cambios = Object.entries(horasEditMap).map(([idAsig, h]) => ({
+        idAsignatura: parseInt(idAsig),
+        horasSemana: parseInt(h) || 1
+      }));
+      await api.post(`/api/malla/actualizar-horas-grado`, {
+        idGrado: parseInt(gradoMalla),
+        idAnoLectivo: anoActual.idAnoLectivo,
+        cambios
+      });
+      toast.success("Malla guardada", "¡Horas de la malla actualizadas y sincronizadas con éxito!");
+      setSuccess("¡Horas de la malla actualizadas y guardadas con éxito!");
+      cargarMalla(gradoMalla);
+      cargarBase();
+    } catch (err) {
+      const errMsg = err.response?.data?.message || err.response?.data?.mensaje || "Error al guardar los cambios de horas.";
+      setError(errMsg);
+      toast.error("Error al guardar malla", errMsg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const abrirModalMalla = (g) => {
@@ -103,15 +151,24 @@ export default function Asignaturas() {
     try {
       if (editando) await api.put(`/api/asignaturas/${editando.idAsignatura}`, form);
       else await api.post(`/api/asignaturas`, form);
+      toast.success("Asignatura guardada", editando ? "Asignatura actualizada correctamente." : "Nueva asignatura creada en el catálogo.");
       setSuccess(editando ? "Asignatura actualizada." : "Asignatura creada.");
       setShowModal(false); cargarAsignaturas();
-    } catch (err) { setError(err.response?.data?.message || "No se pudo guardar."); }
-    finally { setSaving(false); }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "No se pudo guardar la asignatura.";
+      setError(errMsg);
+      toast.error("Error al guardar", errMsg);
+    } finally { setSaving(false); }
   };
 
   const toggleEstado = async (a) => {
-    try { await api.patch(`/api/asignaturas/${a.idAsignatura}/estado?activo=${!a.activo}`); cargarAsignaturas(); }
-    catch { setError("No se pudo cambiar el estado."); }
+    try {
+      await api.patch(`/api/asignaturas/${a.idAsignatura}/estado?activo=${!a.activo}`);
+      toast.info("Estado actualizado", `Asignatura ${!a.activo ? "activada" : "desactivada"}.`);
+      cargarAsignaturas();
+    } catch {
+      toast.error("Error", "No se pudo cambiar el estado.");
+    }
   };
 
   const agregarAMalla = async (e) => {
@@ -123,26 +180,48 @@ export default function Asignaturas() {
         idGrado: parseInt(gradoMalla), idAnoLectivo: anoActual.idAnoLectivo,
         idAsignatura: parseInt(nuevaMalla.idAsignatura), horasSemana: parseInt(nuevaMalla.horasSemana),
       });
+      toast.success("Materia agregada", "La materia se agregó a la malla del grado.");
       setShowAgregar(false); setNuevaMalla({ idAsignatura: "", horasSemana: "" }); cargarMalla();
-    } catch (err) { setError(err.response?.data?.message || "No se pudo agregar."); }
-    finally { setSaving(false); }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "No se pudo agregar.";
+      setError(errMsg);
+      toast.error("Error al agregar", errMsg);
+    } finally { setSaving(false); }
   };
 
   const cambiarHoras = async (idMalla, horas) => {
     try { await api.patch(`/api/malla/${idMalla}?horasSemana=${horas}`); cargarMalla(); }
-    catch { setError("No se pudo actualizar las horas."); }
+    catch { toast.error("Error", "No se pudo actualizar las horas."); }
   };
+
   const quitarDeMalla = async (idMalla) => {
-    try { await api.delete(`/api/malla/${idMalla}`); cargarMalla(); }
-    catch { setError("No se pudo quitar."); }
+    if (!idMalla) {
+      toast.warning("Materia de distributivo", "Esta materia proviene del distributivo docente. Para retirarla, debes hacerlo en el módulo de Asignaciones.");
+      return;
+    }
+    const isOk = await confirm({
+      title: "¿Quitar materia de la malla?",
+      message: "Se eliminará esta asignatura de la plantilla del grado.",
+      confirmText: "Sí, quitar",
+      cancelText: "Cancelar",
+      type: "danger"
+    });
+    if (!isOk) return;
+    try {
+      await api.delete(`/api/malla/${idMalla}`);
+      toast.success("Materia retirada", "La asignatura se eliminó de la malla.");
+      cargarMalla();
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "No se pudo quitar la materia.";
+      toast.error("Error al quitar", errMsg);
+    }
   };
 
   const disponiblesParaMalla = asignaturas.filter(a => a.activo && !malla?.materias?.some(m => m.idAsignatura === a.idAsignatura));
 
   return (
     <Layout breadcrumb={["Inicio", "Asignaturas"]} sidebarTitle="Asignaturas" menuItems={menuItems} seccion={seccion} onSeccionChange={setSeccion}>
-      {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError("")} className="text-red-400 ml-4">✕</button></div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3"><span className="text-green-700 text-sm">{success}</span></div>}
+
 
       {/* CATÁLOGO */}
       {seccion === "catalogo" && (
@@ -378,7 +457,7 @@ export default function Asignaturas() {
             {/* Barra de Acciones del Modal */}
             <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
               {(() => {
-                const total = malla?.totalHoras || 0;
+                const total = Object.values(horasEditMap).reduce((a, b) => a + (parseInt(b) || 0), 0);
                 const dif = total - 30;
                 if (total > 30) {
                   return (
@@ -403,13 +482,22 @@ export default function Asignaturas() {
                   );
                 }
               })()}
-              <button
-                onClick={() => { setShowAgregar(true); setNuevaMalla({ idAsignatura: "", horasSemana: "" }); setError(""); }}
-                style={{ backgroundColor: PRIMARY }}
-                className="text-white text-xs font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition shadow-sm self-end sm:self-auto"
-              >
-                + Agregar materia
-              </button>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  onClick={guardarCambiosMalla}
+                  disabled={saving}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {saving ? "Guardando..." : "💾 Guardar cambios"}
+                </button>
+                <button
+                  onClick={() => { setShowAgregar(true); setNuevaMalla({ idAsignatura: "", horasSemana: "" }); setError(""); }}
+                  style={{ backgroundColor: PRIMARY }}
+                  className="text-white text-xs font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition shadow-sm"
+                >
+                  + Agregar materia
+                </button>
+              </div>
             </div>
 
             {/* Contenido / Tabla del Modal */}
@@ -468,10 +556,10 @@ export default function Asignaturas() {
                               type="number"
                               min={1}
                               max={40}
-                              defaultValue={m.horasSemana}
-                              onBlur={(e) => {
-                                const v = parseInt(e.target.value);
-                                if (v && v !== m.horasSemana) cambiarHoras(m.idMalla, v);
+                              value={horasEditMap[m.idAsignatura] !== undefined ? horasEditMap[m.idAsignatura] : (m.horasSemana || 4)}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value) || 0;
+                                setHorasEditMap({ ...horasEditMap, [m.idAsignatura]: val });
                               }}
                               className="w-20 border border-slate-200 rounded-lg px-2 py-1 text-sm text-center bg-white font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                             />
@@ -494,12 +582,19 @@ export default function Asignaturas() {
             </div>
 
             {/* Footer del Modal */}
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end flex-shrink-0">
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
               <button
                 onClick={() => setShowMallaModal(false)}
                 className="px-5 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition"
               >
                 Cerrar
+              </button>
+              <button
+                onClick={guardarCambiosMalla}
+                disabled={saving}
+                className="px-6 py-2 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {saving ? "Guardando..." : "💾 Guardar cambios de malla"}
               </button>
             </div>
           </div>

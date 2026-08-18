@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../config/axios";
 import Layout from "../../components/Layout";
+import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const DIAS = [
   { num: 1, label: "Lunes" },
@@ -153,18 +155,41 @@ export default function Horarios() {
     )).then((pares) => setHorasPorDocente(Object.fromEntries(pares)));
   }, [docentes, grillaCurso]); // recalcula tras guardar/eliminar
 
-  const asignarSlot = (dia, idPeriodo) => {
-    if (!asignSel) { setMsg({ tipo: "error", texto: "Selecciona una materia primero." }); return; }
-    setMsg({ tipo: "", texto: "" });
-    api.post("/api/horarios", { idAsignacion: Number(asignSel), dia, idPeriodo })
-      .then(() => { setMsg({ tipo: "ok", texto: "Hora asignada." }); cargarGrillaCurso(); })
-      .catch((err) => setMsg({ tipo: "error", texto: err.response?.data?.mensaje || "No se pudo asignar." }));
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const asignarSlot = async (dia, idPeriodo) => {
+    if (!asignSel) {
+      toast.warning("Selecciona una materia", "Por favor elige una asignatura de la lista antes de asignar la hora en la grilla.");
+      return;
+    }
+    try {
+      await api.post("/api/horarios", { idAsignacion: Number(asignSel), dia, idPeriodo });
+      toast.success("Hora asignada", "Se ha registrado la materia en el horario del curso.");
+      cargarGrillaCurso();
+    } catch (err) {
+      const errMsg = err.response?.data?.mensaje || err.response?.data?.message || "No se pudo asignar el slot de horario.";
+      toast.error("Conflicto de horario", errMsg);
+    }
   };
-  const eliminarSlot = (idHorario) => {
-    if (!window.confirm("¿Eliminar este slot?")) return;
-    api.delete(`/api/horarios/${idHorario}`)
-      .then(() => { setMsg({ tipo: "ok", texto: "Slot eliminado." }); cargarGrillaCurso(); })
-      .catch((err) => setMsg({ tipo: "error", texto: err.response?.data?.mensaje || "No se pudo eliminar." }));
+
+  const eliminarSlot = async (idHorario) => {
+    const isOk = await confirm({
+      title: "¿Eliminar este slot?",
+      message: "Esta hora se liberará en el horario del curso.",
+      confirmText: "Sí, eliminar",
+      cancelText: "Cancelar",
+      type: "danger"
+    });
+    if (!isOk) return;
+    try {
+      await api.delete(`/api/horarios/${idHorario}`);
+      toast.success("Slot liberado", "Se ha eliminado la asignatura de esa hora.");
+      cargarGrillaCurso();
+    } catch (err) {
+      const errMsg = err.response?.data?.mensaje || err.response?.data?.message || "No se pudo eliminar el slot.";
+      toast.error("Error al eliminar", errMsg);
+    }
   };
 
   const cursoLabel = (c) => `${c.grado} · Paralelo ${c.paralelo}${c.anoLectivo ? ` — ${c.anoLectivo}` : ""}`;
