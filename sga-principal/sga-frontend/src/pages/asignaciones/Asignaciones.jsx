@@ -60,8 +60,27 @@ export default function Asignaciones() {
   const [modoBusqueda, setModoBusqueda] = useState("cedula"); // "cedula" | "nombre"
   const [nombreQuery, setNombreQuery] = useState("");
 
+  const [filtroAsignatura, setFiltroAsignatura] = useState("");
   const [personasDocentes, setPersonasDocentes] = useState([]);
   const [loadingDocentes, setLoadingDocentes] = useState(false);
+
+  const opcionesAsignaturas = (() => {
+    const mapa = new Map();
+    (materiasMalla || []).forEach(m => {
+      if (m.idAsignatura) mapa.set(Number(m.idAsignatura), m.asignatura || m.nombre);
+    });
+    (asignaturas || []).forEach(a => {
+      if (!mapa.has(Number(a.idAsignatura))) {
+        mapa.set(Number(a.idAsignatura), a.nombre);
+      }
+    });
+    let list = Array.from(mapa.entries()).map(([id, nombre]) => ({ idAsignatura: id, nombre }));
+    if (filtroAsignatura.trim()) {
+      const q = filtroAsignatura.toLowerCase();
+      list = list.filter(item => item.nombre.toLowerCase().includes(q));
+    }
+    return list;
+  })();
   const [asignEdit, setAsignEdit] = useState(null);
   const [asignVer, setAsignVer] = useState(null);
   const [docenteVer, setDocenteVer] = useState(null);
@@ -532,27 +551,24 @@ export default function Asignaciones() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
-                    Asignatura <span className="text-slate-400 normal-case font-normal">— materias de la malla del grado</span>
+                    Asignatura <span className="text-slate-400 normal-case font-normal">— seleccione o busque directamente</span>
                   </label>
+                  <div className="mb-2">
+                    <input
+                      type="text"
+                      value={filtroAsignatura}
+                      onChange={(e) => setFiltroAsignatura(e.target.value)}
+                      placeholder="🔍 Buscar materia por nombre (Lengua, Matemática, etc.)..."
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
                   <select required value={form.idAsignatura} onChange={(e) => setForm({ ...form, idAsignatura: e.target.value })}
-                    disabled={!form.idGrado || !form.idAnoLectivo || loadingMaterias}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 disabled:opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="">
-                      {!form.idGrado || !form.idAnoLectivo
-                        ? "Elija grado y año lectivo primero"
-                        : loadingMaterias
-                          ? "Cargando materias..."
-                          : materiasMalla.length === 0
-                            ? "El grado no tiene materias en su malla"
-                            : "Seleccione..."}
-                    </option>
-                    {materiasMalla.map((m) => <option key={m.idAsignatura} value={m.idAsignatura}>{m.asignatura}</option>)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Seleccione la materia...</option>
+                    {opcionesAsignaturas.map((m) => (
+                      <option key={m.idAsignatura} value={m.idAsignatura}>{m.nombre}</option>
+                    ))}
                   </select>
-                  {form.idGrado && form.idAnoLectivo && !loadingMaterias && materiasMalla.length === 0 && (
-                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-2">
-                      Este grado no tiene materias asignadas en su malla. Agrégalas primero en el módulo <strong>Asignaturas → Malla por grado</strong>.
-                    </p>
-                  )}
                 </div>
               </div>
 

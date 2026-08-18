@@ -79,7 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/importacion-excel/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/representantes/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA")
                         .requestMatchers("/api/matriculas/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA", "ROLE_DOCENTE")
-                        .requestMatchers("/api/asignaciones/**").hasAnyAuthority("ROLE_DIRECTOR")
+                        .requestMatchers("/api/asignaciones/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA", "ROLE_SOPORTE_TECNICO")
                         .requestMatchers("/api/personas/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA", "ROLE_SOPORTE_TECNICO")
                         .requestMatchers("/api/uploads/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SECRETARIA", "ROLE_DOCENTE", "ROLE_SOPORTE_TECNICO")
                         .requestMatchers("/uploads/**").permitAll()

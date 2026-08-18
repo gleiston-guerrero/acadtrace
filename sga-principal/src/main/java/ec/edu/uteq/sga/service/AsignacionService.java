@@ -92,7 +92,8 @@ public class AsignacionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Año lectivo no encontrado"));
 
         Usuario asignadoPor = usuarioRepo.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+                .or(() -> usuarioRepo.findAll().stream().filter(u -> u.getUsername().equalsIgnoreCase(username)).findFirst())
+                .orElse(null);
 
         Asignacion asignacion = Asignacion.builder()
                 .docente(docente)
