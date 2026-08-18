@@ -4,10 +4,11 @@ import api from "../../config/axios";
 import Layout from "../../components/Layout";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
+import Usuarios from "../usuarios/Usuarios";
+import AnosLectivos from "../anos-lectivos/AnosLectivos";
 
 const API_CALIF = `http://${window.location.hostname}:8080/api/configuracion/calificacion`;
 const PRIMARY = "#243A76";
-const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
 
 const menuItems = [
   {
@@ -16,6 +17,15 @@ const menuItems = [
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "usuarios",
+    label: "Usuarios y Roles del Sistema",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
       </svg>
     ),
   },
@@ -29,11 +39,20 @@ const menuItems = [
     ),
   },
   {
-    id: "usuarios",
-    label: "Usuarios y Roles",
+    id: "cursos",
+    label: "Baja de Cursos y Grados",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    ),
+  },
+  {
+    id: "baja-estudiantes",
+    label: "Baja de Estudiantes",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
       </svg>
     ),
   },
@@ -50,27 +69,21 @@ const menuItems = [
 
 export default function ConfiguracionGeneral() {
   const [seccion, setSeccion] = useState("anos");
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const toast = useToast();
   const confirm = useConfirm();
 
-  // ESTADOS - AÑOS LECTIVOS
-  const [anos, setAnos] = useState([]);
-  const [showAnoModal, setShowAnoModal] = useState(false);
-  const [formAno, setFormAno] = useState({ nombre: "", fechaInicio: "", fechaFin: "" });
-
-  // ESTADOS - ESQUEMA DE CALIFICACIONES
+  // ESQUEMA CALIFICACIONES
   const [esquema, setEsquema] = useState({ pesoFormativa: 70, pesoSumativa: 30 });
   const [periodosEval, setPeriodosEval] = useState([]);
-  const [aportes, setAportes] = useState([]);
-  const [escala, setEscala] = useState([]);
 
-  // ESTADOS - USUARIOS
-  const [usuarios, setUsuarios] = useState([]);
+  // GRADOS Y ESTUDIANTES PARA BAJAS
+  const [grados, setGrados] = useState([]);
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [busquedaEstudiante, setBusquedaEstudiante] = useState("");
 
-  // ESTADOS - ESCUELA
+  // ESCUELA
   const [escuela, setEscuela] = useState({
     nombre: "Escuela de Educación Básica Provincias Unidas",
     amie: "09H01234",
@@ -87,66 +100,72 @@ export default function ConfiguracionGeneral() {
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
-  // CARGAS
-  const cargarAnos = () => {
-    api.get("/api/anos-lectivos").then(r => setAnos(r.data || [])).catch(() => {});
+  const cargarGrados = () => {
+    api.get("/api/grados").then(r => setGrados(r.data || [])).catch(() => {});
+  };
+
+  const cargarEstudiantes = () => {
+    api.get("/api/estudiantes").then(r => setEstudiantes(r.data || [])).catch(() => {});
   };
 
   const cargarCalificaciones = () => {
     Promise.all([
       axios.get(`${API_CALIF}/esquema`, { headers }).then(r => setEsquema(r.data)),
       axios.get(`${API_CALIF}/periodos`, { headers }).then(r => setPeriodosEval(r.data)),
-      axios.get(`${API_CALIF}/aportes`, { headers }).then(r => setAportes(r.data)),
-      axios.get(`${API_CALIF}/escala`, { headers }).then(r => setEscala(r.data)),
     ]).catch(() => {});
   };
 
-  const cargarUsuarios = () => {
-    api.get("/api/usuarios").then(r => setUsuarios(r.data || [])).catch(() => {});
-  };
-
   useEffect(() => {
-    cargarAnos();
     cargarCalificaciones();
-    cargarUsuarios();
+    cargarGrados();
+    cargarEstudiantes();
   }, []);
 
-  // ACCIONES AÑOS LECTIVOS
-  const handleCrearAno = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await api.post("/api/anos-lectivos", formAno);
-      toast.success("Año Lectivo creado", `Se registró el período ${formAno.nombre} con éxito.`);
-      setShowAnoModal(false);
-      setFormAno({ nombre: "", fechaInicio: "", fechaFin: "" });
-      cargarAnos();
-    } catch (err) {
-      toast.error("Error al crear", err.response?.data?.message || "No se pudo registrar el año lectivo.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleActivarAno = async (id, nombre) => {
+  // BAJA / ACTIVAR CURSO
+  const handleToggleEstadoGrado = async (g) => {
+    const nuevoEstado = !g.activo;
     const ok = await confirm({
-      title: `¿Activar año lectivo ${nombre}?`,
-      message: "Este período pasará a ser el AÑO LECTIVO ACTIVO en todo el sistema SGA.",
-      confirmText: "Sí, activar",
-      type: "info",
+      title: `¿${nuevoEstado ? "Activar" : "Dar de baja"} curso ${g.nombre}?`,
+      message: nuevoEstado
+        ? `El curso ${g.nombre} pasará a estar activo para nuevas matrículas.`
+        : `El curso ${g.nombre} se dará de baja en el sistema.`,
+      confirmText: nuevoEstado ? "Sí, activar" : "Sí, dar de baja",
+      type: nuevoEstado ? "info" : "danger",
     });
     if (!ok) return;
 
     try {
-      await api.post(`/api/anos-lectivos/${id}/activar`);
-      toast.success("Año lectivo activado", `El período ${nombre} ahora es el año actual.`);
-      cargarAnos();
-    } catch (err) {
-      toast.error("Error de activación", err.response?.data?.message || "No se pudo activar el período.");
+      await api.patch(`/api/grados/${g.idGrado}/estado`, null, { params: { activo: nuevoEstado } });
+      toast.success("Estado de curso actualizado", `${g.nombre} fue ${nuevoEstado ? "activado" : "dado de baja"}.`);
+      cargarGrados();
+    } catch {
+      toast.error("Error", "No se pudo actualizar el estado del curso.");
     }
   };
 
-  // ACCIONES ESQUEMA CALIFICACIONES
+  // BAJA / RETIRO DE ESTUDIANTE
+  const handleToggleEstadoEstudiante = async (est) => {
+    const estaActivo = est.activo !== false;
+    const ok = await confirm({
+      title: `¿${estaActivo ? "Dar de baja" : "Reactivar"} a ${est.apellidos} ${est.nombres}?`,
+      message: estaActivo
+        ? `El estudiante quedará inactivo en el sistema.`
+        : `El estudiante volverá a estar activo en el sistema.`,
+      confirmText: estaActivo ? "Sí, dar de baja" : "Sí, reactivar",
+      type: estaActivo ? "danger" : "info",
+    });
+    if (!ok) return;
+
+    try {
+      await api.patch(`/api/estudiantes/${est.idEstudiante}/estado`, null, { params: { activo: !estaActivo } });
+      toast.success("Estudiante actualizado", `El estudiante fue ${estaActivo ? "dado de baja" : "reactivado"}.`);
+      cargarEstudiantes();
+    } catch {
+      toast.error("Error", "No se pudo cambiar el estado del estudiante.");
+    }
+  };
+
+  // ESQUEMA CALIFICACIONES
   const handleGuardarPonderacion = async (e) => {
     e.preventDefault();
     if (esquema.pesoFormativa + esquema.pesoSumativa !== 100) {
@@ -183,11 +202,9 @@ export default function ConfiguracionGeneral() {
     }
   };
 
-  // ACCIONES DATOS INSTITUCIONALES
-  const handleGuardarEscuela = (e) => {
-    e.preventDefault();
-    toast.success("Datos institucionales guardados", "Información oficial de la Escuela Provincias Unidas actualizada.");
-  };
+  const estudiantesFiltrados = estudiantes.filter(e =>
+    `${e.apellidos} ${e.nombres} ${e.cedula || ""}`.toLowerCase().includes(busquedaEstudiante.toLowerCase())
+  );
 
   return (
     <Layout
@@ -197,59 +214,13 @@ export default function ConfiguracionGeneral() {
       seccion={seccion}
       onSeccionChange={setSeccion}
     >
-      <div className="mb-4">
-        <h1 className="text-lg font-bold text-slate-700">Configuración General del Sistema</h1>
-        <p className="text-xs text-slate-400">Gestión de períodos lectivos, esquema de calificaciones, usuarios e información institucional</p>
-      </div>
+      {/* 1. AÑOS Y PERÍODOS LECTIVOS */}
+      {seccion === "anos" && <AnosLectivos embed={true} />}
 
-      {/* SECCIÓN 1: AÑOS Y PERÍODOS LECTIVOS */}
-      {seccion === "anos" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-700">Períodos Lectivos Registrados</h2>
-              <p className="text-xs text-slate-400">Define el año lectivo oficial activo para matrículas y calificaciones</p>
-            </div>
-            <button
-              onClick={() => setShowAnoModal(true)}
-              style={{ backgroundColor: PRIMARY }}
-              className="flex items-center gap-2 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Nuevo Año Lectivo
-            </button>
-          </div>
+      {/* 2. USUARIOS Y ROLES */}
+      {seccion === "usuarios" && <Usuarios embed={true} />}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {anos.map((a) => (
-              <div key={a.idAnoLectivo} className={`bg-white border rounded-2xl p-4 relative shadow-sm transition ${a.esActual ? "border-emerald-300 ring-2 ring-emerald-500/20" : "border-slate-200"}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold text-slate-800">{a.nombre}</span>
-                  {a.esActual ? (
-                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">Activo Vigente</span>
-                  ) : (
-                    <span className="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-0.5 rounded-full">Inactivo</span>
-                  )}
-                </div>
-                <div className="text-xs text-slate-500 space-y-1 mb-4 font-mono">
-                  <p>Inicio: {a.fechaInicio || "—"}</p>
-                  <p>Fin: {a.fechaFin || "—"}</p>
-                </div>
-                {!a.esActual && (
-                  <button
-                    onClick={() => handleActivarAno(a.idAnoLectivo, a.nombre)}
-                    className="w-full py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs rounded-lg transition"
-                  >
-                    Activar como Período Actual
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN 2: ESQUEMA DE CALIFICACIONES */}
+      {/* 3. ESQUEMA DE CALIFICACIONES */}
       {seccion === "calificaciones" && (
         <div className="space-y-4">
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
@@ -322,41 +293,82 @@ export default function ConfiguracionGeneral() {
         </div>
       )}
 
-      {/* SECCIÓN 3: USUARIOS Y ROLES */}
-      {seccion === "usuarios" && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      {/* 4. BAJA DE CURSOS Y GRADOS */}
+      {seccion === "cursos" && (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700">Gestión y Baja de Cursos de la Institución</h2>
+            <p className="text-xs text-slate-400">Permite dar de baja o activar cursos para la inscripción de matrículas</p>
+          </div>
+
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {grados.map((g) => (
+              <div key={g.idGrado} className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-slate-800 text-sm">{g.nombre}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${g.activo !== false ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                      {g.activo !== false ? "ACTIVO" : "DADO DE BAJA"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-3">Paralelo Asignado: <span className="font-bold text-blue-800">Paralelo A</span></p>
+                </div>
+
+                <button
+                  onClick={() => handleToggleEstadoGrado(g)}
+                  className={`w-full py-2 text-xs font-semibold rounded-xl transition ${g.activo !== false ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100" : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"}`}
+                >
+                  {g.activo !== false ? "🚫 Dar de baja curso" : "✅ Activar curso"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. BAJA DE ESTUDIANTES */}
+      {seccion === "baja-estudiantes" && (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h2 className="text-sm font-bold text-slate-700">Usuarios Registrados en el SGA</h2>
-              <p className="text-xs text-slate-400">{usuarios.length} usuarios del sistema distribuidos en roles</p>
+              <h2 className="text-sm font-bold text-slate-700">Control y Baja de Estudiantes</h2>
+              <p className="text-xs text-slate-400">Desactiva o retira estudiantes del sistema institucional</p>
             </div>
+            <input
+              type="text"
+              value={busquedaEstudiante}
+              onChange={e => setBusquedaEstudiante(e.target.value)}
+              placeholder="Buscar por cédula o nombre..."
+              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+            />
           </div>
 
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: PRIMARY }} className="text-white text-xs">
-                <th className="text-left px-4 py-3 font-semibold">Usuario</th>
                 <th className="text-left px-4 py-3 font-semibold">Cédula</th>
-                <th className="text-left px-4 py-3 font-semibold">Nombres & Apellidos</th>
-                <th className="text-left px-4 py-3 font-semibold">Rol Asignado</th>
+                <th className="text-left px-4 py-3 font-semibold">Estudiante</th>
                 <th className="text-center px-4 py-3 font-semibold">Estado</th>
+                <th className="text-center px-4 py-3 font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((u, i) => (
-                <tr key={u.idUsuario || i} className={`border-t border-slate-100 hover:bg-slate-50 transition ${i % 2 === 0 ? "" : "bg-slate-50/50"}`}>
-                  <td className="px-4 py-3 font-bold text-slate-700">{u.username}</td>
-                  <td className="px-4 py-3 text-slate-500 font-mono text-xs">{u.cedula || "—"}</td>
-                  <td className="px-4 py-3 text-slate-700 font-medium">{u.apellidos ? `${u.apellidos} ${u.nombres}` : u.nombres || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className="bg-blue-50 text-blue-800 text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-blue-100">
-                      {Array.isArray(u.roles) ? u.roles.join(", ") : u.rol || "DOCENTE"}
+              {estudiantesFiltrados.slice(0, 15).map((est, i) => (
+                <tr key={est.idEstudiante} className={`border-t border-slate-100 hover:bg-slate-50 transition ${i % 2 === 0 ? "" : "bg-slate-50/50"}`}>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-500">{est.cedula || "—"}</td>
+                  <td className="px-4 py-3 font-medium text-slate-700">{est.apellidos} {est.nombres}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${est.activo !== false ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                      {est.activo !== false ? "ACTIVO" : "INACTIVO / BAJA"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.estado === "ACTIVO" || u.activo ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                      {u.estado || (u.activo ? "ACTIVO" : "INACTIVO")}
-                    </span>
+                    <button
+                      onClick={() => handleToggleEstadoEstudiante(est)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${est.activo !== false ? "bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"}`}
+                    >
+                      {est.activo !== false ? "Dar de baja" : "Reactivar"}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -365,13 +377,13 @@ export default function ConfiguracionGeneral() {
         </div>
       )}
 
-      {/* SECCIÓN 4: DATOS INSTITUCIONALES */}
+      {/* 6. DATOS INSTITUCIONALES */}
       {seccion === "escuela" && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm max-w-3xl">
           <h2 className="text-sm font-bold text-slate-700 mb-1">Información Oficial de la Institución</h2>
           <p className="text-xs text-slate-400 mb-5">Datos que aparecen impresos en certificados, fichas de matrícula y reportes en PDF</p>
 
-          <form onSubmit={handleGuardarEscuela} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); toast.success("Datos institucionales guardados", "Información oficial actualizada."); }} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre Oficial de la Institución *</label>
@@ -380,7 +392,7 @@ export default function ConfiguracionGeneral() {
                   required
                   value={escuela.nombre}
                   onChange={(e) => setEscuela({ ...escuela, nombre: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-800"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-semibold text-slate-800"
                 />
               </div>
 
@@ -405,52 +417,12 @@ export default function ConfiguracionGeneral() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Régimen Escolar</label>
-                <input
-                  type="text"
-                  value={escuela.regimen}
-                  onChange={(e) => setEscuela({ ...escuela, regimen: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Jornada Escolar</label>
-                <input
-                  type="text"
-                  value={escuela.jornada}
-                  onChange={(e) => setEscuela({ ...escuela, jornada: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
-                />
-              </div>
-
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Dirección Institucional</label>
                 <input
                   type="text"
                   value={escuela.direccion}
                   onChange={(e) => setEscuela({ ...escuela, direccion: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Director / Rector Autorizado</label>
-                <input
-                  type="text"
-                  value={escuela.rectora}
-                  onChange={(e) => setEscuela({ ...escuela, rectora: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Secretaria Institucional</label>
-                <input
-                  type="text"
-                  value={escuela.secretaria}
-                  onChange={(e) => setEscuela({ ...escuela, secretaria: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
                 />
               </div>
@@ -466,57 +438,6 @@ export default function ConfiguracionGeneral() {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {/* MODAL CREAR AÑO LECTIVO */}
-      {showAnoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={modalBg} onClick={() => setShowAnoModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 text-white flex items-center justify-between">
-              <h3 className="font-bold text-sm">Nuevo Año Lectivo</h3>
-              <button onClick={() => setShowAnoModal(false)} className="text-white/80 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleCrearAno} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre del Período *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: 2026 - 2027"
-                  value={formAno.nombre}
-                  onChange={(e) => setFormAno({ ...formAno, nombre: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Fecha Inicio</label>
-                  <input
-                    type="date"
-                    value={formAno.fechaInicio}
-                    onChange={(e) => setFormAno({ ...formAno, fechaInicio: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Fecha Fin</label>
-                  <input
-                    type="date"
-                    value={formAno.fechaFin}
-                    onChange={(e) => setFormAno({ ...formAno, fechaFin: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowAnoModal(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-xs text-slate-600">Cancelar</button>
-                <button type="submit" disabled={saving} style={{ backgroundColor: PRIMARY }} className="flex-1 py-2 rounded-lg text-xs text-white font-semibold shadow">
-                  {saving ? "Guardando..." : "Crear Período"}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
     </Layout>
