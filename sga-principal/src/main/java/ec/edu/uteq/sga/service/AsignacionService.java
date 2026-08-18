@@ -97,6 +97,19 @@ public class AsignacionService {
                 .or(() -> usuarioRepo.findAll().stream().filter(u -> u.getUsername().equalsIgnoreCase(username)).findFirst())
                 .orElse(null);
 
+        int horasNuevas = dto.getHorasSemanales() != null && dto.getHorasSemanales() > 0 ? dto.getHorasSemanales() : 4;
+        int horasActualesGrado = asignacionRepo.findAll().stream()
+                .filter(a -> a.getGrado().getIdGrado().equals(dto.getIdGrado())
+                        && a.getAnoLectivo().getIdAnoLectivo().equals(dto.getIdAnoLectivo())
+                        && a.isActivo())
+                .mapToInt(a -> a.getHorasSemanales() != null ? a.getHorasSemanales() : 4)
+                .sum();
+
+        if (horasActualesGrado + horasNuevas > 30) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Exceso de carga horaria: El curso ya suma " + horasActualesGrado + "h. Asignar " + horasNuevas + "h superaría el límite máximo de 30 horas semanales.");
+        }
+
         Asignacion asignacion = Asignacion.builder()
                 .docente(docente)
                 .asignatura(asignatura)
