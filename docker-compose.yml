@@ -18,7 +18,7 @@ services:
       - DB_PASSWORD=***REMOVED***
       - grpc.client.docente-service.address=static://microservicio-docente:9091
     volumes:
-      - sga_uploads:/app/uploads
+      - ./sga-principal/uploads:/app/uploads
     networks:
       - sga-distribuido-net
     deploy:
