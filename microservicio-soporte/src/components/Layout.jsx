@@ -120,8 +120,9 @@ export default function Layout({
 
   // Año lectivo actual
   useEffect(() => {
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
     api
-      .get("http://localhost:8080/api/anos-lectivos/actual")
+      .get(`http://${host}:8080/api/anos-lectivos/actual`)
       .then((r) => setAnoActual(r.data))
       .catch(() => {});
   }, []);
@@ -162,7 +163,8 @@ export default function Layout({
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "http://localhost:5173/login";
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    window.location.href = `http://${host}:5174/login`;
   };
 
   // menuItems === undefined -> nadie definió nada, usar el sidebar genérico.
@@ -476,10 +478,10 @@ export default function Layout({
                   </button>
 
                   <button
-                    onClick={() =>
-                      (window.location.href =
-                        "http://localhost:5173/cambiar-password")
-                    }
+                    onClick={() => {
+                      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+                      window.location.href = `http://${host}:5174/cambiar-password`;
+                    }}
                     className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
                   >
                     <svg
@@ -582,13 +584,13 @@ export default function Layout({
             style={{ height: "calc(100vh - 7rem)" }}
           >
             <div className="p-3">
-              <div className="bg-white rounded-xl border-2 border-dashed border-slate-200 overflow-hidden shadow-sm">
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                 {sidebarTitle && (
                   <p className="px-4 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                     {sidebarTitle}
                   </p>
                 )}
-                <nav className="py-1 px-2 space-y-1">
+                <nav className="py-1">
                   {finalMenuItems.map((item) => {
                     const isActive = seccion ? seccion === item.id : location.pathname === item.path;
                     return (
@@ -602,24 +604,25 @@ export default function Layout({
                             onSeccionChange(item.id);
                           }
                         }}
-                        className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-left transition ${
+                        className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition ${
                           isActive
-                            ? "bg-blue-50 font-medium"
-                            : "text-slate-500 hover:bg-slate-50"
+                            ? "bg-blue-50 font-medium border-l-[3px]"
+                            : "border-l-[3px] border-l-transparent text-slate-500 hover:bg-slate-50"
                         }`}
-                        style={isActive ? { color: PRIMARY } : {}}
+                        style={isActive ? { color: PRIMARY, borderLeftColor: PRIMARY } : {}}
                       >
-                        <span className={`${item.color || "bg-slate-100"} ${item.iconColor || "text-slate-500"} p-1.5 rounded-lg flex-shrink-0`}>
-                          {item.icon}
-                        </span>
+                        {item.icon}
                         {item.label}
                       </button>
                     );
                   })}
                 </nav>
-                <hr className="border-slate-100 mt-1" />
+                <hr className="border-slate-100" />
                 <button
-                  onClick={() => (window.location.href = "http://localhost:5173/dashboard")}
+                  onClick={() => {
+                    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+                    window.location.href = `http://${host}:5174/dashboard`;
+                  }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left text-slate-400 hover:bg-slate-50 transition"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
