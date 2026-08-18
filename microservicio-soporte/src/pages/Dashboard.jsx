@@ -6,11 +6,41 @@ import Layout from "../components/Layout";
 const PRIMARY       = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
 
-const SERVICIOS = [
-    { nombre: "sga-principal",  url: "http://localhost:8080/actuator/health",     puerto: 8080, descripcion: "Sistema Principal" },
-    { nombre: "sga-docente",    url: "http://localhost:8081/health",              puerto: 8081, descripcion: "Microservicio Docente (Django)" },
-    { nombre: "sga-soporte",    url: "http://localhost:8083/actuator/health",     puerto: 8083, descripcion: "Soporte Técnico" },
+// El host se resuelve en tiempo de ejecución (ver getServicios) para que el
+// monitoreo funcione tanto en localhost como en el servidor AWS real, sin
+// URLs hardcodeadas.
+const SERVICIOS_BASE = [
+    { nombre: "sga-principal",   ruta: "/actuator/health", puerto: 8080, descripcion: "Sistema Principal" },
+    { nombre: "sga-docente",     ruta: "/health",          puerto: 8081, descripcion: "Microservicio Docente (Django)" },
+    { nombre: "sga-secretaria",  ruta: "/health",          puerto: 8082, descripcion: "Secretaría Académica" },
+    { nombre: "sga-soporte",     ruta: "/actuator/health", puerto: 8083, descripcion: "Soporte Técnico" },
 ];
+
+const getServicios = () => {
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    return SERVICIOS_BASE.map(s => ({ ...s, url: `http://${host}:${s.puerto}${s.ruta}` }));
+};
+
+// Fuentes del panel "Logs de fallos". Solo sga-soporte tiene hoy el
+// endpoint /api/soporte/logs (ver LogController). Los otros tres quedan
+// declarados con disponible:false para que se vea claramente en la UI que
+// falta ese mismo endpoint en sus repos — apenas lo agreguen, basta con
+// poner disponible:true y el panel los toma automáticamente.
+const getFuentesLogs = () => {
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    return [
+        { nombre: "sga-soporte",    descripcion: "Soporte Técnico",              disponible: true,  url: `http://${host}:8083/api/soporte/logs?limite=30` },
+        { nombre: "sga-principal",  descripcion: "Sistema Principal",            disponible: false, url: null },
+        { nombre: "sga-docente",    descripcion: "Microservicio Docente",        disponible: false, url: null },
+        { nombre: "sga-secretaria", descripcion: "Secretaría Académica",         disponible: false, url: null },
+    ];
+};
+
+const nivelBadge = (nivel) => {
+    if (nivel === "ERROR") return "bg-red-100 text-red-700";
+    if (nivel === "WARN")  return "bg-yellow-100 text-yellow-700";
+    return "bg-slate-100 text-slate-500";
+};
 
 const accionBadge = (accion) => {
     if (!accion) return "bg-slate-100 text-slate-500";
@@ -40,6 +70,9 @@ export default function Dashboard() {
 
     const esAdmin = roles.includes("SOPORTE_TECNICO") || roles.includes("ADMINISTRADOR");
 
+    // Se calcula una sola vez con el hostname real (localhost en dev, IP/dominio en prod)
+    const [servicios] = useState(getServicios);
+
     const [salud,        setSalud]        = useState({});
     const [loadingSalud, setLoadingSalud] = useState(true);
     const [lastCheck,    setLastCheck]    = useState(null);
@@ -49,11 +82,21 @@ export default function Dashboard() {
     const [filtroBusq,   setFiltroBusq]   = useState("");
     const [filtroAccion, setFiltroAccion] = useState("TODAS");
 
+    const [fuentesLogs]   = useState(getFuentesLogs);
+    const [logsPorServicio, setLogsPorServicio] = useState({});
+    const [loadingLogs,     setLoadingLogs]     = useState(true);
+    const [servicioLogsActivo, setServicioLogsActivo] = useState("sga-soporte");
+
     useEffect(() => {
-        if (!token) { window.location.href = "http://localhost:5173/login"; return; }
+        if (!token) {
+            const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+            window.location.href = `http://${host}:5174/login`;
+            return;
+        }
         if (!esAdmin) { navigate("/soporte"); return; }
         verificarSalud();
         cargarAuditoria();
+        cargarLogs();
     }, []);
 
     // ── Salud de microservicios (SIN Authorization header) ───
@@ -61,7 +104,7 @@ export default function Dashboard() {
         setLoadingSalud(true);
         const resultados = {};
         await Promise.all(
-            SERVICIOS.map(async (s) => {
+            servicios.map(async (s) => {
                 const inicio = Date.now();
                 try {
                     // Los healthchecks son públicos, NO enviamos Authorization header para evitar fallos de preflight CORS
@@ -84,7 +127,7 @@ export default function Dashboard() {
         setSalud(resultados);
         setLastCheck(new Date());
         setLoadingSalud(false);
-    }, []);
+    }, [servicios]);
 
     // Auto-refresh cada 30 segundos
     useEffect(() => {
@@ -95,10 +138,30 @@ export default function Dashboard() {
     // ── Log de auditoría ──────────────────────────────────────
     const cargarAuditoria = () => {
         setLoadingAudit(true);
-        axios.get("http://localhost:8080/api/auditoria", { headers })
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        axios.get(`http://${host}:8080/api/auditoria`, { headers })
             .then(r => setAuditoria(r.data))
             .catch(() => setAuditoria([]))
             .finally(() => setLoadingAudit(false));
+    };
+
+    // ── Logs de fallos por microservicio ──────────────────────
+    const cargarLogs = () => {
+        setLoadingLogs(true);
+        Promise.all(
+            fuentesLogs.map(async (f) => {
+                if (!f.disponible) return [f.nombre, null]; // "próximamente", no se intenta el fetch
+                try {
+                    const r = await axios.get(f.url, { headers, timeout: 4000 });
+                    return [f.nombre, r.data];
+                } catch {
+                    return [f.nombre, []]; // el endpoint existe pero falló: lista vacía, no "próximamente"
+                }
+            })
+        ).then(entradas => {
+            setLogsPorServicio(Object.fromEntries(entradas));
+            setLoadingLogs(false);
+        });
     };
 
     const accionesUnicas = ["TODAS", ...new Set(auditoria.map(a => a.accion).filter(Boolean))];
@@ -115,7 +178,7 @@ export default function Dashboard() {
     });
 
     // ── Resumen salud ─────────────────────────────────────────
-    const totalServicios = SERVICIOS.length;
+    const totalServicios = servicios.length;
     const serviciosUP    = Object.values(salud).filter(s => s.estado === "UP").length;
     const serviciosDOWN  = Object.values(salud).filter(s => s.estado === "DOWN").length;
 
@@ -257,8 +320,8 @@ export default function Dashboard() {
                     </div>
 
                     {/* Tarjetas de microservicios (rounded-2xl) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {SERVICIOS.map(s => {
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {servicios.map(s => {
                             const info   = salud[s.nombre];
                             const estado = info?.estado || (loadingSalud ? "LOADING" : "UNKNOWN");
                             const c      = estadoColor(estado);
@@ -309,12 +372,106 @@ export default function Dashboard() {
                     </div>
                 </section>
 
+                {/* ── SECCIÓN: LOGS DE FALLOS ───────────────────────── */}
+                <section>
+                    <div className="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 className="text-base font-bold text-slate-800">Logs de fallos</h2>
+                            <p className="text-xs text-slate-400">Excepciones recientes por microservicio, sin salir del panel</p>
+                        </div>
+                        <button
+                            onClick={cargarLogs}
+                            disabled={loadingLogs}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition text-slate-600 disabled:opacity-50 shadow-sm"
+                        >
+                            <svg className={`w-3.5 h-3.5 ${loadingLogs ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            {loadingLogs ? "Cargando..." : "Actualizar"}
+                        </button>
+                    </div>
+
+                    {/* Pestañas por microservicio */}
+                    <div className="flex gap-1.5 mb-3 flex-wrap">
+                        {fuentesLogs.map(f => {
+                            const activo = servicioLogsActivo === f.nombre;
+                            const cantidad = logsPorServicio[f.nombre]?.length;
+                            return (
+                                <button
+                                    key={f.nombre}
+                                    onClick={() => setServicioLogsActivo(f.nombre)}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+                                        activo ? "text-white border-transparent" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                                    }`}
+                                    style={activo ? { backgroundColor: PRIMARY } : {}}
+                                >
+                                    {f.descripcion}
+                                    {f.disponible && cantidad > 0 && (
+                                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${activo ? "bg-white/20" : "bg-red-100 text-red-700"}`}>
+                                            {cantidad}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {(() => {
+                        const fuenteActiva = fuentesLogs.find(f => f.nombre === servicioLogsActivo);
+                        const logsActivos = logsPorServicio[servicioLogsActivo];
+
+                        if (!fuenteActiva?.disponible) {
+                            return (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-sm shadow-sm">
+                                    Este microservicio todavía no expone su log de fallos hacia el panel.
+                                    <br />
+                                    <span className="text-xs">Próximamente, cuando el equipo agregue el mismo endpoint que ya tiene Soporte.</span>
+                                </div>
+                            );
+                        }
+                        if (loadingLogs) {
+                            return (
+                                <div className="flex items-center justify-center h-24 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">
+                                    Cargando logs...
+                                </div>
+                            );
+                        }
+                        if (!logsActivos || logsActivos.length === 0) {
+                            return (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-sm shadow-sm">
+                                    Sin errores ni advertencias recientes en este servicio. Buena señal.
+                                </div>
+                            );
+                        }
+                        return (
+                            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm divide-y divide-slate-50 max-h-96 overflow-y-auto">
+                                {logsActivos.map((l, i) => (
+                                    <div key={i} className="px-4 py-3 flex items-start gap-3">
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5 flex-shrink-0 ${nivelBadge(l.nivel)}`}>
+                                            {l.nivel}
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs text-slate-700 break-words">{l.mensaje}</p>
+                                            {l.excepcion && (
+                                                <p className="text-xs text-red-500 font-mono mt-0.5 break-words">{l.excepcion}</p>
+                                            )}
+                                            <p className="text-[11px] text-slate-400 mt-1">
+                                                {formatFecha(l.timestamp)} · <span className="font-mono">{l.logger}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()}
+                </section>
+
                 {/* ── SECCIÓN: LOG DE AUDITORÍA ─────────────────────── */}
                 <section>
                     <div className="flex items-center justify-between mb-3">
                         <div>
-                            <h2 className="text-base font-bold text-slate-800">Log de auditoría</h2>
-                            <p className="text-xs text-slate-400">Acciones críticas del sistema</p>
+                            <h2 className="text-base font-bold text-slate-800">Bitácora de Auditoría</h2>
+                            <p className="text-xs text-slate-400">Registro de actividad crítica del sistema</p>
                         </div>
                         <button
                             onClick={cargarAuditoria}
@@ -362,7 +519,7 @@ export default function Dashboard() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                             No hay registros de auditoría disponibles.<br />
-                            <span className="text-xs">Verifica que el endpoint <code className="bg-slate-100 px-1 rounded">/api/auditoria</code> esté disponible en sga-principal.</span>
+                            <span className="text-xs">El servicio de Bitácora de Actividad no respondió. Intenta actualizar en unos segundos.</span>
                         </div>
                     ) : (
                         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">

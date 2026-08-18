@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Config por defecto de Spring Boot (consola con colores, patrón estándar) -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- Captura en memoria de WARN/ERROR para el panel "Logs de fallos" del
+         Dashboard (ver MemoryLogAppender y LogController) -->
+    <appender name="MEMORIA" class="ec.uteq.sga.soporte.infrastructure.logging.MemoryLogAppender"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="MEMORIA"/>
+    </root>
+</configuration>
