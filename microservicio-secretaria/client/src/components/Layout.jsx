@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiPrincipal } from '../utils/api';
+import { useConfirm } from './Toast';
 import logo from '../assets/logo.png';
 
 const PRIMARY = '#243A76';
@@ -14,6 +15,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
   const [noLeidas, setNoLeidas] = useState(0);
   const [anoActual, setAnoActual] = useState(null);
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const username = localStorage.getItem('username') || 'Secretario';
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
@@ -49,7 +51,15 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
     setNoLeidas(0);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: '¿Cerrar sesión?',
+      message: 'Vas a salir del portal de Secretaría. Cualquier cambio sin guardar se perderá.',
+      confirmText: 'Sí, cerrar sesión',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
     localStorage.clear();
     const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
     window.location.href = `http://${host}:5174/login`;
