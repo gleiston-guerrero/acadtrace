@@ -155,7 +155,7 @@ export default function Usuarios() {
     const fd = new FormData();
     fd.append("archivo", file);
     try {
-      const { data } = await api.post(`/api/uploads/foto`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.post(`/api/uploads/foto`, fd);
       setter(data.url);
     } catch (err) {
       setError(err.response?.data?.message || "No se pudo subir la imagen.");

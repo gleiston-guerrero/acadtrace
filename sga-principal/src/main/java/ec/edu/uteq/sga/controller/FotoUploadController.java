@@ -15,6 +15,9 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/uploads")
 @RequiredArgsConstructor
@@ -51,7 +54,8 @@ public class FotoUploadController {
             Path destino = dir.resolve(nombre);
             archivo.transferTo(destino.toFile());
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar la imagen");
+            log.error("Error al guardar la imagen en servidor: ", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar la imagen: " + e.getMessage());
         }
 
         return ResponseEntity.ok(Map.of("url", "/uploads/fotos/" + nombre));
