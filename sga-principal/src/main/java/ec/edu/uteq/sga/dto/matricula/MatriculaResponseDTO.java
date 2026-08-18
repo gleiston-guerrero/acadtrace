@@ -24,4 +24,18 @@ public class MatriculaResponseDTO {
     private String observaciones;
     private String registradoPor;
     private Instant fechaCreacion;
+
+    // Campos detallados de Estudiante y Representante
+    private String direccionEstudiante;
+    private String telefonoEstudiante;
+    private String correoEstudiante;
+    private String fechaNacimientoEstudiante;
+    private String representanteNombre;
+    private String representanteCedula;
+    private String representanteParentesco;
+    private String representanteTelefono;
+
+    // Campos de Traslado
+    private String institucionDestino;
+    private String motivoTraslado;
 }
