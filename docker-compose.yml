@@ -164,12 +164,15 @@ services:
 
   # SGA Frontend (React + Vite)
   sga-frontend:
-    build:
-      context: ./sga-principal/sga-frontend
-      dockerfile: Dockerfile
+    image: node:20-alpine
     container_name: sga-frontend
+    working_dir: /app
+    volumes:
+      - ./sga-principal/sga-frontend:/app
+      - /app/node_modules
     ports:
-      - "5174:80"
+      - "5174:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     depends_on:
       - haproxy
     networks:
