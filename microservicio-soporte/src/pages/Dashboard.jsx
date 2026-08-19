@@ -44,12 +44,19 @@ const accionBadge = (accion) => {
 };
 
 export default function Dashboard() {
-    const [token]                      = useState(() => localStorage.getItem("sga_soporte_token") || "");
-    const [user]                       = useState(() => {
-        try { return JSON.parse(localStorage.getItem("sga_soporte_user") || "{}"); } catch { return {}; }
-    });
-    const roles                        = user.roles || [];
-    const esDirector                   = roles.includes("DIRECTOR");
+    const token = localStorage.getItem("token") || localStorage.getItem("sga_soporte_token") || "";
+    const username = localStorage.getItem("username") || "";
+    
+    let roles = [];
+    try {
+        const raw = localStorage.getItem("roles");
+        if (raw) {
+            roles = Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [raw];
+        }
+    } catch {
+        roles = [];
+    }
+    const esDirector = roles.includes("DIRECTOR") || roles.includes("ADMINISTRADOR");
 
     // ── Resumen de tickets ────────────────────────────────────
     const [tickets,       setTickets]       = useState([]);
@@ -69,13 +76,19 @@ export default function Dashboard() {
     const [loadingLogs,   setLoadingLogs]   = useState(false);
 
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
 
     // ── Carga de tickets ──────────────────────────────────────
     const cargarTickets = () => {
         setLoadingData(true);
-        axios.get("/api/soporte/tickets", { headers })
+        axios.get(`http://${host}:8083/api/soporte/tickets`, { headers })
             .then(r => setTickets(r.data))
-            .catch(() => setTickets([]))
+            .catch(() => {
+                axios.get("/api/soporte/tickets", { headers })
+                    .then(r => setTickets(r.data))
+                    .catch(() => setTickets([]))
+                    .finally(() => setLoadingData(false));
+            })
             .finally(() => setLoadingData(false));
     };
 
