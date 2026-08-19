@@ -9,7 +9,7 @@ RUN mvn clean package -DskipTests
 FROM node:20-alpine AS frontend-builder
 WORKDIR /web
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 COPY vite.config.js index.html tailwind.config.js postcss.config.js ./
 COPY public ./public
 COPY src ./src
