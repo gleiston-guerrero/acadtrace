@@ -142,8 +142,8 @@ services:
   # Microservicio Soporte (Spring Boot + ETCD)
   microservicio-soporte:
     build:
-      context: ./microservicio-soporte/backend
-      dockerfile: Dockerfile
+      context: ./microservicio-soporte
+      dockerfile: backend/Dockerfile
     container_name: microservicio-soporte
     environment:
       - DB_HOST=sga-db
