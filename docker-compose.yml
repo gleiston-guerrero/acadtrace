@@ -180,13 +180,14 @@ services:
 
   # Apache Spark Master Cluster
   sga-spark:
-    image: bitnami/spark:3.5
+    image: apache/spark:3.5.1
     container_name: sga-spark
-    environment:
-      - SPARK_MODE=master
+    command: /opt/spark/sbin/start-master.sh
     ports:
       - "7077:7077"
       - "8090:8080"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
     networks:
       - sga-distribuido-net
 
