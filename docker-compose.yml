@@ -105,8 +105,8 @@ services:
   # Microservicio Secretaría (Spring Boot)
   microservicio-secretaria:
     build:
-      context: ./microservicio-secretaria/backend
-      dockerfile: Dockerfile
+      context: ./microservicio-secretaria
+      dockerfile: backend/Dockerfile
     container_name: microservicio-secretaria
     environment:
       - DB_HOST=sga-db
@@ -180,7 +180,7 @@ services:
 
   # Apache Spark Master Cluster
   sga-spark:
-    image: bitnami/spark:3.5.1
+    image: bitnami/spark:3.5
     container_name: sga-spark
     environment:
       - SPARK_MODE=master
