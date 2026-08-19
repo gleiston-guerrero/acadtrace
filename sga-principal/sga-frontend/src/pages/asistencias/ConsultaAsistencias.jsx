@@ -107,26 +107,7 @@ export default function ConsultaAsistencias() {
       }));
       setMateriasDelGrado(mapeadas);
     } else {
-      // Si la BD no tiene aún asignaciones creadas para este grado, leemos las asignaturas generales sin inventar nombres de docentes
-      api.get("/api/asignaturas").then((resAsig) => {
-        const cat = resAsig.data || [];
-        if (cat.length > 0) {
-          setMateriasDelGrado(cat.map((asig, idx) => ({
-            idAsignacion: asig.idAsignatura || idx + 100,
-            materiaNombre: asig.nombre,
-            codigoMateria: asig.codigo || `EGB-${101 + idx}`,
-            docenteNombre: "Docente Por Asignar en Sistema",
-            gradoNombre: gradoObj.nombre,
-          })));
-        } else {
-          setMateriasDelGrado([
-            { idAsignacion: 101, materiaNombre: "MATEMÁTICA", codigoMateria: "EGB-101", docenteNombre: "Docente Por Asignar", gradoNombre: gradoObj.nombre },
-            { idAsignacion: 102, materiaNombre: "LENGUA Y LITERATURA", codigoMateria: "EGB-102", docenteNombre: "Docente Por Asignar", gradoNombre: gradoObj.nombre },
-            { idAsignacion: 103, materiaNombre: "CIENCIAS NATURALES", codigoMateria: "EGB-103", docenteNombre: "Docente Por Asignar", gradoNombre: gradoObj.nombre },
-            { idAsignacion: 104, materiaNombre: "ESTUDIOS SOCIALES", codigoMateria: "EGB-104", docenteNombre: "Docente Por Asignar", gradoNombre: gradoObj.nombre },
-          ]);
-        }
-      }).catch(() => {});
+      setMateriasDelGrado([]);
     }
   }, [gradoSel, todasMatriculas, todasAsignaciones, grados]);
 
@@ -136,32 +117,22 @@ export default function ConsultaAsistencias() {
 
   // 3. CONSULTA gRPC DE ASISTENCIAS POR CADA ASIGNACIÓN REAL
   useEffect(() => {
-    if (materiasDelGrado.length === 0) return;
+    if (materiasDelGrado.length === 0) {
+      setAsistenciasGrpc({});
+      return;
+    }
 
     materiasDelGrado.forEach((mat) => {
       api.get(`/api/docente/asistencias/asignacion/${mat.idAsignacion}`)
         .then((r) => {
-          if (r.data?.asistencias && r.data.asistencias.length > 0) {
+          if (r.data?.asistencias && Array.isArray(r.data.asistencias)) {
             setAsistenciasGrpc((prev) => ({ ...prev, [mat.idAsignacion]: r.data.asistencias }));
           } else {
-            // Sesiones simuladas del periodo académico si aún no registran en gRPC
-            const sesionesSim = Array.from({ length: 42 }, (_, i) => ({
-              id_asistencia: i + 1,
-              fecha: `2026-05-${String((i % 28) + 1).padStart(2, "0")}`,
-              hora: "08:00 a.m.",
-              estado: i === 7 || i === 15 || i === 24 || i === 33 ? "AUSENTE" : (i === 19 ? "JUSTIFICADO" : "PRESENTE"),
-            }));
-            setAsistenciasGrpc((prev) => ({ ...prev, [mat.idAsignacion]: sesionesSim }));
+            setAsistenciasGrpc((prev) => ({ ...prev, [mat.idAsignacion]: [] }));
           }
         })
         .catch(() => {
-          const sesionesSim = Array.from({ length: 42 }, (_, i) => ({
-            id_asistencia: i + 1,
-            fecha: `2026-05-${String((i % 28) + 1).padStart(2, "0")}`,
-            hora: "08:00 a.m.",
-            estado: i === 7 || i === 15 || i === 24 || i === 33 ? "AUSENTE" : (i === 19 ? "JUSTIFICADO" : "PRESENTE"),
-          }));
-          setAsistenciasGrpc((prev) => ({ ...prev, [mat.idAsignacion]: sesionesSim }));
+          setAsistenciasGrpc((prev) => ({ ...prev, [mat.idAsignacion]: [] }));
         });
     });
   }, [materiasDelGrado]);
@@ -250,75 +221,87 @@ export default function ConsultaAsistencias() {
 
           {/* FILAS DE MATERIAS DE LA BASE DE DATOS */}
           <div className="divide-y divide-slate-100">
-            {materiasDelGrado.map((mat) => {
-              const asistList = asistenciasGrpc[mat.idAsignacion] || [];
-              const totalSes = asistList.length || 42;
-              const ausentes = asistList.filter((a) => a.estado === "AUSENTE" || a.estado === "FALTA").length;
-              const presentes = totalSes - ausentes;
-              const porcentaje = Math.round((presentes / totalSes) * 100);
+            {materiasDelGrado.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-xs font-medium">
+                No existen asignaciones de docentes ni materias configuradas para este curso en la base de datos.
+              </div>
+            ) : (
+              materiasDelGrado.map((mat) => {
+                const asistList = asistenciasGrpc[mat.idAsignacion] || [];
+                const totalSes = asistList.length;
+                const ausentes = asistList.filter((a) => a.estado === "AUSENTE" || a.estado === "FALTA").length;
+                const presentes = totalSes - ausentes;
+                const porcentaje = totalSes > 0 ? Math.round((presentes / totalSes) * 100) : 0;
 
-              return (
-                <div key={mat.idAsignacion} className="p-4 grid grid-cols-12 gap-4 items-center hover:bg-slate-50/80 transition">
-                  {/* MATERIA & DOCENTE REAL */}
-                  <div className="col-span-12 md:col-span-4 space-y-1.5">
-                    <h3 className="text-xs font-bold text-slate-800 leading-snug">
-                      {mat.materiaNombre} - [{mat.codigoMateria}] - A - {mat.gradoNombre.toUpperCase()}
-                    </h3>
-                    <p className="text-[11px] text-slate-600 font-semibold flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                      {mat.docenteNombre}
-                    </p>
+                return (
+                  <div key={mat.idAsignacion} className="p-4 grid grid-cols-12 gap-4 items-center hover:bg-slate-50/80 transition">
+                    {/* MATERIA & DOCENTE REAL */}
+                    <div className="col-span-12 md:col-span-4 space-y-1.5">
+                      <h3 className="text-xs font-bold text-slate-800 leading-snug">
+                        {mat.materiaNombre} - [{mat.codigoMateria}] - A - {mat.gradoNombre.toUpperCase()}
+                      </h3>
+                      <p className="text-[11px] text-slate-600 font-semibold flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        {mat.docenteNombre}
+                      </p>
 
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <span className="bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                        TOTAL: {totalSes}
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <span className="bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                          TOTAL: {totalSes}
+                        </span>
+                        <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                          PRESENTES: {presentes}
+                        </span>
+                        <span className="bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                          FALTAS: {ausentes}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* PORCENTAJE */}
+                    <div className="col-span-6 md:col-span-2 text-center flex flex-col items-center justify-center">
+                      <span className="text-xl font-black text-slate-800 leading-none mb-1">
+                        {totalSes > 0 ? `${porcentaje}%` : "—"}
                       </span>
-                      <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                        PRESENTES: {presentes}
-                      </span>
-                      <span className="bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                        FALTAS: {ausentes}
-                      </span>
+                      <div className="w-14 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          style={{ width: `${porcentaje}%`, backgroundColor: porcentaje >= 85 ? INSTITUTIONAL_GREEN : (porcentaje >= 80 ? "#D97706" : "#DC2626") }}
+                          className="h-full rounded-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* GRILLA DE SESIONES */}
+                    <div className="col-span-12 md:col-span-6">
+                      {asistList.length === 0 ? (
+                        <span className="text-[11px] text-slate-400 font-medium italic">
+                          Sin registros de asistencia sincronizados en gRPC
+                        </span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1 items-center max-h-24 overflow-y-auto p-1">
+                          {asistList.map((s, idx) => {
+                            const esFalta = s.estado === "AUSENTE" || s.estado === "FALTA";
+                            const esJust = s.estado === "JUSTIFICADO";
+                            return (
+                              <button
+                                key={s.id_asistencia || idx}
+                                type="button"
+                                onClick={() => setModalSesion({ materia: mat.materiaNombre, docente: mat.docenteNombre, sesion: s, num: idx + 1 })}
+                                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white transition transform hover:scale-125 ${
+                                  esFalta ? "bg-rose-600 hover:bg-rose-700" : (esJust ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-600 hover:bg-emerald-700")
+                                }`}
+                              >
+                                {esFalta ? "✖" : (esJust ? "ℹ" : "✔")}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* PORCENTAJE */}
-                  <div className="col-span-6 md:col-span-2 text-center flex flex-col items-center justify-center">
-                    <span className="text-xl font-black text-slate-800 leading-none mb-1">
-                      {porcentaje}%
-                    </span>
-                    <div className="w-14 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${porcentaje}%`, backgroundColor: porcentaje >= 85 ? INSTITUTIONAL_GREEN : (porcentaje >= 80 ? "#D97706" : "#DC2626") }}
-                        className="h-full rounded-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* GRILLA DE SESIONES */}
-                  <div className="col-span-12 md:col-span-6">
-                    <div className="flex flex-wrap gap-1 items-center max-h-24 overflow-y-auto p-1">
-                      {asistList.map((s, idx) => {
-                        const esFalta = s.estado === "AUSENTE" || s.estado === "FALTA";
-                        const esJust = s.estado === "JUSTIFICADO";
-                        return (
-                          <button
-                            key={s.id_asistencia || idx}
-                            type="button"
-                            onClick={() => setModalSesion({ materia: mat.materiaNombre, docente: mat.docenteNombre, sesion: s, num: idx + 1 })}
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white transition transform hover:scale-125 ${
-                              esFalta ? "bg-rose-600 hover:bg-rose-700" : (esJust ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-600 hover:bg-emerald-700")
-                            }`}
-                          >
-                            {esFalta ? "✖" : (esJust ? "ℹ" : "✔")}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -380,43 +363,53 @@ export default function ConsultaAsistencias() {
 
                 {/* ASISTENCIA MATERIA POR MATERIA */}
                 <div className="space-y-3">
-                  {materiasDelGrado.map((mat) => {
-                    const asistList = asistenciasGrpc[mat.idAsignacion] || [];
-                    const totalSes = asistList.length || 35;
-                    const ausentes = asistList.filter((a) => a.estado === "AUSENTE" || a.estado === "FALTA").length;
-                    const porcentaje = Math.round(((totalSes - ausentes) / totalSes) * 100);
+                  {materiasDelGrado.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400 text-xs">
+                      Este curso no cuenta con asignaturas configuradas.
+                    </div>
+                  ) : (
+                    materiasDelGrado.map((mat) => {
+                      const asistList = asistenciasGrpc[mat.idAsignacion] || [];
+                      const totalSes = asistList.length;
+                      const ausentes = asistList.filter((a) => a.estado === "AUSENTE" || a.estado === "FALTA").length;
+                      const porcentaje = totalSes > 0 ? Math.round(((totalSes - ausentes) / totalSes) * 100) : 0;
 
-                    return (
-                      <div key={mat.idAsignacion} className="border border-slate-200 rounded-xl p-3 bg-slate-50/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <span className="font-bold text-slate-800 text-xs">{mat.materiaNombre}</span>
-                            <span className="text-[10px] text-slate-500 block">{mat.docenteNombre}</span>
+                      return (
+                        <div key={mat.idAsignacion} className="border border-slate-200 rounded-xl p-3 bg-slate-50/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <span className="font-bold text-slate-800 text-xs">{mat.materiaNombre}</span>
+                              <span className="text-[10px] text-slate-500 block">{mat.docenteNombre}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-black text-slate-800">{totalSes > 0 ? `${porcentaje}%` : "—"}</span>
+                              <span className="text-[9px] font-bold text-emerald-700 block">Asistencia</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-sm font-black text-slate-800">{porcentaje}%</span>
-                            <span className="text-[9px] font-bold text-emerald-700 block">Asistencia</span>
+
+                          <div className="flex flex-wrap gap-1 items-center">
+                            {asistList.length === 0 ? (
+                              <span className="text-[10px] text-slate-400 italic">Sin sesiones registradas en gRPC</span>
+                            ) : (
+                              asistList.slice(0, 32).map((s, idx) => {
+                                const esFalta = s.estado === "AUSENTE" || s.estado === "FALTA";
+                                return (
+                                  <span
+                                    key={idx}
+                                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white ${
+                                      esFalta ? "bg-rose-600" : "bg-emerald-600"
+                                    }`}
+                                  >
+                                    {esFalta ? "✖" : "✔"}
+                                  </span>
+                                );
+                              })
+                            )}
                           </div>
                         </div>
-
-                        <div className="flex flex-wrap gap-1 items-center">
-                          {asistList.slice(0, 32).map((s, idx) => {
-                            const esFalta = s.estado === "AUSENTE" || s.estado === "FALTA";
-                            return (
-                              <span
-                                key={idx}
-                                className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white ${
-                                  esFalta ? "bg-rose-600" : "bg-emerald-600"
-                                }`}
-                              >
-                                {esFalta ? "✖" : "✔"}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
             ) : (
