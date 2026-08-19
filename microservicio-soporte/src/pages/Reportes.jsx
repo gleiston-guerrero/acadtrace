@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import Layout from "../components/Layout";
 
 const API = "/api/soporte";
@@ -80,6 +82,85 @@ export default function Reportes() {
     const maxCategoria = data ? Math.max(...data.porCategoria.map(c => c.total), 1) : 1;
     const maxTecnico   = data ? Math.max(...data.porTecnico.map(t => t.total), 1) : 1;
 
+    // ── Exportar a PDF ──────────────────────────────────────────
+    // Usa jsPDF + autoTable en el navegador (sin ida y vuelta al backend):
+    // los datos ya están cargados en `data`, así que el PDF sale del mismo
+    // JSON que ya se ve en pantalla, sin duplicar la consulta.
+    const exportarPDF = () => {
+        if (!data) return;
+
+        const doc = new jsPDF();
+        const fecha = new Date().toLocaleString("es-EC", {
+            day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+        });
+
+        // Encabezado
+        doc.setFillColor(36, 58, 118); // #243A76
+        doc.rect(0, 0, 210, 24, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(15);
+        doc.setFont(undefined, "bold");
+        doc.text("SGA · Reporte de Soporte Técnico", 14, 12);
+        doc.setFontSize(9);
+        doc.setFont(undefined, "normal");
+        doc.text("Escuela Provincias Unidas", 14, 18);
+
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(9);
+        doc.text(`Generado: ${fecha}`, 14, 32);
+
+        // Resumen general
+        doc.setTextColor(30, 30, 30);
+        doc.setFontSize(11);
+        doc.setFont(undefined, "bold");
+        doc.text("Resumen general", 14, 42);
+        doc.setFont(undefined, "normal");
+        doc.setFontSize(10);
+        doc.text(`Tiempo promedio de resolución: ${formatHoras(data.general.tiempoPromedioHoras)}`, 14, 49);
+        doc.text(`Tickets resueltos considerados: ${data.general.ticketsResueltos}`, 14, 55);
+
+        let y = 63;
+
+        // Tabla por categoría
+        if (data.porCategoria.length > 0) {
+            doc.setFontSize(11);
+            doc.setFont(undefined, "bold");
+            doc.text("Tickets por categoría", 14, y);
+            autoTable(doc, {
+                startY: y + 4,
+                head: [["Categoría", "Total", "Resueltos", "Tiempo promedio"]],
+                body: data.porCategoria.map(c => [
+                    c.categoria, String(c.total), String(c.resueltos), formatHoras(c.tiempoPromedioHoras),
+                ]),
+                headStyles: { fillColor: [36, 58, 118] },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 },
+            });
+            y = doc.lastAutoTable.finalY + 12;
+        }
+
+        // Tabla por técnico
+        if (data.porTecnico.length > 0) {
+            if (y > 250) { doc.addPage(); y = 20; } // evita cortar la tabla entre páginas
+            doc.setFontSize(11);
+            doc.setFont(undefined, "bold");
+            doc.text("Tickets por técnico", 14, y);
+            autoTable(doc, {
+                startY: y + 4,
+                head: [["Técnico", "Total", "Resueltos", "Tiempo promedio"]],
+                body: data.porTecnico.map(t => [
+                    t.tecnico, String(t.total), String(t.resueltos), formatHoras(t.tiempoPromedioHoras),
+                ]),
+                headStyles: { fillColor: [36, 58, 118] },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 },
+            });
+        }
+
+        const nombreArchivo = `reporte-soporte-${new Date().toISOString().slice(0, 10)}.pdf`;
+        doc.save(nombreArchivo);
+    };
+
     return (
         <Layout breadcrumb={["Inicio", "Reportes"]} sidebarTitle="Reportes" menuItems={REPORTES_MENU_ITEMS} seccion="reportes">
             <div className="space-y-6">
@@ -90,9 +171,22 @@ export default function Reportes() {
                     </div>
                 )}
 
-                <div>
-                    <h1 className="text-xl font-bold text-slate-800">Reportes de Soporte</h1>
-                    <p className="text-xs text-slate-400 mt-0.5">Tickets por categoría, por técnico y tiempos de resolución</p>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-800">Reportes de Soporte</h1>
+                        <p className="text-xs text-slate-400 mt-0.5">Tickets por categoría, por técnico y tiempos de resolución</p>
+                    </div>
+                    <button
+                        onClick={exportarPDF}
+                        disabled={loading || !data}
+                        className="flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-xl shadow-sm hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                        style={{ backgroundColor: PRIMARY }}
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z" />
+                        </svg>
+                        Exportar a PDF
+                    </button>
                 </div>
 
                 {loading ? (

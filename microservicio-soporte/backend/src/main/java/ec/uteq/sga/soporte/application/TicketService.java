@@ -75,6 +75,30 @@ public class TicketService {
         return obtener(id);
     }
 
+    /**
+     * Creacion automatica de tickets reportados por OTRO microservicio
+     * (Principal, Docente, Secretaria) via gRPC (ver IncidenciaGrpcServer),
+     * cuando ese servicio detecta una falla propia. A diferencia de crear(),
+     * es tolerante: si la categoria/prioridad que manda el servicio de
+     * origen no es una de las validas, cae a un valor por defecto en lugar
+     * de rechazar el reporte -- perder una incidencia real por un typo de
+     * otro equipo es peor que clasificarla mal.
+     */
+    @Transactional
+    public Map<String, Object> crearDesdeIncidencia(String servicioOrigen, String titulo, String descripcion,
+                                                      String categoriaSugerida, String prioridadSugerida) {
+        String categoria = categoriaSugerida == null ? "" : categoriaSugerida.toUpperCase();
+        if (!CATEGORIAS.contains(categoria)) categoria = "OTRO";
+
+        String prioridad = prioridadSugerida == null ? "" : prioridadSugerida.toUpperCase();
+        if (!PRIORIDADES.contains(prioridad)) prioridad = "ALTO"; // falla reportada por un servicio: se asume urgente
+
+        String creadoPor = "sistema:" + (servicioOrigen == null || servicioOrigen.isBlank() ? "desconocido" : servicioOrigen);
+        String numero = "TK-" + System.currentTimeMillis();
+        long id = tickets.crear(numero, titulo, descripcion, categoria, prioridad, creadoPor);
+        return obtener(id);
+    }
+
     @Transactional
     public Map<String, Object> actualizar(long id, ActualizarTicketRequest req, String modificadoPor) {
         String estado = req.estado().toUpperCase();

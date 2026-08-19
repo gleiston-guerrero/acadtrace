@@ -1,225 +1,216 @@
 version: '3.8'
 
 services:
-  # ─── 1. SGA PRINCIPAL (Java Spring Boot) ───
-  sga-principal:
+  # Base de Datos PostgreSQL 15
+  sga-db:
+    image: postgres:15-alpine
+    container_name: sga-db
+    environment:
+      POSTGRES_DB: sga
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ***REMOVED***
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - sga-distribuido-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sga"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # SGA Principal (Replica 1)
+  sga-principal-1:
     build:
       context: ./sga-principal
       dockerfile: Dockerfile
-    image: sga-principal:latest
-    expose:
-      - "8080"
-      - "9092"
+    container_name: sga-principal-1
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
+      - DB_HOST=sga-db
+      - DB_PORT=5432
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
-      - grpc.client.docente-service.address=static://microservicio-docente:9091
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8080
     volumes:
-      - ./sga-principal/uploads:/app/uploads
+      - sga_uploads:/app/uploads
+    depends_on:
+      sga-db:
+        condition: service_healthy
     networks:
       - sga-distribuido-net
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
 
-  # ─── 1b. HAPROXY (Load Balancer sga-principal) ───
+  # SGA Principal (Replica 2)
+  sga-principal-2:
+    build:
+      context: ./sga-principal
+      dockerfile: Dockerfile
+    container_name: sga-principal-2
+    environment:
+      - DB_HOST=sga-db
+      - DB_PORT=5432
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8080
+    volumes:
+      - sga_uploads:/app/uploads
+    depends_on:
+      sga-db:
+        condition: service_healthy
+    networks:
+      - sga-distribuido-net
+
+  # HAProxy Load Balancer
   haproxy:
     image: haproxy:2.9-alpine
     container_name: sga-haproxy
-    depends_on:
-      - sga-principal
-    ports:
-      - "8080:8080"   # REST balanceado hacia las 2 replicas
-      - "8081:8081"   # REST balanceado hacia las replicas de docente
-      - "9092:9092"   # gRPC balanceado hacia las 2 replicas
-      - "8404:8404"   # Panel de estadisticas HAProxy
     volumes:
       - ./infra/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "8080:8080" # REST Proxy
+      - "8081:8081" # Docente REST Proxy
+      - "9092:9092" # gRPC Proxy
+      - "8404:8404" # Stats Dashboard
+    depends_on:
+      - sga-principal-1
+      - sga-principal-2
     networks:
       - sga-distribuido-net
 
-
-  # ─── 2. MICROSERVICIO DOCENTE (Django + gRPC) ───
+  # Microservicio Docente (Django + gRPC)
   microservicio-docente:
     build:
       context: ./microservicio-docente
       dockerfile: Dockerfile
-    expose:
-      - "8000"
-      - "9091"
+    container_name: microservicio-docente
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
+      - DB_HOST=sga-db
+      - DB_PORT=5432
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
-      - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
-    networks:
-      - sga-distribuido-net
-    depends_on:
-      - sga-principal
-    volumes:
-      - ./microservicio-docente/media:/app/media
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-
-  spark:
-    image: apache/spark:3.5.1
-    container_name: sga-spark
-    command: /opt/spark/sbin/start-master.sh
     ports:
-      - "7077:7077"
-      - "8090:8080"
-    environment:
-      - SPARK_NO_DAEMONIZE=true
-      - DB_HOST
-      - DB_PORT
-      - DB_NAME
-      - DB_USER
-      - DB_PASSWORD
-    volumes:
-      - ./scripts/spark:/scripts
-      - ./scripts/spark/jars:/jars
+      - "9091:9091" # gRPC Server
+    depends_on:
+      sga-db:
+        condition: service_healthy
     networks:
       - sga-distribuido-net
 
-  # ─── 3. MICROSERVICIO SECRETARÍA ───
+  # Microservicio Secretaría (Spring Boot)
   microservicio-secretaria:
     build:
-      context: ./microservicio-secretaria
-      dockerfile: backend/Dockerfile
+      context: ./microservicio-secretaria/backend
+      dockerfile: Dockerfile
     container_name: microservicio-secretaria
-    ports:
-      - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
+      - DB_HOST=sga-db
+      - DB_PORT=5432
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
-      - JWT_SECRET=***REMOVED***
-      - AES_SECRET_KEY=***REMOVED-AES-SECRET***=
-      - GRPC_PRINCIPAL_HOST=sga-principal
-      - GRPC_PRINCIPAL_PORT=9092
-    networks:
-      - sga-distribuido-net
-    depends_on:
-      - sga-principal
-
-  # ─── 4. MICROSERVICIO SOPORTE ───
-  microservicio-soporte:
-    build:
-      context: ./microservicio-soporte
-      dockerfile: backend/Dockerfile
-    container_name: microservicio-soporte
+      - SGA_PRINCIPAL_GRPC_HOST=haproxy
+      - SGA_PRINCIPAL_GRPC_PORT=9092
     ports:
-      - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
-    environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
-      - JWT_SECRET=***REMOVED***
-      - PRINCIPAL_GRPC_HOST=sga-principal
-      - PRINCIPAL_GRPC_PORT=9092
-      - ETCD_ENDPOINTS=http://etcd:2379
+      - "8082:8082"
+    depends_on:
+      sga-db:
+        condition: service_healthy
+      haproxy:
+        condition: service_started
     networks:
       - sga-distribuido-net
-    depends_on:
-      - etcd
 
-  # ─── 4b. ETCD (coordinacion / eleccion de lider entre replicas de soporte) ───
+  # ETCD Leader Election Service
   etcd:
     image: quay.io/coreos/etcd:v3.5.11
     container_name: etcd
     command:
       - /usr/local/bin/etcd
-      - --name=etcd0
       - --listen-client-urls=http://0.0.0.0:2379
       - --advertise-client-urls=http://etcd:2379
-      - --listen-peer-urls=http://0.0.0.0:2380
-      - --initial-advertise-peer-urls=http://etcd:2380
-      - --initial-cluster=etcd0=http://etcd:2380
-      - --initial-cluster-state=new
     ports:
       - "2379:2379"
     networks:
       - sga-distribuido-net
 
-  # ─── 5. FRONTEND SGA (React + Vite) ───
+  # Microservicio Soporte (Spring Boot + ETCD)
+  microservicio-soporte:
+    build:
+      context: ./microservicio-soporte/backend
+      dockerfile: Dockerfile
+    container_name: microservicio-soporte
+    environment:
+      - DB_HOST=sga-db
+      - DB_PORT=5432
+      - DB_NAME=sga
+      - DB_USER=postgres
+      - DB_PASSWORD=***REMOVED***
+      - ETCD_ENDPOINTS=http://etcd:2379
+    ports:
+      - "8083:8083"
+    depends_on:
+      sga-db:
+        condition: service_healthy
+      etcd:
+        condition: service_started
+    networks:
+      - sga-distribuido-net
+
+  # SGA Frontend (React + Vite)
   sga-frontend:
-    image: node:20-alpine
+    build:
+      context: ./sga-principal/sga-frontend
+      dockerfile: Dockerfile
     container_name: sga-frontend
-    working_dir: /app
-    volumes:
-      - ./sga-principal/sga-frontend:/app
-      - /app/node_modules
     ports:
-      - "5174:5173"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+      - "5174:80"
+    depends_on:
+      - haproxy
     networks:
       - sga-distribuido-net
-    depends_on:
-      - sga-principal
 
-  # ─── 6. FRONTEND DOCENTE (React + Vite) ───
-  docente-frontend:
-    image: node:20-alpine
-    container_name: docente-frontend
-    working_dir: /app
-    volumes:
-      - ./microservicio-docente/frontend:/app
-      - /app/node_modules
+  # Apache Spark Master Cluster
+  sga-spark:
+    image: bitnami/spark:3.5.1
+    container_name: sga-spark
+    environment:
+      - SPARK_MODE=master
     ports:
-      - "3000:3000"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
+      - "7077:7077"
+      - "8090:8080"
     networks:
       - sga-distribuido-net
-    depends_on:
-      - microservicio-docente
 
-  # ─── 7. PROMETHEUS (observabilidad: scrapea los 4 servicios) ───
+  # Prometheus Monitoring
   prometheus:
     image: prom/prometheus:v2.51.0
     container_name: sga-prometheus
     volumes:
-      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
     networks:
       - sga-distribuido-net
-    depends_on:
-      - sga-principal
-      - microservicio-docente
-      - microservicio-secretaria
-      - microservicio-soporte
 
-  # ─── 8. GRAFANA (dashboards sobre las metricas de Prometheus) ───
+  # Grafana Dashboards
   grafana:
     image: grafana/grafana:10.4.0
     container_name: sga-grafana
     ports:
       - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=***REMOVED-GRAFANA-SECRET***
-    volumes:
-      - ./infra/grafana/provisioning:/etc/grafana/provisioning
-      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
     networks:
       - sga-distribuido-net
-    depends_on:
-      - prometheus
+
+volumes:
+  pgdata:
+  sga_uploads:
 
 networks:
   sga-distribuido-net:
     driver: bridge
-
-volumes:
-  sga_uploads:
