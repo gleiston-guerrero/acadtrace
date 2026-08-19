@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import Layout from "../../components/Layout";
 import {
   getAulaVirtualSemanas,
@@ -11,6 +14,12 @@ import {
   createActividad,
   updateActividad,
   deleteActividad,
+  getCalificacionesPorActividad,
+  guardarCalificacion,
+  getMateriales,
+  createMaterial,
+  getAnuncios,
+  createAnuncio,
 } from "../../services/api";
 
 const TIPOS_ACTIVIDAD = [
@@ -116,6 +125,9 @@ export default function AulaVirtualCurso() {
   const [actividadesCargando, setActividadesCargando] = useState(false);
   const [actividadesMsg, setActividadesMsg] = useState({ tipo: "", texto: "" });
   const [modalActividad, setModalActividad] = useState({ abierto: false, editando: null, form: ACT_FORM_INICIAL, guardando: false });
+  const [notas, setNotas] = useState({});
+  const [recursos, setRecursos] = useState({ materiales: [], anuncios: [] });
+  const [seccionMsg, setSeccionMsg] = useState("");
 
   // Trimestre activo (movido arriba para evitar TDZ en los useEffect que lo referencian)
   const trimestre = useMemo(
@@ -137,6 +149,20 @@ export default function AulaVirtualCurso() {
   useEffect(() => {
     if (seccion !== "actividades" || !trimestre) return;
     cargarActividades();
+  }, [seccion, trimestre?.id_periodo, idAsignacion]);
+
+  useEffect(() => {
+    if (!["calificaciones", "materiales", "anuncios", "estudiantes"].includes(seccion)) return;
+    if (!estudiantesCurso.length) getEstudiantesPorAsignacion(idAsignacion).then((r) => setEstudiantesCurso(r.data || [])).catch(() => setSeccionMsg("No se pudieron cargar los estudiantes."));
+    if (seccion === "calificaciones" && trimestre) {
+      getActividades(Number(idAsignacion), Number(trimestre.id_periodo)).then(async (r) => {
+        const acts = r.data || []; setActividades(acts);
+        const resultados = await Promise.allSettled(acts.map((a) => getCalificacionesPorActividad(a.idActividad)));
+        const mapa = {}; resultados.forEach((res) => { if (res.status === "fulfilled") (res.value.data || []).forEach((n) => { mapa[`${n.id_matricula}-${n.id_actividad}`] = n; }); }); setNotas(mapa);
+      }).catch(() => setSeccionMsg("No se pudo cargar la matriz de calificaciones."));
+    }
+    if (seccion === "materiales") getMateriales(idAsignacion).then((r) => setRecursos((v) => ({...v, materiales:r.data || []}))).catch(() => setSeccionMsg("No se pudieron cargar los materiales."));
+    if (seccion === "anuncios") getAnuncios(idAsignacion).then((r) => setRecursos((v) => ({...v, anuncios:r.data || []}))).catch(() => setSeccionMsg("No se pudieron cargar los anuncios."));
   }, [seccion, trimestre?.id_periodo, idAsignacion]);
 
   const abrirModalActividad = (act = null) => {
@@ -174,6 +200,15 @@ export default function AulaVirtualCurso() {
       return;
     }
     if (!trimestre)           { setActividadesMsg({ tipo: "error", texto: "Selecciona un trimestre primero." }); return; }
+    const nuevaEsSumativa = esSumativaPorTipo(form.tipo);
+    const totalCategoria = actividades
+      .filter((a) => esSumativaPorTipo(a.tipo) === nuevaEsSumativa && (!editando || a.idActividad !== editando.idActividad))
+      .reduce((total, a) => total + Number(a.ponderacion || 0), 0);
+    const limite = nuevaEsSumativa ? 30 : 70;
+    if (totalCategoria + Number(form.ponderacion || 0) > limite) {
+      setActividadesMsg({ tipo: "error", texto: `La ponderación total ${nuevaEsSumativa ? "sumativa" : "formativa"} no puede superar ${limite}%.` });
+      return;
+    }
     const payload = {
       asignacionId: Number(idAsignacion),
       periodoId: Number(trimestre.id_periodo),
@@ -183,7 +218,7 @@ export default function AulaVirtualCurso() {
       fechaEntrega: form.fechaEntrega,
       ponderacion: Number(form.ponderacion) || 0,
       notaMaxima: Number(form.notaMaxima) || 10,
-      esSumativa: esSumativaPorTipo(form.tipo),
+      esSumativa: nuevaEsSumativa,
     };
     setModalActividad((m) => ({ ...m, guardando: true }));
     setActividadesMsg({ tipo: "", texto: "" });
@@ -232,7 +267,7 @@ export default function AulaVirtualCurso() {
     { valor: "PRESENTE",    color: "bg-emerald-100 text-emerald-700" },
     { valor: "AUSENTE",     color: "bg-red-100 text-red-700" },
     { valor: "JUSTIFICADO", color: "bg-amber-100 text-amber-700" },
-    { valor: "ATRASADO",    color: "bg-orange-100 text-orange-700" },
+    { valor: "ATRASO",     color: "bg-orange-100 text-orange-700" },
   ];
 
   useEffect(() => {
@@ -251,7 +286,7 @@ export default function AulaVirtualCurso() {
     setAsistenciaJustif({});
     setAsistenciaYaExiste(false);
     setAsistenciaMsg({ tipo: "", texto: "" });
-    getAsistenciaPorAsignacion(idAsignacion, asistenciaFecha)
+    getAsistenciaPorAsignacion(idAsignacion, asistenciaFecha, Number(trimestre?.id_periodo || 0))
       .then((r) => {
         const lista = r.data?.asistencias || r.data || [];
         const map = {};
@@ -265,7 +300,7 @@ export default function AulaVirtualCurso() {
         setAsistenciaYaExiste(lista.length > 0);
       })
       .catch(() => { /* no pasa nada, empieza vacío */ });
-  }, [seccion, asistenciaFecha, idAsignacion]);
+  }, [seccion, asistenciaFecha, idAsignacion, trimestre?.id_periodo]);
 
   // Lista de estudiantes ordenada alfabeticamente por apellidos + nombres
   const estudiantesOrdenados = useMemo(() => {
@@ -297,7 +332,7 @@ export default function AulaVirtualCurso() {
     if (asistenciaYaExiste) {
       const ok = window.confirm(
         `Ya existe asistencia registrada para el ${asistenciaFecha}. ` +
-        `Se va a sobreescribir con los cambios actuales (por ejemplo, cambiar de AUSENTE a ATRASADO o agregar justificación).\n\n¿Deseas continuar?`
+        `Se va a sobreescribir con los cambios actuales (por ejemplo, cambiar de AUSENTE a ATRASO o agregar justificación).\n\n¿Deseas continuar?`
       );
       if (!ok) return;
     }
@@ -327,6 +362,30 @@ export default function AulaVirtualCurso() {
     total: Object.values(asistenciaEstado).filter((v) => v === e.valor).length,
   }));
 
+  const guardarNotaCelda = async (matricula, actividad, valor) => {
+    if (valor === "") return;
+    const nota = Number(valor), maxima = Number(actividad.notaMaxima || 10);
+    if (!Number.isFinite(nota) || nota < 0 || nota > maxima) { setSeccionMsg(`La nota debe estar entre 0 y ${maxima}.`); return; }
+    const clave = `${matricula.idMatricula}-${actividad.idActividad}`, existente = notas[clave];
+    try {
+      const r = await guardarCalificacion({ id_matricula: matricula.idMatricula, id_actividad: actividad.idActividad, nota }, existente?.id_calificacion);
+      setNotas((v) => ({ ...v, [clave]: r.data })); setSeccionMsg("Nota guardada.");
+    } catch (e) { setSeccionMsg(e.response?.data?.nota?.[0] || "No se pudo guardar la nota."); }
+  };
+  const exportarMatriz = (tipo) => {
+    const filas = estudiantesOrdenados.map((m) => ({ Estudiante:`${m.estudiante?.apellidos || ""} ${m.estudiante?.nombres || ""}`.trim(), ...Object.fromEntries(actividades.map((a) => [a.nombre, notas[`${m.idMatricula}-${a.idActividad}`]?.nota ?? "N/D"])) }));
+    if (tipo === "xlsx") { const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filas),"Calificaciones"); XLSX.writeFile(wb,`calificaciones-${idAsignacion}.xlsx`); return; }
+    const doc=new jsPDF({orientation:"landscape"}); doc.text("Matriz de calificaciones",14,15); autoTable(doc,{head:[["Estudiante",...actividades.map((a)=>a.nombre)]],body:filas.map(Object.values),startY:22}); doc.save(`calificaciones-${idAsignacion}.pdf`);
+  };
+  const publicarMaterial = async (event) => {
+    event.preventDefault(); const form=new FormData(event.currentTarget); form.set("id_asignacion",idAsignacion);
+    try { await createMaterial(form); const r=await getMateriales(idAsignacion); setRecursos((v)=>({...v,materiales:r.data||[]})); event.currentTarget.reset(); setSeccionMsg("Material publicado."); } catch(e) { setSeccionMsg(e.response?.data?.archivo?.[0] || "No se pudo publicar el material."); }
+  };
+  const publicarAnuncio = async (event) => {
+    event.preventDefault(); const data=Object.fromEntries(new FormData(event.currentTarget)); data.id_asignacion=Number(idAsignacion);
+    try { await createAnuncio(data); const r=await getAnuncios(idAsignacion); setRecursos((v)=>({...v,anuncios:r.data||[]})); event.currentTarget.reset(); setSeccionMsg("Anuncio publicado."); } catch(_) { setSeccionMsg("No se pudo publicar el anuncio."); }
+  };
+
   const menuItems = [
     { id: "resumen",        label: "Resumen del curso",  icon: <IconoSvg path={ICONO.resumen} /> },
     { id: "asistencia",     label: "Tomar asistencia",   icon: <IconoSvg path={ICONO.asistencia} /> },
@@ -348,6 +407,7 @@ export default function AulaVirtualCurso() {
           setError("El curso solicitado no está disponible entre tus asignaciones.");
           return;
         }
+        setCurso(asignacion);
         try {
           const agendaResponse = await getAulaVirtualSemanas(idAsignacion);
           const data = agendaResponse.data || { trimestres: [], pendientes: [] };
@@ -400,16 +460,11 @@ export default function AulaVirtualCurso() {
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
             <main id="calendario" className="min-w-0 space-y-4">
-            {seccion !== "resumen" && seccion !== "asistencia" && seccion !== "actividades" && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-                <p className="text-sm font-semibold text-slate-500">
-                  {menuItems.find((item) => item.id === seccion)?.label} — Próximamente
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Esta sección se habilitará dentro del aula virtual. Los datos ya existen en la base y solo falta la vista.
-                </p>
-              </div>
-            )}
+            {seccionMsg && ["calificaciones","materiales","anuncios","estudiantes"].includes(seccion) && <div className="rounded-xl border bg-white p-3 text-sm text-slate-600">{seccionMsg}</div>}
+            {seccion === "calificaciones" && <div className="overflow-x-auto rounded-2xl border bg-white p-5 shadow-sm"><div className="mb-4 flex items-center justify-between"><h2 className="font-bold">Matriz de calificaciones</h2><div className="flex gap-2"><button onClick={()=>exportarMatriz("xlsx")} className="rounded border px-3 py-1 text-sm">Excel</button><button onClick={()=>exportarMatriz("pdf")} className="rounded border px-3 py-1 text-sm">PDF</button></div></div><table className="min-w-full text-sm"><thead><tr className="border-b"><th className="p-2 text-left">Estudiante</th>{actividades.map((a)=><th key={a.idActividad} className="min-w-28 p-2 text-center"><span title={`Máximo ${a.notaMaxima}`}>{a.nombre}</span></th>)}</tr></thead><tbody>{estudiantesOrdenados.map((m)=><tr key={m.idMatricula} className="border-b"><td className="p-2">{m.estudiante?.apellidos} {m.estudiante?.nombres}</td>{actividades.map((a)=>{const n=notas[`${m.idMatricula}-${a.idActividad}`];return <td key={a.idActividad} className="p-1"><input aria-label={`Nota ${a.nombre}`} type="number" min="0" max={a.notaMaxima||10} step="0.01" defaultValue={n?.nota??""} onBlur={(e)=>guardarNotaCelda(m,a,e.target.value)} className="w-24 rounded border p-1 text-center"/></td>})}</tr>)}</tbody></table>{!actividades.length&&<p className="py-6 text-center text-sm text-slate-400">No hay actividades en este período.</p>}</div>}
+            {seccion === "materiales" && <div className="space-y-4"><form onSubmit={publicarMaterial} className="grid gap-3 rounded-2xl border bg-white p-5 md:grid-cols-2"><h2 className="font-bold md:col-span-2">Publicar material</h2><input required name="titulo" placeholder="Título" className="rounded border p-2"/><input name="url" type="url" placeholder="https://... (opcional)" className="rounded border p-2"/><input name="archivo" type="file" className="rounded border p-2"/><textarea name="descripcion" placeholder="Descripción" className="rounded border p-2"/><button className="rounded bg-[#243A76] p-2 text-white">Publicar</button></form><div className="grid gap-3 md:grid-cols-2">{recursos.materiales.map((m)=><a key={m.id_material} href={m.url} target="_blank" rel="noreferrer" className="rounded-xl border bg-white p-4"><b>{m.titulo}</b><p className="text-sm text-slate-500">{m.descripcion||m.tipo||"Material"}</p></a>)}</div></div>}
+            {seccion === "anuncios" && <div className="space-y-4"><form onSubmit={publicarAnuncio} className="grid gap-3 rounded-2xl border bg-white p-5"><h2 className="font-bold">Publicar anuncio</h2><input required name="titulo" placeholder="Título" className="rounded border p-2"/><textarea required name="contenido" placeholder="Contenido" className="rounded border p-2"/><button className="w-fit rounded bg-[#243A76] px-4 py-2 text-white">Publicar</button></form>{recursos.anuncios.map((a)=><article key={a.id_anuncio} className="rounded-xl border bg-white p-4"><b>{a.titulo}</b><p className="mt-1 text-sm text-slate-600">{a.contenido}</p><time className="text-xs text-slate-400">{formatDate(a.fecha)}</time></article>)}</div>}
+            {seccion === "estudiantes" && <div className="grid gap-3 md:grid-cols-2">{estudiantesOrdenados.map((m)=>{const e=m.estudiante||{},ini=`${e.nombres?.[0]||""}${e.apellidos?.[0]||""}`;return <article key={m.idMatricula} className="flex gap-3 rounded-2xl border bg-white p-4"><div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 font-bold text-[#243A76]">{ini||"?"}</div><div><b>{e.apellidos} {e.nombres}</b><p className="text-sm text-slate-500">Matrícula: {m.idMatricula}</p><p className="text-sm text-slate-500">Cédula: {e.cedula||"N/D"} · Estado: {m.estado||"N/D"}</p></div></article>})}</div>}
 
             {seccion === "actividades" && (
               <div className="space-y-4">
@@ -838,7 +893,7 @@ export default function AulaVirtualCurso() {
                                               item.estado === "PRESENTE" ? "bg-emerald-100 text-emerald-700" :
                                               item.estado === "AUSENTE" ? "bg-red-100 text-red-700" :
                                               item.estado === "JUSTIFICADO" ? "bg-amber-100 text-amber-700" :
-                                              item.estado === "ATRASADO" ? "bg-orange-100 text-orange-700" :
+                                              item.estado === "ATRASO" ? "bg-orange-100 text-orange-700" :
                                               "bg-slate-100 text-slate-500"
                                             }`}>{item.estado || "—"}</span>
                                           </td>

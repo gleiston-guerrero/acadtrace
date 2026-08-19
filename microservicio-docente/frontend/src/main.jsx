@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios'
 import './index.css'
 import App from './App.jsx'
+import { PRINCIPAL_LOGIN_URL } from './services/api.js'
 
 // ── Captura de sesión (SSO handoff) ──────────────────────────
 // El SGA Principal redirige aquí con el token en el fragmento (#) del URL.
@@ -33,8 +34,7 @@ capturarSesionSSO();
 
 // Sin token = acceso directo no autorizado → al login del principal.
 if (!localStorage.getItem("token")) {
-  const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-  window.location.href = `http://${host}:5174/login`;
+  window.location.href = PRINCIPAL_LOGIN_URL;
 }
 
 // ── Interceptor 401 ──────────────────────────────────────────
@@ -44,8 +44,7 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.clear();
-      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-      window.location.href = `http://${host}:5174/login`;
+      window.location.href = PRINCIPAL_LOGIN_URL;
     }
     return Promise.reject(error);
   }

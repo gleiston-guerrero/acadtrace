@@ -1,5 +1,6 @@
 import grpc
 from django.db import transaction
+from django.db.models import Sum
 from django.core.exceptions import ObjectDoesNotExist
 from docentes.models import Actividad, PeriodoEvaluacion
 from . import actividades_pb2
@@ -7,6 +8,21 @@ from . import actividades_pb2_grpc
 from .client import validate_teacher_assignment
 
 class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
+    def _validar_ponderacion(self, id_asignacion, id_periodo, es_sumativa, ponderacion, excluir_id=None):
+        if ponderacion < 0:
+            raise ValueError("La ponderación no puede ser negativa")
+        query = Actividad.objects.filter(
+            id_asignacion=id_asignacion,
+            id_periodo_id=id_periodo,
+            es_sumativa=es_sumativa,
+        )
+        if excluir_id:
+            query = query.exclude(id_actividad=excluir_id)
+        total = query.aggregate(total=Sum("ponderacion"))["total"] or 0
+        limite = 30 if es_sumativa else 70
+        if total + ponderacion > limite:
+            categoria = "sumativa" if es_sumativa else "formativa"
+            raise ValueError(f"La ponderación total {categoria} no puede superar {limite}%")
     
     def _validate_auth(self, context, id_asignacion):
         metadata = dict(context.invocation_metadata())
@@ -30,6 +46,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             self._validate_auth(context, request.id_asignacion)
             
             periodo = PeriodoEvaluacion.objects.get(id_periodo=request.id_periodo)
+            self._validar_ponderacion(request.id_asignacion, request.id_periodo, request.es_sumativa, request.ponderacion)
             
             actividad = Actividad.objects.create(
                 id_asignacion=request.id_asignacion,
@@ -63,6 +80,10 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             )
         except ObjectDoesNotExist:
             context.abort(grpc.StatusCode.NOT_FOUND, "Periodo de evaluación no encontrado")
+        except ValueError as e:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
+        except grpc.RpcError:
+            raise
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
             
@@ -70,6 +91,10 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
         try:
             actividad = Actividad.objects.get(id_actividad=request.id_actividad)
             self._validate_auth(context, actividad.id_asignacion)
+            self._validar_ponderacion(
+                actividad.id_asignacion, actividad.id_periodo_id,
+                request.es_sumativa, request.ponderacion, actividad.id_actividad,
+            )
             
             actividad.tipo = request.tipo
             actividad.nombre = request.nombre
@@ -100,6 +125,10 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             )
         except ObjectDoesNotExist:
             context.abort(grpc.StatusCode.NOT_FOUND, "Actividad no encontrada")
+        except ValueError as e:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
+        except grpc.RpcError:
+            raise
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
             
