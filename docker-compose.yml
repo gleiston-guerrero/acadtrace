@@ -114,6 +114,8 @@ services:
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
+      - JWT_SECRET=***REMOVED***
+      - AES_SECRET_KEY=***REMOVED***!
       - SGA_PRINCIPAL_GRPC_HOST=haproxy
       - SGA_PRINCIPAL_GRPC_PORT=9092
     ports:
@@ -151,6 +153,7 @@ services:
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
+      - JWT_SECRET=***REMOVED***
       - ETCD_ENDPOINTS=http://etcd:2379
     ports:
       - "8083:8083"
