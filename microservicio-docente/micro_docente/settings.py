@@ -109,14 +109,20 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:5173",
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "http://localhost:8083",
-    "http://127.0.0.1:8083",
-    "http://localhost:5177",
-    "http://127.0.0.1:5177",
+    # Principal conserva una vista que consulta Django Docente directamente.
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
 ]
 
+# En despliegue se debe declarar el origen exacto del Portal Docente, por
+# ejemplo DJANGO_CORS_ALLOWED_ORIGINS=http://portal.example.com:3000.
+# Se acepta una lista separada por comas, sin comodines ni inferencias desde
+# DJANGO_ALLOWED_HOSTS (que puede estar configurado como "*").
+CORS_ALLOWED_ORIGINS.extend(
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+)
 
 CORS_ALLOW_CREDENTIALS = True
