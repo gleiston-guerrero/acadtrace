@@ -39,10 +39,12 @@ public class TeacherAuthorizationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
         boolean isDocente = usuario.getRoles().stream()
-                .anyMatch(r -> r.getNombre().equalsIgnoreCase("DOCENTE") || r.getNombre().equalsIgnoreCase("ROLE_DOCENTE"));
+                .anyMatch(r -> r.getNombre().toUpperCase().contains("DOCENTE") ||
+                               r.getNombre().toUpperCase().contains("DIRECTOR") ||
+                               r.getNombre().toUpperCase().contains("ADMIN"));
 
         if (!isDocente) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario autenticado no tiene rol de DOCENTE");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario autenticado no tiene rol autorizado");
         }
 
         return personaRepository.findByUsuario_IdUsuario(usuario.getIdUsuario())
@@ -57,13 +59,17 @@ public class TeacherAuthorizationService {
     }
 
     /**
-     * Valida que una asignación pertenezca al docente y esté activa.
+     * Valida que una asignación pertenezca al docente o que el solicitante sea Director/Admin y esté activa.
      */
     public Asignacion validateTeacherAssignment(Long idDocente, Long idAsignacion) {
         Asignacion asignacion = asignacionRepository.findById(idAsignacion)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada"));
 
-        if (!asignacion.getDocente().getIdPersona().equals(idDocente)) {
+        Persona persona = personaRepository.findById(idDocente).orElse(null);
+        boolean isDirectorOrAdmin = persona != null && persona.getUsuario() != null && persona.getUsuario().getRoles().stream()
+                .anyMatch(r -> r.getNombre().toUpperCase().contains("DIRECTOR") || r.getNombre().toUpperCase().contains("ADMIN"));
+
+        if (!isDirectorOrAdmin && !asignacion.getDocente().getIdPersona().equals(idDocente)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La asignación no pertenece al docente indicado");
         }
 
