@@ -43,23 +43,19 @@ export default function Calificaciones() {
   const [anoActual, setAnoActual]             = useState(null);
 
   useEffect(() => {
-    api.get(`/api/anos-lectivos/actual`)
-      .then(r => {
-        setAnoActual(r.data);
-        cargarAsignaciones(r.data.idAnoLectivo);
-      })
-      .catch(() => cargarAsignaciones(null));
-  }, []);
-
-  const cargarAsignaciones = (idAno) => {
     setLoading(true);
-    const url = idAno
-      ? `/api/asignaciones/ano-lectivo/${idAno}`
-      : `/api/asignaciones`;
-    api.get(url)
-      .then(r => setAsignaciones(r.data.filter(a => a.activo)))
+    Promise.all([
+      api.get("/api/asignaciones").catch(() => ({ data: [] })),
+      api.get("/api/grados").catch(() => ({ data: [] })),
+      api.get("/api/anos-lectivos/actual").catch(() => ({ data: null })),
+    ])
+      .then(([resAsig, resGrados, resAno]) => {
+        const rawAsig = Array.isArray(resAsig.data) ? resAsig.data : (resAsig.data?.items || resAsig.data?.data || []);
+        setAsignaciones(rawAsig.filter(a => a.activo !== false));
+        if (resAno.data) setAnoActual(resAno.data);
+      })
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   const abrirMatrizCurso = (asignacion) => {
     setAsignacionSel(asignacion);
