@@ -1,7 +1,11 @@
 import { MICROSERVICIOS } from "../config/microservicios";
 
 async function detectarHostVivo(hosts) {
-  for (const host of hosts) {
+  const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+  // Excluir el origen actual para evitar bucles hacia sí mismo
+  const targetHosts = hosts.filter((h) => h !== currentOrigin);
+
+  for (const host of targetHosts) {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 2000);
@@ -9,10 +13,10 @@ async function detectarHostVivo(hosts) {
       clearTimeout(timer);
       return host;
     } catch (_) {
-      // Intenta el siguiente
+      // Intenta el siguiente puerto
     }
   }
-  return hosts[0] || null;
+  return targetHosts[0] || null;
 }
 
 export async function redirigirAMicroservicio(rol, sesion) {
@@ -29,13 +33,13 @@ export async function redirigirAMicroservicio(rol, sesion) {
   }
 
   const params = new URLSearchParams({
-    token: sesion.token,
-    username: sesion.username,
-    roles: JSON.stringify(sesion.roles),
+    token: sesion.token || localStorage.getItem("token") || "",
+    username: sesion.username || localStorage.getItem("username") || "",
+    roles: JSON.stringify(sesion.roles || []),
     primerIngreso: String(sesion.primerIngreso || false),
   });
 
-  const idUsuario = Number(sesion.idUsuario);
+  const idUsuario = Number(sesion.idUsuario || localStorage.getItem("userId"));
   if (Number.isInteger(idUsuario) && idUsuario > 0) {
     params.set("idUsuario", String(idUsuario));
   }
