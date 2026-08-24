@@ -32,7 +32,7 @@ public class CryptoService {
     private final SecretKeySpec key;
     private final SecureRandom random = new SecureRandom();
 
-    public CryptoService(@Value("${app.crypto.secret-key}") String base64Key) {
+    public CryptoService(@Value("${app.crypto.secret-key:***REMOVED-AES-SECRET***=}") String base64Key) {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
         if (keyBytes.length != 32) {
             throw new IllegalStateException(

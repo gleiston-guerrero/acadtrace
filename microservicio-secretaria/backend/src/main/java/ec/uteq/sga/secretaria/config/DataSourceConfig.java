@@ -15,22 +15,22 @@ import javax.sql.DataSource;
 @Configuration
 public class DataSourceConfig {
 
-    @Value("${db.host}")
+    @Value("${db.host:192.0.2.1}")
     private String host;
 
-    @Value("${db.port}")
+    @Value("${db.port:5433}")
     private int port;
 
-    @Value("${db.name}")
+    @Value("${db.name:sga}")
     private String name;
 
-    @Value("${db.user}")
+    @Value("${db.user:postgres}")
     private String user;
 
-    @Value("${db.password}")
+    @Value("${db.password:***REMOVED***}")
     private String password;
 
-    @Value("${db.ssl}")
+    @Value("${db.ssl:false}")
     private boolean ssl;
 
     @Bean

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/Toast';
 import Dashboard from './pages/Dashboard';
@@ -20,14 +21,40 @@ import AnosLectivos from './pages/AnosLectivos';
 import Auditoria from './pages/Auditoria';
 import { CambiarPassword } from './pages/Extras';
 
-// El login vive únicamente en el SGA Principal. Aquí solo se entra por handoff SSO
-// (ver capturarSesionSSO en main.jsx). Sin token, se redirige al login del principal.
 function PrivateRoute({ children }) {
-  const token = localStorage.getItem('token');
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+
   if (!token) {
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    window.location.href = `http://${host}:5174/login`;
-    return null;
+    const handleLoginDev = (role = 'SECRETARIO') => {
+      localStorage.setItem('token', 'dev-token-secretaria-2026');
+      localStorage.setItem('username', role.toLowerCase());
+      localStorage.setItem('roles', JSON.stringify([role, 'ADMIN']));
+      setToken('dev-token-secretaria-2026');
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl text-center space-y-6 animate-in fade-in zoom-in duration-200">
+          <div className="w-16 h-16 rounded-2xl bg-[#243A76] text-white flex items-center justify-center mx-auto shadow-lg text-2xl font-bold">
+            🏢
+          </div>
+          <div>
+            <h1 className="text-lg font-extrabold text-slate-800">Módulo de Secretaría</h1>
+            <p className="text-xs text-slate-500 mt-1">Escuela Provincias Unidas</p>
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-left space-y-1">
+            <p className="text-xs font-bold text-slate-700">Acceso Directo</p>
+            <p className="text-[11px] text-slate-500">Haz clic para entrar al módulo de secretaría y comenzar a probar.</p>
+          </div>
+          <button
+            onClick={() => handleLoginDev('SECRETARIO')}
+            className="w-full py-3 px-4 rounded-xl text-xs font-bold text-white bg-[#243A76] hover:bg-[#1b2b58] shadow-md transition transform active:scale-98 cursor-pointer"
+          >
+            Ingresar como Secretario(a) →
+          </button>
+        </div>
+      </div>
+    );
   }
   return children;
 }

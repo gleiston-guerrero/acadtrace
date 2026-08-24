@@ -18,10 +18,10 @@ import java.util.List;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.cors.origin}")
+    @Value("${app.cors.origin:*}")
     private String corsOrigin;
 
-    @Value("${app.frontend.dist-path}")
+    @Value("${app.frontend.dist-path:client/dist}")
     private String frontendDistPath;
 
     @Override

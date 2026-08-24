@@ -24,8 +24,8 @@ public class PdfTheme {
     private final String nombre;
     private final String ciudad;
 
-    public PdfTheme(@Value("${app.institucion.nombre}") String nombre,
-                     @Value("${app.institucion.ciudad}") String ciudad) {
+    public PdfTheme(@Value("${app.institucion.nombre:Unidad Educativa Provincias Unidas}") String nombre,
+                    @Value("${app.institucion.ciudad:Quevedo, Ecuador}") String ciudad) {
         this.nombre = nombre;
         this.ciudad = ciudad;
     }
