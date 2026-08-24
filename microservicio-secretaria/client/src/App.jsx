@@ -3,7 +3,9 @@ import { ToastProvider } from './components/Toast';
 import Dashboard from './pages/Dashboard';
 import Estudiantes from './pages/Estudiantes';
 import Grados from './pages/Grados';
+import Asignaturas from './pages/Asignaturas';
 import Asignaciones from './pages/Asignaciones';
+import Calificaciones from './pages/Calificaciones';
 import Horarios from './pages/Horarios';
 import ConsultaAsistencias from './pages/ConsultaAsistencias';
 import Matriculas from './pages/Matriculas';
@@ -38,7 +40,9 @@ export default function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/estudiantes" element={<PrivateRoute><Estudiantes /></PrivateRoute>} />
         <Route path="/grados" element={<PrivateRoute><Grados /></PrivateRoute>} />
+        <Route path="/asignaturas" element={<PrivateRoute><Asignaturas /></PrivateRoute>} />
         <Route path="/asignaciones" element={<PrivateRoute><Asignaciones /></PrivateRoute>} />
+        <Route path="/calificaciones" element={<PrivateRoute><Calificaciones /></PrivateRoute>} />
         <Route path="/horarios" element={<PrivateRoute><Horarios /></PrivateRoute>} />
         <Route path="/asistencias" element={<PrivateRoute><ConsultaAsistencias /></PrivateRoute>} />
         <Route path="/matriculas" element={<PrivateRoute><Matriculas /></PrivateRoute>} />
