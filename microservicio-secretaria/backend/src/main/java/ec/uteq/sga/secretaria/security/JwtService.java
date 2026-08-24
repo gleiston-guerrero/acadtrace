@@ -37,4 +37,15 @@ public class JwtService {
 
         return new AuthenticatedUser(username, roles);
     }
+
+    public String generateToken(String username, List<String> roles) {
+        long expirationMillis = 1000L * 60 * 60 * 24 * 7; // 7 días
+        return Jwts.builder()
+                .subject(username)
+                .claim("roles", roles)
+                .issuedAt(new java.util.Date())
+                .expiration(new java.util.Date(System.currentTimeMillis() + expirationMillis))
+                .signWith(key)
+                .compact();
+    }
 }
