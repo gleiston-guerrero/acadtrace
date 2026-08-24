@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/Toast';
 import Login from './pages/Login';
+import Portales from './pages/Portales';
 import Dashboard from './pages/Dashboard';
 import Estudiantes from './pages/Estudiantes';
 import Grados from './pages/Grados';
@@ -35,6 +36,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/portales" element={<Portales />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/estudiantes" element={<PrivateRoute><Estudiantes /></PrivateRoute>} />

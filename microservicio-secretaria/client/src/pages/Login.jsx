@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import logo from "../assets/logo.png";
@@ -23,20 +23,40 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", form);
       const data = res.data;
-      const roles = data.roles || ["SECRETARIO"];
+      const rawRoles = data.roles || [];
+      const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
+
+      const sesion = {
+        token: data.token,
+        idUsuario: data.idUsuario,
+        username: data.username || form.username,
+        roles: roles,
+        primerIngreso: data.primerIngreso || false,
+      };
 
       localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username || form.username);
+      localStorage.setItem("username", sesion.username);
       localStorage.setItem("roles", JSON.stringify(roles));
       if (data.idUsuario) localStorage.setItem("userId", String(data.idUsuario));
 
+      // Filtrar portales válidos del sistema
+      const portalesDisponibles = ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"]
+        .filter((rol) => roles.includes(rol));
+
+      // Si tiene más de un portal, ir a la pantalla de selección de portales
+      if (portalesDisponibles.length > 1) {
+        navigate("/portales", { state: sesion });
+        return;
+      }
+
+      // Si solo tiene un portal o es secretaria, ir al dashboard
       navigate("/dashboard");
     } catch (err) {
       console.error("Error en login:", err);
       if (err.response?.status === 401) {
         setError("Usuario o contraseña incorrectos");
       } else if (err.response?.status === 403) {
-        setError("Tu usuario no cuenta con permisos de Secretaría");
+        setError("Tu usuario no cuenta con un rol con acceso asignado");
       } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else if (err.response?.data?.message) {
@@ -50,10 +70,18 @@ export default function Login() {
   };
 
   const handleDevBypass = () => {
-    localStorage.setItem("token", "dev-token-secretaria-2026");
-    localStorage.setItem("username", "secretario");
-    localStorage.setItem("roles", JSON.stringify(["SECRETARIA", "ADMIN", "DIRECTOR"]));
-    navigate("/dashboard");
+    const sesion = {
+      token: "dev-token-secretaria-2026",
+      username: "admin_general",
+      roles: ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"],
+      idUsuario: 1,
+      primerIngreso: false,
+    };
+    localStorage.setItem("token", sesion.token);
+    localStorage.setItem("username", sesion.username);
+    localStorage.setItem("roles", JSON.stringify(sesion.roles));
+    localStorage.setItem("userId", "1");
+    navigate("/portales", { state: sesion });
   };
 
   return (
@@ -84,7 +112,7 @@ export default function Login() {
           </p>
           <p className="text-blue-300 text-xs mt-1">Rcto. San Basilio</p>
           <span className="inline-block mt-3 px-3 py-1 bg-white/15 text-blue-100 text-[10px] font-bold uppercase tracking-wider rounded-full border border-white/20">
-            Módulo de Secretaría
+            Sistema de Gestión Académica
           </span>
         </div>
 
@@ -193,14 +221,14 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Acceso Rápido / Bypass para desarrollo */}
+          {/* Acceso Rápido con 4 Roles para desarrollo */}
           <div className="mt-6 pt-4 border-t border-slate-100 text-center">
             <button
               type="button"
               onClick={handleDevBypass}
-              className="text-[11px] font-medium text-slate-400 hover:text-[#243A76] transition cursor-pointer underline underline-offset-2"
+              className="text-[11px] font-semibold text-[#243A76] hover:text-blue-900 transition cursor-pointer underline underline-offset-2"
             >
-              Acceso Rápido de Desarrollo (Secretario)
+              Ingresar con los 4 Roles (Ver Selector de Portales)
             </button>
           </div>
         </div>
