@@ -16,6 +16,7 @@ import Reportes from './pages/Reportes';
 import Representantes from './pages/Representantes';
 import ImportacionMasiva from './pages/ImportacionMasiva';
 import Historial from './pages/Historial';
+import AnosLectivos from './pages/AnosLectivos';
 import Auditoria from './pages/Auditoria';
 import { CambiarPassword } from './pages/Extras';
 
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/importacion-masiva" element={<PrivateRoute><ImportacionMasiva /></PrivateRoute>} />
         <Route path="/historial" element={<PrivateRoute><Historial /></PrivateRoute>} />
         <Route path="/calendario" element={<PrivateRoute><Calendario /></PrivateRoute>} />
+        <Route path="/anos-lectivos" element={<PrivateRoute><AnosLectivos /></PrivateRoute>} />
         <Route path="/auditoria" element={<PrivateRoute><Auditoria /></PrivateRoute>} />
         <Route path="/cambiar-password" element={<PrivateRoute><CambiarPassword /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

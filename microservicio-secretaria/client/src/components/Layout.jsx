@@ -113,9 +113,12 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                   ) : (
                     <p className="text-xs text-slate-400 text-center px-2">No hay año lectivo activo</p>
                   )}
-                  <p className="text-xs text-slate-400 text-center mt-2 px-2">
-                    Gestiona los años lectivos desde el módulo correspondiente
-                  </p>
+                  <button
+                    onClick={() => { setShowPeriodo(false); navigate('/anos-lectivos'); }}
+                    className="w-full mt-2 py-1.5 px-3 text-xs font-semibold text-[#243A76] bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition"
+                  >
+                    Administrar Años Lectivos →
+                  </button>
                 </div>
               </div>
             )}
