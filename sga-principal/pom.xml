@@ -17,6 +17,8 @@
     <properties>
         <java.version>21</java.version>
         <grpc.version>1.65.1</grpc.version>
+        <mainClass>ec.edu.uteq.sga.SgaPrincipalApplication</mainClass>
+        <start-class>ec.edu.uteq.sga.SgaPrincipalApplication</start-class>
     </properties>
 
     <dependencyManagement>
@@ -202,6 +204,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>ec.edu.uteq.sga.SgaPrincipalApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
