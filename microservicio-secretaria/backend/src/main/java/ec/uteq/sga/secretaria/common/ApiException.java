@@ -35,4 +35,8 @@ public class ApiException extends RuntimeException {
     public static ApiException badGateway(String message) {
         return new ApiException(502, message);
     }
+
+    public static ApiException internal(String message) {
+        return new ApiException(500, message);
+    }
 }
