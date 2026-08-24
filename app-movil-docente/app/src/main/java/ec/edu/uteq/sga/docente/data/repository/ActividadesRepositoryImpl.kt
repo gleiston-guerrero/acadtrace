@@ -1,0 +1,264 @@
+package ec.edu.uteq.sga.docente.data.repository
+
+import ec.edu.uteq.sga.docente.core.NetworkConnectivityObserver
+import ec.edu.uteq.sga.docente.core.Resource
+import ec.edu.uteq.sga.docente.data.local.AppDatabase
+import ec.edu.uteq.sga.docente.data.local.entity.ActividadEntity
+import ec.edu.uteq.sga.docente.data.remote.RetrofitClient
+import ec.edu.uteq.sga.docente.data.remote.dto.ActividadCreateDTO
+import ec.edu.uteq.sga.docente.data.sync.SyncManager
+import ec.edu.uteq.sga.docente.domain.model.ActividadAcademica
+import ec.edu.uteq.sga.docente.domain.repository.ActividadesRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+class ActividadesRepositoryImpl(
+    private val database: AppDatabase,
+    private val retrofitClient: RetrofitClient,
+    private val syncManager: SyncManager,
+    private val connectivityObserver: NetworkConnectivityObserver
+) : ActividadesRepository {
+
+    private val actividadDao = database.actividadDao()
+    private val docenteApi get() = retrofitClient.getDocenteApi()
+
+    override fun getActividades(
+        idAsignacion: Long,
+        idPeriodo: Long?
+    ): Flow<Resource<List<ActividadAcademica>>> = flow {
+        emit(Resource.Loading)
+
+        if (connectivityObserver.isCurrentlyConnected()) {
+            try {
+                val resp = docenteApi.getActividades(idAsignacion = idAsignacion, idPeriodo = idPeriodo)
+                if (resp.isSuccessful && resp.body() != null) {
+                    val entities = resp.body()!!.map { dto ->
+                        ActividadEntity(
+                            idActividad = dto.idActividad,
+                            idAsignacion = dto.idAsignacion,
+                            idPeriodo = dto.idPeriodo,
+                            tipo = dto.tipo,
+                            nombre = dto.nombre,
+                            descripcion = dto.descripcion,
+                            fechaEntrega = dto.fechaEntrega,
+                            ponderacion = dto.ponderacion,
+                            notaMaxima = dto.notaMaxima,
+                            esSumativa = dto.esSumativa,
+                            isPendingSync = false
+                        )
+                    }
+                    actividadDao.insertActividades(entities)
+                }
+            } catch (e: Exception) {
+                // Si falla la red, continuamos con Room
+            }
+        }
+
+        actividadDao.getActividades(idAsignacion, idPeriodo).map { list ->
+            val domainList = list.map { e ->
+                ActividadAcademica(
+                    idActividad = e.idActividad,
+                    idAsignacion = e.idAsignacion,
+                    idPeriodo = e.idPeriodo,
+                    tipo = e.tipo,
+                    nombre = e.nombre,
+                    descripcion = e.descripcion,
+                    fechaEntrega = e.fechaEntrega,
+                    ponderacion = e.ponderacion,
+                    notaMaxima = e.notaMaxima,
+                    esSumativa = e.esSumativa,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
+        }.collect { emit(it) }
+    }
+
+    override suspend fun createActividad(actividad: ActividadCreateDTO): Resource<ActividadAcademica> =
+        withContext(Dispatchers.IO) {
+            val isOnline = connectivityObserver.isCurrentlyConnected()
+            val tempId = -System.currentTimeMillis() // ID temporal negativo para identificarlo offline
+
+            val localEntity = ActividadEntity(
+                idActividad = tempId,
+                idAsignacion = actividad.idAsignacion,
+                idPeriodo = actividad.idPeriodo,
+                tipo = actividad.tipo,
+                nombre = actividad.nombre,
+                descripcion = actividad.descripcion,
+                fechaEntrega = actividad.fechaEntrega,
+                ponderacion = actividad.ponderacion,
+                notaMaxima = actividad.notaMaxima,
+                esSumativa = actividad.esSumativa,
+                isPendingSync = !isOnline
+            )
+
+            // Guardar localmente
+            actividadDao.insertActividad(localEntity)
+
+            if (isOnline) {
+                try {
+                    val resp = docenteApi.createActividad(actividad)
+                    if (resp.isSuccessful && resp.body() != null) {
+                        val serverDto = resp.body()!!
+                        val serverEntity = ActividadEntity(
+                            idActividad = serverDto.idActividad,
+                            idAsignacion = serverDto.idAsignacion,
+                            idPeriodo = serverDto.idPeriodo,
+                            tipo = serverDto.tipo,
+                            nombre = serverDto.nombre,
+                            descripcion = serverDto.descripcion,
+                            fechaEntrega = serverDto.fechaEntrega,
+                            ponderacion = serverDto.ponderacion,
+                            notaMaxima = serverDto.notaMaxima,
+                            esSumativa = serverDto.esSumativa,
+                            isPendingSync = false
+                        )
+                        actividadDao.deleteActividadById(tempId)
+                        actividadDao.insertActividad(serverEntity)
+                        return@withContext Resource.Success(
+                            ActividadAcademica(
+                                idActividad = serverDto.idActividad,
+                                idAsignacion = serverDto.idAsignacion,
+                                idPeriodo = serverDto.idPeriodo,
+                                tipo = serverDto.tipo,
+                                nombre = serverDto.nombre,
+                                descripcion = serverDto.descripcion,
+                                fechaEntrega = serverDto.fechaEntrega,
+                                ponderacion = serverDto.ponderacion,
+                                notaMaxima = serverDto.notaMaxima,
+                                esSumativa = serverDto.esSumativa,
+                                isPendingSync = false
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    // Falló la llamada a la API, encolar para sincronización
+                }
+            }
+
+            // Encolar en la tabla de sincronización offline
+            syncManager.enqueueOperation(
+                entityType = "ACTIVIDAD",
+                actionType = "CREATE",
+                localId = tempId,
+                payload = actividad
+            )
+
+            Resource.Success(
+                ActividadAcademica(
+                    idActividad = tempId,
+                    idAsignacion = actividad.idAsignacion,
+                    idPeriodo = actividad.idPeriodo,
+                    tipo = actividad.tipo,
+                    nombre = actividad.nombre,
+                    descripcion = actividad.descripcion,
+                    fechaEntrega = actividad.fechaEntrega,
+                    ponderacion = actividad.ponderacion,
+                    notaMaxima = actividad.notaMaxima,
+                    esSumativa = actividad.esSumativa,
+                    isPendingSync = true
+                ),
+                isOffline = true
+            )
+        }
+
+    override suspend fun updateActividad(id: Long, actividad: ActividadCreateDTO): Resource<ActividadAcademica> =
+        withContext(Dispatchers.IO) {
+            val isOnline = connectivityObserver.isCurrentlyConnected()
+
+            val updatedEntity = ActividadEntity(
+                idActividad = id,
+                idAsignacion = actividad.idAsignacion,
+                idPeriodo = actividad.idPeriodo,
+                tipo = actividad.tipo,
+                nombre = actividad.nombre,
+                descripcion = actividad.descripcion,
+                fechaEntrega = actividad.fechaEntrega,
+                ponderacion = actividad.ponderacion,
+                notaMaxima = actividad.notaMaxima,
+                esSumativa = actividad.esSumativa,
+                isPendingSync = !isOnline
+            )
+            actividadDao.insertActividad(updatedEntity)
+
+            if (isOnline) {
+                try {
+                    val resp = docenteApi.updateActividad(id, actividad)
+                    if (resp.isSuccessful && resp.body() != null) {
+                        return@withContext Resource.Success(
+                            ActividadAcademica(
+                                idActividad = id,
+                                idAsignacion = actividad.idAsignacion,
+                                idPeriodo = actividad.idPeriodo,
+                                tipo = actividad.tipo,
+                                nombre = actividad.nombre,
+                                descripcion = actividad.descripcion,
+                                fechaEntrega = actividad.fechaEntrega,
+                                ponderacion = actividad.ponderacion,
+                                notaMaxima = actividad.notaMaxima,
+                                esSumativa = actividad.esSumativa,
+                                isPendingSync = false
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    // Falló red
+                }
+            }
+
+            syncManager.enqueueOperation(
+                entityType = "ACTIVIDAD",
+                actionType = "UPDATE",
+                localId = id,
+                remoteId = id,
+                payload = actividad
+            )
+
+            Resource.Success(
+                ActividadAcademica(
+                    idActividad = id,
+                    idAsignacion = actividad.idAsignacion,
+                    idPeriodo = actividad.idPeriodo,
+                    tipo = actividad.tipo,
+                    nombre = actividad.nombre,
+                    descripcion = actividad.descripcion,
+                    fechaEntrega = actividad.fechaEntrega,
+                    ponderacion = actividad.ponderacion,
+                    notaMaxima = actividad.notaMaxima,
+                    esSumativa = actividad.esSumativa,
+                    isPendingSync = true
+                ),
+                isOffline = true
+            )
+        }
+
+    override suspend fun deleteActividad(id: Long): Resource<Unit> = withContext(Dispatchers.IO) {
+        val isOnline = connectivityObserver.isCurrentlyConnected()
+        actividadDao.deleteActividadById(id)
+
+        if (isOnline) {
+            try {
+                val resp = docenteApi.deleteActividad(id)
+                if (resp.isSuccessful) {
+                    return@withContext Resource.Success(Unit)
+                }
+            } catch (e: Exception) {
+                // Falló red
+            }
+        }
+
+        syncManager.enqueueOperation(
+            entityType = "ACTIVIDAD",
+            actionType = "DELETE",
+            localId = id,
+            remoteId = id,
+            payload = mapOf("id" to id)
+        )
+
+        Resource.Success(Unit, isOffline = true)
+    }
+}
