@@ -52,6 +52,11 @@ class SeguimientoViewModel(
     private var currentEstudiantes: List<Estudiante> = emptyList()
     private var currentResumenes: List<ResumenAsistencia> = emptyList()
 
+    private var loadAsignacionesJob: kotlinx.coroutines.Job? = null
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+    private var loadResumenJob: kotlinx.coroutines.Job? = null
+    private var loadSeguimientosJob: kotlinx.coroutines.Job? = null
+
     fun init(idMatricula: Long?) {
         loadPeriodos()
         loadAsignaciones(idMatricula)
@@ -72,7 +77,8 @@ class SeguimientoViewModel(
     }
 
     private fun loadAsignaciones(idMatricula: Long?) {
-        viewModelScope.launch {
+        loadAsignacionesJob?.cancel()
+        loadAsignacionesJob = viewModelScope.launch {
             docenteRepository.getAsignaciones().collect { res ->
                 if (res is Resource.Success && res.data.isNotEmpty()) {
                     _uiState.value = _uiState.value.copy(
@@ -86,7 +92,10 @@ class SeguimientoViewModel(
     }
 
     private fun loadEstudiantesYRendimiento(idAsignacion: Long) {
-        viewModelScope.launch {
+        if (idAsignacion <= 0) return
+
+        loadEstudiantesJob?.cancel()
+        loadEstudiantesJob = viewModelScope.launch {
             docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { resEst ->
                 if (resEst is Resource.Success) {
                     currentEstudiantes = resEst.data
@@ -95,7 +104,8 @@ class SeguimientoViewModel(
             }
         }
 
-        viewModelScope.launch {
+        loadResumenJob?.cancel()
+        loadResumenJob = viewModelScope.launch {
             asistenciasRepository.getResumenAsistencia(idAsignacion, null).collect { resAsis ->
                 if (resAsis is Resource.Success) {
                     currentResumenes = resAsis.data
@@ -136,7 +146,8 @@ class SeguimientoViewModel(
     }
 
     fun loadSeguimientos(idMatricula: Long?) {
-        viewModelScope.launch {
+        loadSeguimientosJob?.cancel()
+        loadSeguimientosJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             seguimientoRepository.getSeguimientos(idMatricula).collect { res ->
                 when (res) {

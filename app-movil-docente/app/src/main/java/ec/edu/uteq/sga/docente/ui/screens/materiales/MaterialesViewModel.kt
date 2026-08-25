@@ -65,9 +65,13 @@ class MaterialesViewModel(
         loadMateriales(asignacion.idAsignacion)
     }
 
+    private var loadMaterialesJob: kotlinx.coroutines.Job? = null
+
     fun loadMateriales(idAsignacion: Long) {
+        if (idAsignacion <= 0) return
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)
-        viewModelScope.launch {
+        loadMaterialesJob?.cancel()
+        loadMaterialesJob = viewModelScope.launch {
             materialesRepository.getMateriales(idAsignacion).collect { res ->
                 when (res) {
                     is Resource.Success -> {

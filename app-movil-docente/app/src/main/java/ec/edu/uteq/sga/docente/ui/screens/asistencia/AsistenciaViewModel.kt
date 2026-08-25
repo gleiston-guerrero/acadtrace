@@ -48,12 +48,15 @@ class AsistenciaViewModel(
     private var currentEstudiantes: List<Estudiante> = emptyList()
     private var currentAsistencias: List<AsistenciaRegistro> = emptyList()
 
+    private var loadDataJob: kotlinx.coroutines.Job? = null
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+
     fun init(idAsignacion: Long) {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val today = sdf.format(Date())
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, selectedFecha = today)
         loadAsignaciones(idAsignacion)
-        loadPeriodos(idAsignacion)
+        loadPeriodos()
     }
 
     private fun loadAsignaciones(idAsignacion: Long) {
@@ -84,7 +87,7 @@ class AsistenciaViewModel(
         loadData(asignacion.idAsignacion, _uiState.value.selectedFecha)
     }
 
-    private fun loadPeriodos(idAsignacion: Long) {
+    private fun loadPeriodos() {
         viewModelScope.launch {
             docenteRepository.getPeriodosEvaluacion().collect { res ->
                 if (res is Resource.Success) {
@@ -94,7 +97,6 @@ class AsistenciaViewModel(
                         periodos = periodos,
                         selectedPeriodo = current
                     )
-                    loadData(idAsignacion, _uiState.value.selectedFecha)
                 }
             }
         }
@@ -106,9 +108,11 @@ class AsistenciaViewModel(
     }
 
     fun loadData(idAsignacion: Long, fecha: String) {
+        if (idAsignacion <= 0) return
         _uiState.value = _uiState.value.copy(isLoading = true)
 
-        viewModelScope.launch {
+        loadEstudiantesJob?.cancel()
+        loadEstudiantesJob = viewModelScope.launch {
             docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res ->
                 if (res is Resource.Success) {
                     currentEstudiantes = res.data
@@ -117,7 +121,8 @@ class AsistenciaViewModel(
             }
         }
 
-        viewModelScope.launch {
+        loadDataJob?.cancel()
+        loadDataJob = viewModelScope.launch {
             asistenciasRepository.getAsistenciasPorFecha(idAsignacion, fecha).collect { res ->
                 when (res) {
                     is Resource.Success -> {

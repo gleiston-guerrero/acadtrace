@@ -11,6 +11,7 @@ import ec.edu.uteq.sga.docente.domain.model.ActividadAcademica
 import ec.edu.uteq.sga.docente.domain.repository.ActividadesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -31,6 +32,28 @@ class ActividadesRepositoryImpl(
     ): Flow<Resource<List<ActividadAcademica>>> = flow {
         emit(Resource.Loading)
 
+        // 1. Emitir caché local de inmediato si existe
+        val cached = actividadDao.getActividades(idAsignacion, idPeriodo).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                ActividadAcademica(
+                    idActividad = e.idActividad,
+                    idAsignacion = e.idAsignacion,
+                    idPeriodo = e.idPeriodo,
+                    tipo = e.tipo,
+                    nombre = e.nombre,
+                    descripcion = e.descripcion,
+                    fechaEntrega = e.fechaEntrega,
+                    ponderacion = e.ponderacion,
+                    notaMaxima = e.notaMaxima,
+                    esSumativa = e.esSumativa,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
+        // 2. Consultar red si hay conexión
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val resp = docenteApi.getActividades(idAsignacion = idAsignacion, idPeriodo = idPeriodo)
@@ -51,30 +74,32 @@ class ActividadesRepositoryImpl(
                         )
                     }
                     actividadDao.insertActividades(entities)
+
+                    val domainList = entities.map { e ->
+                        ActividadAcademica(
+                            idActividad = e.idActividad,
+                            idAsignacion = e.idAsignacion,
+                            idPeriodo = e.idPeriodo,
+                            tipo = e.tipo,
+                            nombre = e.nombre,
+                            descripcion = e.descripcion,
+                            fechaEntrega = e.fechaEntrega,
+                            ponderacion = e.ponderacion,
+                            notaMaxima = e.notaMaxima,
+                            esSumativa = e.esSumativa,
+                            isPendingSync = false
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Si falla la red, continuamos con Room
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar las actividades."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        actividadDao.getActividades(idAsignacion, idPeriodo).map { list ->
-            val domainList = list.map { e ->
-                ActividadAcademica(
-                    idActividad = e.idActividad,
-                    idAsignacion = e.idAsignacion,
-                    idPeriodo = e.idPeriodo,
-                    tipo = e.tipo,
-                    nombre = e.nombre,
-                    descripcion = e.descripcion,
-                    fechaEntrega = e.fechaEntrega,
-                    ponderacion = e.ponderacion,
-                    notaMaxima = e.notaMaxima,
-                    esSumativa = e.esSumativa,
-                    isPendingSync = e.isPendingSync
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun createActividad(actividad: ActividadCreateDTO): Resource<ActividadAcademica> =

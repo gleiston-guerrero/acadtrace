@@ -42,6 +42,9 @@ class CalificacionesViewModel(
     private var currentEstudiantes: List<Estudiante> = emptyList()
     private var currentCalificaciones: List<CalificacionEstudiante> = emptyList()
 
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+    private var loadCalificacionesJob: kotlinx.coroutines.Job? = null
+
     fun init(idActividad: Long, idAsignacion: Long, actividadNombre: String, notaMaxima: Double) {
         _uiState.value = _uiState.value.copy(
             idActividad = idActividad,
@@ -54,8 +57,11 @@ class CalificacionesViewModel(
     }
 
     private fun loadData(idActividad: Long, idAsignacion: Long) {
+        if (idActividad <= 0 || idAsignacion <= 0) return
+
         // Cargar Estudiantes
-        viewModelScope.launch {
+        loadEstudiantesJob?.cancel()
+        loadEstudiantesJob = viewModelScope.launch {
             docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res ->
                 if (res is Resource.Success) {
                     currentEstudiantes = res.data
@@ -65,7 +71,8 @@ class CalificacionesViewModel(
         }
 
         // Cargar Calificaciones
-        viewModelScope.launch {
+        loadCalificacionesJob?.cancel()
+        loadCalificacionesJob = viewModelScope.launch {
             calificacionesRepository.getCalificaciones(idActividad).collect { res ->
                 when (res) {
                     is Resource.Success -> {

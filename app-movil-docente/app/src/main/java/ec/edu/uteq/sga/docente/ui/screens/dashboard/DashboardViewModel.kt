@@ -50,8 +50,11 @@ class DashboardViewModel(
         }
     }
 
+    private var loadDataJob: kotlinx.coroutines.Job? = null
+
     fun loadData() {
-        viewModelScope.launch {
+        loadDataJob?.cancel()
+        loadDataJob = viewModelScope.launch {
             docenteRepository.getAsignaciones().collect { resource ->
                 when (resource) {
                     is Resource.Success -> {

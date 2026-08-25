@@ -11,6 +11,7 @@ import ec.edu.uteq.sga.docente.domain.model.AnuncioCurso
 import ec.edu.uteq.sga.docente.domain.repository.AnunciosRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -27,6 +28,22 @@ class AnunciosRepositoryImpl(
 
     override fun getAnuncios(idAsignacion: Long): Flow<Resource<List<AnuncioCurso>>> = flow {
         emit(Resource.Loading)
+
+        val cached = anuncioDao.getAnunciosByAsignacion(idAsignacion).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                AnuncioCurso(
+                    idAnuncio = e.idAnuncio,
+                    idAsignacion = e.idAsignacion,
+                    titulo = e.titulo,
+                    contenido = e.contenido,
+                    fecha = e.fecha,
+                    fijado = e.fijado,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
 
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
@@ -45,26 +62,28 @@ class AnunciosRepositoryImpl(
                         )
                     }
                     anuncioDao.insertAnuncios(entities)
+
+                    val domainList = entities.map { e ->
+                        AnuncioCurso(
+                            idAnuncio = e.idAnuncio,
+                            idAsignacion = e.idAsignacion,
+                            titulo = e.titulo,
+                            contenido = e.contenido,
+                            fecha = e.fecha,
+                            fijado = e.fijado,
+                            isPendingSync = false
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Room fallback
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar los anuncios."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        anuncioDao.getAnunciosByAsignacion(idAsignacion).map { list ->
-            val domainList = list.map { e ->
-                AnuncioCurso(
-                    idAnuncio = e.idAnuncio,
-                    idAsignacion = e.idAsignacion,
-                    titulo = e.titulo,
-                    contenido = e.contenido,
-                    fecha = e.fecha,
-                    fijado = e.fijado,
-                    isPendingSync = e.isPendingSync
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun createAnuncio(anuncio: AnuncioCreateDTO): Resource<AnuncioCurso> =

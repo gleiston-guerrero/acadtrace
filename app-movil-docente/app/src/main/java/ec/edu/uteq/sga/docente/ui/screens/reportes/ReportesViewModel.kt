@@ -46,10 +46,14 @@ class ReportesViewModel(
     private var currentTrimestrales: List<PromedioTrimestral> = emptyList()
     private var currentAnuales: List<PromedioAnual> = emptyList()
 
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+    private var loadTrimestralesJob: kotlinx.coroutines.Job? = null
+    private var loadAnualesJob: kotlinx.coroutines.Job? = null
+
     fun init(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)
         loadAsignaciones(idAsignacion)
-        loadPeriodos(idAsignacion)
+        loadPeriodos()
     }
 
     private fun loadAsignaciones(idAsignacion: Long) {
@@ -80,7 +84,7 @@ class ReportesViewModel(
         loadData(asignacion.idAsignacion)
     }
 
-    private fun loadPeriodos(idAsignacion: Long) {
+    private fun loadPeriodos() {
         viewModelScope.launch {
             docenteRepository.getPeriodosEvaluacion().collect { res ->
                 if (res is Resource.Success) {
@@ -88,7 +92,6 @@ class ReportesViewModel(
                         periodos = res.data,
                         selectedPeriodo = res.data.firstOrNull()
                     )
-                    loadData(idAsignacion)
                 }
             }
         }
@@ -105,8 +108,12 @@ class ReportesViewModel(
     }
 
     fun loadData(idAsignacion: Long) {
+        if (idAsignacion <= 0) return
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
         // Cargar Estudiantes
-        viewModelScope.launch {
+        loadEstudiantesJob?.cancel()
+        loadEstudiantesJob = viewModelScope.launch {
             docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res ->
                 if (res is Resource.Success) {
                     currentEstudiantes = res.data
@@ -116,7 +123,8 @@ class ReportesViewModel(
         }
 
         // Cargar Promedios Trimestrales
-        viewModelScope.launch {
+        loadTrimestralesJob?.cancel()
+        loadTrimestralesJob = viewModelScope.launch {
             promediosRepository.getPromediosTrimestrales(
                 idAsignacion,
                 _uiState.value.selectedPeriodo?.idPeriodo
@@ -130,7 +138,8 @@ class ReportesViewModel(
         }
 
         // Cargar Promedios Anuales
-        viewModelScope.launch {
+        loadAnualesJob?.cancel()
+        loadAnualesJob = viewModelScope.launch {
             promediosRepository.getPromediosAnuales(idAsignacion).collect { res ->
                 if (res is Resource.Success) {
                     currentAnuales = res.data

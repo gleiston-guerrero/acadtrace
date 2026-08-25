@@ -27,11 +27,16 @@ class CursosViewModel(
     private val _uiState = MutableStateFlow(DetalleCursoUiState())
     val uiState: StateFlow<DetalleCursoUiState> = _uiState.asStateFlow()
 
+    private var loadAsignacionJob: kotlinx.coroutines.Job? = null
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+
     fun loadCurso(idAsignacion: Long) {
+        if (idAsignacion <= 0) return
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)
 
         // 1. Cargar asignación (caché y red reactiva)
-        viewModelScope.launch {
+        loadAsignacionJob?.cancel()
+        loadAsignacionJob = viewModelScope.launch {
             docenteRepository.getAsignaciones().collect { res ->
                 if (res is Resource.Success) {
                     val curso = res.data.find { it.idAsignacion == idAsignacion }
@@ -46,7 +51,8 @@ class CursosViewModel(
         }
 
         // 2. Cargar nómina de estudiantes
-        viewModelScope.launch {
+        loadEstudiantesJob?.cancel()
+        loadEstudiantesJob = viewModelScope.launch {
             docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res ->
                 when (res) {
                     is Resource.Success -> {

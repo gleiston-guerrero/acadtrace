@@ -13,6 +13,7 @@ import ec.edu.uteq.sga.docente.domain.model.ResumenAsistencia
 import ec.edu.uteq.sga.docente.domain.repository.AsistenciasRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -34,6 +35,25 @@ class AsistenciasRepositoryImpl(
     ): Flow<Resource<List<AsistenciaRegistro>>> = flow {
         emit(Resource.Loading)
 
+        // 1. Emitir caché local de inmediato
+        val cached = asistenciaDao.getAsistenciasPorFecha(idAsignacion, fecha).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainCached = cached.map { e ->
+                AsistenciaRegistro(
+                    idAsistencia = e.idAsistencia,
+                    idMatricula = e.idMatricula,
+                    idAsignacion = e.idAsignacion,
+                    idPeriodo = e.idPeriodo,
+                    fecha = e.fecha,
+                    estado = e.estado,
+                    justificacion = e.justificacion,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            emit(Resource.Success(domainCached, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
+        // 2. Consultar red si hay conexión
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val resp = docenteApi.getAsistencias(idAsignacion = idAsignacion, fecha = fecha)
@@ -52,27 +72,29 @@ class AsistenciasRepositoryImpl(
                         )
                     }
                     asistenciaDao.insertAsistencias(entities)
+
+                    val domainList = entities.map { e ->
+                        AsistenciaRegistro(
+                            idAsistencia = e.idAsistencia,
+                            idMatricula = e.idMatricula,
+                            idAsignacion = e.idAsignacion,
+                            idPeriodo = e.idPeriodo,
+                            fecha = e.fecha,
+                            estado = e.estado,
+                            justificacion = e.justificacion,
+                            isPendingSync = false
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Continuar con Room
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudo cargar la asistencia para la fecha seleccionada."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        asistenciaDao.getAsistenciasPorFecha(idAsignacion, fecha).map { list ->
-            val domainList = list.map { e ->
-                AsistenciaRegistro(
-                    idAsistencia = e.idAsistencia,
-                    idMatricula = e.idMatricula,
-                    idAsignacion = e.idAsignacion,
-                    idPeriodo = e.idPeriodo,
-                    fecha = e.fecha,
-                    estado = e.estado,
-                    justificacion = e.justificacion,
-                    isPendingSync = e.isPendingSync
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun saveAsistencia(
@@ -170,6 +192,23 @@ class AsistenciasRepositoryImpl(
     ): Flow<Resource<List<ResumenAsistencia>>> = flow {
         emit(Resource.Loading)
 
+        val cached = resumenDao.getResumenesAsistencia(idAsignacion, idPeriodo).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                ResumenAsistencia(
+                    idResumen = e.idResumen,
+                    idMatricula = e.idMatricula,
+                    idAsignacion = e.idAsignacion,
+                    idPeriodo = e.idPeriodo,
+                    totalPresentes = e.totalPresentes,
+                    totalAusentes = e.totalAusentes,
+                    totalJustificados = e.totalJustificados,
+                    totalAtrasos = e.totalAtrasos
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val resp = docenteApi.getResumenAsistencia(idAsignacion = idAsignacion, idPeriodo = idPeriodo)
@@ -188,27 +227,29 @@ class AsistenciasRepositoryImpl(
                         )
                     }
                     resumenDao.insertResumenes(entities)
+
+                    val domainList = entities.map { e ->
+                        ResumenAsistencia(
+                            idResumen = e.idResumen,
+                            idMatricula = e.idMatricula,
+                            idAsignacion = e.idAsignacion,
+                            idPeriodo = e.idPeriodo,
+                            totalPresentes = e.totalPresentes,
+                            totalAusentes = e.totalAusentes,
+                            totalJustificados = e.totalJustificados,
+                            totalAtrasos = e.totalAtrasos
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Continuar con Room
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudo cargar el resumen de asistencias."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        resumenDao.getResumenesAsistencia(idAsignacion, idPeriodo).map { list ->
-            val domainList = list.map { e ->
-                ResumenAsistencia(
-                    idResumen = e.idResumen,
-                    idMatricula = e.idMatricula,
-                    idAsignacion = e.idAsignacion,
-                    idPeriodo = e.idPeriodo,
-                    totalPresentes = e.totalPresentes,
-                    totalAusentes = e.totalAusentes,
-                    totalJustificados = e.totalJustificados,
-                    totalAtrasos = e.totalAtrasos
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun calcularResumen(

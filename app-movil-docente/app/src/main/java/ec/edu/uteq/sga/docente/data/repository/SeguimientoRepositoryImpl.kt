@@ -11,6 +11,7 @@ import ec.edu.uteq.sga.docente.domain.model.SeguimientoItem
 import ec.edu.uteq.sga.docente.domain.repository.SeguimientoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -27,6 +28,30 @@ class SeguimientoRepositoryImpl(
 
     override fun getSeguimientos(idMatricula: Long?): Flow<Resource<List<SeguimientoItem>>> = flow {
         emit(Resource.Loading)
+
+        val flowQuery = if (idMatricula != null) {
+            seguimientoDao.getSeguimientosByMatricula(idMatricula)
+        } else {
+            seguimientoDao.getAllSeguimientos()
+        }
+
+        val cached = flowQuery.firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                SeguimientoItem(
+                    idSeguimiento = e.idSeguimiento,
+                    idMatricula = e.idMatricula,
+                    idPeriodo = e.idPeriodo,
+                    categoria = e.categoria,
+                    descripcion = e.descripcion,
+                    accionesTomadas = e.accionesTomadas,
+                    requiereFollowup = e.requiereFollowup,
+                    fechaEvento = e.fechaEvento,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
 
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
@@ -48,34 +73,30 @@ class SeguimientoRepositoryImpl(
                         )
                     }
                     seguimientoDao.insertSeguimientos(entities)
+
+                    val domainList = entities.map { e ->
+                        SeguimientoItem(
+                            idSeguimiento = e.idSeguimiento,
+                            idMatricula = e.idMatricula,
+                            idPeriodo = e.idPeriodo,
+                            categoria = e.categoria,
+                            descripcion = e.descripcion,
+                            accionesTomadas = e.accionesTomadas,
+                            requiereFollowup = e.requiereFollowup,
+                            fechaEvento = e.fechaEvento,
+                            isPendingSync = false
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Room fallback
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar los registros de seguimiento."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        val flowQuery = if (idMatricula != null) {
-            seguimientoDao.getSeguimientosByMatricula(idMatricula)
-        } else {
-            seguimientoDao.getAllSeguimientos()
-        }
-
-        flowQuery.map { list ->
-            val domainList = list.map { e ->
-                SeguimientoItem(
-                    idSeguimiento = e.idSeguimiento,
-                    idMatricula = e.idMatricula,
-                    idPeriodo = e.idPeriodo,
-                    categoria = e.categoria,
-                    descripcion = e.descripcion,
-                    accionesTomadas = e.accionesTomadas,
-                    requiereFollowup = e.requiereFollowup,
-                    fechaEvento = e.fechaEvento,
-                    isPendingSync = e.isPendingSync
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun createSeguimiento(seguimiento: SeguimientoCreateDTO): Resource<SeguimientoItem> =

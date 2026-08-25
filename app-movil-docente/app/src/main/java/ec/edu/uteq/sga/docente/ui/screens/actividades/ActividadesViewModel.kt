@@ -38,10 +38,12 @@ class ActividadesViewModel(
     private val _uiState = MutableStateFlow(ActividadesUiState())
     val uiState: StateFlow<ActividadesUiState> = _uiState.asStateFlow()
 
+    private var loadActividadesJob: kotlinx.coroutines.Job? = null
+
     fun init(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion)
         loadAsignaciones(idAsignacion)
-        loadPeriodos(idAsignacion)
+        loadPeriodos()
     }
 
     private fun loadAsignaciones(idAsignacion: Long) {
@@ -72,7 +74,7 @@ class ActividadesViewModel(
         loadActividades(asignacion.idAsignacion, _uiState.value.selectedPeriodo?.idPeriodo)
     }
 
-    private fun loadPeriodos(idAsignacion: Long) {
+    private fun loadPeriodos() {
         viewModelScope.launch {
             docenteRepository.getPeriodosEvaluacion().collect { res ->
                 if (res is Resource.Success) {
@@ -82,7 +84,6 @@ class ActividadesViewModel(
                         periodos = periodos,
                         selectedPeriodo = current
                     )
-                    loadActividades(_uiState.value.idAsignacion, current?.idPeriodo)
                 }
             }
         }
@@ -94,7 +95,11 @@ class ActividadesViewModel(
     }
 
     fun loadActividades(idAsignacion: Long, idPeriodo: Long?) {
-        viewModelScope.launch {
+        if (idAsignacion <= 0) return
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
+        loadActividadesJob?.cancel()
+        loadActividadesJob = viewModelScope.launch {
             actividadesRepository.getActividades(idAsignacion, idPeriodo).collect { res ->
                 when (res) {
                     is Resource.Success -> {

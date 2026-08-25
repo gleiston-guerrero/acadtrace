@@ -11,6 +11,7 @@ import ec.edu.uteq.sga.docente.domain.model.PromedioTrimestral
 import ec.edu.uteq.sga.docente.domain.repository.PromediosRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -30,6 +31,23 @@ class PromediosRepositoryImpl(
     ): Flow<Resource<List<PromedioTrimestral>>> = flow {
         emit(Resource.Loading)
 
+        val cached = promediosDao.getPromediosTrimestrales(idAsignacion, idPeriodo).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                PromedioTrimestral(
+                    idPromedio = e.idPromedio,
+                    idMatricula = e.idMatricula,
+                    idAsignacion = e.idAsignacion,
+                    idPeriodo = e.idPeriodo,
+                    promedioFormativo = e.promedioFormativo,
+                    notaSumativa = e.notaSumativa,
+                    promedioTrimestral = e.promedioTrimestral,
+                    notaCualitativa = e.notaCualitativa
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val resp = docenteApi.getPromediosTrimestrales(idAsignacion = idAsignacion, idPeriodo = idPeriodo)
@@ -48,27 +66,29 @@ class PromediosRepositoryImpl(
                         )
                     }
                     promediosDao.insertPromediosTrimestrales(entities)
+
+                    val domainList = entities.map { e ->
+                        PromedioTrimestral(
+                            idPromedio = e.idPromedio,
+                            idMatricula = e.idMatricula,
+                            idAsignacion = e.idAsignacion,
+                            idPeriodo = e.idPeriodo,
+                            promedioFormativo = e.promedioFormativo,
+                            notaSumativa = e.notaSumativa,
+                            promedioTrimestral = e.promedioTrimestral,
+                            notaCualitativa = e.notaCualitativa
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Continuar con Room
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar los promedios trimestrales."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        promediosDao.getPromediosTrimestrales(idAsignacion, idPeriodo).map { list ->
-            val domainList = list.map { e ->
-                PromedioTrimestral(
-                    idPromedio = e.idPromedio,
-                    idMatricula = e.idMatricula,
-                    idAsignacion = e.idAsignacion,
-                    idPeriodo = e.idPeriodo,
-                    promedioFormativo = e.promedioFormativo,
-                    notaSumativa = e.notaSumativa,
-                    promedioTrimestral = e.promedioTrimestral,
-                    notaCualitativa = e.notaCualitativa
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun calcularPromedioTrimestral(
@@ -110,6 +130,21 @@ class PromediosRepositoryImpl(
     override fun getPromediosAnuales(idAsignacion: Long): Flow<Resource<List<PromedioAnual>>> = flow {
         emit(Resource.Loading)
 
+        val cached = promediosDao.getPromediosAnuales(idAsignacion).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                PromedioAnual(
+                    idPromedioAnual = e.idPromedioAnual,
+                    idMatricula = e.idMatricula,
+                    idAsignacion = e.idAsignacion,
+                    idAnoLectivo = e.idAnoLectivo,
+                    promedioAnual = e.promedioAnual,
+                    notaCualitativa = e.notaCualitativa
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val resp = docenteApi.getPromediosAnuales(idAsignacion = idAsignacion)
@@ -127,25 +162,27 @@ class PromediosRepositoryImpl(
                         )
                     }
                     promediosDao.insertPromediosAnuales(entities)
+
+                    val domainList = entities.map { e ->
+                        PromedioAnual(
+                            idPromedioAnual = e.idPromedioAnual,
+                            idMatricula = e.idMatricula,
+                            idAsignacion = e.idAsignacion,
+                            idAnoLectivo = e.idAnoLectivo,
+                            promedioAnual = e.promedioAnual,
+                            notaCualitativa = e.notaCualitativa
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Room fallback
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar los promedios anuales."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        promediosDao.getPromediosAnuales(idAsignacion).map { list ->
-            val domainList = list.map { e ->
-                PromedioAnual(
-                    idPromedioAnual = e.idPromedioAnual,
-                    idMatricula = e.idMatricula,
-                    idAsignacion = e.idAsignacion,
-                    idAnoLectivo = e.idAnoLectivo,
-                    promedioAnual = e.promedioAnual,
-                    notaCualitativa = e.notaCualitativa
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun calcularPromedioAnual(

@@ -35,9 +35,12 @@ class HorarioViewModel(
         _uiState.value = _uiState.value.copy(selectedDia = dia)
     }
 
+    private var loadHorarioJob: kotlinx.coroutines.Job? = null
+
     fun loadHorario() {
         val idPersona = sessionManager.getIdPersona()
-        viewModelScope.launch {
+        loadHorarioJob?.cancel()
+        loadHorarioJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             horarioRepository.getHorarios(idPersona = idPersona).collect { res ->
                 when (res) {

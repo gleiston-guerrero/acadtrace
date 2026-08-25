@@ -11,6 +11,7 @@ import ec.edu.uteq.sga.docente.domain.model.MaterialCurso
 import ec.edu.uteq.sga.docente.domain.repository.MaterialesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -27,6 +28,24 @@ class MaterialesRepositoryImpl(
 
     override fun getMateriales(idAsignacion: Long): Flow<Resource<List<MaterialCurso>>> = flow {
         emit(Resource.Loading)
+
+        val cached = materialDao.getMaterialesByAsignacion(idAsignacion).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                MaterialCurso(
+                    idMaterial = e.idMaterial,
+                    idAsignacion = e.idAsignacion,
+                    tipo = e.tipo,
+                    titulo = e.titulo,
+                    descripcion = e.descripcion,
+                    url = e.url,
+                    tamanoBytes = e.tamanoBytes,
+                    fecha = e.fecha,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
 
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
@@ -46,28 +65,30 @@ class MaterialesRepositoryImpl(
                         )
                     }
                     materialDao.insertMateriales(entities)
+
+                    val domainList = entities.map { e ->
+                        MaterialCurso(
+                            idMaterial = e.idMaterial,
+                            idAsignacion = e.idAsignacion,
+                            tipo = e.tipo,
+                            titulo = e.titulo,
+                            descripcion = e.descripcion,
+                            url = e.url,
+                            tamanoBytes = e.tamanoBytes,
+                            fecha = e.fecha,
+                            isPendingSync = false
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Room fallback
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar los materiales."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        materialDao.getMaterialesByAsignacion(idAsignacion).map { list ->
-            val domainList = list.map { e ->
-                MaterialCurso(
-                    idMaterial = e.idMaterial,
-                    idAsignacion = e.idAsignacion,
-                    tipo = e.tipo,
-                    titulo = e.titulo,
-                    descripcion = e.descripcion,
-                    url = e.url,
-                    tamanoBytes = e.tamanoBytes,
-                    fecha = e.fecha,
-                    isPendingSync = e.isPendingSync
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun createMaterial(material: MaterialCreateDTO): Resource<MaterialCurso> =

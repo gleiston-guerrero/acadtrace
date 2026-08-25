@@ -67,9 +67,13 @@ class AnunciosViewModel(
         loadAnuncios(asignacion.idAsignacion)
     }
 
+    private var loadAnunciosJob: kotlinx.coroutines.Job? = null
+
     fun loadAnuncios(idAsignacion: Long) {
+        if (idAsignacion <= 0) return
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)
-        viewModelScope.launch {
+        loadAnunciosJob?.cancel()
+        loadAnunciosJob = viewModelScope.launch {
             anunciosRepository.getAnuncios(idAsignacion).collect { res ->
                 when (res) {
                     is Resource.Success -> {

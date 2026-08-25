@@ -1,9 +1,18 @@
 package ec.edu.uteq.sga.docente.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "asignaciones")
+@Entity(
+    tableName = "asignaciones",
+    indices = [
+        Index(value = ["asignaturaId"]),
+        Index(value = ["gradoId"]),
+        Index(value = ["paraleloId"]),
+        Index(value = ["anoLectivoId"])
+    ]
+)
 data class AsignacionEntity(
     @PrimaryKey val idAsignacion: Long,
     val asignaturaId: Long,
@@ -22,7 +31,12 @@ data class AsignacionEntity(
 
 @Entity(
     tableName = "estudiantes",
-    primaryKeys = ["idMatricula", "idAsignacion"]
+    primaryKeys = ["idMatricula", "idAsignacion"],
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["estudianteId"]),
+        Index(value = ["cedula"])
+    ]
 )
 data class EstudianteEntity(
     val idMatricula: Long,
@@ -35,7 +49,13 @@ data class EstudianteEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "periodos")
+@Entity(
+    tableName = "periodos",
+    indices = [
+        Index(value = ["idAnoLectivo"]),
+        Index(value = ["activo"])
+    ]
+)
 data class PeriodoEntity(
     @PrimaryKey val idPeriodo: Long,
     val idAnoLectivo: Long,
@@ -46,7 +66,15 @@ data class PeriodoEntity(
     val activo: Boolean = true
 )
 
-@Entity(tableName = "actividades")
+@Entity(
+    tableName = "actividades",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["idPeriodo"]),
+        Index(value = ["idAsignacion", "idPeriodo"]),
+        Index(value = ["isPendingSync"])
+    ]
+)
 data class ActividadEntity(
     @PrimaryKey val idActividad: Long, // Puede ser id temporal negativo para creadas offline
     val idAsignacion: Long,
@@ -62,7 +90,15 @@ data class ActividadEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "calificaciones")
+@Entity(
+    tableName = "calificaciones",
+    indices = [
+        Index(value = ["idActividad"]),
+        Index(value = ["idMatricula"]),
+        Index(value = ["idActividad", "idMatricula"]),
+        Index(value = ["isPendingSync"])
+    ]
+)
 data class CalificacionEntity(
     @PrimaryKey val idCalificacion: Long, // Id temporal negativo si es offline
     val idActividad: Long,
@@ -76,7 +112,16 @@ data class CalificacionEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "asistencias")
+@Entity(
+    tableName = "asistencias",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["idMatricula"]),
+        Index(value = ["idAsignacion", "fecha"]),
+        Index(value = ["idMatricula", "idAsignacion", "fecha"]),
+        Index(value = ["isPendingSync"])
+    ]
+)
 data class AsistenciaEntity(
     @PrimaryKey val idAsistencia: Long, // Id temporal negativo si es offline
     val idMatricula: Long,
@@ -90,7 +135,14 @@ data class AsistenciaEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "resumenes_asistencia")
+@Entity(
+    tableName = "resumenes_asistencia",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["idMatricula"]),
+        Index(value = ["idAsignacion", "idPeriodo"])
+    ]
+)
 data class ResumenAsistenciaEntity(
     @PrimaryKey val idResumen: Long,
     val idMatricula: Long,
@@ -103,7 +155,14 @@ data class ResumenAsistenciaEntity(
     val calculadoEn: String? = null
 )
 
-@Entity(tableName = "promedios_trimestrales")
+@Entity(
+    tableName = "promedios_trimestrales",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["idMatricula"]),
+        Index(value = ["idAsignacion", "idPeriodo"])
+    ]
+)
 data class PromedioTrimestralEntity(
     @PrimaryKey val idPromedio: Long,
     val idMatricula: Long,
@@ -116,7 +175,14 @@ data class PromedioTrimestralEntity(
     val calculadoEn: String? = null
 )
 
-@Entity(tableName = "promedios_anuales")
+@Entity(
+    tableName = "promedios_anuales",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["idMatricula"]),
+        Index(value = ["idAsignacion", "idAnoLectivo"])
+    ]
+)
 data class PromedioAnualEntity(
     @PrimaryKey val idPromedioAnual: Long,
     val idMatricula: Long,
@@ -128,7 +194,15 @@ data class PromedioAnualEntity(
     val calculadoEn: String? = null
 )
 
-@Entity(tableName = "seguimiento_academico")
+@Entity(
+    tableName = "seguimiento_academico",
+    indices = [
+        Index(value = ["idMatricula"]),
+        Index(value = ["idPeriodo"]),
+        Index(value = ["fechaEvento"]),
+        Index(value = ["isPendingSync"])
+    ]
+)
 data class SeguimientoEntity(
     @PrimaryKey val idSeguimiento: Long,
     val idMatricula: Long,
@@ -144,7 +218,15 @@ data class SeguimientoEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "anuncios")
+@Entity(
+    tableName = "anuncios",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["fijado"]),
+        Index(value = ["fecha"]),
+        Index(value = ["isPendingSync"])
+    ]
+)
 data class AnuncioEntity(
     @PrimaryKey val idAnuncio: Long,
     val idAsignacion: Long,
@@ -157,7 +239,14 @@ data class AnuncioEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "materiales")
+@Entity(
+    tableName = "materiales",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["fecha"]),
+        Index(value = ["isPendingSync"])
+    ]
+)
 data class MaterialEntity(
     @PrimaryKey val idMaterial: Long,
     val idAsignacion: Long,
@@ -171,7 +260,13 @@ data class MaterialEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "horarios")
+@Entity(
+    tableName = "horarios",
+    indices = [
+        Index(value = ["idAsignacion"]),
+        Index(value = ["diaSemana"])
+    ]
+)
 data class HorarioEntity(
     @PrimaryKey val idHorario: Long,
     val idAsignacion: Long,
@@ -187,7 +282,14 @@ data class HorarioEntity(
 )
 
 // ─── COLA DE SINCRONIZACIÓN OFFLINE ────────────────────────────────────
-@Entity(tableName = "pending_sync")
+@Entity(
+    tableName = "pending_sync",
+    indices = [
+        Index(value = ["entityType"]),
+        Index(value = ["actionType"]),
+        Index(value = ["createdAt"])
+    ]
+)
 data class PendingSyncEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val entityType: String, // ACTIVIDAD, CALIFICACION, ASISTENCIA, SEGUIMIENTO, ANUNCIO, MATERIAL

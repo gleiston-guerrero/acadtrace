@@ -13,6 +13,7 @@ import ec.edu.uteq.sga.docente.domain.repository.CalificacionesRepository
 import ec.edu.uteq.sga.docente.domain.rules.AcademicRules
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -30,6 +31,24 @@ class CalificacionesRepositoryImpl(
     override fun getCalificaciones(idActividad: Long): Flow<Resource<List<CalificacionEstudiante>>> = flow {
         emit(Resource.Loading)
 
+        // 1. Emitir caché local de inmediato si existe
+        val cached = calificacionDao.getCalificacionesByActividad(idActividad).firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                CalificacionEstudiante(
+                    idCalificacion = e.idCalificacion,
+                    idActividad = e.idActividad,
+                    idMatricula = e.idMatricula,
+                    nota = e.nota,
+                    notaCualitativa = e.notaCualitativa,
+                    observacion = e.observacion,
+                    isPendingSync = e.isPendingSync
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
+        // 2. Consultar red si hay conexión
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val resp = docenteApi.getCalificaciones(idActividad = idActividad)
@@ -48,26 +67,28 @@ class CalificacionesRepositoryImpl(
                         )
                     }
                     calificacionDao.insertCalificaciones(entities)
+
+                    val domainList = entities.map { e ->
+                        CalificacionEstudiante(
+                            idCalificacion = e.idCalificacion,
+                            idActividad = e.idActividad,
+                            idMatricula = e.idMatricula,
+                            nota = e.nota,
+                            notaCualitativa = e.notaCualitativa,
+                            observacion = e.observacion,
+                            isPendingSync = false
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
                 }
             } catch (e: Exception) {
-                // Fallo red -> continuar con Room
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar las calificaciones."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        calificacionDao.getCalificacionesByActividad(idActividad).map { list ->
-            val domainList = list.map { e ->
-                CalificacionEstudiante(
-                    idCalificacion = e.idCalificacion,
-                    idActividad = e.idActividad,
-                    idMatricula = e.idMatricula,
-                    nota = e.nota,
-                    notaCualitativa = e.notaCualitativa,
-                    observacion = e.observacion,
-                    isPendingSync = e.isPendingSync
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun saveCalificacion(

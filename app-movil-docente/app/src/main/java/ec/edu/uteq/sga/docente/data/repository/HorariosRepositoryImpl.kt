@@ -9,8 +9,8 @@ import ec.edu.uteq.sga.docente.domain.model.HorarioItem
 import ec.edu.uteq.sga.docente.domain.repository.HorarioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class HorariosRepositoryImpl(
@@ -25,6 +25,34 @@ class HorariosRepositoryImpl(
     override fun getHorarios(idPersona: Long?, idAsignacion: Long?): Flow<Resource<List<HorarioItem>>> = flow {
         emit(Resource.Loading)
 
+        // 1. Emitir caché local de inmediato si existe
+        val flowQuery = if (idAsignacion != null) {
+            horarioDao.getHorarioByAsignacion(idAsignacion)
+        } else {
+            horarioDao.getHorarioCompleto()
+        }
+
+        val cached = flowQuery.firstOrNull() ?: emptyList()
+        if (cached.isNotEmpty()) {
+            val domainList = cached.map { e ->
+                HorarioItem(
+                    idHorario = e.idHorario,
+                    idAsignacion = e.idAsignacion,
+                    diaSemana = e.diaSemana,
+                    idPeriodo = e.idPeriodo,
+                    horaInicio = e.horaInicio,
+                    horaFin = e.horaFin,
+                    aula = e.aula,
+                    asignatura = e.asignatura,
+                    docente = e.docente,
+                    grado = e.grado,
+                    paralelo = e.paralelo
+                )
+            }
+            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))
+        }
+
+        // 2. Consultar red si hay conexión
         if (connectivityObserver.isCurrentlyConnected()) {
             try {
                 val allEntities = mutableListOf<HorarioEntity>()
@@ -83,36 +111,34 @@ class HorariosRepositoryImpl(
                     val distinctEntities = allEntities.distinctBy { it.idHorario }
                     horarioDao.clearHorarios()
                     horarioDao.insertHorarios(distinctEntities)
+
+                    val domainList = distinctEntities.map { e ->
+                        HorarioItem(
+                            idHorario = e.idHorario,
+                            idAsignacion = e.idAsignacion,
+                            diaSemana = e.diaSemana,
+                            idPeriodo = e.idPeriodo,
+                            horaInicio = e.horaInicio,
+                            horaFin = e.horaFin,
+                            aula = e.aula,
+                            asignatura = e.asignatura,
+                            docente = e.docente,
+                            grado = e.grado,
+                            paralelo = e.paralelo
+                        )
+                    }
+                    emit(Resource.Success(domainList, isOffline = false))
+                } else if (cached.isEmpty()) {
+                    emit(Resource.Success(emptyList(), isOffline = false))
                 }
             } catch (e: Exception) {
-                // Fallback a base de datos local Room
+                if (cached.isEmpty()) {
+                    emit(Resource.Error("No se pudieron cargar los horarios."))
+                }
             }
+        } else if (cached.isEmpty()) {
+            emit(Resource.Error("Sin conexión a Internet."))
         }
-
-        val flowQuery = if (idAsignacion != null) {
-            horarioDao.getHorarioByAsignacion(idAsignacion)
-        } else {
-            horarioDao.getHorarioCompleto()
-        }
-
-        flowQuery.map { list ->
-            val domainList = list.map { e ->
-                HorarioItem(
-                    idHorario = e.idHorario,
-                    idAsignacion = e.idAsignacion,
-                    diaSemana = e.diaSemana,
-                    idPeriodo = e.idPeriodo,
-                    horaInicio = e.horaInicio,
-                    horaFin = e.horaFin,
-                    aula = e.aula,
-                    asignatura = e.asignatura,
-                    docente = e.docente,
-                    grado = e.grado,
-                    paralelo = e.paralelo
-                )
-            }
-            Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected())
-        }.collect { emit(it) }
     }
 
     override suspend fun refreshHorarios(idPersona: Long): Resource<Unit> = withContext(Dispatchers.IO) {
