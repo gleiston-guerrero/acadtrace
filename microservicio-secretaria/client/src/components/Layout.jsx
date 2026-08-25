@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiPrincipal } from '../utils/api';
 import { useConfirm } from './Toast';
 import logo from '../assets/logo.png';
+import AsistenteIaSecretaria from './AsistenteIaSecretaria';
 
 const PRIMARY = '#243A76';
 const PRIMARY_LIGHT = '#2d4a96';
@@ -294,10 +295,13 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
         </main>
       </div>
 
-      {/* FOOTER — FIJO */}
+      {/* Footer Fijo */}
       <footer style={{ backgroundColor: PRIMARY }} className="fixed bottom-0 left-0 right-0 text-white text-opacity-80 text-xs text-center py-2 z-40">
         Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
       </footer>
+
+      {/* Widget Asistente IA Secretaría */}
+      <AsistenteIaSecretaria />
 
       {/* Overlay */}
       {(showPeriodo || showUserMenu || showNotifs) && (
