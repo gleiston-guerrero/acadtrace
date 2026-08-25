@@ -70,7 +70,7 @@ export default function Grados() {
   const [modalSesionGrados, setModalSesionGrados] = useState(null);
   const [errorMicroservicio, setErrorMicroservicio] = useState(false);
 
-  const DJANGO_REST = "http://localhost:8081/api/docente";
+  const DJANGO_REST = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8081/api/docente`;
 
   // Consolidado de notas/asistencia del curso (para los paneles Notas y Asistencia).
   useEffect(() => {
