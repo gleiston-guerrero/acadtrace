@@ -28,6 +28,10 @@ export default function Promocion() {
   const [nomina, setNomina] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [limitePorPagina, setLimitePorPagina] = useState(25);
+
   // Selección múltiple para acciones en lote
   const [seleccionados, setSeleccionados] = useState([]);
 
@@ -48,6 +52,44 @@ export default function Promocion() {
 
   const toast = useToast();
   const confirm = useConfirm();
+
+  // Reset de página al cambiar filtros
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, gradoSel, paraleloSel, estadoSel, anoSel]);
+
+  // Exportar a Excel (CSV)
+  const exportarCSV = () => {
+    if (nomina.length === 0) {
+      toast.warning('No hay datos para exportar');
+      return;
+    }
+    const headers = ['Estudiante', 'Código', 'Cédula', 'Grado', 'Paralelo', 'Promedio Anual', 'Estado Promoción', 'Observaciones', 'Registrado Por', 'Fecha Registro'];
+    const rows = nomina.map(n => [
+      `"${(n.estudiante || '').replace(/"/g, '""')}"`,
+      `"${(n.codigo_estudiante || '').replace(/"/g, '""')}"`,
+      `"${(n.cedula || '').replace(/"/g, '""')}"`,
+      `"${(n.grado || '').replace(/"/g, '""')}"`,
+      `"${(n.paralelo || '').replace(/"/g, '""')}"`,
+      n.promedio_anual != null ? Number(n.promedio_anual).toFixed(2) : '',
+      `"${n.resultado || 'PENDIENTE'}"`,
+      `"${(n.observaciones || '').replace(/"/g, '""')}"`,
+      `"${(n.registrado_por || '').replace(/"/g, '""')}"`,
+      `"${n.fecha_registro ? n.fecha_registro.slice(0, 10) : ''}"`
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    const anoActual = anos.find(a => String(a.idAnoLectivo) === String(anoSel))?.nombre || 'ano';
+    link.setAttribute('download', `Nomina_Promocion_${anoActual.replace(/\s+/g, '_')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Archivo CSV descargado correctamente');
+  };
 
   // Cargar catálogos iniciales
   useEffect(() => {
@@ -129,6 +171,19 @@ export default function Promocion() {
 
     return { total, promovidos, noPromovidos, retirados, pendientes, promedioGen };
   }, [nomina]);
+
+  // Paginación calculada
+  const totalPaginas = useMemo(() => {
+    if (limitePorPagina === 'todos' || !limitePorPagina) return 1;
+    return Math.max(1, Math.ceil(nomina.length / Number(limitePorPagina)));
+  }, [nomina.length, limitePorPagina]);
+
+  const nominaPaginada = useMemo(() => {
+    if (limitePorPagina === 'todos') return nomina;
+    const lim = Number(limitePorPagina) || 25;
+    const inicio = (paginaActual - 1) * lim;
+    return nomina.slice(inicio, inicio + lim);
+  }, [nomina, paginaActual, limitePorPagina]);
 
   // Handlers para selección múltiple
   const toggleSeleccion = (idMatricula) => {
@@ -482,6 +537,17 @@ export default function Promocion() {
 
             {/* BOTONES DE ACCIÓN */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={exportarCSV}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs hover:bg-slate-700 transition"
+                title="Descargar nómina en formato CSV para Excel"
+              >
+                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Exportar CSV</span>
+              </button>
+
               {seleccionados.length > 0 && (
                 <button
                   onClick={() => setModalMasivo(true)}
@@ -527,7 +593,7 @@ export default function Promocion() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {nomina.map((item, i) => {
+                  {nominaPaginada.map((item, i) => {
                     const isSelected = seleccionados.includes(item.id_matricula);
                     const tienePromocion = Boolean(item.id_historial);
 
@@ -627,6 +693,86 @@ export default function Promocion() {
                 </tbody>
               </table>
             </div>
+
+            {/* BARRA DE PAGINACIÓN */}
+            {nomina.length > 0 && (
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+                <div className="flex items-center gap-2">
+                  <span>
+                    Mostrando{' '}
+                    <strong>
+                      {limitePorPagina === 'todos'
+                        ? 1
+                        : Math.min(nomina.length, (paginaActual - 1) * Number(limitePorPagina) + 1)}
+                    </strong>{' '}
+                    a{' '}
+                    <strong>
+                      {limitePorPagina === 'todos'
+                        ? nomina.length
+                        : Math.min(nomina.length, paginaActual * Number(limitePorPagina))}
+                    </strong>{' '}
+                    de <strong>{nomina.length}</strong> estudiantes
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400">Por página:</span>
+                    <select
+                      value={limitePorPagina}
+                      onChange={e => {
+                        setLimitePorPagina(e.target.value === 'todos' ? 'todos' : Number(e.target.value));
+                        setPaginaActual(1);
+                      }}
+                      className="px-2 py-1 border border-slate-200 rounded-lg bg-white font-medium text-slate-700 focus:outline-none"
+                    >
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value="todos">Todos ({nomina.length})</option>
+                    </select>
+                  </div>
+
+                  {limitePorPagina !== 'todos' && totalPaginas > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setPaginaActual(1)}
+                        disabled={paginaActual === 1}
+                        className="px-2.5 py-1 border border-slate-200 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold"
+                        title="Primera página"
+                      >
+                        «
+                      </button>
+                      <button
+                        onClick={() => setPaginaActual(prev => Math.max(1, prev - 1))}
+                        disabled={paginaActual === 1}
+                        className="px-2.5 py-1 border border-slate-200 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                      >
+                        ‹ Anterior
+                      </button>
+                      <span className="px-3 py-1 font-bold text-slate-800">
+                        {paginaActual} / {totalPaginas}
+                      </span>
+                      <button
+                        onClick={() => setPaginaActual(prev => Math.min(totalPaginas, prev + 1))}
+                        disabled={paginaActual === totalPaginas}
+                        className="px-2.5 py-1 border border-slate-200 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                      >
+                        Siguiente ›
+                      </button>
+                      <button
+                        onClick={() => setPaginaActual(totalPaginas)}
+                        disabled={paginaActual === totalPaginas}
+                        className="px-2.5 py-1 border border-slate-200 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold"
+                        title="Última página"
+                      >
+                        »
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
