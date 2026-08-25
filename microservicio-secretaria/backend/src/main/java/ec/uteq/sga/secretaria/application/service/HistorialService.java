@@ -94,6 +94,11 @@ public class HistorialService {
 
         String observaciones = (dto.observaciones() == null || dto.observaciones().isBlank()) ? null : dto.observaciones();
 
+        // Normalizar resultado para el enum de Postgres (REPROBADO)
+        String resultadoNorm = ("NO_PROMOVIDO".equalsIgnoreCase(dto.resultado()) || "REPROBADO".equalsIgnoreCase(dto.resultado()))
+                ? "REPROBADO"
+                : dto.resultado().toUpperCase();
+
         // Eliminar registro previo si ya existía para permitir actualización
         jdbc.update("DELETE FROM sga_principal.historial_promocion WHERE id_matricula = :id",
                 new MapSqlParameterSource("id", dto.id_matricula()));
@@ -112,12 +117,12 @@ public class HistorialService {
                         .addValue("idEstudiante", m.get("id_estudiante"))
                         .addValue("idGrado", m.get("id_grado"))
                         .addValue("idAno", m.get("id_ano_lectivo"))
-                        .addValue("resultado", dto.resultado())
+                        .addValue("resultado", resultadoNorm)
                         .addValue("promedio", dto.promedio_anual())
                         .addValue("observaciones", observaciones)
                         .addValue("registradoPor", registradoPor));
 
-        String estadoMatricula = "PROMOVIDO".equals(dto.resultado()) ? "PROMOVIDA" : "NO_PROMOVIDA";
+        String estadoMatricula = "PROMOVIDO".equals(resultadoNorm) ? "PROMOVIDA" : "NO_PROMOVIDA";
         jdbc.update(
                 "UPDATE sga_secretaria.matriculas SET estado = :estado::sga_principal.estado_matricula_t " +
                         "WHERE id_matricula = :id",
@@ -182,8 +187,10 @@ public class HistorialService {
         if (estado != null && !estado.isBlank()) {
             if ("PENDIENTE".equalsIgnoreCase(estado)) {
                 sql.append(" AND hp.id_historial IS NULL");
+            } else if ("NO_PROMOVIDO".equalsIgnoreCase(estado) || "REPROBADO".equalsIgnoreCase(estado)) {
+                sql.append(" AND hp.resultado::text IN ('REPROBADO', 'NO_PROMOVIDO')");
             } else {
-                sql.append(" AND hp.resultado = :resultado::sga_principal.resultado_promocion_t");
+                sql.append(" AND hp.resultado::text = :resultado");
                 params.addValue("resultado", estado.toUpperCase());
             }
         }
@@ -214,9 +221,9 @@ public class HistorialService {
     public List<Map<String, Object>> resumenPromocion(long idAnoLectivo) {
         List<Map<String, Object>> conteos = jdbc.query("""
                 SELECT id_grado_origen,
-                       COUNT(*) FILTER (WHERE resultado = 'PROMOVIDO') AS promovidos,
-                       COUNT(*) FILTER (WHERE resultado = 'NO_PROMOVIDO') AS no_promovidos,
-                       COUNT(*) FILTER (WHERE resultado = 'RETIRADO') AS retirados,
+                       COUNT(*) FILTER (WHERE resultado::text = 'PROMOVIDO') AS promovidos,
+                       COUNT(*) FILTER (WHERE resultado::text IN ('REPROBADO', 'NO_PROMOVIDO')) AS no_promovidos,
+                       COUNT(*) FILTER (WHERE resultado::text = 'RETIRADO') AS retirados,
                        ROUND(AVG(promedio_anual)::numeric, 2) AS promedio_general,
                        COUNT(id_historial) AS total_registrados
                 FROM sga_principal.historial_promocion

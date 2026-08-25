@@ -118,7 +118,7 @@ export default function Promocion() {
   const stats = useMemo(() => {
     const total = nomina.length;
     const promovidos = nomina.filter(n => n.resultado === 'PROMOVIDO').length;
-    const noPromovidos = nomina.filter(n => n.resultado === 'NO_PROMOVIDO').length;
+    const noPromovidos = nomina.filter(n => n.resultado === 'NO_PROMOVIDO' || n.resultado === 'REPROBADO').length;
     const retirados = nomina.filter(n => n.resultado === 'RETIRADO').length;
     const pendientes = nomina.filter(n => !n.id_historial).length;
 
@@ -571,7 +571,7 @@ export default function Promocion() {
                               ✅ PROMOVIDO
                             </span>
                           )}
-                          {item.resultado === 'NO_PROMOVIDO' && (
+                          {(item.resultado === 'NO_PROMOVIDO' || item.resultado === 'REPROBADO') && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
                               ❌ NO PROMOVIDO
                             </span>
@@ -730,7 +730,7 @@ export default function Promocion() {
                             PROMOVIDO
                           </span>
                         )}
-                        {h.resultado === 'NO_PROMOVIDO' && (
+                        {(h.resultado === 'NO_PROMOVIDO' || h.resultado === 'REPROBADO') && (
                           <span className="px-3 py-1.5 rounded-xl text-xs font-black bg-rose-100 text-rose-800">
                             NO PROMOVIDO
                           </span>
