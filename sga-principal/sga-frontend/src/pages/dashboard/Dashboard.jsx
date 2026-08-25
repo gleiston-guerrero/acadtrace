@@ -204,22 +204,50 @@ export default function Dashboard() {
             {/* BODY */}
             <div className="flex flex-1 overflow-hidden" style={{ paddingBottom: "2.5rem" }}>
 
-                {/* PANEL IZQUIERDO */}
-                <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 hidden lg:block">
-                    <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center h-48 text-slate-400 hover:border-opacity-60 transition cursor-pointer" style={{ '--hover-border': PRIMARY }}>
-                        <svg className="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-xs">Imagen informativa</p>
-                        <p className="text-xs text-slate-300 mt-1">Avisos y comunicados</p>
+                {/* PANEL IZQUIERDO — BANNERS Y AVISOS INSTITUCIONALES */}
+                <aside className="w-72 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 hidden lg:flex flex-col gap-4">
+                    {/* Banner 1: Avisos y Comunicados Oficiales */}
+                    <div className="rounded-2xl bg-gradient-to-br from-[#1a2d5f] via-[#243A76] to-[#1e3a8a] p-4 text-white shadow-xs flex flex-col justify-between min-h-[190px] border border-blue-900/30">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-blue-100 backdrop-blur-xs">
+                                    📢 AVISO OFICIAL
+                                </span>
+                                <span className="text-[10px] text-blue-200 font-bold">2026 - 2027</span>
+                            </div>
+                            <h4 className="font-bold text-sm leading-snug text-white">
+                                Período Lectivo 2026-2027
+                            </h4>
+                            <p className="text-xs text-blue-100/90 mt-1.5 leading-relaxed font-sans">
+                                Sistema de matrículas y registro de calificaciones 70/30 activo en toda la institución.
+                            </p>
+                        </div>
+                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-200">
+                            <span className="font-medium">Escuela Provincias Unidas</span>
+                            <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded-md text-[10px]">Vigente</span>
+                        </div>
                     </div>
 
-                    <div className="mt-3 rounded-xl border-2 border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center h-48 text-slate-400 transition cursor-pointer">
-                        <svg className="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-xs">Imagen informativa</p>
-                        <p className="text-xs text-slate-300 mt-1">Eventos y noticias</p>
+                    {/* Banner 2: Eventos y Noticias Académicas */}
+                    <div className="rounded-2xl bg-gradient-to-br from-[#0f766e] via-[#115e59] to-[#134e4a] p-4 text-white shadow-xs flex flex-col justify-between min-h-[190px] border border-teal-900/30">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-teal-100 backdrop-blur-xs">
+                                    🗓️ CRONOGRAMA
+                                </span>
+                                <span className="text-[10px] text-teal-200 font-bold">Trimestre 1</span>
+                            </div>
+                            <h4 className="font-bold text-sm leading-snug text-white">
+                                Asentamiento de Notas
+                            </h4>
+                            <p className="text-xs text-teal-100/90 mt-1.5 leading-relaxed font-sans">
+                                Registro de aportes formativos (70%) y examen sumativo (30%) por 84 docentes titulares.
+                            </p>
+                        </div>
+                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-200">
+                            <span className="font-medium">Tutoría con IA Activa</span>
+                            <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded-md text-[10px]">En Curso</span>
+                        </div>
                     </div>
                 </aside>
 

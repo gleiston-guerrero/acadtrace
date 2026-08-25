@@ -283,16 +283,17 @@ export default function Calificaciones() {
                 onClick={() => abrirMatrizCurso(a)}
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
               >
-                <div className={`${theme.header} p-4 text-white flex flex-col justify-between min-h-[95px]`}>
+                {/* Cabecera dos tonos con Curso y Paralelo destacado primero */}
+                <div className={`${theme.header} p-4 text-white flex flex-col justify-between min-h-[100px]`}>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
-                      {a.grado || "Grado General"}
+                    <span className="text-[11px] font-extrabold uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                      {a.grado || "Grado General"} {a.paralelo ? `· Paralelo ${a.paralelo}` : "· Paralelo A"}
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/90 text-white">
                       ACTIVO
                     </span>
                   </div>
-                  <div>
+                  <div className="mt-2">
                     <h3 className="font-bold text-base leading-tight group-hover:underline underline-offset-2">
                       {a.asignatura}
                     </h3>
