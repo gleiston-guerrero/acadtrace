@@ -121,6 +121,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     apiPrincipal.get('/anos-lectivos/actual').then(r => setAnoActual(r.data)).catch(() => {});
+    
+    // Cargar banners institucionales compartidos desde backend central
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    fetch(`http://${host}:8080/api/uploads/banners`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.banner1) {
+          setBanner1(data.banner1);
+          localStorage.setItem("sga_banner_1", data.banner1);
+        }
+        if (data?.banner2) {
+          setBanner2(data.banner2);
+          localStorage.setItem("sga_banner_2", data.banner2);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
