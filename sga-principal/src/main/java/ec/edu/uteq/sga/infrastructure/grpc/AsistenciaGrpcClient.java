@@ -1,6 +1,6 @@
 package ec.edu.uteq.sga.infrastructure.grpc;
 
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.*;
+import ec.edu.uteq.sga.grpc.asistencia.*;
 import ec.edu.uteq.sga.application.service.TeacherAuthorizationService;
 import io.grpc.StatusRuntimeException;
 import net.devh.boot.grpc.client.inject.GrpcClient;

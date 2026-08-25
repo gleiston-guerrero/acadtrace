@@ -1,7 +1,7 @@
 package ec.edu.uteq.sga.presentation.controller;
 
 import ec.edu.uteq.sga.infrastructure.grpc.ActividadGrpcClient;
-import ec.edu.uteq.sga.infrastructure.grpc.actividades.*;
+import ec.edu.uteq.sga.grpc.actividades.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

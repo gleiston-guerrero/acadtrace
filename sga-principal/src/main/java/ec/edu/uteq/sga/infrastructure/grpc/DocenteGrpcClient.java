@@ -1,6 +1,6 @@
 package ec.edu.uteq.sga.infrastructure.grpc;
 
-import ec.edu.uteq.sga.infrastructure.grpc.docente.*;
+import ec.edu.uteq.sga.grpc.docente.*;
 import io.grpc.StatusRuntimeException;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;

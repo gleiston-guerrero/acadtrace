@@ -10,7 +10,7 @@ import ec.edu.uteq.sga.domain.dto.matricula.MatriculaResponseDTO;
 import ec.edu.uteq.sga.domain.entity.AnoLectivo;
 import ec.edu.uteq.sga.domain.entity.Asignatura;
 import ec.edu.uteq.sga.domain.entity.Representante;
-import ec.edu.uteq.sga.infrastructure.grpc.principal.*;
+import ec.edu.uteq.sga.grpc.principal.*;
 import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
 import ec.edu.uteq.sga.infrastructure.repository.AsignaturaRepository;
 import ec.edu.uteq.sga.infrastructure.repository.EstudianteRepository;

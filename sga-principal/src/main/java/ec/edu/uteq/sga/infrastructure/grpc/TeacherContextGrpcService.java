@@ -3,7 +3,7 @@ package ec.edu.uteq.sga.infrastructure.grpc;
 import ec.edu.uteq.sga.domain.entity.AnoLectivo;
 import ec.edu.uteq.sga.domain.entity.Asignacion;
 import ec.edu.uteq.sga.domain.entity.Matricula;
-import ec.edu.uteq.sga.infrastructure.grpc.contexto.*;
+import ec.edu.uteq.sga.grpc.contexto.*;
 import ec.edu.uteq.sga.application.service.TeacherAuthorizationService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;

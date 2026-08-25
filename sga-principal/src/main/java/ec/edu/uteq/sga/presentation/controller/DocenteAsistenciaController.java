@@ -1,14 +1,14 @@
 package ec.edu.uteq.sga.presentation.controller;
 
 import ec.edu.uteq.sga.infrastructure.grpc.AsistenciaGrpcClient;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.ActualizarAsistenciaRequest;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.AsistenciaItemRequest;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.AsistenciaListResponse;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.AsistenciaResponse;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.ConsultarAsistenciaRequest;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.ConsultarResumenRequest;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.RegistrarAsistenciaGrupalRequest;
-import ec.edu.uteq.sga.infrastructure.grpc.asistencia.ResumenAsistenciaListResponse;
+import ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest;
+import ec.edu.uteq.sga.grpc.asistencia.AsistenciaItemRequest;
+import ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse;
+import ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse;
+import ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest;
+import ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest;
+import ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest;
+import ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
