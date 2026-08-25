@@ -124,17 +124,17 @@ export default function Calificaciones() {
     setBusqueda("");
 
     // Cargar los estudiantes matriculados para este grado
-    const params = asignacion.idGrado ? { idGrado: asignacion.idGrado, limit: 200 } : { limit: 200 };
+    const params = asignacion.idGrado ? { idGrado: asignacion.idGrado, limit: 500 } : { limit: 500 };
     api.get(`/api/matriculas`, { params })
       .then(r => {
-        const raw = r.data?.matriculas || r.data?.data || (Array.isArray(r.data) ? r.data : []);
-        // Aislar los 70 alumnos del Paralelo A
+        const raw = r.data?.items || r.data?.matriculas || r.data?.data || (Array.isArray(r.data) ? r.data : []);
+        // Aislar los 70 alumnos del Paralelo A o los matriculados en este grado
         const filtrados = raw.filter(m => {
           const par = (m.paralelo || m.letraParalelo || m.paraleloLetra || "A").toUpperCase();
           const estado = (m.estado || "ACTIVA").toUpperCase();
-          return par.includes("A") && estado === "ACTIVA";
+          return par.includes("A") && (!m.estado || estado === "ACTIVA");
         });
-        setMatriculas(filtrados.length > 0 ? filtrados : raw.slice(0, 70));
+        setMatriculas(filtrados.length > 0 ? filtrados : (raw.length > 0 ? raw : []));
       })
       .catch(() => setMatriculas([]))
       .finally(() => setLoading(false));
