@@ -55,6 +55,12 @@ public class HistorialService {
                 "SELECT id_estudiante, nombres, apellidos, cedula, codigo_estudiante " +
                         "FROM sga_secretaria.estudiantes WHERE id_estudiante = :id",
                 new MapSqlParameterSource("id", idEstudiante), GenericRowMapper.INSTANCE);
+        if (est.isEmpty()) {
+            est = jdbc.query(
+                    "SELECT id_estudiante, nombres, apellidos, cedula, codigo_estudiante " +
+                            "FROM sga_principal.estudiantes WHERE id_estudiante = :id",
+                    new MapSqlParameterSource("id", idEstudiante), GenericRowMapper.INSTANCE);
+        }
         if (est.isEmpty()) throw ApiException.notFound("Estudiante no encontrado");
 
         String sql = """
@@ -172,11 +178,11 @@ public class HistorialService {
                 new MapSqlParameterSource("id", idHistorial));
 
         try {
-            jdbc.update("UPDATE sga_principal.matriculas SET estado = 'MATRICULADO'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
+            jdbc.update("UPDATE sga_principal.matriculas SET estado = 'ACTIVA'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
                     new MapSqlParameterSource("idMatricula", idMatricula));
         } catch (Exception ignored) {}
         try {
-            jdbc.update("UPDATE sga_secretaria.matriculas SET estado = 'MATRICULADO'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
+            jdbc.update("UPDATE sga_secretaria.matriculas SET estado = 'ACTIVA'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
                     new MapSqlParameterSource("idMatricula", idMatricula));
         } catch (Exception ignored) {}
     }
