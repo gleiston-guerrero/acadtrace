@@ -58,9 +58,12 @@ Aplicación móvil nativa en **Kotlin** para docentes del Sistema de Gestión Ac
    - **Min SDK**: Android 8.0 (API 26).
    - **Target / Compile SDK**: Android 14 (API 34).
 
-3. **Configuración de Conexión al Backend**:
-   - En el **Emulador Android**, la app se conecta por defecto a `http://10.0.2.2:8080/api/` (SGA Principal) y `http://10.0.2.2:8081/api/` (Microservicio Docente).
-   - Para **Dispositivos Físicos** o servidores personalizados, puedes ingresar a la pantalla de **Configuración de Servidor** (icono ⚙️ en el login o en el panel) y cambiar las IPs a la dirección de tu red local (ej. `http://192.168.1.100:8080/api/`).
+3. **Configuración de Conexión al Backend Distribuido**:
+   - **Servidor Remoto (Por Defecto)**:
+     - SGA Principal / Auth Gateway: `http://192.0.2.1:8080/api/`
+     - Microservicio Docente (Django REST): `http://192.0.2.1:8081/api/docente/`
+   - **Emulador Android Local**: `http://10.0.2.2:8080/api/` y `http://10.0.2.2:8081/api/docente/`
+   - Puedes cambiar rápidamente de entorno o ingresar una IP personalizada desde el icono de **Configuración de Servidor** ⚙️ en la pantalla de inicio de sesión o dentro del panel del docente.
 
 ---
 

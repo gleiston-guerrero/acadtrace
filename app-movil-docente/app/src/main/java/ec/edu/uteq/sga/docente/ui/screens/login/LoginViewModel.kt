@@ -25,23 +25,27 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onUsernameChange(value: String) {
-        _uiState.value = _uiState.value.copy(username = value, errorMessage = null)
+        val clean = value.replace("\n", "").replace("\r", "")
+        _uiState.value = _uiState.value.copy(username = clean, errorMessage = null)
     }
 
     fun onPasswordChange(value: String) {
-        _uiState.value = _uiState.value.copy(password = value, errorMessage = null)
+        val clean = value.replace("\n", "").replace("\r", "")
+        _uiState.value = _uiState.value.copy(password = clean, errorMessage = null)
     }
 
     fun login() {
-        val state = _uiState.value
-        if (state.username.isBlank() || state.password.isBlank()) {
-            _uiState.value = state.copy(errorMessage = "Por favor ingresa usuario y contraseña")
+        val cleanUsername = _uiState.value.username.trim()
+        val cleanPassword = _uiState.value.password.trim()
+
+        if (cleanUsername.isBlank() || cleanPassword.isBlank()) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Por favor ingresa usuario y contraseña")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            val result = authRepository.login(state.username.trim(), state.password.trim())
+            val result = authRepository.login(cleanUsername, cleanPassword)
             when (result) {
                 is Resource.Success -> {
                     _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)

@@ -66,18 +66,26 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterChip(
+                    selected = gatewayUrl.contains("192.0.2.1"),
+                    onClick = {
+                        gatewayUrl = "http://192.0.2.1:8080/api/"
+                        docenteUrl = "http://192.0.2.1:8081/api/docente/"
+                    },
+                    label = { Text("Servidor (AWS)") }
+                )
+                FilterChip(
                     selected = gatewayUrl.contains("10.0.2.2"),
                     onClick = {
                         gatewayUrl = "http://10.0.2.2:8080/api/"
-                        docenteUrl = "http://10.0.2.2:8081/api/"
+                        docenteUrl = "http://10.0.2.2:8081/api/docente/"
                     },
-                    label = { Text("Emulador (10.0.2.2)") }
+                    label = { Text("Emulador") }
                 )
                 FilterChip(
                     selected = gatewayUrl.contains("localhost") || gatewayUrl.contains("127.0.0.1"),
                     onClick = {
                         gatewayUrl = "http://localhost:8080/api/"
-                        docenteUrl = "http://localhost:8081/api/"
+                        docenteUrl = "http://localhost:8081/api/docente/"
                     },
                     label = { Text("Localhost") }
                 )

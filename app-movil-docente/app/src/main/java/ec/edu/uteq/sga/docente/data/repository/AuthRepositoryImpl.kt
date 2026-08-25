@@ -48,10 +48,13 @@ class AuthRepositoryImpl(
                     )
                 } else {
                     val errorBody = response.errorBody()?.string() ?: ""
-                    val msg = if (response.code() == 401 || response.code() == 403) {
-                        "Credenciales incorrectas o usuario no autorizado."
-                    } else {
-                        "Error al iniciar sesión (${response.code()}): $errorBody"
+                    val msg = when {
+                        errorBody.contains("Bad credentials", ignoreCase = true) ->
+                            "Usuario o contraseña incorrectos. Verifica tus credenciales."
+                        response.code() == 401 || response.code() == 403 ->
+                            "Credenciales incorrectas o usuario no autorizado."
+                        else ->
+                            "Error al iniciar sesión (${response.code()}): $errorBody"
                     }
                     Resource.Error(msg)
                 }

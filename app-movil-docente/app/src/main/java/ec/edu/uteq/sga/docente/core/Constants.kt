@@ -1,11 +1,11 @@
 package ec.edu.uteq.sga.docente.core
 
 object Constants {
-    // URL base por defecto para el Gateway/Principal (puerto 8080 en emulador: 10.0.2.2)
-    const val DEFAULT_BASE_GATEWAY_URL = "http://10.0.2.2:8080/api/"
+    // URL base por defecto para el Gateway/Principal (puerto 8080)
+    const val DEFAULT_BASE_GATEWAY_URL = "http://192.0.2.1:8080/api/"
     
-    // URL base por defecto para el Microservicio Docente (puerto 8081 en emulador: 10.0.2.2)
-    const val DEFAULT_BASE_DOCENTE_URL = "http://10.0.2.2:8081/api/"
+    // URL base por defecto para el Microservicio Docente (puerto 8081)
+    const val DEFAULT_BASE_DOCENTE_URL = "http://192.0.2.1:8081/api/docente/"
 
     const val PREFS_NAME = "sga_docente_secure_prefs"
     const val KEY_JWT_TOKEN = "jwt_token"
