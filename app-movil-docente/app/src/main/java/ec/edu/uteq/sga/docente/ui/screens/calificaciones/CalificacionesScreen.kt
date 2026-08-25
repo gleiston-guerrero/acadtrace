@@ -45,7 +45,8 @@ fun CalificacionesScreen(
     Scaffold(
         topBar = {
             SgaTopAppBar(
-                title = "Calificaciones",
+                title = "Registro de Calificaciones",
+                subtitle = "$actividadNombre • Nota Máx: ${notaMaxima} pts",
                 showBackButton = true,
                 onBackClick = onBackClick
             )

@@ -42,6 +42,7 @@ fun ActividadesScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Actividades Académicas",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )

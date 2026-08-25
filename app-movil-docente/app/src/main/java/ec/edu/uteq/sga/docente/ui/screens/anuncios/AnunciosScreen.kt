@@ -38,6 +38,7 @@ fun AnunciosScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Anuncios y Comunicados",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )

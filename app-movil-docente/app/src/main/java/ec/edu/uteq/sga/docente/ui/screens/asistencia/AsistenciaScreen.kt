@@ -55,6 +55,7 @@ fun AsistenciaScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Control de Asistencia",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick,
                 actions = {

@@ -87,6 +87,7 @@ fun FormActividadScreen(
         topBar = {
             SgaTopAppBar(
                 title = if (idActividad != null) "Editar Actividad" else "Nueva Actividad",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )

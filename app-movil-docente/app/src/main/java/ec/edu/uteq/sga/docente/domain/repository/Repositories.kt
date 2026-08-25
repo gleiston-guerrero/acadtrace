@@ -15,6 +15,7 @@ interface AuthRepository {
 
 interface DocenteRepository {
     fun getAsignaciones(): Flow<Resource<List<Asignacion>>>
+    suspend fun getAsignacion(idAsignacion: Long): Resource<Asignacion>
     fun getEstudiantesPorAsignacion(idAsignacion: Long): Flow<Resource<List<Estudiante>>>
     fun getPeriodosEvaluacion(): Flow<Resource<List<PeriodoEvaluacion>>>
     suspend fun refreshDocenteContext(): Resource<Unit>

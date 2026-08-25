@@ -37,6 +37,7 @@ fun ReportesPromediosScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Reportes y Promedios",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )

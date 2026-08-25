@@ -56,12 +56,17 @@ class ReportesViewModel(
         viewModelScope.launch {
             docenteRepository.getAsignaciones().collect { res ->
                 if (res is Resource.Success && res.data.isNotEmpty()) {
-                    val current = res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    val current = if (idAsignacion > 0) {
+                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    } else {
+                        res.data.first()
+                    }
                     _uiState.value = _uiState.value.copy(
                         asignaciones = res.data,
                         selectedAsignacion = current,
                         idAsignacion = current.idAsignacion
                     )
+                    loadData(current.idAsignacion)
                 }
             }
         }

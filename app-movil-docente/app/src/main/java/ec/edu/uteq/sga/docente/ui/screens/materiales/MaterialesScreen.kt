@@ -43,6 +43,7 @@ fun MaterialesScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Materiales de Estudio",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class DetalleCursoUiState(
+    val idAsignacion: Long = 0,
     val asignacion: Asignacion? = null,
     val estudiantes: List<Estudiante> = emptyList(),
     val isLoading: Boolean = false,
@@ -27,36 +28,42 @@ class CursosViewModel(
     val uiState: StateFlow<DetalleCursoUiState> = _uiState.asStateFlow()
 
     fun loadCurso(idAsignacion: Long) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)
 
-            // Cargar asignación
-            docenteRepository.getAsignaciones().collect { resource ->
-                if (resource is Resource.Success) {
-                    val curso = resource.data.find { it.idAsignacion == idAsignacion }
-                    _uiState.value = _uiState.value.copy(
-                        asignacion = curso,
-                        isOffline = resource.isOffline
-                    )
+        // 1. Obtener la asignación puntual directamente
+        viewModelScope.launch {
+            val asigRes = docenteRepository.getAsignacion(idAsignacion)
+            if (asigRes is Resource.Success) {
+                _uiState.value = _uiState.value.copy(asignacion = asigRes.data)
+            } else {
+                // Fallback con lista completa
+                docenteRepository.getAsignaciones().collect { res ->
+                    if (res is Resource.Success) {
+                        val curso = res.data.find { it.idAsignacion == idAsignacion }
+                        if (curso != null) {
+                            _uiState.value = _uiState.value.copy(asignacion = curso)
+                        }
+                    }
                 }
             }
         }
 
+        // 2. Cargar nómina de estudiantes
         viewModelScope.launch {
-            // Cargar estudiantes
-            docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { resource ->
-                when (resource) {
+            docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res ->
+                when (res) {
                     is Resource.Success -> {
                         _uiState.value = _uiState.value.copy(
-                            estudiantes = resource.data,
+                            estudiantes = res.data,
                             isLoading = false,
-                            isOffline = resource.isOffline
+                            isOffline = res.isOffline,
+                            errorMessage = null
                         )
                     }
                     is Resource.Error -> {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            errorMessage = resource.message
+                            errorMessage = if (_uiState.value.estudiantes.isEmpty()) res.message else null
                         )
                     }
                     is Resource.Loading -> {

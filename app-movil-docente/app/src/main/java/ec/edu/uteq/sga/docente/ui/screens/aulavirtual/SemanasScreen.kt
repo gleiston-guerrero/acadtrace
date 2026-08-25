@@ -38,6 +38,7 @@ fun SemanasScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Aula Virtual por Semanas",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )

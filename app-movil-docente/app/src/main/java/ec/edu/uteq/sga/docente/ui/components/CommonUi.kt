@@ -25,18 +25,30 @@ import ec.edu.uteq.sga.docente.ui.theme.*
 @Composable
 fun SgaTopAppBar(
     title: String,
+    subtitle: String? = null,
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
         title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        maxLines = 1
+                    )
+                }
+            }
         },
         navigationIcon = {
             if (showBackButton) {
@@ -54,6 +66,82 @@ fun SgaTopAppBar(
             containerColor = PrimaryNavy
         )
     )
+}
+
+@Composable
+fun CursoContextCard(
+    asignatura: String,
+    grado: String,
+    paralelo: String,
+    anoLectivo: String? = null,
+    totalEstudiantes: Int? = null,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = CardSurface,
+        shadowElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(ModuloActividadesBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.School,
+                        contentDescription = null,
+                        tint = PrimaryNavy,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = asignatura,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryNavy,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "$grado • Paralelo \"$paralelo\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            if (totalEstudiantes != null && totalEstudiantes > 0) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = ModuloAsistenciaBg
+                ) {
+                    Text(
+                        text = "$totalEstudiantes Alumnos",
+                        color = AccentGreen,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable

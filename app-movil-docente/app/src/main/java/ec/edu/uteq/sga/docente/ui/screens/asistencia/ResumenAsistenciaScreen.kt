@@ -32,6 +32,7 @@ fun ResumenAsistenciaScreen(
         topBar = {
             SgaTopAppBar(
                 title = "Resumen de Asistencia",
+                subtitle = state.selectedAsignacion?.let { "${it.asignaturaNombre} • ${it.gradoNombre} \"${it.paraleloLetra}\"" },
                 showBackButton = true,
                 onBackClick = onBackClick
             )
