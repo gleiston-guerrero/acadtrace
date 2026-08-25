@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ec.edu.uteq.sga.docente.core.Resource
 import ec.edu.uteq.sga.docente.data.remote.dto.AsistenciaCreateDTO
+import ec.edu.uteq.sga.docente.domain.model.Asignacion
 import ec.edu.uteq.sga.docente.domain.model.AsistenciaRegistro
 import ec.edu.uteq.sga.docente.domain.model.Estudiante
 import ec.edu.uteq.sga.docente.domain.model.PeriodoEvaluacion
@@ -24,6 +25,8 @@ data class EstudianteAsistenciaItem(
 
 data class AsistenciaUiState(
     val idAsignacion: Long = 0,
+    val asignaciones: List<Asignacion> = emptyList(),
+    val selectedAsignacion: Asignacion? = null,
     val selectedFecha: String = "",
     val periodos: List<PeriodoEvaluacion> = emptyList(),
     val selectedPeriodo: PeriodoEvaluacion? = null,
@@ -49,7 +52,31 @@ class AsistenciaViewModel(
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val today = sdf.format(Date())
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, selectedFecha = today)
+        loadAsignaciones(idAsignacion)
         loadPeriodos(idAsignacion)
+    }
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+        viewModelScope.launch {
+            docenteRepository.getAsignaciones().collect { res ->
+                if (res is Resource.Success && res.data.isNotEmpty()) {
+                    val current = res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    _uiState.value = _uiState.value.copy(
+                        asignaciones = res.data,
+                        selectedAsignacion = current,
+                        idAsignacion = current.idAsignacion
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectAsignacion(asignacion: Asignacion) {
+        _uiState.value = _uiState.value.copy(
+            selectedAsignacion = asignacion,
+            idAsignacion = asignacion.idAsignacion
+        )
+        loadData(asignacion.idAsignacion, _uiState.value.selectedFecha)
     }
 
     private fun loadPeriodos(idAsignacion: Long) {

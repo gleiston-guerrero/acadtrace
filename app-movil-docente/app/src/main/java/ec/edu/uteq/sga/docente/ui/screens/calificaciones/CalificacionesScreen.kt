@@ -9,13 +9,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -55,39 +55,47 @@ fun CalificacionesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(BackgroundSlate)
         ) {
             OfflineBanner(isOffline = state.isOffline)
 
             // Header de la Actividad
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
+                color = CardSurface,
                 shadowElevation = 2.dp
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = actividadNombre,
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryNavy
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "Nota Máxima: $notaMaxima pts",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 13.sp,
+                            color = TextSecondary,
                             fontWeight = FontWeight.SemiBold
                         )
-                        Text(
-                            text = "Promedio: ${String.format("%.2f", state.promedioActividad)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AccentGreen
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = AccentGreen.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = "Promedio: ${String.format("%.2f", state.promedioActividad)}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AccentGreen,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -131,7 +139,7 @@ fun CalificacionesScreen(
                     nota = nota,
                     observacion = obs,
                     onSuccess = { estudianteAEditar = null },
-                    onError = { /* Error manejado en modal o snackbar */ }
+                    onError = { }
                 )
             }
         )
@@ -146,10 +154,11 @@ fun CalificacionItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .shadow(1.dp, RoundedCornerShape(14.dp)),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
     ) {
         Row(
             modifier = Modifier
@@ -166,13 +175,14 @@ fun CalificacionItemCard(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(PrimaryBlue.copy(alpha = 0.12f)),
+                        .background(ModuloCalificacionesBg),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = item.estudiante.apellidos.take(1).uppercase(),
                         fontWeight = FontWeight.Bold,
-                        color = PrimaryBlue
+                        color = ModuloCalificacionesText,
+                        fontSize = 15.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -180,7 +190,8 @@ fun CalificacionItemCard(
                     Text(
                         text = item.estudiante.nombreCompleto,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
                     )
                     if (item.calificacion?.isPendingSync == true) {
                         Text(
@@ -201,12 +212,13 @@ fun CalificacionItemCard(
             } else {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
+                    color = BackgroundSlate,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
                 ) {
                     Text(
                         text = "Sin Calificar",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = TextMuted,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -239,7 +251,8 @@ fun DialogoIngresarNota(
             Text(
                 text = estudiante.nombreCompleto,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
             )
         },
         text = {
@@ -247,7 +260,7 @@ fun DialogoIngresarNota(
                 Text(
                     text = "Asentar Calificación (Máximo: $notaMaxima puntos)",
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = TextSecondary
                 )
 
                 OutlinedTextField(
@@ -260,7 +273,12 @@ fun DialogoIngresarNota(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
                 if (cualitativaPreview != null) {
@@ -285,7 +303,12 @@ fun DialogoIngresarNota(
                     label = { Text("Observación (Opcional)") },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
                 if (error != null) {
@@ -303,15 +326,16 @@ fun DialogoIngresarNota(
                     }
                     onGuardar(valor, observacion.trim().ifBlank { null })
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryNavy)
             ) {
-                Text("Guardar Nota", fontWeight = FontWeight.Bold)
+                Text("Guardar Nota", fontWeight = FontWeight.Bold, color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text("Cancelar", color = TextSecondary)
             }
-        }
+        },
+        containerColor = CardSurface
     )
 }

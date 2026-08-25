@@ -313,24 +313,26 @@ fun LoginScreen(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(48.dp),
+                                .height(50.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = PrimaryNavy,
-                                contentColor = Color.White
+                                contentColor = Color.White,
+                                disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),
+                                disabledContentColor = Color.White
                             ),
                             enabled = !state.isLoading
                         ) {
                             if (state.isLoading) {
                                 CircularProgressIndicator(
                                     color = Color.White,
-                                    modifier = Modifier.size(22.dp),
-                                    strokeWidth = 2.5.dp
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("Ingresando...", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("Iniciando sesión...", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             } else {
-                                Text("Ingresar", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Text("Ingresar", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
 

@@ -3,6 +3,7 @@ package ec.edu.uteq.sga.docente.ui.screens.reportes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ec.edu.uteq.sga.docente.core.Resource
+import ec.edu.uteq.sga.docente.domain.model.Asignacion
 import ec.edu.uteq.sga.docente.domain.model.Estudiante
 import ec.edu.uteq.sga.docente.domain.model.PeriodoEvaluacion
 import ec.edu.uteq.sga.docente.domain.model.PromedioAnual
@@ -22,6 +23,8 @@ data class ReportePromedioItem(
 
 data class ReportesUiState(
     val idAsignacion: Long = 0,
+    val asignaciones: List<Asignacion> = emptyList(),
+    val selectedAsignacion: Asignacion? = null,
     val periodos: List<PeriodoEvaluacion> = emptyList(),
     val selectedPeriodo: PeriodoEvaluacion? = null,
     val vistaAnual: Boolean = false,
@@ -45,7 +48,31 @@ class ReportesViewModel(
 
     fun init(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)
+        loadAsignaciones(idAsignacion)
         loadPeriodos(idAsignacion)
+    }
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+        viewModelScope.launch {
+            docenteRepository.getAsignaciones().collect { res ->
+                if (res is Resource.Success && res.data.isNotEmpty()) {
+                    val current = res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    _uiState.value = _uiState.value.copy(
+                        asignaciones = res.data,
+                        selectedAsignacion = current,
+                        idAsignacion = current.idAsignacion
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectAsignacion(asignacion: Asignacion) {
+        _uiState.value = _uiState.value.copy(
+            selectedAsignacion = asignacion,
+            idAsignacion = asignacion.idAsignacion
+        )
+        loadData(asignacion.idAsignacion)
     }
 
     private fun loadPeriodos(idAsignacion: Long) {

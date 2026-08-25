@@ -4,7 +4,9 @@ import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,6 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -50,7 +54,7 @@ fun AsistenciaScreen(
     Scaffold(
         topBar = {
             SgaTopAppBar(
-                title = "Toma de Asistencia",
+                title = "Control de Asistencia",
                 showBackButton = true,
                 onBackClick = onBackClick,
                 actions = {
@@ -69,20 +73,63 @@ fun AsistenciaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(BackgroundSlate)
         ) {
             OfflineBanner(isOffline = state.isOffline)
 
-            // Selector de fecha y botón "Marcar Todos Presentes"
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+            if (state.asignaciones.isNotEmpty()) {
+                Surface(
+                    color = CardSurface,
+                    shadowElevation = 1.dp
+                ) {
+                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {
+                        Text(
+                            text = "Curso seleccionado:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.asignaciones) { asig ->
+                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.selectAsignacion(asig) },
+                                    label = {
+                                        Text(
+                                            text = "${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})",
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 12.sp
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = ModuloAsistenciaBg,
+                                        selectedLabelColor = ModuloAsistenciaText
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ─── BARRA DE FECHA Y MARCADO RÁPIDO ──────────────────────────────
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp
+                color = CardSurface,
+                shadowElevation = 1.dp
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -93,31 +140,40 @@ fun AsistenciaScreen(
                         Icon(
                             imageVector = Icons.Default.Today,
                             contentDescription = null,
-                            tint = PrimaryBlue
+                            tint = PrimaryNavy,
+                            modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(onClick = { datePicker.show() }) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        TextButton(
+                            onClick = { datePicker.show() },
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
                             Text(
                                 text = "Fecha: ${state.selectedFecha}",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = PrimaryBlue
+                                fontSize = 14.sp,
+                                color = PrimaryNavy
                             )
                         }
                     }
 
                     FilledTonalButton(
                         onClick = { viewModel.marcarTodosPresentes() },
-                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = AccentGreen.copy(alpha = 0.15f))
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = ModuloAsistenciaBg,
+                            contentColor = ModuloAsistenciaText
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Icon(
                             Icons.Default.DoneAll,
                             contentDescription = null,
-                            tint = AccentGreen,
-                            modifier = Modifier.size(18.dp)
+                            tint = ModuloAsistenciaText,
+                            modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Todos P", color = AccentGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Todos Presentes", color = ModuloAsistenciaText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
             }
@@ -127,7 +183,8 @@ fun AsistenciaScreen(
             } else if (state.items.isEmpty()) {
                 EmptyStateView(
                     icon = Icons.Default.PersonOff,
-                    title = "No hay estudiantes matriculados"
+                    title = "No hay estudiantes matriculados",
+                    subtitle = "Selecciona otra asignatura o sincroniza los datos."
                 )
             } else {
                 LazyColumn(
@@ -157,10 +214,12 @@ fun ItemAsistenciaEstudiante(
     val estadoActual = item.asistencia?.estado
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(1.dp, RoundedCornerShape(14.dp)),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -168,12 +227,43 @@ fun ItemAsistenciaEstudiante(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = item.estudiante.nombreCompleto,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
-                )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(ModuloAsistenciaBg),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = item.estudiante.apellidos.take(1).uppercase(),
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryNavy,
+                            fontSize = 14.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = item.estudiante.nombreCompleto,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                            fontSize = 14.sp
+                        )
+                        if (item.estudiante.cedula.isNotBlank()) {
+                            Text(
+                                text = "C.I. ${item.estudiante.cedula}",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
+
                 if (estadoActual != null) {
                     AttendanceBadge(estado = estadoActual)
                 }
@@ -181,7 +271,7 @@ fun ItemAsistenciaEstudiante(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Botones rápidos de marcado
+            // Botones de marcado rápido (P, A, J, At)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)

@@ -1,6 +1,8 @@
 package ec.edu.uteq.sga.docente.ui.screens.actividades
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ec.edu.uteq.sga.docente.ui.components.SgaTopAppBar
-import ec.edu.uteq.sga.docente.ui.theme.PrimaryBlue
+import ec.edu.uteq.sga.docente.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -94,17 +96,18 @@ fun FormActividadScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(BackgroundSlate)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Período
+            // Trimestre / Período
             ExposedDropdownMenuBox(
                 expanded = expandedPeriodo,
                 onExpandedChange = { expandedPeriodo = !expandedPeriodo }
             ) {
                 OutlinedTextField(
-                    value = state.periodos.find { it.idPeriodo == selectedPeriodoId }?.nombre ?: "Seleccionar Período",
+                    value = state.periodos.find { it.idPeriodo == selectedPeriodoId }?.nombre ?: "Seleccionar Trimestre",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Período de Evaluación") },
@@ -112,17 +115,22 @@ fun FormActividadScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedPeriodo,
                     onDismissRequest = { expandedPeriodo = false }
                 ) {
-                    state.periodos.forEach { p ->
+                    state.periodos.forEach { periodo ->
                         DropdownMenuItem(
-                            text = { Text(p.nombre) },
+                            text = { Text(periodo.nombre) },
                             onClick = {
-                                selectedPeriodoId = p.idPeriodo
+                                selectedPeriodoId = periodo.idPeriodo
                                 expandedPeriodo = false
                             }
                         )
@@ -130,7 +138,7 @@ fun FormActividadScreen(
                 }
             }
 
-            // Tipo de actividad
+            // Tipo de Actividad
             ExposedDropdownMenuBox(
                 expanded = expandedTipo,
                 onExpandedChange = { expandedTipo = !expandedTipo }
@@ -144,7 +152,12 @@ fun FormActividadScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedTipo,
@@ -155,7 +168,6 @@ fun FormActividadScreen(
                             text = { Text(label) },
                             onClick = {
                                 tipo = key
-                                if (key == "EXAMEN_TRIMESTRAL") esSumativa = true
                                 expandedTipo = false
                             }
                         )
@@ -166,22 +178,34 @@ fun FormActividadScreen(
             // Nombre
             OutlinedTextField(
                 value = nombre,
-                onValueChange = { nombre = it },
+                onValueChange = {
+                    nombre = it
+                    errorMessage = null
+                },
                 label = { Text("Nombre de la Actividad *") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = PrimaryNavy
+                )
             )
 
             // Descripción
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
-                label = { Text("Descripción / Indicaciones") },
+                label = { Text("Instrucciones / Descripción (Opcional)") },
                 minLines = 3,
-                maxLines = 5,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = PrimaryNavy
+                )
             )
 
             // Fecha de Entrega
@@ -189,45 +213,63 @@ fun FormActividadScreen(
                 value = fechaEntrega,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Fecha de Entrega (YYYY-MM-DD) *") },
+                label = { Text("Fecha de Entrega") },
                 trailingIcon = {
                     IconButton(onClick = { datePicker.show() }) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar Fecha", tint = PrimaryBlue)
+                        Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar fecha", tint = PrimaryNavy)
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { datePicker.show() },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = PrimaryNavy
+                )
             )
 
+            // Ponderación y Nota Máxima
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Ponderación
                 OutlinedTextField(
                     value = ponderacion,
                     onValueChange = { ponderacion = it },
-                    label = { Text("Ponderación (%) *") },
+                    label = { Text("Ponderación (%)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
-                // Nota Máxima
                 OutlinedTextField(
                     value = notaMaxima,
                     onValueChange = { notaMaxima = it },
-                    label = { Text("Nota Máxima *") },
+                    label = { Text("Nota Máxima") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
             }
 
-            // Switch Sumativa
+            // Sumativa vs Formativa Switch
             Card(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                colors = CardDefaults.cardColors(containerColor = CardSurface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
             ) {
                 Row(
                     modifier = Modifier
@@ -237,11 +279,11 @@ fun FormActividadScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("¿Es Actividad Sumativa?", fontWeight = FontWeight.Bold)
+                        Text("¿Es Actividad Sumativa?", fontWeight = FontWeight.Bold, color = TextPrimary)
                         Text(
                             text = if (esSumativa) "Cuenta para el 30% sumativo del trimestre" else "Cuenta para el 70% formativo del trimestre",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = TextSecondary
                         )
                     }
                     Switch(
@@ -254,7 +296,7 @@ fun FormActividadScreen(
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
+                    color = DangerRed,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -298,15 +340,23 @@ fun FormActividadScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryNavy,
+                    contentColor = Color.White,
+                    disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),
+                    disabledContentColor = Color.White
+                ),
                 enabled = !isSaving
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Guardando...", fontWeight = FontWeight.Bold, color = Color.White)
                 } else {
                     Text(
                         text = if (idActividad != null) "Guardar Cambios" else "Crear Actividad",
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 }
             }

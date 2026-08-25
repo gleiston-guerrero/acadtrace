@@ -39,9 +39,18 @@ fun DetalleCursoScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Módulos del Curso, 1: Nómina de Estudiantes
+    var studentSearchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(idAsignacion) {
         viewModel.loadCurso(idAsignacion)
+    }
+
+    val estudiantesFiltrados = remember(state.estudiantes, studentSearchQuery) {
+        if (studentSearchQuery.isBlank()) state.estudiantes
+        else state.estudiantes.filter {
+            it.nombreCompleto.contains(studentSearchQuery, ignoreCase = true) ||
+            it.cedula.contains(studentSearchQuery, ignoreCase = true)
+        }
     }
 
     Scaffold(
@@ -61,7 +70,7 @@ fun DetalleCursoScreen(
         ) {
             OfflineBanner(isOffline = state.isOffline)
 
-            // Encabezado del curso (estilo web)
+            // ─── ENCABEZADO PROMINENTE DEL CURSO ─────────────────────────────
             state.asignacion?.let { curso ->
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -72,14 +81,21 @@ fun DetalleCursoScreen(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.Top
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = curso.asignaturaNombre,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryNavy
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
                                 Text(
                                     text = "${curso.gradoNombre} • Paralelo \"${curso.paraleloLetra}\"",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryNavy
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
@@ -88,24 +104,40 @@ fun DetalleCursoScreen(
                                     color = TextSecondary
                                 )
                             }
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = ModuloAulaVirtualBg
-                            ) {
-                                Text(
-                                    text = "ID #${curso.idAsignacion}",
-                                    color = ModuloAulaVirtualText,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                                )
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = ModuloAulaVirtualBg
+                                ) {
+                                    Text(
+                                        text = "ID #${curso.idAsignacion}",
+                                        color = ModuloAulaVirtualText,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = ModuloAsistenciaBg
+                                ) {
+                                    Text(
+                                        text = "${if (state.estudiantes.isNotEmpty()) state.estudiantes.size else curso.cantidadEstudiantes} Alumnos",
+                                        color = AccentGreen,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // Pestañas
+            // ─── TABS ─────────────────────────────────────────────────────────
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = CardSurface,
@@ -120,13 +152,16 @@ fun DetalleCursoScreen(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Estudiantes (${state.estudiantes.size})", fontWeight = FontWeight.Bold) },
+                    text = {
+                        val count = if (state.estudiantes.isNotEmpty()) state.estudiantes.size else state.asignacion?.cantidadEstudiantes ?: 0
+                        Text("Estudiantes ($count)", fontWeight = FontWeight.Bold)
+                    },
                     icon = { Icon(Icons.Default.People, contentDescription = null) }
                 )
             }
 
             if (selectedTab == 0) {
-                // ─── MÓDULOS DEL CURSO ──────────────────────────────────────────
+                // ─── PESTAÑA 1: MÓDULOS DE GESTIÓN ACADÉMICA DEL CURSO ──────────
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -135,7 +170,7 @@ fun DetalleCursoScreen(
                     item {
                         ModuloCursoCard(
                             title = "Actividades y Calificaciones",
-                            description = "Cree tareas, lecciones, exámenes y asiente notas formativas/sumativas.",
+                            description = "Cree tareas, lecciones, exámenes y asiente calificaciones formativas/sumativas.",
                             icon = Icons.AutoMirrored.Filled.Assignment,
                             bgColor = ModuloActividadesBg,
                             iconColor = ModuloActividadesText,
@@ -145,7 +180,7 @@ fun DetalleCursoScreen(
                     item {
                         ModuloCursoCard(
                             title = "Control de Asistencia",
-                            description = "Registre la lista diaria (Presente, Ausente, Justificado, Atraso) y vea resúmenes.",
+                            description = "Registre la lista diaria (Presente, Ausente, Justificado, Atraso) y consulte estadísticas.",
                             icon = Icons.Default.CheckCircle,
                             bgColor = ModuloAsistenciaBg,
                             iconColor = ModuloAsistenciaText,
@@ -155,7 +190,7 @@ fun DetalleCursoScreen(
                     item {
                         ModuloCursoCard(
                             title = "Aula Virtual por Semanas",
-                            description = "Agenda organizada de actividades Lunes a Viernes por trimestres escolares.",
+                            description = "Agenda organizada de clases Lunes a Viernes por trimestres escolares.",
                             icon = Icons.AutoMirrored.Filled.MenuBook,
                             bgColor = ModuloAulaVirtualBg,
                             iconColor = ModuloAulaVirtualText,
@@ -165,7 +200,7 @@ fun DetalleCursoScreen(
                     item {
                         ModuloCursoCard(
                             title = "Anuncios y Comunicados",
-                            description = "Publique avisos y novedades fijadas para los estudiantes de este paralelo.",
+                            description = "Publique avisos importantes y novedades para los estudiantes de este curso.",
                             icon = Icons.Default.Campaign,
                             bgColor = ModuloAnunciosBg,
                             iconColor = ModuloAnunciosText,
@@ -175,7 +210,7 @@ fun DetalleCursoScreen(
                     item {
                         ModuloCursoCard(
                             title = "Materiales de Estudio",
-                            description = "Comparta guías, diapositivas, documentos PDF y enlaces de apoyo.",
+                            description = "Comparta guías didácticas, diapositivas, documentos PDF y enlaces.",
                             icon = Icons.Default.Folder,
                             bgColor = ModuloMaterialBg,
                             iconColor = ModuloMaterialText,
@@ -185,7 +220,7 @@ fun DetalleCursoScreen(
                     item {
                         ModuloCursoCard(
                             title = "Reportes y Promedios Anuales",
-                            description = "Consulte ponderaciones trimestrales (70% + 30%) y cuadro de calificaciones finales.",
+                            description = "Consulte ponderaciones trimestrales (70/30) y cuadro general de calificaciones.",
                             icon = Icons.Default.Assessment,
                             bgColor = ModuloReportesBg,
                             iconColor = ModuloReportesText,
@@ -194,88 +229,156 @@ fun DetalleCursoScreen(
                     }
                 }
             } else {
-                // ─── NÓMINA DE ESTUDIANTES ───────────────────────────────────────
-                if (state.isLoading && state.estudiantes.isEmpty()) {
-                    LoadingView("Cargando nómina de estudiantes...")
-                } else if (state.estudiantes.isEmpty()) {
-                    EmptyStateView(
-                        icon = Icons.Default.PeopleOutline,
-                        title = "No hay estudiantes registrados",
-                        subtitle = "No se encontraron matriculados para esta asignatura."
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                // ─── PESTAÑA 2: NÓMINA DE ESTUDIANTES DEL CURSO ───────────────────
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Buscador de estudiantes
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = CardSurface,
+                        shadowElevation = 1.dp
                     ) {
-                        items(state.estudiantes) { estudiante ->
-                            Card(
+                        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                            OutlinedTextField(
+                                value = studentSearchQuery,
+                                onValueChange = { studentSearchQuery = it },
+                                placeholder = { Text("Buscar por nombre o cédula...", fontSize = 13.sp, color = TextMuted) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = TextMuted,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (studentSearchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { studentSearchQuery = "" }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Limpiar",
+                                                tint = TextMuted,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                },
+                                singleLine = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable {
-                                        onSeguimientoEstudianteClick(
-                                            estudiante.idMatricula,
-                                            estudiante.nombreCompleto
-                                        )
-                                    }
-                                    .shadow(1.dp, RoundedCornerShape(12.dp)),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = CardSurface),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
-                            ) {
-                                Row(
+                                    .height(46.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary,
+                                    focusedContainerColor = BackgroundSlate,
+                                    unfocusedContainerColor = BackgroundSlate,
+                                    focusedBorderColor = PrimaryNavy,
+                                    unfocusedBorderColor = SlateBorder
+                                )
+                            )
+                        }
+                    }
+
+                    if (state.isLoading && state.estudiantes.isEmpty()) {
+                        LoadingView("Cargando lista de estudiantes...")
+                    } else if (state.estudiantes.isEmpty()) {
+                        EmptyStateView(
+                            icon = Icons.Default.PeopleOutline,
+                            title = "No hay estudiantes registrados",
+                            subtitle = "No se encontraron matriculados para esta asignatura."
+                        )
+                    } else if (estudiantesFiltrados.isEmpty()) {
+                        EmptyStateView(
+                            icon = Icons.Default.SearchOff,
+                            title = "Sin resultados",
+                            subtitle = "No se encontró ningún estudiante con \"$studentSearchQuery\"."
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(estudiantesFiltrados) { estudiante ->
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Avatar con inicial
-                                    Box(
-                                        modifier = Modifier
-                                            .size(42.dp)
-                                            .clip(CircleShape)
-                                            .background(ModuloAulaVirtualBg),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = estudiante.apellidos.take(1).uppercase(),
-                                            fontWeight = FontWeight.Bold,
-                                            color = PrimaryNavy,
-                                            fontSize = 16.sp
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.width(12.dp))
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = estudiante.nombreCompleto,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            text = if (estudiante.cedula.isNotBlank()) "Cédula: ${estudiante.cedula}" else "Matrícula activa",
-                                            fontSize = 12.sp,
-                                            color = TextSecondary
-                                        )
-                                    }
-
-                                    IconButton(
-                                        onClick = {
+                                        .clickable {
                                             onSeguimientoEstudianteClick(
                                                 estudiante.idMatricula,
                                                 estudiante.nombreCompleto
                                             )
                                         }
+                                        .shadow(1.dp, RoundedCornerShape(12.dp)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = CardSurface),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(14.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.TrendingUp,
-                                            contentDescription = "Ver Seguimiento",
-                                            tint = PrimaryNavy
-                                        )
+                                        // Avatar con inicial
+                                        Box(
+                                            modifier = Modifier
+                                                .size(42.dp)
+                                                .clip(CircleShape)
+                                                .background(ModuloAulaVirtualBg),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = estudiante.apellidos.take(1).uppercase(),
+                                                fontWeight = FontWeight.Bold,
+                                                color = PrimaryNavy,
+                                                fontSize = 16.sp
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(12.dp))
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = estudiante.nombreCompleto,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                if (estudiante.cedula.isNotBlank()) {
+                                                    Text(
+                                                        text = "C.I. ${estudiante.cedula}",
+                                                        fontSize = 12.sp,
+                                                        color = TextSecondary,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                    Text(text = " • ", fontSize = 12.sp, color = TextMuted)
+                                                }
+                                                Text(
+                                                    text = estudiante.estadoMatricula,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = AccentGreen
+                                                )
+                                            }
+                                        }
+
+                                        IconButton(
+                                            onClick = {
+                                                onSeguimientoEstudianteClick(
+                                                    estudiante.idMatricula,
+                                                    estudiante.nombreCompleto
+                                                )
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                                                contentDescription = "Ver Seguimiento",
+                                                tint = PrimaryNavy
+                                            )
+                                        }
                                     }
                                 }
                             }

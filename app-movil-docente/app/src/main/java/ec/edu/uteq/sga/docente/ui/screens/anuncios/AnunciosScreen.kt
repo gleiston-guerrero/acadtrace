@@ -3,6 +3,7 @@ package ec.edu.uteq.sga.docente.ui.screens.anuncios
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,7 +31,7 @@ fun AnunciosScreen(
     var showCreateDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(idAsignacion) {
-        viewModel.loadAnuncios(idAsignacion)
+        viewModel.init(idAsignacion)
     }
 
     Scaffold(
@@ -43,7 +45,7 @@ fun AnunciosScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
-                containerColor = PrimaryBlue,
+                containerColor = PrimaryNavy,
                 contentColor = Color.White
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Nuevo Anuncio")
@@ -54,9 +56,52 @@ fun AnunciosScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(BackgroundSlate)
         ) {
             OfflineBanner(isOffline = state.isOffline)
+
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+            if (state.asignaciones.isNotEmpty()) {
+                Surface(
+                    color = CardSurface,
+                    shadowElevation = 1.dp
+                ) {
+                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {
+                        Text(
+                            text = "Curso seleccionado:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.asignaciones) { asig ->
+                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.selectAsignacion(asig) },
+                                    label = {
+                                        Text(
+                                            text = "${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})",
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 12.sp
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = ModuloAnunciosBg,
+                                        selectedLabelColor = ModuloAnunciosText
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             if (state.isLoading && state.anuncios.isEmpty()) {
                 LoadingView("Cargando anuncios...")
@@ -64,8 +109,8 @@ fun AnunciosScreen(
                 EmptyStateView(
                     icon = Icons.Default.Campaign,
                     title = "No hay anuncios publicados",
-                    subtitle = "Comparte información o recordatorios con tus alumnos.",
-                    actionButtonText = "Crear Primer Anuncio",
+                    subtitle = "Comparte comunicados oficiales y avisos con este paralelo.",
+                    actionButtonText = "Publicar Primer Anuncio",
                     onActionClick = { showCreateDialog = true }
                 )
             } else {
@@ -102,10 +147,12 @@ fun AnuncioCard(
     onDelete: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(14.dp)),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -116,19 +163,30 @@ fun AnuncioCard(
                 if (anuncio.fijado) {
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = WarningAmber.copy(alpha = 0.15f)
+                        color = ModuloAnunciosBg
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.PushPin, contentDescription = null, tint = WarningAmber, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Default.PushPin, contentDescription = null, tint = ModuloAnunciosText, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Fijado", color = WarningAmber, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text("Fijado", color = ModuloAnunciosText, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                         }
                     }
                 } else {
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = BackgroundSlate
+                    ) {
+                        Text(
+                            text = "Aviso General",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextMuted,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
 
                 IconButton(onClick = onDelete) {
@@ -136,10 +194,13 @@ fun AnuncioCard(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = anuncio.titulo ?: "Aviso del Curso",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -147,15 +208,18 @@ fun AnuncioCard(
             Text(
                 text = anuncio.contenido ?: "",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                color = TextSecondary,
+                lineHeight = 20.sp
             )
 
             if (!anuncio.fecha.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(10.dp))
+                HorizontalDivider(color = SlateBorder.copy(alpha = 0.6f))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Publicado: ${anuncio.fecha}",
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = TextMuted
                 )
             }
         }
@@ -173,7 +237,7 @@ fun DialogoNuevoAnuncio(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Publicar Comunicado", fontWeight = FontWeight.Bold) },
+        title = { Text("Publicar Comunicado", fontWeight = FontWeight.Bold, color = TextPrimary) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -182,7 +246,12 @@ fun DialogoNuevoAnuncio(
                     label = { Text("Título del Comunicado") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
                 OutlinedTextField(
@@ -192,7 +261,12 @@ fun DialogoNuevoAnuncio(
                     minLines = 3,
                     maxLines = 6,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
                 Row(
@@ -200,7 +274,7 @@ fun DialogoNuevoAnuncio(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Fijar en la parte superior", fontSize = 13.sp)
+                    Text("Fijar en la parte superior", fontSize = 13.sp, color = TextPrimary)
                     Switch(checked = fijado, onCheckedChange = { fijado = it })
                 }
             }
@@ -212,15 +286,16 @@ fun DialogoNuevoAnuncio(
                         onPublicar(titulo.trim(), contenido.trim(), fijado)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryNavy)
             ) {
-                Text("Publicar", fontWeight = FontWeight.Bold)
+                Text("Publicar", fontWeight = FontWeight.Bold, color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text("Cancelar", color = TextSecondary)
             }
-        }
+        },
+        containerColor = CardSurface
     )
 }

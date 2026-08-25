@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import ec.edu.uteq.sga.docente.core.Resource
 import ec.edu.uteq.sga.docente.data.remote.dto.ActividadCreateDTO
 import ec.edu.uteq.sga.docente.domain.model.ActividadAcademica
+import ec.edu.uteq.sga.docente.domain.model.Asignacion
 import ec.edu.uteq.sga.docente.domain.model.PeriodoEvaluacion
 import ec.edu.uteq.sga.docente.domain.repository.ActividadesRepository
 import ec.edu.uteq.sga.docente.domain.repository.DocenteRepository
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
 
 data class ActividadesUiState(
     val idAsignacion: Long = 0,
+    val asignaciones: List<Asignacion> = emptyList(),
+    val selectedAsignacion: Asignacion? = null,
     val periodos: List<PeriodoEvaluacion> = emptyList(),
     val selectedPeriodo: PeriodoEvaluacion? = null,
     val actividades: List<ActividadAcademica> = emptyList(),
@@ -37,7 +40,31 @@ class ActividadesViewModel(
 
     fun init(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion)
+        loadAsignaciones(idAsignacion)
         loadPeriodos(idAsignacion)
+    }
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+        viewModelScope.launch {
+            docenteRepository.getAsignaciones().collect { res ->
+                if (res is Resource.Success && res.data.isNotEmpty()) {
+                    val current = res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    _uiState.value = _uiState.value.copy(
+                        asignaciones = res.data,
+                        selectedAsignacion = current,
+                        idAsignacion = current.idAsignacion
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectAsignacion(asignacion: Asignacion) {
+        _uiState.value = _uiState.value.copy(
+            selectedAsignacion = asignacion,
+            idAsignacion = asignacion.idAsignacion
+        )
+        loadActividades(asignacion.idAsignacion, _uiState.value.selectedPeriodo?.idPeriodo)
     }
 
     private fun loadPeriodos(idAsignacion: Long) {
@@ -50,7 +77,7 @@ class ActividadesViewModel(
                         periodos = periodos,
                         selectedPeriodo = current
                     )
-                    loadActividades(idAsignacion, current?.idPeriodo)
+                    loadActividades(_uiState.value.idAsignacion, current?.idPeriodo)
                 }
             }
         }

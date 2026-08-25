@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +36,7 @@ fun MaterialesScreen(
     val context = LocalContext.current
 
     LaunchedEffect(idAsignacion) {
-        viewModel.loadMateriales(idAsignacion)
+        viewModel.init(idAsignacion)
     }
 
     Scaffold(
@@ -48,7 +50,7 @@ fun MaterialesScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
-                containerColor = PrimaryBlue,
+                containerColor = PrimaryNavy,
                 contentColor = Color.White
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Subir Material")
@@ -59,9 +61,52 @@ fun MaterialesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(BackgroundSlate)
         ) {
             OfflineBanner(isOffline = state.isOffline)
+
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+            if (state.asignaciones.isNotEmpty()) {
+                Surface(
+                    color = CardSurface,
+                    shadowElevation = 1.dp
+                ) {
+                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {
+                        Text(
+                            text = "Curso seleccionado:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.asignaciones) { asig ->
+                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.selectAsignacion(asig) },
+                                    label = {
+                                        Text(
+                                            text = "${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})",
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 12.sp
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = ModuloMaterialBg,
+                                        selectedLabelColor = ModuloMaterialText
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             if (state.isLoading && state.materiales.isEmpty()) {
                 LoadingView("Cargando materiales...")
@@ -69,7 +114,7 @@ fun MaterialesScreen(
                 EmptyStateView(
                     icon = Icons.Default.FolderOpen,
                     title = "No hay materiales subidos",
-                    subtitle = "Comparte enlaces, guías de estudio o documentos con el curso.",
+                    subtitle = "Comparte enlaces, guías de estudio o documentos con este paralelo.",
                     actionButtonText = "Agregar Primer Material",
                     onActionClick = { showCreateDialog = true }
                 )
@@ -118,10 +163,11 @@ fun MaterialCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onOpen),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .clickable(onClick = onOpen)
+            .shadow(2.dp, RoundedCornerShape(14.dp)),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
     ) {
         Row(
             modifier = Modifier
@@ -131,12 +177,12 @@ fun MaterialCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = SecondarySky.copy(alpha = 0.15f)
+                color = ModuloMaterialBg
             ) {
                 Icon(
                     imageVector = Icons.Default.Link,
                     contentDescription = null,
-                    tint = SecondarySky,
+                    tint = ModuloMaterialText,
                     modifier = Modifier
                         .padding(12.dp)
                         .size(24.dp)
@@ -149,13 +195,15 @@ fun MaterialCard(
                 Text(
                     text = material.titulo ?: "Recurso de Estudio",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
                 )
                 if (!material.descripcion.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = material.descripcion,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = TextSecondary,
                         fontSize = 13.sp
                     )
                 }
@@ -163,8 +211,9 @@ fun MaterialCard(
                 Text(
                     text = material.url,
                     fontSize = 11.sp,
-                    color = PrimaryBlue,
-                    maxLines = 1
+                    color = PrimaryNavy,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Medium
                 )
             }
 
@@ -187,7 +236,7 @@ fun DialogoNuevoMaterial(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Agregar Recurso o Guía", fontWeight = FontWeight.Bold) },
+        title = { Text("Agregar Recurso o Guía", fontWeight = FontWeight.Bold, color = TextPrimary) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -196,7 +245,12 @@ fun DialogoNuevoMaterial(
                     label = { Text("Título del Documento *") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
                 OutlinedTextField(
@@ -205,7 +259,12 @@ fun DialogoNuevoMaterial(
                     label = { Text("URL o Enlace *") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
 
                 OutlinedTextField(
@@ -214,7 +273,12 @@ fun DialogoNuevoMaterial(
                     label = { Text("Descripción (Opcional)") },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
             }
         },
@@ -225,15 +289,16 @@ fun DialogoNuevoMaterial(
                         onGuardar(titulo.trim(), descripcion.trim().ifBlank { null }, tipo, url.trim())
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryNavy)
             ) {
-                Text("Guardar", fontWeight = FontWeight.Bold)
+                Text("Guardar", fontWeight = FontWeight.Bold, color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text("Cancelar", color = TextSecondary)
             }
-        }
+        },
+        containerColor = CardSurface
     )
 }

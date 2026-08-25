@@ -48,6 +48,12 @@ data class ModuloItem(
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onCourseClick: (Long) -> Unit,
+    onActividadesClick: (Long) -> Unit,
+    onAsistenciaClick: (Long) -> Unit,
+    onAulaVirtualClick: (Long) -> Unit,
+    onAnunciosClick: (Long) -> Unit,
+    onMaterialesClick: (Long) -> Unit,
+    onReportesClick: (Long) -> Unit,
     onHorarioClick: () -> Unit,
     onSeguimientoClick: () -> Unit,
     onSyncStatusClick: () -> Unit,
@@ -57,6 +63,8 @@ fun DashboardScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableIntStateOf(0) } // 0 = Cursos, 1 = Módulos
     var searchQuery by remember { mutableStateOf("") }
+
+    val defaultAsignacionId = state.asignaciones.firstOrNull()?.idAsignacion ?: 0L
 
     val modulosList = remember {
         listOf(
@@ -321,7 +329,7 @@ fun DashboardScreen(
                     }
                 }
             } else {
-                // ─── VISTA 2: MÓDULOS DEL SISTEMA (GRID ESTILO WEB) ──────────────
+                // ─── VISTA 2: MÓDULOS DEL SISTEMA (ACCESO DIRECTO A CADA MÓDULO) ─
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
@@ -334,13 +342,16 @@ fun DashboardScreen(
                             item = mod,
                             onClick = {
                                 when (mod.id) {
-                                    "horario" -> onHorarioClick()
+                                    "aula-virtual" -> onAulaVirtualClick(defaultAsignacionId)
+                                    "actividades" -> onActividadesClick(defaultAsignacionId)
+                                    "asistencia" -> onAsistenciaClick(defaultAsignacionId)
+                                    "calificaciones" -> onActividadesClick(defaultAsignacionId)
                                     "seguimiento" -> onSeguimientoClick()
-                                    else -> {
-                                        if (state.asignaciones.isNotEmpty()) {
-                                            onCourseClick(state.asignaciones.first().idAsignacion)
-                                        }
-                                    }
+                                    "reportes" -> onReportesClick(defaultAsignacionId)
+                                    "anuncios" -> onAnunciosClick(defaultAsignacionId)
+                                    "material" -> onMaterialesClick(defaultAsignacionId)
+                                    "horario" -> onHorarioClick()
+                                    else -> onCourseClick(defaultAsignacionId)
                                 }
                             }
                         )

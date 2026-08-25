@@ -1,6 +1,7 @@
 package ec.edu.uteq.sga.docente.ui.screens.seguimiento
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ec.edu.uteq.sga.docente.ui.components.SgaTopAppBar
-import ec.edu.uteq.sga.docente.ui.theme.PrimaryBlue
+import ec.edu.uteq.sga.docente.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -52,7 +53,6 @@ fun FormSeguimientoScreen(
     }
 
     var expandedCat by remember { mutableStateOf(false) }
-    var expandedPeriodo by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSaving by remember { mutableStateOf(false) }
 
@@ -81,25 +81,34 @@ fun FormSeguimientoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(BackgroundSlate)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                color = CardSurface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
                         text = "Estudiante:",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = TextSecondary
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = estudianteNombre,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryNavy
+                    )
+                    Text(
+                        text = "Matrícula #$idMatricula",
+                        fontSize = 11.sp,
+                        color = TextMuted
                     )
                 }
             }
@@ -118,7 +127,12 @@ fun FormSeguimientoScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = PrimaryNavy
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedCat,
@@ -144,11 +158,16 @@ fun FormSeguimientoScreen(
                 label = { Text("Fecha del Suceso *") },
                 trailingIcon = {
                     IconButton(onClick = { datePicker.show() }) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar Fecha", tint = PrimaryBlue)
+                        Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar Fecha", tint = PrimaryNavy)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = PrimaryNavy
+                )
             )
 
             // Descripción
@@ -159,7 +178,12 @@ fun FormSeguimientoScreen(
                 minLines = 3,
                 maxLines = 6,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = PrimaryNavy
+                )
             )
 
             // Acciones tomadas
@@ -170,13 +194,19 @@ fun FormSeguimientoScreen(
                 minLines = 2,
                 maxLines = 4,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = PrimaryNavy
+                )
             )
 
             // Switch de seguimiento
             Card(
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                colors = CardDefaults.cardColors(containerColor = CardSurface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
             ) {
                 Row(
                     modifier = Modifier
@@ -186,11 +216,11 @@ fun FormSeguimientoScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("¿Requiere Follow-up?", fontWeight = FontWeight.Bold)
+                        Text("¿Requiere Seguimiento Especial?", fontWeight = FontWeight.Bold, color = TextPrimary)
                         Text(
-                            text = "Marca si este estudiante necesita monitoreo adicional o reunión con representante/DECE.",
+                            text = "Marca si este estudiante necesita monitoreo adicional o reunión con representante / DECE.",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = TextSecondary
                         )
                     }
                     Switch(
@@ -203,7 +233,7 @@ fun FormSeguimientoScreen(
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
+                    color = DangerRed,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -241,13 +271,20 @@ fun FormSeguimientoScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryNavy,
+                    contentColor = Color.White,
+                    disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),
+                    disabledContentColor = Color.White
+                ),
                 enabled = !isSaving
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Registrando...", fontWeight = FontWeight.Bold, color = Color.White)
                 } else {
-                    Text("Registrar Observación", fontWeight = FontWeight.Bold)
+                    Text("Registrar Observación", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }

@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ec.edu.uteq.sga.docente.core.Resource
 import ec.edu.uteq.sga.docente.data.remote.dto.MaterialCreateDTO
+import ec.edu.uteq.sga.docente.domain.model.Asignacion
 import ec.edu.uteq.sga.docente.domain.model.MaterialCurso
+import ec.edu.uteq.sga.docente.domain.repository.DocenteRepository
 import ec.edu.uteq.sga.docente.domain.repository.MaterialesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +15,8 @@ import kotlinx.coroutines.launch
 
 data class MaterialesUiState(
     val idAsignacion: Long = 0,
+    val asignaciones: List<Asignacion> = emptyList(),
+    val selectedAsignacion: Asignacion? = null,
     val materiales: List<MaterialCurso> = emptyList(),
     val isLoading: Boolean = false,
     val isOffline: Boolean = false,
@@ -20,11 +24,41 @@ data class MaterialesUiState(
 )
 
 class MaterialesViewModel(
-    private val materialesRepository: MaterialesRepository
+    private val materialesRepository: MaterialesRepository,
+    private val docenteRepository: DocenteRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MaterialesUiState())
     val uiState: StateFlow<MaterialesUiState> = _uiState.asStateFlow()
+
+    fun init(idAsignacion: Long) {
+        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion)
+        loadAsignaciones(idAsignacion)
+        loadMateriales(idAsignacion)
+    }
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+        viewModelScope.launch {
+            docenteRepository.getAsignaciones().collect { res ->
+                if (res is Resource.Success && res.data.isNotEmpty()) {
+                    val current = res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    _uiState.value = _uiState.value.copy(
+                        asignaciones = res.data,
+                        selectedAsignacion = current,
+                        idAsignacion = current.idAsignacion
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectAsignacion(asignacion: Asignacion) {
+        _uiState.value = _uiState.value.copy(
+            selectedAsignacion = asignacion,
+            idAsignacion = asignacion.idAsignacion
+        )
+        loadMateriales(asignacion.idAsignacion)
+    }
 
     fun loadMateriales(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)

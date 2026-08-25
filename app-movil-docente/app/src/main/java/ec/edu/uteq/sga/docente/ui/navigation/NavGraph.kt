@@ -58,6 +58,24 @@ fun SgaNavGraph(
                 onCourseClick = { idAsignacion ->
                     navController.navigate(Screen.DetalleCurso.createRoute(idAsignacion))
                 },
+                onActividadesClick = { idAsignacion ->
+                    navController.navigate(Screen.Actividades.createRoute(idAsignacion))
+                },
+                onAsistenciaClick = { idAsignacion ->
+                    navController.navigate(Screen.Asistencia.createRoute(idAsignacion))
+                },
+                onAulaVirtualClick = { idAsignacion ->
+                    navController.navigate(Screen.AulaVirtualSemanas.createRoute(idAsignacion))
+                },
+                onAnunciosClick = { idAsignacion ->
+                    navController.navigate(Screen.Anuncios.createRoute(idAsignacion))
+                },
+                onMaterialesClick = { idAsignacion ->
+                    navController.navigate(Screen.Materiales.createRoute(idAsignacion))
+                },
+                onReportesClick = { idAsignacion ->
+                    navController.navigate(Screen.ReportesPromedios.createRoute(idAsignacion))
+                },
                 onHorarioClick = {
                     navController.navigate(Screen.Horario.route)
                 },
@@ -219,7 +237,7 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = AulaVirtualViewModel(app.aulaVirtualRepository)
+            val viewModel = AulaVirtualViewModel(app.aulaVirtualRepository, app.docenteRepository)
             SemanasScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -282,7 +300,7 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = AnunciosViewModel(app.anunciosRepository, app.sessionManager)
+            val viewModel = AnunciosViewModel(app.anunciosRepository, app.docenteRepository, app.sessionManager)
             AnunciosScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -296,7 +314,7 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = MaterialesViewModel(app.materialesRepository)
+            val viewModel = MaterialesViewModel(app.materialesRepository, app.docenteRepository)
             MaterialesScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,

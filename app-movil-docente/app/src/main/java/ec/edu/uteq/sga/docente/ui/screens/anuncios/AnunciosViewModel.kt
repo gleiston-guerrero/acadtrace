@@ -6,7 +6,9 @@ import ec.edu.uteq.sga.docente.core.Resource
 import ec.edu.uteq.sga.docente.core.SessionManager
 import ec.edu.uteq.sga.docente.data.remote.dto.AnuncioCreateDTO
 import ec.edu.uteq.sga.docente.domain.model.AnuncioCurso
+import ec.edu.uteq.sga.docente.domain.model.Asignacion
 import ec.edu.uteq.sga.docente.domain.repository.AnunciosRepository
+import ec.edu.uteq.sga.docente.domain.repository.DocenteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +16,8 @@ import kotlinx.coroutines.launch
 
 data class AnunciosUiState(
     val idAsignacion: Long = 0,
+    val asignaciones: List<Asignacion> = emptyList(),
+    val selectedAsignacion: Asignacion? = null,
     val anuncios: List<AnuncioCurso> = emptyList(),
     val isLoading: Boolean = false,
     val isOffline: Boolean = false,
@@ -22,11 +26,41 @@ data class AnunciosUiState(
 
 class AnunciosViewModel(
     private val anunciosRepository: AnunciosRepository,
+    private val docenteRepository: DocenteRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AnunciosUiState())
     val uiState: StateFlow<AnunciosUiState> = _uiState.asStateFlow()
+
+    fun init(idAsignacion: Long) {
+        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion)
+        loadAsignaciones(idAsignacion)
+        loadAnuncios(idAsignacion)
+    }
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+        viewModelScope.launch {
+            docenteRepository.getAsignaciones().collect { res ->
+                if (res is Resource.Success && res.data.isNotEmpty()) {
+                    val current = res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()
+                    _uiState.value = _uiState.value.copy(
+                        asignaciones = res.data,
+                        selectedAsignacion = current,
+                        idAsignacion = current.idAsignacion
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectAsignacion(asignacion: Asignacion) {
+        _uiState.value = _uiState.value.copy(
+            selectedAsignacion = asignacion,
+            idAsignacion = asignacion.idAsignacion
+        )
+        loadAnuncios(asignacion.idAsignacion)
+    }
 
     fun loadAnuncios(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)

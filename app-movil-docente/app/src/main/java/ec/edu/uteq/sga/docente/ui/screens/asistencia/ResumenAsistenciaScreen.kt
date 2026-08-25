@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +41,7 @@ fun ResumenAsistenciaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(BackgroundSlate)
         ) {
             OfflineBanner(isOffline = state.isOffline)
 
@@ -57,10 +58,12 @@ fun ResumenAsistenciaScreen(
                 ) {
                     items(state.resumenes) { res ->
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(1.dp, RoundedCornerShape(14.dp)),
                             shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            colors = CardDefaults.cardColors(containerColor = CardSurface),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
                                 Row(
@@ -69,18 +72,27 @@ fun ResumenAsistenciaScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Matrícula: #${res.idMatricula}",
+                                        text = "Matrícula #${res.idMatricula}",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "${String.format("%.1f", res.porcentajeAsistencia)}%",
                                         fontWeight = FontWeight.Bold,
-                                        color = if (res.porcentajeAsistencia >= 75.0) AccentGreen else DangerRed,
-                                        fontSize = 16.sp
+                                        color = TextPrimary
                                     )
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (res.porcentajeAsistencia >= 75.0) ModuloAsistenciaBg else DangerRed.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            text = "${String.format("%.1f", res.porcentajeAsistencia)}%",
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (res.porcentajeAsistencia >= 75.0) AccentGreen else DangerRed,
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                    }
                                 }
 
+                                Spacer(modifier = Modifier.height(10.dp))
+                                HorizontalDivider(color = SlateBorder.copy(alpha = 0.6f))
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Row(

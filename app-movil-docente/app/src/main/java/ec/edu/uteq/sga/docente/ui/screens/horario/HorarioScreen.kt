@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,7 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,15 +49,15 @@ fun HorarioScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(BackgroundSlate)
         ) {
             OfflineBanner(isOffline = state.isOffline)
 
             // Selector de Días
             TabRow(
                 selectedTabIndex = state.selectedDia - 1,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = PrimaryBlue
+                containerColor = CardSurface,
+                contentColor = PrimaryNavy
             ) {
                 DIAS_SEMANA.forEach { (diaNum, diaNom) ->
                     Tab(
@@ -75,12 +74,12 @@ fun HorarioScreen(
             }
 
             if (state.isLoading && state.slots.isEmpty()) {
-                LoadingView("Cargando horario...")
+                LoadingView("Cargando horario semanal...")
             } else if (slotsFiltrados.isEmpty()) {
                 EmptyStateView(
                     icon = Icons.Default.EventBusy,
                     title = "Sin clases programadas",
-                    subtitle = "No tienes asignaciones para el día seleccionado."
+                    subtitle = "No tienes horas de clase registradas para este día."
                 )
             } else {
                 LazyColumn(
@@ -100,10 +99,12 @@ fun HorarioScreen(
 @Composable
 fun SlotHorarioCard(slot: HorarioItem) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(14.dp)),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
     ) {
         Row(
             modifier = Modifier
@@ -114,7 +115,7 @@ fun SlotHorarioCard(slot: HorarioItem) {
             // Franja de hora
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = PrimaryBlue.copy(alpha = 0.12f)
+                color = ModuloHorarioBg
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -124,18 +125,18 @@ fun SlotHorarioCard(slot: HorarioItem) {
                         text = slot.horaInicio.take(5),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = PrimaryBlue
+                        color = ModuloHorarioText
                     )
                     Text(
                         text = "a",
                         fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = TextMuted
                     )
                     Text(
                         text = slot.horaFin.take(5),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = PrimaryBlue
+                        color = ModuloHorarioText
                     )
                 }
             }
@@ -146,21 +147,21 @@ fun SlotHorarioCard(slot: HorarioItem) {
                 Text(
                     text = slot.asignatura,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "${slot.grado} - \"${slot.paralelo}\"",
+                    text = "${slot.grado} • Paralelo \"${slot.paralelo}\"",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = SecondarySky,
+                    color = PrimaryNavy,
                     fontWeight = FontWeight.SemiBold
                 )
                 if (!slot.aula.isNullOrBlank()) {
                     Text(
                         text = "Aula: ${slot.aula}",
-                        style = MaterialTheme.typography.bodyMedium,
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = TextSecondary
                     )
                 }
             }
