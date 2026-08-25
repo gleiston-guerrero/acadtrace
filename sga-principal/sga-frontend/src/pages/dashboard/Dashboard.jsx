@@ -15,11 +15,30 @@ export default function Dashboard() {
     const [anoActual, setAnoActual] = useState(null);
     const [busqueda, setBusqueda] = useState("");
     const [breadcrumb, setBreadcrumb] = useState(["Inicio"]);
+    const [banner1, setBanner1] = useState(localStorage.getItem("sga_banner_1") || null);
+    const [banner2, setBanner2] = useState(localStorage.getItem("sga_banner_2") || null);
     const username = localStorage.getItem("username") || "Director";
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
     const token = localStorage.getItem("token");
     const idUsuario = localStorage.getItem("userId");
     const navigate = useNavigate();
+
+    const handleUploadBanner = (num, e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const base64 = ev.target.result;
+            if (num === 1) {
+                setBanner1(base64);
+                localStorage.setItem("sga_banner_1", base64);
+            } else {
+                setBanner2(base64);
+                localStorage.setItem("sga_banner_2", base64);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
 
     useEffect(() => {
         api.get(`/api/anos-lectivos/actual`)
@@ -204,50 +223,84 @@ export default function Dashboard() {
             {/* BODY */}
             <div className="flex flex-1 overflow-hidden" style={{ paddingBottom: "2.5rem" }}>
 
-                {/* PANEL IZQUIERDO — BANNERS Y AVISOS INSTITUCIONALES */}
+                {/* PANEL IZQUIERDO — BANNERS Y AVISOS INSTITUCIONALES CON SUBIDA DE IMÁGENES */}
                 <aside className="w-72 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 hidden lg:flex flex-col gap-4">
-                    {/* Banner 1: Avisos y Comunicados Oficiales */}
-                    <div className="rounded-2xl bg-gradient-to-br from-[#1a2d5f] via-[#243A76] to-[#1e3a8a] p-4 text-white shadow-xs flex flex-col justify-between min-h-[190px] border border-blue-900/30">
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-blue-100 backdrop-blur-xs">
-                                    📢 AVISO OFICIAL
-                                </span>
-                                <span className="text-[10px] text-blue-200 font-bold">2026 - 2027</span>
+                    {/* Banner 1: Avisos y Comunicados */}
+                    <div className="relative group rounded-2xl overflow-hidden shadow-xs border border-slate-200 min-h-[190px] flex flex-col justify-between">
+                        {banner1 ? (
+                            <div className="relative w-full h-48">
+                                <img src={banner1} alt="Avisos y Comunicados" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <label className="cursor-pointer px-3 py-1.5 bg-white/90 text-slate-800 rounded-lg text-xs font-bold shadow-md hover:bg-white transition flex items-center gap-1.5">
+                                        📷 Cambiar imagen
+                                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(1, e)} />
+                                    </label>
+                                </div>
                             </div>
-                            <h4 className="font-bold text-sm leading-snug text-white">
-                                Período Lectivo 2026-2027
-                            </h4>
-                            <p className="text-xs text-blue-100/90 mt-1.5 leading-relaxed font-sans">
-                                Sistema de matrículas y registro de calificaciones 70/30 activo en toda la institución.
-                            </p>
-                        </div>
-                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-200">
-                            <span className="font-medium">Escuela Provincias Unidas</span>
-                            <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded-md text-[10px]">Vigente</span>
-                        </div>
+                        ) : (
+                            <div className="bg-gradient-to-br from-[#1a2d5f] via-[#243A76] to-[#1e3a8a] p-4 text-white flex flex-col justify-between flex-1">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-blue-100 backdrop-blur-xs">
+                                            📢 AVISO OFICIAL
+                                        </span>
+                                        <span className="text-[10px] text-blue-200 font-bold">2026 - 2027</span>
+                                    </div>
+                                    <h4 className="font-bold text-sm leading-snug text-white">
+                                        Período Lectivo 2026-2027
+                                    </h4>
+                                    <p className="text-xs text-blue-100/90 mt-1.5 leading-relaxed font-sans">
+                                        Sistema de matrículas y registro de calificaciones 70/30 activo en toda la institución.
+                                    </p>
+                                </div>
+                                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-200">
+                                    <span className="font-medium">Escuela Provincias Unidas</span>
+                                    <label className="cursor-pointer font-bold text-white bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-md text-[10px] transition flex items-center gap-1">
+                                        📷 Subir foto
+                                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(1, e)} />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Banner 2: Eventos y Noticias Académicas */}
-                    <div className="rounded-2xl bg-gradient-to-br from-[#0f766e] via-[#115e59] to-[#134e4a] p-4 text-white shadow-xs flex flex-col justify-between min-h-[190px] border border-teal-900/30">
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-teal-100 backdrop-blur-xs">
-                                    🗓️ CRONOGRAMA
-                                </span>
-                                <span className="text-[10px] text-teal-200 font-bold">Trimestre 1</span>
+                    <div className="relative group rounded-2xl overflow-hidden shadow-xs border border-slate-200 min-h-[190px] flex flex-col justify-between">
+                        {banner2 ? (
+                            <div className="relative w-full h-48">
+                                <img src={banner2} alt="Eventos y Noticias" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <label className="cursor-pointer px-3 py-1.5 bg-white/90 text-slate-800 rounded-lg text-xs font-bold shadow-md hover:bg-white transition flex items-center gap-1.5">
+                                        📷 Cambiar imagen
+                                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(2, e)} />
+                                    </label>
+                                </div>
                             </div>
-                            <h4 className="font-bold text-sm leading-snug text-white">
-                                Asentamiento de Notas
-                            </h4>
-                            <p className="text-xs text-teal-100/90 mt-1.5 leading-relaxed font-sans">
-                                Registro de aportes formativos (70%) y examen sumativo (30%) por 84 docentes titulares.
-                            </p>
-                        </div>
-                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-200">
-                            <span className="font-medium">Tutoría con IA Activa</span>
-                            <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded-md text-[10px]">En Curso</span>
-                        </div>
+                        ) : (
+                            <div className="bg-gradient-to-br from-[#0f766e] via-[#115e59] to-[#134e4a] p-4 text-white flex flex-col justify-between flex-1">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-teal-100 backdrop-blur-xs">
+                                            🗓️ CRONOGRAMA
+                                        </span>
+                                        <span className="text-[10px] text-teal-200 font-bold">Trimestre 1</span>
+                                    </div>
+                                    <h4 className="font-bold text-sm leading-snug text-white">
+                                        Asentamiento de Notas
+                                    </h4>
+                                    <p className="text-xs text-teal-100/90 mt-1.5 leading-relaxed font-sans">
+                                        Registro de aportes formativos (70%) y examen sumativo (30%) por 84 docentes titulares.
+                                    </p>
+                                </div>
+                                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-200">
+                                    <span className="font-medium">Tutoría con IA Activa</span>
+                                    <label className="cursor-pointer font-bold text-white bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-md text-[10px] transition flex items-center gap-1">
+                                        📷 Subir foto
+                                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(2, e)} />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </aside>
 

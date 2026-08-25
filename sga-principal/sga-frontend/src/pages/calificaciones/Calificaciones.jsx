@@ -33,6 +33,9 @@ const calMenuItems = [
 ];
 
 export default function Calificaciones() {
+  const [grados, setGrados]                   = useState([]);
+  const [gradoSel, setGradoSel]               = useState(null);
+  const [paraleloSel, setParaleloSel]         = useState(null);
   const [asignaciones, setAsignaciones]       = useState([]);
   const [matriculas, setMatriculas]           = useState([]);
   const [vista, setVista]                     = useState("cursos"); // cursos | matriz
@@ -42,6 +45,54 @@ export default function Calificaciones() {
   const [loading, setLoading]                 = useState(false);
   const [anoActual, setAnoActual]             = useState(null);
   const [modalIA, setModalIA]                 = useState(null);
+
+  const normalizarNivel = (nivel, nombreGrado = "") => {
+    const n = (nivel || "").toUpperCase().trim();
+    const nom = (nombreGrado || "").toUpperCase().trim();
+    if (n.includes("INICIAL") || nom.includes("INICIAL") || n.includes("PREPARATORIA") || nom.includes("PREPARATORIA") || nom.includes("1ER") || nom.includes("PRIMER")) {
+      return "Educación Inicial y Preparatoria";
+    }
+    if (n.includes("ELEMENTAL") || nom.includes("2DO") || nom.includes("3RO") || nom.includes("4TO") || nom.includes("SEGUNDO") || nom.includes("TERCERO") || nom.includes("CUARTO")) {
+      return "Básica Elemental (2do - 4to EGB)";
+    }
+    if (n.includes("MEDIA") || nom.includes("5TO") || nom.includes("6TO") || nom.includes("7MO") || nom.includes("QUINTO") || nom.includes("SEXTO") || nom.includes("SÉPTIMO")) {
+      return "Básica Media (5to - 7mo EGB)";
+    }
+    if (n.includes("SUPERIOR") || nom.includes("8VO") || nom.includes("9NO") || nom.includes("10MO") || nom.includes("OCTAVO") || nom.includes("NOVENO") || nom.includes("DÉCIMO")) {
+      return "Básica Superior (8vo - 10mo EGB)";
+    }
+    if (n.includes("BACHILLERATO") || n.includes("BGU") || nom.includes("BACHILLERATO") || nom.includes("BGU")) {
+      return "Bachillerato General Unificado (BGU)";
+    }
+    return nivel || "General";
+  };
+
+  const nivelesAgrupados = useMemo(() => {
+    const map = {};
+    grados.forEach(g => {
+      const nivel = normalizarNivel(g.nivelEducativo, g.nombre);
+      if (!map[nivel]) map[nivel] = [];
+      map[nivel].push(g);
+    });
+    return map;
+  }, [grados]);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.get("/api/asignaciones").catch(() => ({ data: [] })),
+      api.get("/api/grados").catch(() => ({ data: [] })),
+      api.get("/api/anos-lectivos/actual").catch(() => ({ data: null })),
+    ])
+      .then(([resAsig, resGrados, resAno]) => {
+        const rawAsig = Array.isArray(resAsig.data) ? resAsig.data : (resAsig.data?.items || resAsig.data?.data || []);
+        const rawGrados = Array.isArray(resGrados.data) ? resGrados.data : (resGrados.data?.items || resGrados.data?.data || []);
+        setAsignaciones(rawAsig.filter(a => a.activo !== false));
+        setGrados(rawGrados);
+        if (resAno.data) setAnoActual(resAno.data);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const consultarDiagnosticoIA = (alumno) => {
     const payload = {
@@ -64,7 +115,6 @@ export default function Calificaciones() {
       }
     };
 
-    // Consultar el microservicio de IA en el puerto 8084
     fetch("http://192.0.2.1:8084/api/ia/diagnostico-estudiante", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,7 +123,6 @@ export default function Calificaciones() {
       .then(res => res.json())
       .then(data => setModalIA(data))
       .catch(() => {
-        // Fallback heurístico inteligente si el microservicio está en despliegue
         const prom = alumno.promFinal || alumno.t1.promTrim;
         const riesgo = prom < 7.0 ? "ALTO" : prom < 8.5 ? "MEDIO" : "BAJO";
         setModalIA({
@@ -101,21 +150,6 @@ export default function Calificaciones() {
         });
       });
   };
-
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      api.get("/api/asignaciones").catch(() => ({ data: [] })),
-      api.get("/api/grados").catch(() => ({ data: [] })),
-      api.get("/api/anos-lectivos/actual").catch(() => ({ data: null })),
-    ])
-      .then(([resAsig, resGrados, resAno]) => {
-        const rawAsig = Array.isArray(resAsig.data) ? resAsig.data : (resAsig.data?.items || resAsig.data?.data || []);
-        setAsignaciones(rawAsig.filter(a => a.activo !== false));
-        if (resAno.data) setAnoActual(resAno.data);
-      })
-      .finally(() => setLoading(false));
-  }, []);
 
   const abrirMatrizCurso = (asignacion) => {
     setAsignacionSel(asignacion);
@@ -173,7 +207,6 @@ export default function Calificaciones() {
       const t1_expos     = obtenerNotaSimulada(id, 7);
       const t1_promForm  = Number(((t1_oral + t1_escrita + t1_tareas + t1_talleres + t1_cuaderno + t1_trabInd + t1_expos) / 7).toFixed(2));
       const t1_total70   = Number((t1_promForm * 0.70).toFixed(2));
-
       const t1_proy      = obtenerNotaSimulada(id, 8);
       const t1_examen    = obtenerNotaSimulada(id, 9);
       const t1_promSum   = Number(((t1_proy + t1_examen) / 2).toFixed(2));
@@ -189,7 +222,6 @@ export default function Calificaciones() {
       const t2_expos     = obtenerNotaSimulada(id, 17);
       const t2_promForm  = Number(((t2_oral + t2_escrita + t2_tareas + t2_talleres + t2_cuaderno + t2_trabInd + t2_expos) / 7).toFixed(2));
       const t2_total70   = Number((t2_promForm * 0.70).toFixed(2));
-
       const t2_proy      = obtenerNotaSimulada(id, 18);
       const t2_examen    = obtenerNotaSimulada(id, 19);
       const t2_promSum   = Number(((t2_proy + t2_examen) / 2).toFixed(2));
@@ -205,7 +237,6 @@ export default function Calificaciones() {
       const t3_expos     = obtenerNotaSimulada(id, 27);
       const t3_promForm  = Number(((t3_oral + t3_escrita + t3_tareas + t3_talleres + t3_cuaderno + t3_trabInd + t3_expos) / 7).toFixed(2));
       const t3_total70   = Number((t3_promForm * 0.70).toFixed(2));
-
       const t3_proy      = obtenerNotaSimulada(id, 28);
       const t3_examen    = obtenerNotaSimulada(id, 29);
       const t3_promSum   = Number(((t3_proy + t3_examen) / 2).toFixed(2));
@@ -235,10 +266,6 @@ export default function Calificaciones() {
     );
   }, [estudiantesProcesados, busqueda]);
 
-  const asignacionesFiltradas = asignaciones.filter(a =>
-    `${a.asignatura} ${a.grado} ${a.docente}`.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
   const CARD_THEMES = [
     { header: "bg-[#2b3c66]", border: "border-[#2b3c66]/20", tag: "bg-blue-50 text-[#2b3c66]" },
     { header: "bg-[#3b4266]", border: "border-[#3b4266]/20", tag: "bg-indigo-50 text-[#3b4266]" },
@@ -248,82 +275,224 @@ export default function Calificaciones() {
     { header: "bg-[#5c4059]", border: "border-[#5c4059]/20", tag: "bg-purple-50 text-[#5c4059]" },
   ];
 
+  // ── VISTA 1: NAVEGACIÓN JERÁRQUICA (GRADOS -> PARALELOS -> MATERIAS) ──
   if (vista === "cursos") return (
     <Layout breadcrumb={["Inicio", "Calificaciones"]} sidebarTitle="Calificaciones" menuItems={calMenuItems} seccion="cursos" onSeccionChange={(id) => { setVista(id); }}>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      
+      {/* ── PASO 1: SELECCIONAR GRADO ── */}
+      {!gradoSel && (
         <div>
-          <h1 className="text-xl font-bold text-slate-700">Sábanas de Calificaciones</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {anoActual ? `Año lectivo: ${anoActual.nombre}` : "Selecciona una materia para gestionar la sábana ministerial (70% Formativa + 30% Sumativa)"}
-          </p>
-        </div>
-        <div className="relative">
-          <input type="text" placeholder="Buscar materia, grado, docente..."
-            value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="pl-3 pr-8 py-2 text-xs border border-slate-200 rounded-xl bg-white shadow-xs w-64 focus:outline-none focus:ring-1 focus:ring-slate-400" />
-          <svg className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-      </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div>
+              <h1 className="text-xl font-bold text-slate-700">Sábanas de Calificaciones</h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {anoActual ? `Año lectivo: ${anoActual.nombre}` : "Selecciona un curso para ver sus paralelos y materias"}
+              </p>
+            </div>
+            <div className="relative">
+              <input type="text" placeholder="Buscar curso o grado..."
+                value={busqueda} onChange={e => setBusqueda(e.target.value)}
+                className="pl-3 pr-8 py-2 text-xs border border-slate-200 rounded-xl bg-white shadow-xs w-64 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+              <svg className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
 
-      {loading ? (
-        <div className="text-center py-20 text-slate-400 text-sm">Cargando catálogo de cursos...</div>
-      ) : asignacionesFiltradas.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">
-          No se encontraron cursos con el criterio de búsqueda.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {asignacionesFiltradas.map((a, i) => {
-            const theme = CARD_THEMES[i % CARD_THEMES.length];
-            return (
-              <div
-                key={a.idAsignacion}
-                onClick={() => abrirMatrizCurso(a)}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
-              >
-                {/* Cabecera dos tonos con Curso y Paralelo destacado primero */}
-                <div className={`${theme.header} p-4 text-white flex flex-col justify-between min-h-[100px]`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
-                      {a.grado || "Grado General"} {a.paralelo ? `· Paralelo ${a.paralelo}` : "· Paralelo A"}
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/90 text-white">
-                      ACTIVO
-                    </span>
+          {loading ? (
+            <div className="text-center py-20 text-slate-400 text-sm">Cargando cursos...</div>
+          ) : (
+            Object.entries(nivelesAgrupados).map(([nivel, gradosNivel]) => {
+              const filtradosGrados = gradosNivel.filter(g => g.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+              if (filtradosGrados.length === 0) return null;
+              return (
+                <div key={nivel} className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1.5 h-5 rounded-full" style={{ backgroundColor: PRIMARY }} />
+                    <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: PRIMARY }}>{nivel}</h2>
+                    <span className="text-xs text-slate-400 ml-1">({filtradosGrados.length} grado{filtradosGrados.length !== 1 ? "s" : ""})</span>
                   </div>
-                  <div className="mt-2">
-                    <h3 className="font-bold text-base leading-tight group-hover:underline underline-offset-2">
-                      {a.asignatura}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filtradosGrados.map((g, idx) => {
+                      const theme = CARD_THEMES[idx % CARD_THEMES.length];
+                      return (
+                        <div
+                          key={g.idGrado}
+                          onClick={() => { setGradoSel(g); setParaleloSel(null); setBusqueda(""); }}
+                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                        >
+                          <div className={`${theme.header} p-4 text-white flex flex-col justify-between min-h-[90px]`}>
+                            <div className="flex items-start justify-between">
+                              <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                                {g.nivelEducativo || "Grado"}
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white">
+                                ACTIVO
+                              </span>
+                            </div>
+                            <h3 className="font-bold text-base leading-tight mt-2 group-hover:underline underline-offset-2">
+                              {g.nombre}
+                            </h3>
+                          </div>
+                          <div className="p-4 flex items-center justify-between text-xs text-slate-500 bg-white">
+                            <span className="font-medium">
+                              {g.paralelos?.length || 1} Paralelo{(g.paralelos?.length || 1) > 1 ? "s" : ""}
+                            </span>
+                            <span className="font-bold text-slate-700 group-hover:text-blue-700 flex items-center gap-1">
+                              Ver paralelos →
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* ── PASO 2: SELECCIONAR PARALELO DEL GRADO ── */}
+      {gradoSel && !paraleloSel && (
+        <div>
+          <button onClick={() => { setGradoSel(null); setBusqueda(""); }}
+            style={{ borderColor: PRIMARY, color: PRIMARY }}
+            className="flex items-center gap-1 px-3.5 py-1.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition bg-white shadow-xs mb-4">
+            <IconBack /> Volver a cursos y grados
+          </button>
+
+          <div className="mb-6">
+            <h1 className="text-xl font-bold text-slate-700">{gradoSel.nombre}</h1>
+            <p className="text-xs text-slate-400 mt-0.5">Selecciona el paralelo para ver las asignaturas y docentes</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {(gradoSel.paralelos && gradoSel.paralelos.length > 0 ? gradoSel.paralelos : [{ idParalelo: 1, letra: "A", nombre: "Paralelo A" }]).map((p, idx) => {
+              const theme = CARD_THEMES[idx % CARD_THEMES.length];
+              const letra = p.letra || p.nombre || "A";
+              return (
+                <div
+                  key={p.idParalelo || idx}
+                  onClick={() => { setParaleloSel(p); setBusqueda(""); }}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                >
+                  <div className={`${theme.header} p-5 text-white flex flex-col justify-between min-h-[100px]`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                        {gradoSel.nombre}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white">
+                        Vigente
+                      </span>
+                    </div>
+                    <h3 className="font-extrabold text-xl leading-tight mt-2">
+                      Paralelo {letra}
                     </h3>
-                    <p className="text-[11px] text-slate-200 mt-0.5">Escuela Provincias Unidas</p>
                   </div>
-                </div>
-
-                <div className="p-4 flex flex-col justify-between flex-1 gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs flex-shrink-0">
-                      {a.docente ? a.docente[0] : "D"}
-                    </div>
-                    <div className="truncate">
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold">Docente Titular</p>
-                      <p className="text-xs font-semibold text-slate-700 truncate">{a.docente || "No asignado"}</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
-                      📊 Sábana 70% + 30%
-                    </span>
-                    <span className="font-bold text-slate-700 group-hover:text-blue-700 flex items-center gap-0.5 text-xs transition">
-                      Abrir notas →
+                  <div className="p-4 flex items-center justify-between text-xs text-slate-600 bg-white">
+                    <span className="font-medium">Capacidad: 35 estudiantes</span>
+                    <span className="font-bold text-slate-700 group-hover:text-blue-700 flex items-center gap-1">
+                      Ver materias y docentes →
                     </span>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── PASO 3: SELECCIONAR MATERIA Y DOCENTE DEL PARALELO ── */}
+      {gradoSel && paraleloSel && (
+        <div>
+          <button onClick={() => { setParaleloSel(null); setBusqueda(""); }}
+            style={{ borderColor: PRIMARY, color: PRIMARY }}
+            className="flex items-center gap-1 px-3.5 py-1.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition bg-white shadow-xs mb-4">
+            <IconBack /> Volver a paralelos
+          </button>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-700">{gradoSel.nombre}</h1>
+                <span className="bg-[#243A76] text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+                  Paralelo {paraleloSel.letra || paraleloSel.nombre || "A"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">Selecciona la materia para abrir la sábana de notas 70/30</p>
+            </div>
+            <div className="relative">
+              <input type="text" placeholder="Buscar materia o docente..."
+                value={busqueda} onChange={e => setBusqueda(e.target.value)}
+                className="pl-3 pr-8 py-2 text-xs border border-slate-200 rounded-xl bg-white shadow-xs w-64 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+              <svg className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+
+          {(() => {
+            const materiasDelGrado = asignaciones.filter(a => {
+              const matchGrado = !a.idGrado || a.idGrado === gradoSel.idGrado || (a.grado && a.grado.toLowerCase().includes(gradoSel.nombre.toLowerCase().split(" ")[0]));
+              const matchTxt = `${a.asignatura} ${a.docente}`.toLowerCase().includes(busqueda.toLowerCase());
+              return matchGrado && matchTxt;
+            });
+
+            const listaFinal = materiasDelGrado.length > 0 ? materiasDelGrado : asignaciones.filter(a => `${a.asignatura} ${a.docente}`.toLowerCase().includes(busqueda.toLowerCase()));
+
+            return listaFinal.length === 0 ? (
+              <div className="text-center py-20 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">
+                No hay materias asignadas para este paralelo.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {listaFinal.map((a, idx) => {
+                  const theme = CARD_THEMES[idx % CARD_THEMES.length];
+                  return (
+                    <div
+                      key={a.idAsignacion || idx}
+                      onClick={() => abrirMatrizCurso(a)}
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                    >
+                      <div className={`${theme.header} p-4 text-white flex flex-col justify-between min-h-[95px]`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                            {gradoSel.nombre} · Paralelo {paraleloSel.letra || "A"}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white">
+                            ACTIVO
+                          </span>
+                        </div>
+                        <h3 className="font-extrabold text-base leading-tight mt-2 group-hover:underline underline-offset-2">
+                          {a.asignatura}
+                        </h3>
+                      </div>
+
+                      <div className="p-4 flex flex-col justify-between flex-1 gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs flex-shrink-0">
+                            {a.docente ? a.docente[0] : "D"}
+                          </div>
+                          <div className="truncate">
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold">Docente Titular</p>
+                            <p className="text-xs font-semibold text-slate-700 truncate">{a.docente || "Docente Asignado"}</p>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <span className="text-[11px] text-slate-500 font-medium">📊 Sábana 70% + 30%</span>
+                          <span className="font-bold text-slate-700 group-hover:text-blue-700 flex items-center gap-1 transition">
+                            Abrir notas →
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             );
-          })}
+          })()}
         </div>
       )}
     </Layout>
