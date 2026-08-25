@@ -1,6 +1,9 @@
 package ec.edu.uteq.sga.docente.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +26,22 @@ import ec.edu.uteq.sga.docente.ui.screens.settings.*
 import ec.edu.uteq.sga.docente.ui.screens.sync.*
 
 @Composable
+inline fun <reified T : ViewModel> rememberCustomViewModel(
+    key: String? = null,
+    crossinline creator: () -> T
+): T {
+    return viewModel(
+        key = key,
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <VM : ViewModel> create(modelClass: Class<VM>): VM {
+                return creator() as VM
+            }
+        }
+    )
+}
+
+@Composable
 fun SgaNavGraph(
     navController: NavHostController,
     app: SgaDocenteApp,
@@ -34,7 +53,9 @@ fun SgaNavGraph(
     ) {
         // ─── LOGIN ────────────────────────────────────────────────────────────
         composable(Screen.Login.route) {
-            val viewModel = LoginViewModel(app.authRepository)
+            val viewModel = rememberCustomViewModel(key = "login") {
+                LoginViewModel(app.authRepository)
+            }
             LoginScreen(
                 viewModel = viewModel,
                 onLoginSuccess = {
@@ -47,12 +68,14 @@ fun SgaNavGraph(
 
         // ─── DASHBOARD ────────────────────────────────────────────────────────
         composable(Screen.Dashboard.route) {
-            val viewModel = DashboardViewModel(
-                authRepository = app.authRepository,
-                docenteRepository = app.docenteRepository,
-                syncManager = app.syncManager,
-                sessionManager = app.sessionManager
-            )
+            val viewModel = rememberCustomViewModel(key = "dashboard") {
+                DashboardViewModel(
+                    authRepository = app.authRepository,
+                    docenteRepository = app.docenteRepository,
+                    syncManager = app.syncManager,
+                    sessionManager = app.sessionManager
+                )
+            }
             DashboardScreen(
                 viewModel = viewModel,
                 onCourseClick = { idAsignacion ->
@@ -99,7 +122,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = CursosViewModel(app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "curso_$idAsignacion") {
+                CursosViewModel(app.docenteRepository)
+            }
             DetalleCursoScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -134,7 +159,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = ActividadesViewModel(app.actividadesRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "actividades_$idAsignacion") {
+                ActividadesViewModel(app.actividadesRepository, app.docenteRepository)
+            }
             ActividadesScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -166,7 +193,9 @@ fun SgaNavGraph(
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
             val idActividadStr = backStackEntry.arguments?.getString("idActividad")
             val idActividad = idActividadStr?.toLongOrNull()
-            val viewModel = ActividadesViewModel(app.actividadesRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "form_actividad_${idAsignacion}_$idActividad") {
+                ActividadesViewModel(app.actividadesRepository, app.docenteRepository)
+            }
             FormActividadScreen(
                 idAsignacion = idAsignacion,
                 idActividad = idActividad,
@@ -189,7 +218,9 @@ fun SgaNavGraph(
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
             val nombre = backStackEntry.arguments?.getString("nombre") ?: "Actividad"
             val max = (backStackEntry.arguments?.getFloat("max") ?: 10f).toDouble()
-            val viewModel = CalificacionesViewModel(app.calificacionesRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "calificaciones_$idActividad") {
+                CalificacionesViewModel(app.calificacionesRepository, app.docenteRepository)
+            }
             CalificacionesScreen(
                 idActividad = idActividad,
                 idAsignacion = idAsignacion,
@@ -206,7 +237,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = AsistenciaViewModel(app.asistenciasRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "asistencia_$idAsignacion") {
+                AsistenciaViewModel(app.asistenciasRepository, app.docenteRepository)
+            }
             AsistenciaScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -223,7 +256,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = AsistenciaViewModel(app.asistenciasRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "resumen_asistencia_$idAsignacion") {
+                AsistenciaViewModel(app.asistenciasRepository, app.docenteRepository)
+            }
             ResumenAsistenciaScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -237,7 +272,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = AulaVirtualViewModel(app.aulaVirtualRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "aulavirtual_$idAsignacion") {
+                AulaVirtualViewModel(app.aulaVirtualRepository, app.docenteRepository)
+            }
             SemanasScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -247,7 +284,9 @@ fun SgaNavGraph(
 
         // ─── HORARIO ──────────────────────────────────────────────────────────
         composable(Screen.Horario.route) {
-            val viewModel = HorarioViewModel(app.horarioRepository, app.sessionManager)
+            val viewModel = rememberCustomViewModel(key = "horario") {
+                HorarioViewModel(app.horarioRepository, app.sessionManager)
+            }
             HorarioScreen(
                 viewModel = viewModel,
                 onBackClick = { navController.popBackStack() }
@@ -267,7 +306,9 @@ fun SgaNavGraph(
         ) { backStackEntry ->
             val idMatriculaStr = backStackEntry.arguments?.getString("idMatricula")
             val idMatricula = idMatriculaStr?.toLongOrNull()
-            val viewModel = SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.asistenciasRepository, app.sessionManager)
+            val viewModel = rememberCustomViewModel(key = "seguimiento_$idMatricula") {
+                SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.asistenciasRepository, app.sessionManager)
+            }
             SeguimientoScreen(
                 idMatricula = idMatricula,
                 viewModel = viewModel,
@@ -285,7 +326,9 @@ fun SgaNavGraph(
         ) { backStackEntry ->
             val idMatricula = backStackEntry.arguments?.getLong("idMatricula") ?: 0L
             val nombre = backStackEntry.arguments?.getString("nombre") ?: "Estudiante"
-            val viewModel = SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.asistenciasRepository, app.sessionManager)
+            val viewModel = rememberCustomViewModel(key = "form_seguimiento_$idMatricula") {
+                SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.asistenciasRepository, app.sessionManager)
+            }
             FormSeguimientoScreen(
                 idMatricula = idMatricula,
                 estudianteNombre = nombre,
@@ -300,7 +343,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = AnunciosViewModel(app.anunciosRepository, app.docenteRepository, app.sessionManager)
+            val viewModel = rememberCustomViewModel(key = "anuncios_$idAsignacion") {
+                AnunciosViewModel(app.anunciosRepository, app.docenteRepository, app.sessionManager)
+            }
             AnunciosScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -314,7 +359,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = MaterialesViewModel(app.materialesRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "materiales_$idAsignacion") {
+                MaterialesViewModel(app.materialesRepository, app.docenteRepository)
+            }
             MaterialesScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,
@@ -328,7 +375,9 @@ fun SgaNavGraph(
             arguments = listOf(navArgument("idAsignacion") { type = NavType.LongType })
         ) { backStackEntry ->
             val idAsignacion = backStackEntry.arguments?.getLong("idAsignacion") ?: 0L
-            val viewModel = ReportesViewModel(app.promediosRepository, app.docenteRepository)
+            val viewModel = rememberCustomViewModel(key = "reportes_$idAsignacion") {
+                ReportesViewModel(app.promediosRepository, app.docenteRepository)
+            }
             ReportesPromediosScreen(
                 idAsignacion = idAsignacion,
                 viewModel = viewModel,

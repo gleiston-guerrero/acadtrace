@@ -30,19 +30,16 @@ class CursosViewModel(
     fun loadCurso(idAsignacion: Long) {
         _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)
 
-        // 1. Obtener la asignación puntual directamente
+        // 1. Cargar asignación (caché y red reactiva)
         viewModelScope.launch {
-            val asigRes = docenteRepository.getAsignacion(idAsignacion)
-            if (asigRes is Resource.Success) {
-                _uiState.value = _uiState.value.copy(asignacion = asigRes.data)
-            } else {
-                // Fallback con lista completa
-                docenteRepository.getAsignaciones().collect { res ->
-                    if (res is Resource.Success) {
-                        val curso = res.data.find { it.idAsignacion == idAsignacion }
-                        if (curso != null) {
-                            _uiState.value = _uiState.value.copy(asignacion = curso)
-                        }
+            docenteRepository.getAsignaciones().collect { res ->
+                if (res is Resource.Success) {
+                    val curso = res.data.find { it.idAsignacion == idAsignacion }
+                    if (curso != null) {
+                        _uiState.value = _uiState.value.copy(
+                            asignacion = curso,
+                            isOffline = res.isOffline
+                        )
                     }
                 }
             }
