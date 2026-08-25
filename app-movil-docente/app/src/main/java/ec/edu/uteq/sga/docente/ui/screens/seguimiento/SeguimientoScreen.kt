@@ -63,7 +63,7 @@ fun SeguimientoScreen(
         ) {
             OfflineBanner(isOffline = state.isOffline)
 
-            // Selector de Pestañas: 0 = Observaciones / Bitácora, 1 = Rendimiento y Alertas
+            // Selector de Pestañas: 0 = Rendimiento y Alertas (por defecto, izquierda), 1 = Bitácora (derecha)
             TabRow(
                 selectedTabIndex = state.selectedTab,
                 containerColor = CardSurface,
@@ -72,75 +72,17 @@ fun SeguimientoScreen(
                 Tab(
                     selected = state.selectedTab == 0,
                     onClick = { viewModel.setTab(0) },
-                    text = { Text("Bitácora (${state.items.size})", fontWeight = FontWeight.Bold) }
+                    text = { Text("Rendimiento y Alertas", fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = state.selectedTab == 1,
                     onClick = { viewModel.setTab(1) },
-                    text = { Text("Rendimiento y Alertas", fontWeight = FontWeight.Bold) }
+                    text = { Text("Bitácora (${state.items.size})", fontWeight = FontWeight.Bold) }
                 )
             }
 
             if (state.selectedTab == 0) {
-                // ─── PESTAÑA BITÁCORA / OBSERVACIONES ───────────────────────────
-                // Filtros de categoría
-                Surface(
-                    color = CardSurface,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        item {
-                            FilterChip(
-                                selected = state.selectedCategoriaFiltro == null,
-                                onClick = { viewModel.setCategoriaFiltro(null) },
-                                label = { Text("Todas", fontSize = 12.sp) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),
-                                    selectedLabelColor = PrimaryNavy
-                                )
-                            )
-                        }
-                        items(CATEGORIAS_SEGUIMIENTO) { (key, label) ->
-                            val isSelected = state.selectedCategoriaFiltro == key
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = { viewModel.setCategoriaFiltro(key) },
-                                label = { Text(label, fontSize = 12.sp) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),
-                                    selectedLabelColor = PrimaryNavy
-                                )
-                            )
-                        }
-                    }
-                }
-
-                if (state.isLoading && state.items.isEmpty()) {
-                    LoadingView("Cargando bitácora de seguimiento...")
-                } else if (itemsFiltrados.isEmpty()) {
-                    EmptyStateView(
-                        icon = Icons.Default.AssignmentTurnedIn,
-                        title = "No hay observaciones registradas",
-                        subtitle = "Crea registros de acompañamiento desde la lista de estudiantes."
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(itemsFiltrados) { item ->
-                            SeguimientoCard(item = item)
-                        }
-                    }
-                }
-            } else {
-                // ─── PESTAÑA RENDIMIENTO Y ALERTAS ──────────────────────────────
+                // ─── PESTAÑA RENDIMIENTO Y ALERTAS (POR DEFECTO) ────────────────
                 if (state.isLoading && state.estudiantesAlerta.isEmpty()) {
                     LoadingView("Analizando alertas y rendimiento...")
                 } else {
@@ -149,6 +91,36 @@ fun SeguimientoScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Selector de Asignación / Curso si hay más de una
+                        if (state.asignaciones.size > 1) {
+                            item {
+                                Text(
+                                    text = "Filtrar por Aula Asignada:",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryNavy
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(state.asignaciones) { asig ->
+                                        val isSel = state.selectedAsignacion?.idAsignacion == asig.idAsignacion
+                                        FilterChip(
+                                            selected = isSel,
+                                            onClick = { viewModel.selectAsignacion(asig) },
+                                            label = { Text("${asig.asignaturaNombre} - ${asig.gradoNombre} '${asig.paraleloLetra}'", fontSize = 12.sp) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = PrimaryNavy.copy(alpha = 0.15f),
+                                                selectedLabelColor = PrimaryNavy
+                                            )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(10.dp))
+                            }
+                        }
+
                         // Sección: Alertas de Asistencia Crítica (< 80%)
                         item {
                             Text(
@@ -227,11 +199,11 @@ fun SeguimientoScreen(
                             }
                         }
 
-                        // Sección: Estudiantes Registrados en Seguimiento
+                        // Sección: Nómina de Estudiantes y Seguimiento
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Nómina de Estudiantes y Seguimiento",
+                                text = "Nómina de Estudiantes y Rendimiento",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryNavy
@@ -242,8 +214,8 @@ fun SeguimientoScreen(
                             item {
                                 EmptyStateView(
                                     icon = Icons.Default.SearchOff,
-                                    title = "Sin casos activos",
-                                    subtitle = "Todos los estudiantes se encuentran con seguimiento al día."
+                                    title = "Sin estudiantes",
+                                    subtitle = "No se encontraron estudiantes para este curso."
                                 )
                             }
                         } else {
@@ -311,6 +283,64 @@ fun SeguimientoScreen(
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            } else {
+                // ─── PESTAÑA BITÁCORA / OBSERVACIONES (A LA DERECHA) ────────────
+                // Filtros de categoría
+                Surface(
+                    color = CardSurface,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item {
+                            FilterChip(
+                                selected = state.selectedCategoriaFiltro == null,
+                                onClick = { viewModel.setCategoriaFiltro(null) },
+                                label = { Text("Todas", fontSize = 12.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),
+                                    selectedLabelColor = PrimaryNavy
+                                )
+                            )
+                        }
+                        items(CATEGORIAS_SEGUIMIENTO) { (key, label) ->
+                            val isSelected = state.selectedCategoriaFiltro == key
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { viewModel.setCategoriaFiltro(key) },
+                                label = { Text(label, fontSize = 12.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),
+                                    selectedLabelColor = PrimaryNavy
+                                )
+                            )
+                        }
+                    }
+                }
+
+                if (state.isLoading && state.items.isEmpty()) {
+                    LoadingView("Cargando bitácora de seguimiento...")
+                } else if (itemsFiltrados.isEmpty()) {
+                    EmptyStateView(
+                        icon = Icons.Default.AssignmentTurnedIn,
+                        title = "No hay observaciones registradas",
+                        subtitle = "La bitácora aún no tiene anotaciones registradas para este período."
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(itemsFiltrados) { item ->
+                            SeguimientoCard(item = item)
                         }
                     }
                 }

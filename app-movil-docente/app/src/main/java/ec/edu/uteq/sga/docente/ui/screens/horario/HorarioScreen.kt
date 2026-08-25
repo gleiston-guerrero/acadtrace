@@ -75,6 +75,11 @@ fun HorarioScreen(
 
             if (state.isLoading && state.slots.isEmpty()) {
                 LoadingView("Cargando horario semanal...")
+            } else if (!state.errorMessage.isNullOrBlank() && state.slots.isEmpty()) {
+                ErrorView(
+                    message = state.errorMessage ?: "Error al cargar los horarios del servidor",
+                    onRetry = { viewModel.loadHorario() }
+                )
             } else if (slotsFiltrados.isEmpty()) {
                 EmptyStateView(
                     icon = Icons.Default.EventBusy,

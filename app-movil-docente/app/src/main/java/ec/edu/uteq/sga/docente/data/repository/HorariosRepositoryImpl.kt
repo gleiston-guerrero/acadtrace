@@ -80,11 +80,23 @@ class HorariosRepositoryImpl(
                     }
                 }
 
-                // Obtener asignaciones y consultar el horario de cada curso
-                val asigsResp = docenteApi.getMisAsignaciones()
-                if (asigsResp.isSuccessful && asigsResp.body() != null) {
-                    for (asig in asigsResp.body()!!) {
-                        val cursoResp = docenteApi.getHorarioCurso(asig.idAsignacion)
+                // Consultar horarios de los cursos asignados al docente (desde la caché local y/o red)
+                val localAsigs = database.asignacionDao().getAllAsignaciones().firstOrNull() ?: emptyList()
+                val targetAsigIds = mutableSetOf<Long>()
+                localAsigs.forEach { targetAsigIds.add(it.idAsignacion) }
+
+                try {
+                    val asigsResp = docenteApi.getMisAsignaciones()
+                    if (asigsResp.isSuccessful && asigsResp.body() != null) {
+                        asigsResp.body()!!.forEach { targetAsigIds.add(it.idAsignacion) }
+                    }
+                } catch (e: Exception) {
+                    // Continuar con las asignaciones locales
+                }
+
+                for (idAsig in targetAsigIds) {
+                    try {
+                        val cursoResp = docenteApi.getHorarioCurso(idAsig)
                         if (cursoResp.isSuccessful && cursoResp.body() != null) {
                             cursoResp.body()!!.slots.forEach { slot ->
                                 allEntities.add(
@@ -104,6 +116,8 @@ class HorariosRepositoryImpl(
                                 )
                             }
                         }
+                    } catch (e: Exception) {
+                        // Continuar con el siguiente curso
                     }
                 }
 
@@ -129,7 +143,7 @@ class HorariosRepositoryImpl(
                     }
                     emit(Resource.Success(domainList, isOffline = false))
                 } else if (cached.isEmpty()) {
-                    emit(Resource.Success(emptyList(), isOffline = false))
+                    emit(Resource.Error("No se pudieron cargar los horarios del servidor."))
                 }
             } catch (e: Exception) {
                 if (cached.isEmpty()) {
