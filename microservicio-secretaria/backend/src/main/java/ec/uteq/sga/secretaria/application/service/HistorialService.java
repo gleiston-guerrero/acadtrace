@@ -82,8 +82,14 @@ public class HistorialService {
     public Map<String, Object> registrarPromocion(PromocionRequest dto, String username) {
         List<Map<String, Object>> mat = jdbc.query(
                 "SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo " +
-                        "FROM sga_secretaria.matriculas m WHERE m.id_matricula = :id",
+                        "FROM sga_principal.matriculas m WHERE m.id_matricula = :id",
                 new MapSqlParameterSource("id", dto.id_matricula()), GenericRowMapper.INSTANCE);
+        if (mat.isEmpty()) {
+            mat = jdbc.query(
+                    "SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo " +
+                            "FROM sga_secretaria.matriculas m WHERE m.id_matricula = :id",
+                    new MapSqlParameterSource("id", dto.id_matricula()), GenericRowMapper.INSTANCE);
+        }
         if (mat.isEmpty()) throw ApiException.notFound("Matrícula no encontrada");
         Map<String, Object> m = mat.get(0);
 
@@ -123,10 +129,18 @@ public class HistorialService {
                         .addValue("registradoPor", registradoPor));
 
         String estadoMatricula = "PROMOVIDO".equals(resultadoNorm) ? "PROMOVIDA" : "NO_PROMOVIDA";
-        jdbc.update(
-                "UPDATE sga_secretaria.matriculas SET estado = :estado::sga_principal.estado_matricula_t " +
-                        "WHERE id_matricula = :id",
-                new MapSqlParameterSource().addValue("estado", estadoMatricula).addValue("id", dto.id_matricula()));
+        try {
+            jdbc.update(
+                    "UPDATE sga_principal.matriculas SET estado = :estado::sga_principal.estado_matricula_t " +
+                            "WHERE id_matricula = :id",
+                    new MapSqlParameterSource().addValue("estado", estadoMatricula).addValue("id", dto.id_matricula()));
+        } catch (Exception ignored) {}
+        try {
+            jdbc.update(
+                    "UPDATE sga_secretaria.matriculas SET estado = :estado::sga_principal.estado_matricula_t " +
+                            "WHERE id_matricula = :id",
+                    new MapSqlParameterSource().addValue("estado", estadoMatricula).addValue("id", dto.id_matricula()));
+        } catch (Exception ignored) {}
 
         Number idEstudiante = (Number) m.get("id_estudiante");
         return historialEstudiante(idEstudiante.longValue());
@@ -157,18 +171,27 @@ public class HistorialService {
         jdbc.update("DELETE FROM sga_principal.historial_promocion WHERE id_historial = :id",
                 new MapSqlParameterSource("id", idHistorial));
 
-        jdbc.update("UPDATE sga_secretaria.matriculas SET estado = 'MATRICULADO'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
-                new MapSqlParameterSource("idMatricula", idMatricula));
+        try {
+            jdbc.update("UPDATE sga_principal.matriculas SET estado = 'MATRICULADO'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
+                    new MapSqlParameterSource("idMatricula", idMatricula));
+        } catch (Exception ignored) {}
+        try {
+            jdbc.update("UPDATE sga_secretaria.matriculas SET estado = 'MATRICULADO'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
+                    new MapSqlParameterSource("idMatricula", idMatricula));
+        } catch (Exception ignored) {}
     }
 
     public List<Map<String, Object>> listarPromociones(long idAnoLectivo, Long idGrado, Long idParalelo, String estado, String q) {
         StringBuilder sql = new StringBuilder("""
                 SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_paralelo, m.estado AS estado_matricula,
-                       e.nombres || ' ' || e.apellidos AS estudiante, e.cedula, e.codigo_estudiante,
+                       COALESCE(TRIM(COALESCE(e.nombres, ep.nombres, '') || ' ' || COALESCE(e.apellidos, ep.apellidos, '')), 'Estudiante') AS estudiante,
+                       COALESCE(e.cedula, ep.cedula) AS cedula,
+                       COALESCE(e.codigo_estudiante, ep.codigo_estudiante) AS codigo_estudiante,
                        hp.id_historial, hp.resultado, hp.promedio_anual, hp.observaciones, hp.fecha_registro,
                        u.username AS registrado_por
-                FROM sga_secretaria.matriculas m
-                JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
+                FROM sga_principal.matriculas m
+                LEFT JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
+                LEFT JOIN sga_principal.estudiantes ep ON ep.id_estudiante = m.id_estudiante
                 LEFT JOIN sga_principal.historial_promocion hp ON hp.id_matricula = m.id_matricula
                 LEFT JOIN sga_principal.usuarios u ON u.id_usuario = hp.registrado_por
                 WHERE m.id_ano_lectivo = :idAno
@@ -195,9 +218,11 @@ public class HistorialService {
             }
         }
         if (q != null && !q.isBlank()) {
-            sql.append(" AND (LOWER(e.nombres) LIKE :q OR LOWER(e.apellidos) LIKE :q OR e.cedula LIKE :q OR LOWER(e.codigo_estudiante) LIKE :q)");
+            sql.append(" AND (LOWER(COALESCE(e.nombres, ep.nombres, '')) LIKE :q OR LOWER(COALESCE(e.apellidos, ep.apellidos, '')) LIKE :q OR COALESCE(e.cedula, ep.cedula, '') LIKE :q OR LOWER(COALESCE(e.codigo_estudiante, ep.codigo_estudiante, '')) LIKE :q)");
             params.addValue("q", "%" + q.trim().toLowerCase() + "%");
         }
+
+        sql.append(" ORDER BY m.id_grado, m.id_paralelo, estudiante");
 
         List<Map<String, Object>> data = jdbc.query(sql.toString(), params, GenericRowMapper.INSTANCE);
 
@@ -256,11 +281,12 @@ public class HistorialService {
 
     public List<Map<String, Object>> estudiantesSinPromocion(long idAnoLectivo) {
         String sql = """
-                SELECT m.id_matricula, e.id_estudiante,
-                       e.nombres || ' ' || e.apellidos AS estudiante,
-                       e.cedula, m.id_grado, m.id_paralelo
-                FROM sga_secretaria.matriculas m
-                JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
+                SELECT m.id_matricula, m.id_estudiante,
+                       COALESCE(TRIM(COALESCE(e.nombres, ep.nombres, '') || ' ' || COALESCE(e.apellidos, ep.apellidos, '')), 'Estudiante') AS estudiante,
+                       COALESCE(e.cedula, ep.cedula) AS cedula, m.id_grado, m.id_paralelo
+                FROM sga_principal.matriculas m
+                LEFT JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
+                LEFT JOIN sga_principal.estudiantes ep ON ep.id_estudiante = m.id_estudiante
                 WHERE m.id_ano_lectivo = :idAno
                   AND NOT EXISTS (
                     SELECT 1 FROM sga_principal.historial_promocion hp
