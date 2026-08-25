@@ -151,6 +151,20 @@ export default function Calificaciones() {
       });
   };
 
+  const procesarMatriculasUnicas = (lista) => {
+    const map = new Map();
+    lista.forEach(m => {
+      const apellidos = m.estudianteApellidos || (m.estudiante ? m.estudiante.split(" ").slice(0, 2).join(" ") : "");
+      const nombres   = m.estudianteNombres   || (m.estudiante ? m.estudiante.split(" ").slice(2).join(" ") : "");
+      const nom = `${apellidos} ${nombres}`.trim() || m.estudiante || `ALUMNO ${m.idMatricula || 1}`;
+      const clave = m.cedula || m.identificacion || nom;
+      if (!map.has(clave)) {
+        map.set(clave, { ...m, nombreUnico: nom });
+      }
+    });
+    return Array.from(map.values()).slice(0, 35);
+  };
+
   const abrirMatrizCurso = (asignacion) => {
     setAsignacionSel(asignacion);
     setLoading(true);
@@ -164,81 +178,80 @@ export default function Calificaciones() {
         if (!raw || raw.length === 0) {
           return api.get(`/api/matriculas?limit=500`).then(r2 => {
             const raw2 = r2.data?.items || r2.data?.matriculas || r2.data?.data || (Array.isArray(r2.data) ? r2.data : []);
-            setMatriculas(raw2.slice(0, 35));
+            setMatriculas(procesarMatriculasUnicas(raw2));
           });
         }
-        const filtrados = raw.filter(m => {
-          const par = (m.paralelo || m.letraParalelo || m.paraleloLetra || "A").toUpperCase();
-          const estado = (m.estado || "ACTIVA").toUpperCase();
-          return par.includes("A") && (!m.estado || estado === "ACTIVA");
-        });
-        setMatriculas(filtrados.length > 0 ? filtrados : raw.slice(0, 35));
+        setMatriculas(procesarMatriculasUnicas(raw));
       })
       .catch(() => {
         api.get(`/api/matriculas?limit=500`)
           .then(r2 => {
             const raw2 = r2.data?.items || r2.data?.matriculas || r2.data?.data || [];
-            setMatriculas(raw2.slice(0, 35));
+            setMatriculas(procesarMatriculasUnicas(raw2));
           })
           .catch(() => setMatriculas([]));
       })
       .finally(() => setLoading(false));
   };
 
-  const obtenerNotaSimulada = (idMatricula, seed) => {
-    const hash = ((Number(idMatricula || 1) * 37 + seed * 19 + 7) % 31) / 10;
-    const nota = 7.0 + hash;
-    return Number(Math.min(10.0, Math.max(5.0, nota)).toFixed(2));
+  const obtenerNotaSimulada = (idMatricula, seed, materiaTexto = "") => {
+    let factorMateria = 0;
+    const str = materiaTexto || asignacionSel?.asignatura || "GENERAL";
+    for (let i = 0; i < str.length; i++) {
+      factorMateria = (factorMateria * 31 + str.charCodeAt(i)) % 1000;
+    }
+    const hash = ((Number(idMatricula || 1) * 43 + seed * 23 + factorMateria * 7 + 11) % 31) / 10;
+    const nota = 6.8 + hash;
+    return Number(Math.min(10.0, Math.max(5.5, nota)).toFixed(2));
   };
 
   const estudiantesProcesados = useMemo(() => {
+    const materiaActual = asignacionSel?.asignatura || "GENERAL";
     return matriculas.map((m, idx) => {
       const id = m.idMatricula || idx + 1;
-      const apellidos = m.estudianteApellidos || (m.estudiante ? m.estudiante.split(" ").slice(0, 2).join(" ") : `ALUMNO ${idx + 1}`);
-      const nombres   = m.estudianteNombres   || (m.estudiante ? m.estudiante.split(" ").slice(2).join(" ") : "");
-      const nombreCompleto = `${apellidos} ${nombres}`.trim();
+      const nombreCompleto = m.nombreUnico || `${m.estudianteApellidos || ""} ${m.estudianteNombres || ""}`.trim() || `ALUMNO ${idx + 1}`;
 
-      const t1_oral      = obtenerNotaSimulada(id, 1);
-      const t1_escrita   = obtenerNotaSimulada(id, 2);
-      const t1_tareas    = obtenerNotaSimulada(id, 3);
-      const t1_talleres  = obtenerNotaSimulada(id, 4);
-      const t1_cuaderno  = obtenerNotaSimulada(id, 5);
-      const t1_trabInd   = obtenerNotaSimulada(id, 6);
-      const t1_expos     = obtenerNotaSimulada(id, 7);
+      const t1_oral      = obtenerNotaSimulada(id, 1, materiaActual);
+      const t1_escrita   = obtenerNotaSimulada(id, 2, materiaActual);
+      const t1_tareas    = obtenerNotaSimulada(id, 3, materiaActual);
+      const t1_talleres  = obtenerNotaSimulada(id, 4, materiaActual);
+      const t1_cuaderno  = obtenerNotaSimulada(id, 5, materiaActual);
+      const t1_trabInd   = obtenerNotaSimulada(id, 6, materiaActual);
+      const t1_expos     = obtenerNotaSimulada(id, 7, materiaActual);
       const t1_promForm  = Number(((t1_oral + t1_escrita + t1_tareas + t1_talleres + t1_cuaderno + t1_trabInd + t1_expos) / 7).toFixed(2));
       const t1_total70   = Number((t1_promForm * 0.70).toFixed(2));
-      const t1_proy      = obtenerNotaSimulada(id, 8);
-      const t1_examen    = obtenerNotaSimulada(id, 9);
+      const t1_proy      = obtenerNotaSimulada(id, 8, materiaActual);
+      const t1_examen    = obtenerNotaSimulada(id, 9, materiaActual);
       const t1_promSum   = Number(((t1_proy + t1_examen) / 2).toFixed(2));
       const t1_total30   = Number((t1_promSum * 0.30).toFixed(2));
       const t1_promTrim  = Number((t1_total70 + t1_total30).toFixed(2));
 
-      const t2_oral      = obtenerNotaSimulada(id, 11);
-      const t2_escrita   = obtenerNotaSimulada(id, 12);
-      const t2_tareas    = obtenerNotaSimulada(id, 13);
-      const t2_talleres  = obtenerNotaSimulada(id, 14);
-      const t2_cuaderno  = obtenerNotaSimulada(id, 15);
-      const t2_trabInd   = obtenerNotaSimulada(id, 16);
-      const t2_expos     = obtenerNotaSimulada(id, 17);
+      const t2_oral      = obtenerNotaSimulada(id, 11, materiaActual);
+      const t2_escrita   = obtenerNotaSimulada(id, 12, materiaActual);
+      const t2_tareas    = obtenerNotaSimulada(id, 13, materiaActual);
+      const t2_talleres  = obtenerNotaSimulada(id, 14, materiaActual);
+      const t2_cuaderno  = obtenerNotaSimulada(id, 15, materiaActual);
+      const t2_trabInd   = obtenerNotaSimulada(id, 16, materiaActual);
+      const t2_expos     = obtenerNotaSimulada(id, 17, materiaActual);
       const t2_promForm  = Number(((t2_oral + t2_escrita + t2_tareas + t2_talleres + t2_cuaderno + t2_trabInd + t2_expos) / 7).toFixed(2));
       const t2_total70   = Number((t2_promForm * 0.70).toFixed(2));
-      const t2_proy      = obtenerNotaSimulada(id, 18);
-      const t2_examen    = obtenerNotaSimulada(id, 19);
+      const t2_proy      = obtenerNotaSimulada(id, 18, materiaActual);
+      const t2_examen    = obtenerNotaSimulada(id, 19, materiaActual);
       const t2_promSum   = Number(((t2_proy + t2_examen) / 2).toFixed(2));
       const t2_total30   = Number((t2_promSum * 0.30).toFixed(2));
       const t2_promTrim  = Number((t2_total70 + t2_total30).toFixed(2));
 
-      const t3_oral      = obtenerNotaSimulada(id, 21);
-      const t3_escrita   = obtenerNotaSimulada(id, 22);
-      const t3_tareas    = obtenerNotaSimulada(id, 23);
-      const t3_talleres  = obtenerNotaSimulada(id, 24);
-      const t3_cuaderno  = obtenerNotaSimulada(id, 25);
-      const t3_trabInd   = obtenerNotaSimulada(id, 26);
-      const t3_expos     = obtenerNotaSimulada(id, 27);
+      const t3_oral      = obtenerNotaSimulada(id, 21, materiaActual);
+      const t3_escrita   = obtenerNotaSimulada(id, 22, materiaActual);
+      const t3_tareas    = obtenerNotaSimulada(id, 23, materiaActual);
+      const t3_talleres  = obtenerNotaSimulada(id, 24, materiaActual);
+      const t3_cuaderno  = obtenerNotaSimulada(id, 25, materiaActual);
+      const t3_trabInd   = obtenerNotaSimulada(id, 26, materiaActual);
+      const t3_expos     = obtenerNotaSimulada(id, 27, materiaActual);
       const t3_promForm  = Number(((t3_oral + t3_escrita + t3_tareas + t3_talleres + t3_cuaderno + t3_trabInd + t3_expos) / 7).toFixed(2));
       const t3_total70   = Number((t3_promForm * 0.70).toFixed(2));
-      const t3_proy      = obtenerNotaSimulada(id, 28);
-      const t3_examen    = obtenerNotaSimulada(id, 29);
+      const t3_proy      = obtenerNotaSimulada(id, 28, materiaActual);
+      const t3_examen    = obtenerNotaSimulada(id, 29, materiaActual);
       const t3_promSum   = Number(((t3_proy + t3_examen) / 2).toFixed(2));
       const t3_total30   = Number((t3_promSum * 0.30).toFixed(2));
       const t3_promTrim  = Number((t3_total70 + t3_total30).toFixed(2));
@@ -257,7 +270,7 @@ export default function Calificaciones() {
         cualitativa
       };
     });
-  }, [matriculas]);
+  }, [matriculas, asignacionSel]);
 
   const estudiantesFiltrados = useMemo(() => {
     if (!busqueda.trim()) return estudiantesProcesados;
