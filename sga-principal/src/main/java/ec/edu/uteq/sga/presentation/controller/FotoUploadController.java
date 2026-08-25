@@ -60,4 +60,59 @@ public class FotoUploadController {
 
         return ResponseEntity.ok(Map.of("url", "/uploads/fotos/" + nombre));
     }
+
+    @GetMapping("/banners")
+    public ResponseEntity<Map<String, String>> obtenerBanners() {
+        Path dir = Paths.get(baseDir, "banners").toAbsolutePath();
+        String b1 = null;
+        String b2 = null;
+        try {
+            if (Files.exists(dir.resolve("banner1.txt"))) {
+                b1 = Files.readString(dir.resolve("banner1.txt"));
+            }
+            if (Files.exists(dir.resolve("banner2.txt"))) {
+                b2 = Files.readString(dir.resolve("banner2.txt"));
+            }
+        } catch (IOException e) {
+            log.error("Error al leer banners en servidor: ", e);
+        }
+        Map<String, String> res = new java.util.HashMap<>();
+        if (b1 != null) res.put("banner1", b1);
+        if (b2 != null) res.put("banner2", b2);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping(value = "/banner/{slot}")
+    public ResponseEntity<Map<String, String>> guardarBanner(
+            @PathVariable("slot") int slot,
+            @RequestBody Map<String, String> body) {
+        String data = body.get("data");
+        if (data == null || data.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Datos vacíos");
+        }
+        try {
+            Path dir = Paths.get(baseDir, "banners").toAbsolutePath();
+            Files.createDirectories(dir);
+            Path destino = dir.resolve("banner" + slot + ".txt");
+            Files.writeString(destino, data);
+            log.info("Banner institucional {} sincronizado y almacenado correctamente.", slot);
+        } catch (IOException e) {
+            log.error("Error al guardar banner en servidor: ", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar el banner");
+        }
+        return ResponseEntity.ok(Map.of("status", "OK", "slot", String.valueOf(slot)));
+    }
+
+    @DeleteMapping("/banner/{slot}")
+    public ResponseEntity<Map<String, String>> eliminarBanner(@PathVariable("slot") int slot) {
+        try {
+            Path dir = Paths.get(baseDir, "banners").toAbsolutePath();
+            Path destino = dir.resolve("banner" + slot + ".txt");
+            Files.deleteIfExists(destino);
+            log.info("Banner institucional {} eliminado.", slot);
+        } catch (IOException e) {
+            log.error("Error al eliminar banner en servidor: ", e);
+        }
+        return ResponseEntity.ok(Map.of("status", "OK"));
+    }
 }

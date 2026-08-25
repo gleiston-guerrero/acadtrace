@@ -41,13 +41,42 @@ export default function Dashboard() {
                 setBanner2(base64);
                 localStorage.setItem("sga_banner_2", base64);
             }
+            // Sincronizar con el backend central de sga-principal para que todos los microservicios lo vean
+            api.post(`/api/uploads/banner/${num}`, { data: base64 })
+               .catch(err => console.error("Error al sincronizar banner con servidor:", err));
         };
         reader.readAsDataURL(file);
+    };
+
+    const handleEliminarBanner = (num, e) => {
+        e.stopPropagation();
+        if (num === 1) {
+            setBanner1(null);
+            localStorage.removeItem("sga_banner_1");
+        } else {
+            setBanner2(null);
+            localStorage.removeItem("sga_banner_2");
+        }
+        api.delete(`/api/uploads/banner/${num}`).catch(() => {});
     };
 
     useEffect(() => {
         api.get(`/api/anos-lectivos/actual`)
             .then(r => setAnoActual(r.data))
+            .catch(() => {});
+
+        // Cargar banners institucionales compartidos desde backend
+        api.get(`/api/uploads/banners`)
+            .then(r => {
+                if (r.data?.banner1) {
+                    setBanner1(r.data.banner1);
+                    localStorage.setItem("sga_banner_1", r.data.banner1);
+                }
+                if (r.data?.banner2) {
+                    setBanner2(r.data.banner2);
+                    localStorage.setItem("sga_banner_2", r.data.banner2);
+                }
+            })
             .catch(() => {});
     }, []);
 
@@ -253,7 +282,7 @@ export default function Dashboard() {
                                                 <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(1, e)} />
                                             </label>
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); setBanner1(null); localStorage.removeItem("sga_banner_1"); }}
+                                                onClick={(e) => handleEliminarBanner(1, e)}
                                                 className="px-2.5 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-rose-700 transition">
                                                 ✕
                                             </button>
@@ -316,7 +345,7 @@ export default function Dashboard() {
                                                 <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(2, e)} />
                                             </label>
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); setBanner2(null); localStorage.removeItem("sga_banner_2"); }}
+                                                onClick={(e) => handleEliminarBanner(2, e)}
                                                 className="px-2.5 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-rose-700 transition">
                                                 ✕
                                             </button>
