@@ -123,31 +123,40 @@ export default function Calificaciones() {
     setVista("matriz");
     setBusqueda("");
 
-    // Cargar los estudiantes matriculados para este grado
     const params = asignacion.idGrado ? { idGrado: asignacion.idGrado, limit: 500 } : { limit: 500 };
     api.get(`/api/matriculas`, { params })
       .then(r => {
-        const raw = r.data?.items || r.data?.matriculas || r.data?.data || (Array.isArray(r.data) ? r.data : []);
-        // Aislar los 70 alumnos del Paralelo A o los matriculados en este grado
+        let raw = r.data?.items || r.data?.matriculas || r.data?.data || (Array.isArray(r.data) ? r.data : []);
+        if (!raw || raw.length === 0) {
+          return api.get(`/api/matriculas?limit=500`).then(r2 => {
+            const raw2 = r2.data?.items || r2.data?.matriculas || r2.data?.data || (Array.isArray(r2.data) ? r2.data : []);
+            setMatriculas(raw2.slice(0, 35));
+          });
+        }
         const filtrados = raw.filter(m => {
           const par = (m.paralelo || m.letraParalelo || m.paraleloLetra || "A").toUpperCase();
           const estado = (m.estado || "ACTIVA").toUpperCase();
           return par.includes("A") && (!m.estado || estado === "ACTIVA");
         });
-        setMatriculas(filtrados.length > 0 ? filtrados : (raw.length > 0 ? raw : []));
+        setMatriculas(filtrados.length > 0 ? filtrados : raw.slice(0, 35));
       })
-      .catch(() => setMatriculas([]))
+      .catch(() => {
+        api.get(`/api/matriculas?limit=500`)
+          .then(r2 => {
+            const raw2 = r2.data?.items || r2.data?.matriculas || r2.data?.data || [];
+            setMatriculas(raw2.slice(0, 35));
+          })
+          .catch(() => setMatriculas([]));
+      })
       .finally(() => setLoading(false));
   };
 
-  // Generador determinista de notas por estudiante y actividad
   const obtenerNotaSimulada = (idMatricula, seed) => {
     const hash = ((Number(idMatricula || 1) * 37 + seed * 19 + 7) % 31) / 10;
     const nota = 7.0 + hash;
     return Number(Math.min(10.0, Math.max(5.0, nota)).toFixed(2));
   };
 
-  // Estructura de cálculos por alumno para los 3 trimestres
   const estudiantesProcesados = useMemo(() => {
     return matriculas.map((m, idx) => {
       const id = m.idMatricula || idx + 1;
@@ -155,7 +164,6 @@ export default function Calificaciones() {
       const nombres   = m.estudianteNombres   || (m.estudiante ? m.estudiante.split(" ").slice(2).join(" ") : "");
       const nombreCompleto = `${apellidos} ${nombres}`.trim();
 
-      // Trimestre 1
       const t1_oral      = obtenerNotaSimulada(id, 1);
       const t1_escrita   = obtenerNotaSimulada(id, 2);
       const t1_tareas    = obtenerNotaSimulada(id, 3);
@@ -172,7 +180,6 @@ export default function Calificaciones() {
       const t1_total30   = Number((t1_promSum * 0.30).toFixed(2));
       const t1_promTrim  = Number((t1_total70 + t1_total30).toFixed(2));
 
-      // Trimestre 2
       const t2_oral      = obtenerNotaSimulada(id, 11);
       const t2_escrita   = obtenerNotaSimulada(id, 12);
       const t2_tareas    = obtenerNotaSimulada(id, 13);
@@ -189,7 +196,6 @@ export default function Calificaciones() {
       const t2_total30   = Number((t2_promSum * 0.30).toFixed(2));
       const t2_promTrim  = Number((t2_total70 + t2_total30).toFixed(2));
 
-      // Trimestre 3
       const t3_oral      = obtenerNotaSimulada(id, 21);
       const t3_escrita   = obtenerNotaSimulada(id, 22);
       const t3_tareas    = obtenerNotaSimulada(id, 23);
@@ -206,7 +212,6 @@ export default function Calificaciones() {
       const t3_total30   = Number((t3_promSum * 0.30).toFixed(2));
       const t3_promTrim  = Number((t3_total70 + t3_total30).toFixed(2));
 
-      // Promedio Final Anual
       const promFinal = Number(((t1_promTrim + t2_promTrim + t3_promTrim) / 3).toFixed(2));
       const cualitativa = promFinal >= 9.0 ? "DAR (Domina)" : promFinal >= 7.0 ? "AAR (Alcanza)" : "PAAR (Próximo)";
 
@@ -234,51 +239,88 @@ export default function Calificaciones() {
     `${a.asignatura} ${a.grado} ${a.docente}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  // ── VISTA 1: CATÁLOGO DE CURSOS ─────────────────────────
+  const CARD_THEMES = [
+    { header: "bg-[#2b3c66]", border: "border-[#2b3c66]/20", tag: "bg-blue-50 text-[#2b3c66]" },
+    { header: "bg-[#3b4266]", border: "border-[#3b4266]/20", tag: "bg-indigo-50 text-[#3b4266]" },
+    { header: "bg-[#33535e]", border: "border-[#33535e]/20", tag: "bg-teal-50 text-[#33535e]" },
+    { header: "bg-[#475569]", border: "border-[#475569]/20", tag: "bg-slate-100 text-[#475569]" },
+    { header: "bg-[#4a5840]", border: "border-[#4a5840]/20", tag: "bg-emerald-50 text-[#4a5840]" },
+    { header: "bg-[#5c4059]", border: "border-[#5c4059]/20", tag: "bg-purple-50 text-[#5c4059]" },
+  ];
+
   if (vista === "cursos") return (
     <Layout breadcrumb={["Inicio", "Calificaciones"]} sidebarTitle="Calificaciones" menuItems={calMenuItems} seccion="cursos" onSeccionChange={(id) => { setVista(id); }}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-lg font-bold text-slate-700">Calificaciones</h1>
-          <p className="text-xs text-slate-400">
-            {anoActual ? `Año lectivo: ${anoActual.nombre}` : "Selecciona un curso para ver la sábana oficial de calificaciones"}
+          <h1 className="text-xl font-bold text-slate-700">Sábanas de Calificaciones</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {anoActual ? `Año lectivo: ${anoActual.nombre}` : "Selecciona una materia para gestionar la sábana ministerial (70% Formativa + 30% Sumativa)"}
           </p>
         </div>
         <div className="relative">
-          <input type="text" placeholder="Buscar curso, asignatura..."
+          <input type="text" placeholder="Buscar materia, grado, docente..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="pl-3 pr-8 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 w-56 focus:outline-none" />
-          <svg className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className="pl-3 pr-8 py-2 text-xs border border-slate-200 rounded-xl bg-white shadow-xs w-64 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+          <svg className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-slate-400 text-sm">Cargando cursos...</div>
+        <div className="text-center py-20 text-slate-400 text-sm">Cargando catálogo de cursos...</div>
       ) : asignacionesFiltradas.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm">No hay cursos activos</div>
+        <div className="text-center py-20 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">
+          No se encontraron cursos con el criterio de búsqueda.
+        </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {asignacionesFiltradas.map((a, i) => {
-            const c = COLORES[i % COLORES.length];
+            const theme = CARD_THEMES[i % CARD_THEMES.length];
             return (
-              <button key={a.idAsignacion} onClick={() => abrirMatrizCurso(a)}
-                className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col items-center gap-3 hover:shadow-md transition-all group text-center"
-                onMouseEnter={e => e.currentTarget.style.borderColor = c.border}
-                onMouseLeave={e => e.currentTarget.style.borderColor = ""}>
-                <div className={`${c.bg} p-3 rounded-xl ${c.icon}`}>
-                  <IconLibro className="w-10 h-10" />
+              <div
+                key={a.idAsignacion}
+                onClick={() => abrirMatrizCurso(a)}
+                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+              >
+                <div className={`${theme.header} p-4 text-white flex flex-col justify-between min-h-[95px]`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                      {a.grado || "Grado General"}
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/90 text-white">
+                      ACTIVO
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base leading-tight group-hover:underline underline-offset-2">
+                      {a.asignatura}
+                    </h3>
+                    <p className="text-[11px] text-slate-200 mt-0.5">Escuela Provincias Unidas</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-700 group-hover:text-[#243A76] transition">{a.asignatura}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{a.grado}</p>
-                  <p className="text-xs text-slate-300 mt-0.5">{a.docente}</p>
+
+                <div className="p-4 flex flex-col justify-between flex-1 gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs flex-shrink-0">
+                      {a.docente ? a.docente[0] : "D"}
+                    </div>
+                    <div className="truncate">
+                      <p className="text-[10px] text-slate-400 uppercase font-semibold">Docente Titular</p>
+                      <p className="text-xs font-semibold text-slate-700 truncate">{a.docente || "No asignado"}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                      📊 Sábana 70% + 30%
+                    </span>
+                    <span className="font-bold text-slate-700 group-hover:text-blue-700 flex items-center gap-0.5 text-xs transition">
+                      Abrir notas →
+                    </span>
+                  </div>
                 </div>
-                {a.esTutor && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 font-medium">Tutor</span>
-                )}
-              </button>
+              </div>
             );
           })}
         </div>
@@ -286,21 +328,19 @@ export default function Calificaciones() {
     </Layout>
   );
 
-  // ── VISTA 2: SÁBANA OFICIAL DE CALIFICACIONES (TIPO EXCEL) ───
   return (
     <Layout breadcrumb={["Inicio", "Calificaciones", asignacionSel?.asignatura]} sidebarTitle="Calificaciones" menuItems={calMenuItems} seccion="cursos" onSeccionChange={(id) => { setVista(id); }}>
-      {/* Barra de cabecera */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
           <button onClick={() => { setVista("cursos"); setBusqueda(""); }}
             style={{ borderColor: PRIMARY, color: PRIMARY }}
-            className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-xs font-medium hover:bg-blue-50 transition bg-white shadow-sm">
+            className="flex items-center gap-1 px-3 py-1.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition bg-white shadow-xs">
             <IconBack /> Volver a cursos
           </button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base font-bold text-slate-800">{asignacionSel?.asignatura}</h1>
-              <span className="bg-[#243A76] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-[#243A76] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                 {asignacionSel?.grado || "Décimo año EGB - Paralelo A"}
               </span>
             </div>
@@ -310,10 +350,8 @@ export default function Calificaciones() {
           </div>
         </div>
 
-        {/* Controles: Selector de Trimestre, Búsqueda e Imprimir */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Tabs Trimestres */}
-          <div className="flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+          <div className="flex rounded-xl bg-slate-100 p-0.5 border border-slate-200">
             {[
               { id: "todos", label: "Sábana Anual" },
               { id: "1", label: "1T" },
@@ -321,7 +359,7 @@ export default function Calificaciones() {
               { id: "3", label: "3T" },
             ].map(t => (
               <button key={t.id} onClick={() => setTabTrimestre(t.id)}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition ${tabTrimestre === t.id ? "bg-[#243A76] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${tabTrimestre === t.id ? "bg-[#243A76] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}>
                 {t.label}
               </button>
             ))}
@@ -329,10 +367,10 @@ export default function Calificaciones() {
 
           <input type="text" placeholder="Buscar alumno..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="px-3 py-1 text-xs border border-slate-200 rounded-lg bg-white w-44 focus:outline-none shadow-sm" />
+            className="px-3 py-1 text-xs border border-slate-200 rounded-xl bg-white w-44 focus:outline-none shadow-xs" />
 
           <button onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+            className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
@@ -341,139 +379,127 @@ export default function Calificaciones() {
         </div>
       </div>
 
-      {/* SÁBANA DE CALIFICACIONES TIPO EXCEL */}
-      <div className="bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden">
-        <div className="overflow-x-auto max-h-[72vh] relative">
-          <table className="w-full text-xs text-center border-collapse">
-            {/* NIVEL 1: ENCABEZADO SUPERIOR */}
-            <thead className="sticky top-0 z-20 shadow-sm text-white">
-              <tr className="bg-[#1e293b] uppercase text-[11px] font-bold tracking-wider">
-                <th colSpan={2} className="px-3 py-2 border-r border-slate-600 bg-[#0f172a] sticky left-0 z-30">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="overflow-x-auto max-h-[calc(100vh-210px)] overflow-y-auto">
+          <table className="w-full text-center border-collapse border border-slate-200 text-xs">
+            <thead className="sticky top-0 z-20 text-white select-none">
+              <tr className="bg-slate-700 uppercase text-[11px] font-bold tracking-wider">
+                <th colSpan={2} className="px-3 py-2 border-r border-slate-600 bg-slate-800 sticky left-0 z-30">
                   DATOS INFORMATIVOS
                 </th>
                 {(tabTrimestre === "todos" || tabTrimestre === "1") && (
-                  <th colSpan={13} className="px-3 py-2 border-r border-slate-600 bg-[#1e3a8a]">
+                  <th colSpan={13} className="px-3 py-2 border-r border-slate-500 bg-[#2c3e6b]">
                     PRIMER TRIMESTRE
                   </th>
                 )}
                 {(tabTrimestre === "todos" || tabTrimestre === "2") && (
-                  <th colSpan={13} className="px-3 py-2 border-r border-slate-600 bg-[#065f46]">
+                  <th colSpan={13} className="px-3 py-2 border-r border-slate-500 bg-[#1e5a52]">
                     SEGUNDO TRIMESTRE
                   </th>
                 )}
                 {(tabTrimestre === "todos" || tabTrimestre === "3") && (
-                  <th colSpan={13} className="px-3 py-2 border-r border-slate-600 bg-[#831843]">
+                  <th colSpan={13} className="px-3 py-2 border-r border-slate-500 bg-[#702444]">
                     TERCER TRIMESTRE
                   </th>
                 )}
-                <th colSpan={2} className="px-3 py-2 bg-[#1e293b]">
+                <th colSpan={2} className="px-3 py-2 bg-slate-800">
                   PROMEDIO ANUAL
                 </th>
               </tr>
 
-              {/* NIVEL 2: FORMATIVAS (70%) vs SUMATIVAS (30%) */}
               <tr className="text-[10px] font-bold">
-                <th colSpan={2} className="bg-[#0f172a] border-r border-slate-600 sticky left-0 z-30"></th>
+                <th colSpan={2} className="bg-slate-800 border-r border-slate-600 sticky left-0 z-30"></th>
 
-                {/* T1 */}
                 {(tabTrimestre === "todos" || tabTrimestre === "1") && (
                   <>
-                    <th colSpan={9} className="bg-[#2563eb] border-r border-blue-400 py-1">EVALUACIÓN FORMATIVA (70%)</th>
-                    <th colSpan={3} className="bg-[#1d4ed8] border-r border-blue-400 py-1">SUMATIVA (30%)</th>
-                    <th rowSpan={2} className="bg-[#172554] border-r border-slate-600 py-1 text-amber-300 font-extrabold">PROM. T1</th>
+                    <th colSpan={9} className="bg-[#3b82f6]/85 border-r border-blue-300/40 py-1">EVALUACIÓN FORMATIVA (70%)</th>
+                    <th colSpan={3} className="bg-[#6366f1]/85 border-r border-indigo-300/40 py-1">SUMATIVA (30%)</th>
+                    <th rowSpan={2} className="bg-[#1e40af] border-r border-slate-600 py-1 text-amber-200 font-extrabold">PROM. T1</th>
                   </>
                 )}
 
-                {/* T2 */}
                 {(tabTrimestre === "todos" || tabTrimestre === "2") && (
                   <>
-                    <th colSpan={9} className="bg-[#059669] border-r border-emerald-400 py-1">EVALUACIÓN FORMATIVA (70%)</th>
-                    <th colSpan={3} className="bg-[#047857] border-r border-emerald-400 py-1">SUMATIVA (30%)</th>
-                    <th rowSpan={2} className="bg-[#064e3b] border-r border-slate-600 py-1 text-amber-300 font-extrabold">PROM. T2</th>
+                    <th colSpan={9} className="bg-[#0d9488]/85 border-r border-teal-300/40 py-1">EVALUACIÓN FORMATIVA (70%)</th>
+                    <th colSpan={3} className="bg-[#10b981]/85 border-r border-emerald-300/40 py-1">SUMATIVA (30%)</th>
+                    <th rowSpan={2} className="bg-[#115e59] border-r border-slate-600 py-1 text-amber-200 font-extrabold">PROM. T2</th>
                   </>
                 )}
 
-                {/* T3 */}
                 {(tabTrimestre === "todos" || tabTrimestre === "3") && (
                   <>
-                    <th colSpan={9} className="bg-[#db2777] border-r border-pink-400 py-1">EVALUACIÓN FORMATIVA (70%)</th>
-                    <th colSpan={3} className="bg-[#be185d] border-r border-pink-400 py-1">SUMATIVA (30%)</th>
-                    <th rowSpan={2} className="bg-[#701a75] border-r border-slate-600 py-1 text-amber-300 font-extrabold">PROM. T3</th>
+                    <th colSpan={9} className="bg-[#e11d48]/85 border-r border-rose-300/40 py-1">EVALUACIÓN FORMATIVA (70%)</th>
+                    <th colSpan={3} className="bg-[#db2777]/85 border-r border-pink-300/40 py-1">SUMATIVA (30%)</th>
+                    <th rowSpan={2} className="bg-[#881337] border-r border-slate-600 py-1 text-amber-200 font-extrabold">PROM. T3</th>
                   </>
                 )}
 
-                <th rowSpan={2} className="bg-[#0f172a] text-yellow-300 font-extrabold border-r border-slate-600">PROM. FINAL</th>
-                <th rowSpan={2} className="bg-[#0f172a] text-slate-200">CUALITATIVA</th>
+                <th rowSpan={2} className="bg-slate-800 text-yellow-300 font-extrabold border-r border-slate-600">PROM. FINAL</th>
+                <th rowSpan={2} className="bg-slate-800 text-slate-200">CUALITATIVA</th>
               </tr>
 
-              {/* NIVEL 3: DETALLE DE COLUMNAS / ACTIVIDADES */}
-              <tr className="bg-slate-200 text-slate-800 text-[9px] font-bold border-b-2 border-slate-400">
-                <th className="px-2 py-2 border-r border-slate-300 bg-slate-100 sticky left-0 z-30 w-8">Nº</th>
-                <th className="px-3 py-2 border-r border-slate-300 bg-slate-100 sticky left-8 z-30 text-left min-w-[220px]">
+              <tr className="bg-slate-100 text-slate-700 text-[9px] font-bold border-b border-slate-300">
+                <th className="px-2 py-2 border-r border-slate-200 bg-slate-100 sticky left-0 z-30 w-8">Nº</th>
+                <th className="px-3 py-2 border-r border-slate-200 bg-slate-100 sticky left-8 z-30 text-left min-w-[220px]">
                   APELLIDOS / NOMBRES
                 </th>
 
-                {/* Actividades T1 */}
                 {(tabTrimestre === "todos" || tabTrimestre === "1") && (
                   <>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Oral</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Escrita</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Tareas</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Talleres</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Cuaderno</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Trab. Ind</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-50/70">Expos</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-200 font-black text-blue-900">PROM</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-blue-300 font-black text-blue-950">70%</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-indigo-50">Proyecto</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-indigo-50">Examen</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-indigo-200 font-black text-indigo-900">30%</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Oral</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Escrita</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Tareas</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Talleres</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Cuaderno</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Trab. Ind</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-50/50">Expos</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-100/70 font-bold text-blue-900">PROM</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-blue-200/80 font-bold text-blue-950">70%</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-indigo-50/50">Proyecto</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-indigo-50/50">Examen</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-indigo-100/70 font-bold text-indigo-900">30%</th>
                   </>
                 )}
 
-                {/* Actividades T2 */}
                 {(tabTrimestre === "todos" || tabTrimestre === "2") && (
                   <>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Oral</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Escrita</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Tareas</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Talleres</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Cuaderno</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Trab. Ind</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-50/70">Expos</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-200 font-black text-emerald-900">PROM</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-emerald-300 font-black text-emerald-950">70%</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-teal-50">Proyecto</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-teal-50">Examen</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-teal-200 font-black text-teal-900">30%</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Oral</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Escrita</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Tareas</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Talleres</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Cuaderno</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Trab. Ind</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-50/50">Expos</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-100/70 font-bold text-teal-900">PROM</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-teal-200/80 font-bold text-teal-950">70%</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-emerald-50/50">Proyecto</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-emerald-50/50">Examen</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-emerald-100/70 font-bold text-emerald-900">30%</th>
                   </>
                 )}
 
-                {/* Actividades T3 */}
                 {(tabTrimestre === "todos" || tabTrimestre === "3") && (
                   <>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Oral</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Escrita</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Tareas</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Talleres</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Cuaderno</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Trab. Ind</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-50/70">Expos</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-200 font-black text-pink-900">PROM</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-pink-300 font-black text-pink-950">70%</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-rose-50">Proyecto</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-rose-50">Examen</th>
-                    <th className="px-1.5 py-1 border-r border-slate-300 bg-rose-200 font-black text-rose-900">30%</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Oral</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Escrita</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Tareas</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Talleres</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Cuaderno</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Trab. Ind</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-50/50">Expos</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-100/70 font-bold text-rose-900">PROM</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-rose-200/80 font-bold text-rose-950">70%</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-pink-50/50">Proyecto</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-pink-50/50">Examen</th>
+                    <th className="px-1.5 py-1 border-r border-slate-200 bg-pink-100/70 font-bold text-pink-900">30%</th>
                   </>
                 )}
               </tr>
             </thead>
 
-            {/* CUERPO DE DATOS */}
             <tbody className="divide-y divide-slate-200">
               {estudiantesFiltrados.map((e, idx) => (
-                <tr key={e.idMatricula} className={`hover:bg-amber-50/50 transition font-mono text-[11px] ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}`}>
-                  {/* Columnas fijas del alumno */}
+                <tr key={e.idMatricula} className={`hover:bg-slate-50 transition font-mono text-[11px] ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}`}>
                   <td className="px-2 py-1.5 border-r border-slate-200 text-slate-500 font-sans font-semibold sticky left-0 z-10 bg-inherit w-8">
                     {e.numero}
                   </td>
@@ -481,7 +507,6 @@ export default function Calificaciones() {
                     {e.nombreCompleto}
                   </td>
 
-                  {/* Notas T1 */}
                   {(tabTrimestre === "todos" || tabTrimestre === "1") && (
                     <>
                       <td className="px-1 border-r border-slate-200">{e.t1.oral.toFixed(2)}</td>
@@ -491,16 +516,15 @@ export default function Calificaciones() {
                       <td className="px-1 border-r border-slate-200">{e.t1.cuaderno.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t1.trabInd.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t1.expos.toFixed(2)}</td>
-                      <td className="px-1 border-r border-slate-200 font-bold bg-blue-50 text-blue-900">{e.t1.promForm.toFixed(2)}</td>
-                      <td className="px-1 border-r border-slate-200 font-bold bg-blue-100 text-blue-950">{e.t1.total70.toFixed(2)}</td>
+                      <td className="px-1 border-r border-slate-200 font-semibold bg-blue-50/60 text-blue-900">{e.t1.promForm.toFixed(2)}</td>
+                      <td className="px-1 border-r border-slate-200 font-bold bg-blue-100/70 text-blue-950">{e.t1.total70.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t1.proy.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t1.examen.toFixed(2)}</td>
-                      <td className="px-1 border-r border-slate-200 font-bold bg-indigo-100 text-indigo-900">{e.t1.total30.toFixed(2)}</td>
-                      <td className="px-1.5 border-r border-slate-300 font-black bg-blue-200 text-blue-950">{e.t1.promTrim.toFixed(2)}</td>
+                      <td className="px-1 border-r border-slate-200 font-bold bg-indigo-100/70 text-indigo-900">{e.t1.total30.toFixed(2)}</td>
+                      <td className="px-1.5 border-r border-slate-300 font-black bg-blue-100 text-blue-950">{e.t1.promTrim.toFixed(2)}</td>
                     </>
                   )}
 
-                  {/* Notas T2 */}
                   {(tabTrimestre === "todos" || tabTrimestre === "2") && (
                     <>
                       <td className="px-1 border-r border-slate-200">{e.t2.oral.toFixed(2)}</td>
@@ -510,16 +534,15 @@ export default function Calificaciones() {
                       <td className="px-1 border-r border-slate-200">{e.t2.cuaderno.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t2.trabInd.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t2.expos.toFixed(2)}</td>
-                      <td className="px-1 border-r border-slate-200 font-bold bg-emerald-50 text-emerald-900">{e.t2.promForm.toFixed(2)}</td>
-                      <td className="px-1 border-r border-slate-200 font-bold bg-emerald-100 text-emerald-950">{e.t2.total70.toFixed(2)}</td>
+                      <td className="px-1 border-r border-slate-200 font-semibold bg-teal-50/60 text-teal-900">{e.t2.promForm.toFixed(2)}</td>
+                      <td className="px-1 border-r border-slate-200 font-bold bg-teal-100/70 text-teal-950">{e.t2.total70.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t2.proy.toFixed(2)}</td>
                       <td className="px-1 border-r border-slate-200">{e.t2.examen.toFixed(2)}</td>
-                      <td className="px-1 border-r border-slate-200 font-bold bg-teal-100 text-teal-900">{e.t2.total30.toFixed(2)}</td>
-                      <td className="px-1.5 border-r border-slate-300 font-black bg-emerald-200 text-emerald-950">{e.t2.promTrim.toFixed(2)}</td>
+                      <td className="px-1 border-r border-slate-200 font-bold bg-emerald-100/70 text-emerald-900">{e.t2.total30.toFixed(2)}</td>
+                      <td className="px-1.5 border-r border-slate-300 font-black bg-teal-100 text-teal-950">{e.t2.promTrim.toFixed(2)}</td>
                     </>
                   )}
 
-                  {/* Notas T3 */}
                   {(tabTrimestre === "todos" || tabTrimestre === "3") && (
                     <>
                       <td className="px-1 border-r border-slate-200">{e.t3.oral.toFixed(2)}</td>
