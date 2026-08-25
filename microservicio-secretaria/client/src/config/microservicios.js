@@ -17,6 +17,8 @@ export const MICROSERVICIOS = {
   SECRETARIA: {
     nombre: "Portal Secretaría",
     hosts: [
+      `http://${host}:5176`,
+      `http://${host}:8082`,
       `http://${host}:5174`,
     ],
   },

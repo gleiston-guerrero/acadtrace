@@ -95,7 +95,8 @@ services:
       dockerfile: backend/Dockerfile
     container_name: microservicio-secretaria
     ports:
-      - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
+      - "5176:5176"   # REST & Frontend integrado en Spring Boot
+      - "8082:5176"   # REST Backend alias compatible
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
