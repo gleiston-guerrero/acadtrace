@@ -41,9 +41,6 @@ fun SgaNavGraph(
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
                 }
             )
         }
@@ -69,9 +66,6 @@ fun SgaNavGraph(
                 },
                 onSyncStatusClick = {
                     navController.navigate(Screen.SyncStatus.route)
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
                 },
                 onLogoutClick = {
                     navController.navigate(Screen.Login.route) {

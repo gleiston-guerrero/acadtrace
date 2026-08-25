@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,19 +32,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ec.edu.uteq.sga.docente.R
-
-val BrandDeepBlue = Color(0xFF1E3A8A)
-val BrandLightBlue = Color(0xFF3B82F6)
-val BrandTextBlue200 = Color(0xFFBFDBFE)
-val BrandTextBlue300 = Color(0xFF93C5FD)
-val SlateBackground = Color(0xFFF1F5F9)
-val SlateBorder = Color(0xFFE2E8F0)
+import ec.edu.uteq.sga.docente.ui.theme.*
 
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onLoginSuccess: () -> Unit,
-    onSettingsClick: () -> Unit
+    onLoginSuccess: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
@@ -58,45 +52,31 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SlateBackground)
+            .background(BackgroundSlate)
     ) {
         // Círculos decorativos de fondo
         Box(
             modifier = Modifier
-                .size(300.dp)
-                .offset(x = (-80).dp, y = (-80).dp)
+                .size(320.dp)
+                .offset(x = (-100).dp, y = (-100).dp)
                 .clip(CircleShape)
-                .background(BrandDeepBlue.copy(alpha = 0.08f))
+                .background(PrimaryNavy.copy(alpha = 0.07f))
         )
         Box(
             modifier = Modifier
-                .size(260.dp)
+                .size(280.dp)
                 .align(Alignment.BottomEnd)
-                .offset(x = 60.dp, y = 60.dp)
+                .offset(x = 80.dp, y = 80.dp)
                 .clip(CircleShape)
-                .background(BrandLightBlue.copy(alpha = 0.08f))
+                .background(PrimaryNavyLight.copy(alpha = 0.07f))
         )
 
-        // Botón de ajustes de servidor en la esquina superior
-        IconButton(
-            onClick = onSettingsClick,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Configuración del Servidor",
-                tint = BrandDeepBlue
-            )
-        }
-
-        // Contenedor Central Card
+        // Contenedor Central
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 40.dp),
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -106,7 +86,7 @@ fun LoginScreen(
                     .shadow(
                         elevation = 16.dp,
                         shape = RoundedCornerShape(24.dp),
-                        spotColor = BrandDeepBlue.copy(alpha = 0.25f)
+                        spotColor = PrimaryNavy.copy(alpha = 0.25f)
                     ),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -121,17 +101,17 @@ fun LoginScreen(
                             .fillMaxWidth()
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(BrandDeepBlue, Color(0xFF172554))
+                                    colors = listOf(PrimaryNavy, Color(0xFF1B2C5B))
                                 )
                             )
                             .padding(top = 28.dp, bottom = 24.dp, start = 20.dp, end = 20.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            // Logo de la escuela con borde blanco circular
+                            // Logo de la escuela
                             Box(
                                 modifier = Modifier
-                                    .size(90.dp)
+                                    .size(88.dp)
                                     .shadow(elevation = 8.dp, shape = CircleShape)
                                     .clip(CircleShape)
                                     .background(Color.White)
@@ -158,7 +138,7 @@ fun LoginScreen(
 
                             Text(
                                 text = "PROVINCIAS UNIDAS",
-                                color = BrandTextBlue200,
+                                color = Color(0xFFBFDBFE),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 1.5.sp,
@@ -167,7 +147,7 @@ fun LoginScreen(
 
                             Text(
                                 text = "Rcto. San Basilio",
-                                color = BrandTextBlue300,
+                                color = Color(0xFF93C5FD),
                                 fontSize = 11.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -185,7 +165,7 @@ fun LoginScreen(
                             text = "Inicia sesión en el sistema",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF334155),
+                            color = TextPrimary,
                             textAlign = TextAlign.Center
                         )
 
@@ -197,19 +177,24 @@ fun LoginScreen(
                                 text = "USUARIO",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF64748B),
+                                color = TextSecondary,
                                 letterSpacing = 0.8.sp
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
                             OutlinedTextField(
                                 value = state.username,
                                 onValueChange = { viewModel.onUsernameChange(it) },
-                                placeholder = { Text("Ingresa tu usuario", fontSize = 14.sp, color = Color(0xFF94A3B8)) },
+                                placeholder = { Text("Ingresa tu usuario", fontSize = 14.sp, color = TextMuted) },
+                                textStyle = TextStyle(
+                                    color = TextPrimary,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium
+                                ),
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = null,
-                                        tint = Color(0xFF94A3B8),
+                                        tint = TextMuted,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 },
@@ -217,16 +202,19 @@ fun LoginScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color(0xFFF8FAFC),
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary,
                                     focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color(0xFFF8FAFC),
+                                    focusedBorderColor = PrimaryNavy,
                                     unfocusedBorderColor = SlateBorder,
-                                    focusedBorderColor = BrandLightBlue
+                                    cursorColor = PrimaryNavy
                                 ),
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         // Campo Contraseña
                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -234,19 +222,24 @@ fun LoginScreen(
                                 text = "CONTRASEÑA",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF64748B),
+                                color = TextSecondary,
                                 letterSpacing = 0.8.sp
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
                             OutlinedTextField(
                                 value = state.password,
                                 onValueChange = { viewModel.onPasswordChange(it) },
-                                placeholder = { Text("Ingresa tu contraseña", fontSize = 14.sp, color = Color(0xFF94A3B8)) },
+                                placeholder = { Text("Ingresa tu contraseña", fontSize = 14.sp, color = TextMuted) },
+                                textStyle = TextStyle(
+                                    color = TextPrimary,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium
+                                ),
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Lock,
                                         contentDescription = null,
-                                        tint = Color(0xFF94A3B8),
+                                        tint = TextMuted,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 },
@@ -255,7 +248,7 @@ fun LoginScreen(
                                         Icon(
                                             imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                             contentDescription = null,
-                                            tint = Color(0xFF94A3B8),
+                                            tint = TextMuted,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -265,10 +258,13 @@ fun LoginScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color(0xFFF8FAFC),
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary,
                                     focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color(0xFFF8FAFC),
+                                    focusedBorderColor = PrimaryNavy,
                                     unfocusedBorderColor = SlateBorder,
-                                    focusedBorderColor = BrandLightBlue
+                                    cursorColor = PrimaryNavy
                                 ),
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = {
@@ -293,7 +289,7 @@ fun LoginScreen(
                                     Icon(
                                         imageVector = Icons.Default.ErrorOutline,
                                         contentDescription = null,
-                                        tint = Color(0xFFDC2626),
+                                        tint = DangerRed,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -307,7 +303,7 @@ fun LoginScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(22.dp))
 
                         // Botón Ingresar
                         Button(
@@ -320,7 +316,7 @@ fun LoginScreen(
                                 .height(48.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = BrandDeepBlue,
+                                containerColor = PrimaryNavy,
                                 contentColor = Color.White
                             ),
                             enabled = !state.isLoading
@@ -340,11 +336,11 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        // Footer copyright
+                        // Footer
                         Text(
                             text = "Sistema de Gestión Académica © 2026",
                             fontSize = 11.sp,
-                            color = Color(0xFF94A3B8),
+                            color = TextMuted,
                             textAlign = TextAlign.Center
                         )
                     }
