@@ -62,7 +62,8 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
     });
     if (!ok) return;
     localStorage.clear();
-    navigate('/login');
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    window.location.href = `http://${host}:5173/login`;
   };
 
   const hasSidebar = menuItems.length > 0;

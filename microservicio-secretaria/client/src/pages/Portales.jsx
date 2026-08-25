@@ -109,7 +109,8 @@ export default function Portales() {
 
   const salir = () => {
     localStorage.clear();
-    navigate("/login", { replace: true });
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    window.location.href = `http://${host}:5173/login`;
   };
 
   return (
