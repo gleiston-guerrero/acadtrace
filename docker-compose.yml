@@ -218,7 +218,7 @@ services:
     depends_on:
       - prometheus
 
-  # ─── 6. MICROSERVICIO IA (Python FastAPI - Diagnóstico Pedagógico) ───
+  # ─── 6. MICROSERVICIO IA (Python FastAPI - Google Gemini 1.5 Flash) ───
   microservicio-ia:
     build:
       context: ./microservicio-ia
@@ -229,6 +229,8 @@ services:
       - "8084"
     ports:
       - "8084:8084"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     networks:
       - sga-distribuido-net
     restart: unless-stopped
