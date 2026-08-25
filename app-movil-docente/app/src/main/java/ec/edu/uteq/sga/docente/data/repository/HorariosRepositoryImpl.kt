@@ -25,30 +25,67 @@ class HorariosRepositoryImpl(
     override fun getHorarios(idPersona: Long?, idAsignacion: Long?): Flow<Resource<List<HorarioItem>>> = flow {
         emit(Resource.Loading)
 
-        if (connectivityObserver.isCurrentlyConnected() && idPersona != null) {
+        if (connectivityObserver.isCurrentlyConnected()) {
             try {
-                val resp = docenteApi.getHorarioDocente(idPersona)
-                if (resp.isSuccessful && resp.body() != null) {
-                    val entities = resp.body()!!.slots.map { slot ->
-                        HorarioEntity(
-                            idHorario = slot.idHorario,
-                            idAsignacion = slot.idAsignacion,
-                            diaSemana = slot.diaSemana,
-                            idPeriodo = slot.idPeriodo,
-                            horaInicio = slot.horaInicio,
-                            horaFin = slot.horaFin,
-                            aula = slot.aula,
-                            asignatura = slot.asignatura,
-                            docente = slot.docente,
-                            grado = slot.grado,
-                            paralelo = slot.paralelo
-                        )
+                val allEntities = mutableListOf<HorarioEntity>()
+
+                if (idPersona != null && idPersona > 0) {
+                    val resp = docenteApi.getHorarioDocente(idPersona)
+                    if (resp.isSuccessful && resp.body() != null) {
+                        resp.body()!!.slots.forEach { slot ->
+                            allEntities.add(
+                                HorarioEntity(
+                                    idHorario = slot.idHorario,
+                                    idAsignacion = slot.idAsignacion,
+                                    diaSemana = slot.diaSemana,
+                                    idPeriodo = slot.idPeriodo,
+                                    horaInicio = slot.horaInicio,
+                                    horaFin = slot.horaFin,
+                                    aula = slot.aula,
+                                    asignatura = slot.asignatura,
+                                    docente = slot.docente,
+                                    grado = slot.grado,
+                                    paralelo = slot.paralelo
+                                )
+                            )
+                        }
                     }
+                }
+
+                // Obtener asignaciones y consultar el horario de cada curso
+                val asigsResp = docenteApi.getMisAsignaciones()
+                if (asigsResp.isSuccessful && asigsResp.body() != null) {
+                    for (asig in asigsResp.body()!!) {
+                        val cursoResp = docenteApi.getHorarioCurso(asig.idAsignacion)
+                        if (cursoResp.isSuccessful && cursoResp.body() != null) {
+                            cursoResp.body()!!.slots.forEach { slot ->
+                                allEntities.add(
+                                    HorarioEntity(
+                                        idHorario = slot.idHorario,
+                                        idAsignacion = slot.idAsignacion,
+                                        diaSemana = slot.diaSemana,
+                                        idPeriodo = slot.idPeriodo,
+                                        horaInicio = slot.horaInicio,
+                                        horaFin = slot.horaFin,
+                                        aula = slot.aula,
+                                        asignatura = slot.asignatura,
+                                        docente = slot.docente,
+                                        grado = slot.grado,
+                                        paralelo = slot.paralelo
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (allEntities.isNotEmpty()) {
+                    val distinctEntities = allEntities.distinctBy { it.idHorario }
                     horarioDao.clearHorarios()
-                    horarioDao.insertHorarios(entities)
+                    horarioDao.insertHorarios(distinctEntities)
                 }
             } catch (e: Exception) {
-                // Room fallback
+                // Fallback a base de datos local Room
             }
         }
 

@@ -255,7 +255,7 @@ fun SgaNavGraph(
         ) { backStackEntry ->
             val idMatriculaStr = backStackEntry.arguments?.getString("idMatricula")
             val idMatricula = idMatriculaStr?.toLongOrNull()
-            val viewModel = SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.sessionManager)
+            val viewModel = SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.asistenciasRepository, app.sessionManager)
             SeguimientoScreen(
                 idMatricula = idMatricula,
                 viewModel = viewModel,
@@ -273,7 +273,7 @@ fun SgaNavGraph(
         ) { backStackEntry ->
             val idMatricula = backStackEntry.arguments?.getLong("idMatricula") ?: 0L
             val nombre = backStackEntry.arguments?.getString("nombre") ?: "Estudiante"
-            val viewModel = SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.sessionManager)
+            val viewModel = SeguimientoViewModel(app.seguimientoRepository, app.docenteRepository, app.asistenciasRepository, app.sessionManager)
             FormSeguimientoScreen(
                 idMatricula = idMatricula,
                 estudianteNombre = nombre,

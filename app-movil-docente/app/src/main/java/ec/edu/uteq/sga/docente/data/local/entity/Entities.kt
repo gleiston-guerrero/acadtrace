@@ -20,9 +20,12 @@ data class AsignacionEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "estudiantes")
+@Entity(
+    tableName = "estudiantes",
+    primaryKeys = ["idMatricula", "idAsignacion"]
+)
 data class EstudianteEntity(
-    @PrimaryKey val idMatricula: Long,
+    val idMatricula: Long,
     val idAsignacion: Long,
     val estudianteId: Long,
     val nombres: String,

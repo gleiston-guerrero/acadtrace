@@ -25,7 +25,7 @@ import ec.edu.uteq.sga.docente.data.local.entity.*
         HorarioEntity::class,
         PendingSyncEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
