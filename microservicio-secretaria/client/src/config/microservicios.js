@@ -4,6 +4,7 @@ export const MICROSERVICIOS = {
   DIRECTOR: {
     nombre: "Portal Principal (Administración)",
     hosts: [
+      `http://${host}:5174`,
       `http://${host}:5173`,
     ],
   },

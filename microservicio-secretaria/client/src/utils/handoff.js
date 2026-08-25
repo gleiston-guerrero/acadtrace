@@ -1,6 +1,6 @@
 import { MICROSERVICIOS } from "../config/microservicios";
 
-async function detectarHostVivo(hosts) {
+export async function detectarHostVivo(hosts) {
   const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
   // Excluir el origen actual para evitar bucles hacia sí mismo
   const targetHosts = hosts.filter((h) => h !== currentOrigin);

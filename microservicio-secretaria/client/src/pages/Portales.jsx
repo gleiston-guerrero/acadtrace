@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { redirigirAMicroservicio } from "../utils/handoff";
+import { redirigirAMicroservicio, detectarHostVivo } from "../utils/handoff";
+import { MICROSERVICIOS } from "../config/microservicios";
 
 const PORTALES = {
   DIRECTOR: {
@@ -107,10 +108,11 @@ export default function Portales() {
     if (!ok) setCargando(null);
   };
 
-  const salir = () => {
+  const salir = async () => {
     localStorage.clear();
-    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-    window.location.href = `http://${host}:5173/login`;
+    const hostVivo = await detectarHostVivo(MICROSERVICIOS.DIRECTOR?.hosts || []);
+    const fallbackHost = typeof window !== "undefined" ? `http://${window.location.hostname}:5174` : "http://localhost:5174";
+    window.location.href = `${hostVivo || fallbackHost}/login`;
   };
 
   return (

@@ -4,6 +4,8 @@ import { apiPrincipal } from '../utils/api';
 import { useConfirm } from './Toast';
 import logo from '../assets/logo.png';
 import AsistenteIaSecretaria from './AsistenteIaSecretaria';
+import { detectarHostVivo } from '../utils/handoff';
+import { MICROSERVICIOS } from '../config/microservicios';
 
 const PRIMARY = '#243A76';
 const PRIMARY_LIGHT = '#2d4a96';
@@ -62,8 +64,9 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
     });
     if (!ok) return;
     localStorage.clear();
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    window.location.href = `http://${host}:5173/login`;
+    const hostVivo = await detectarHostVivo(MICROSERVICIOS.DIRECTOR?.hosts || []);
+    const fallbackHost = typeof window !== 'undefined' ? `http://${window.location.hostname}:5174` : 'http://localhost:5174';
+    window.location.href = `${hostVivo || fallbackHost}/login`;
   };
 
   const hasSidebar = menuItems.length > 0;
