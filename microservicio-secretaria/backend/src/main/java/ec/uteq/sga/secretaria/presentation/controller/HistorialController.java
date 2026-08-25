@@ -35,9 +35,30 @@ public class HistorialController {
         return service.estudiantesSinPromocion(idAno);
     }
 
+    @GetMapping("/ano-lectivo/{idAno}/nomina")
+    public List<Map<String, Object>> nomina(
+            @PathVariable Long idAno,
+            @RequestParam(required = false) Long id_grado,
+            @RequestParam(required = false) Long id_paralelo,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String q) {
+        return service.listarPromociones(idAno, id_grado, id_paralelo, estado, q);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> registrar(@Valid @RequestBody PromocionRequest dto, AuthenticatedUser user) {
         return service.registrarPromocion(dto, user.username());
+    }
+
+    @PostMapping("/masivo")
+    public Map<String, Object> registrarMasivo(@RequestBody List<@Valid PromocionRequest> dtos, AuthenticatedUser user) {
+        return service.registrarPromocionMasiva(dtos, user.username());
+    }
+
+    @DeleteMapping("/{idHistorial}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminar(@PathVariable Long idHistorial) {
+        service.eliminarPromocion(idHistorial);
     }
 }

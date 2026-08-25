@@ -87,11 +87,6 @@ public class HistorialService {
         if (mat.isEmpty()) throw ApiException.notFound("Matrícula no encontrada");
         Map<String, Object> m = mat.get(0);
 
-        List<Long> dup = jdbc.query(
-                "SELECT id_historial FROM sga_principal.historial_promocion WHERE id_matricula = :id",
-                new MapSqlParameterSource("id", dto.id_matricula()), (rs, n) -> rs.getLong("id_historial"));
-        if (!dup.isEmpty()) throw ApiException.conflict("Ya existe registro de promoción para esta matrícula");
-
         List<Long> userIds = jdbc.query(
                 "SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username",
                 new MapSqlParameterSource("username", username), (rs, n) -> rs.getLong("id_usuario"));
@@ -99,11 +94,10 @@ public class HistorialService {
 
         String observaciones = (dto.observaciones() == null || dto.observaciones().isBlank()) ? null : dto.observaciones();
 
-        // resultado SI es un enum custom (sga_principal.resultado_promocion_t) pese al comentario
-        // original: PgJDBC exige el cast explicito (::resultado_promocion_t) igual que ya pasa con
-        // estado_matricula_t en otras consultas; sin el cast, el INSERT falla siempre con
-        // "column is of type ... but expression is of type character varying".
-        // lamport_ts: orden causal del evento, ver LamportClock e independiente de fecha_registro (reloj de pared).
+        // Eliminar registro previo si ya existía para permitir actualización
+        jdbc.update("DELETE FROM sga_principal.historial_promocion WHERE id_matricula = :id",
+                new MapSqlParameterSource("id", dto.id_matricula()));
+
         long lamportTs = lamportClock.tick();
         jdbc.update("""
                 INSERT INTO sga_principal.historial_promocion
@@ -131,6 +125,90 @@ public class HistorialService {
 
         Number idEstudiante = (Number) m.get("id_estudiante");
         return historialEstudiante(idEstudiante.longValue());
+    }
+
+    @Transactional
+    public Map<String, Object> registrarPromocionMasiva(List<PromocionRequest> items, String username) {
+        int exitosos = 0;
+        for (PromocionRequest item : items) {
+            try {
+                registrarPromocion(item, username);
+                exitosos++;
+            } catch (Exception e) {
+                log.error("Error al registrar promocion en lote para matricula {}: {}", item.id_matricula(), e.getMessage());
+            }
+        }
+        return Map.of("total", items.size(), "exitosos", exitosos);
+    }
+
+    @Transactional
+    public void eliminarPromocion(long idHistorial) {
+        List<Map<String, Object>> hp = jdbc.query(
+                "SELECT id_matricula FROM sga_principal.historial_promocion WHERE id_historial = :id",
+                new MapSqlParameterSource("id", idHistorial), GenericRowMapper.INSTANCE);
+        if (hp.isEmpty()) throw ApiException.notFound("Registro de promoción no encontrado");
+
+        Long idMatricula = ((Number) hp.get(0).get("id_matricula")).longValue();
+        jdbc.update("DELETE FROM sga_principal.historial_promocion WHERE id_historial = :id",
+                new MapSqlParameterSource("id", idHistorial));
+
+        jdbc.update("UPDATE sga_secretaria.matriculas SET estado = 'MATRICULADO'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula",
+                new MapSqlParameterSource("idMatricula", idMatricula));
+    }
+
+    public List<Map<String, Object>> listarPromociones(long idAnoLectivo, Long idGrado, Long idParalelo, String estado, String q) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_paralelo, m.estado AS estado_matricula,
+                       e.nombres || ' ' || e.apellidos AS estudiante, e.cedula, e.codigo_estudiante,
+                       hp.id_historial, hp.resultado, hp.promedio_anual, hp.observaciones, hp.fecha_registro,
+                       u.username AS registrado_por
+                FROM sga_secretaria.matriculas m
+                JOIN sga_secretaria.estudiantes e ON e.id_estudiante = m.id_estudiante
+                LEFT JOIN sga_principal.historial_promocion hp ON hp.id_matricula = m.id_matricula
+                LEFT JOIN sga_principal.usuarios u ON u.id_usuario = hp.registrado_por
+                WHERE m.id_ano_lectivo = :idAno
+                """);
+
+        MapSqlParameterSource params = new MapSqlParameterSource("idAno", idAnoLectivo);
+
+        if (idGrado != null) {
+            sql.append(" AND m.id_grado = :idGrado");
+            params.addValue("idGrado", idGrado);
+        }
+        if (idParalelo != null) {
+            sql.append(" AND m.id_paralelo = :idParalelo");
+            params.addValue("idParalelo", idParalelo);
+        }
+        if (estado != null && !estado.isBlank()) {
+            if ("PENDIENTE".equalsIgnoreCase(estado)) {
+                sql.append(" AND hp.id_historial IS NULL");
+            } else {
+                sql.append(" AND hp.resultado = :resultado::sga_principal.resultado_promocion_t");
+                params.addValue("resultado", estado.toUpperCase());
+            }
+        }
+        if (q != null && !q.isBlank()) {
+            sql.append(" AND (LOWER(e.nombres) LIKE :q OR LOWER(e.apellidos) LIKE :q OR e.cedula LIKE :q OR LOWER(e.codigo_estudiante) LIKE :q)");
+            params.addValue("q", "%" + q.trim().toLowerCase() + "%");
+        }
+
+        List<Map<String, Object>> data = jdbc.query(sql.toString(), params, GenericRowMapper.INSTANCE);
+
+        Map<Long, CatalogoService.Grado> grados = new LinkedHashMap<>();
+        catalogo.grados().forEach(g -> grados.put(g.id(), g));
+        Map<Long, CatalogoService.Paralelo> paralelos = new LinkedHashMap<>();
+        catalogo.paralelos(null).forEach(p -> paralelos.put(p.id(), p));
+
+        for (Map<String, Object> row : data) {
+            Long rowGrado = row.get("id_grado") instanceof Number n ? n.longValue() : null;
+            Long rowParalelo = row.get("id_paralelo") instanceof Number n ? n.longValue() : null;
+            CatalogoService.Grado g = rowGrado != null ? grados.get(rowGrado) : null;
+            CatalogoService.Paralelo p = rowParalelo != null ? paralelos.get(rowParalelo) : null;
+            row.put("grado", g != null ? g.nombre() : null);
+            row.put("paralelo", p != null ? p.letra() : null);
+        }
+
+        return data;
     }
 
     public List<Map<String, Object>> resumenPromocion(long idAnoLectivo) {
