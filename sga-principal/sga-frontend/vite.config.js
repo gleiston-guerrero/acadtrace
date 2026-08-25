@@ -8,9 +8,11 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    // El SGA Principal es el login único: puerto fijo para que los microservicios
-    // (docente/secretaría/soporte) siempre sepan a dónde redirigir el SSO.
     port: 5173,
     strictPort: true,
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/uploads': 'http://localhost:8080',
+    },
   },
 })
