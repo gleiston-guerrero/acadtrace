@@ -63,9 +63,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        // Fotos de perfil servidas como recurso estatico: los <img src="..."> del navegador
-                        // no pueden mandar el header Authorization, asi que la lectura debe ser publica
-                        // (el nombre de archivo es un UUID, no enumerable).
+                        // Banners y fotos de perfil publicos para que todos los portales los carguen
+                        .requestMatchers(HttpMethod.GET, "/api/uploads/banners").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/anos-lectivos/actual").authenticated()
                         .requestMatchers("/api/usuarios/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_SOPORTE_TECNICO")

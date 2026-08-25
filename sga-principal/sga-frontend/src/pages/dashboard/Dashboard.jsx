@@ -71,10 +71,20 @@ export default function Dashboard() {
                 if (r.data?.banner1) {
                     setBanner1(r.data.banner1);
                     localStorage.setItem("sga_banner_1", r.data.banner1);
+                } else {
+                    const localB1 = localStorage.getItem("sga_banner_1");
+                    if (localB1 && esAdmin) {
+                        api.post(`/api/uploads/banner/1`, { data: localB1 }).catch(() => {});
+                    }
                 }
                 if (r.data?.banner2) {
                     setBanner2(r.data.banner2);
                     localStorage.setItem("sga_banner_2", r.data.banner2);
+                } else {
+                    const localB2 = localStorage.getItem("sga_banner_2");
+                    if (localB2 && esAdmin) {
+                        api.post(`/api/uploads/banner/2`, { data: localB2 }).catch(() => {});
+                    }
                 }
             })
             .catch(() => {});
