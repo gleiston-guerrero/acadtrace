@@ -2,12 +2,59 @@ name: CI/CD Pipeline - SGA Distribuido AWS EC2
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - devBedon
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
+
+  test-docente:
+    name: CI Microservicio Docente
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: microservicio-docente
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Ejecutar pruebas y cobertura
+        run: |
+          python -m pytest -v --cov=. --cov-report=term-missing --cov-fail-under=70
+
+      # =====================================================
+      # FALLO CONTROLADO SOLO PARA EVIDENCIA DEL ARTÍCULO
+      # Se elimina después de obtener la captura roja.
+      # =====================================================
+      - name: Fallo controlado de demostración
+        run: |
+          echo "Fallo intencional para demostrar la deteccion de errores del pipeline CI/CD."
+          exit 1
+
+
   deploy:
     name: Despliegue Automático en AWS EC2
     runs-on: ubuntu-latest
+
+    # IMPORTANTE:
+    # El despliegue SOLO puede ejecutarse en main.
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Conectar por SSH a AWS EC2 y Actualizar
