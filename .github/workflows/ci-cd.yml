@@ -38,22 +38,13 @@ jobs:
         run: |
           python -m pytest -v --cov=. --cov-report=term-missing --cov-fail-under=70
 
-      # =====================================================
-      # FALLO CONTROLADO SOLO PARA EVIDENCIA DEL ARTÍCULO
-      # Se elimina después de obtener la captura roja.
-      # =====================================================
-      - name: Fallo controlado de demostración
-        run: |
-          echo "Fallo intencional para demostrar la deteccion de errores del pipeline CI/CD."
-          exit 1
-
 
   deploy:
     name: Despliegue Automático en AWS EC2
     runs-on: ubuntu-latest
 
-    # IMPORTANTE:
-    # El despliegue SOLO puede ejecutarse en main.
+    # El despliegue solo se ejecuta desde main.
+    # En devBedon aparecerá como skipped.
     if: github.ref == 'refs/heads/main'
 
     steps:
