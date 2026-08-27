@@ -1,221 +1,158 @@
-from django.test import TestCase
-from django.utils import timezone
-from unittest.mock import patch, MagicMock
-from docentes.models import PeriodoEvaluacion, TipoPeriodo, Asistencia, ResumenAsistencia, EstadoAsistencia
-from docentes.grpc_services.asistencia_service import AsistenciaServiceServicer
-from docentes.grpc_services import asistencia_pb2
+from contextlib import nullcontext
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
 import grpc
+import pytest
+
+from docentes.grpc_services import asistencia_pb2
+from docentes.grpc_services.asistencia_service import AsistenciaServiceServicer
+
 
 class DummyContext:
-    def __init__(self, metadata):
-        self._metadata = metadata
-        self._aborted = False
-        self._abort_code = None
-        self._abort_details = None
+    def __init__(self, metadata=()):
+        self.metadata, self.code, self.details = metadata, None, None
 
     def invocation_metadata(self):
-        return self._metadata
+        return self.metadata
 
     def abort(self, code, details):
-        self._aborted = True
-        self._abort_code = code
-        self._abort_details = details
+        self.code, self.details = code, details
         raise grpc.RpcError(details)
 
-class AsistenciaServiceTest(TestCase):
-    def setUp(self):
-        self.servicer = AsistenciaServiceServicer()
-        self.periodo = PeriodoEvaluacion.objects.create(
-            id_ano_lectivo=1,
-            tipo=TipoPeriodo.TRIMESTRE,
-            nombre="Primer Trimestre",
-            fecha_inicio="2026-05-01",
-            fecha_fin="2026-08-01",
-            activo=True
-        )
 
-    @patch('docentes.grpc_services.asistencia_service.validate_teacher_assignment')
-    @patch('docentes.grpc_services.asistencia_service.get_students_by_assignment')
-    def test_registro_grupal_correcto(self, mock_get_students, mock_validate_assignment):
-        mock_validate_assignment.return_value = {"is_valid": True}
-        mock_get_students.return_value = [
-            {"id_matricula": 101},
-            {"id_matricula": 102}
-        ]
+def auth_context(token="***REMOVED***", docente="10"):
+    return DummyContext((("docente_id", docente), ("internal_token", token)))
 
-        context = DummyContext((
-            ('docente_id', '10'),
-            ('internal_token', '***REMOVED***')
-        ))
 
-        request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
-            id_asignacion=50,
-            id_periodo=self.periodo.id_periodo,
-            fecha="2026-07-15",
-            asistencias=[
-                asistencia_pb2.AsistenciaItemRequest(id_matricula=101, estado="PRESENTE", justificacion=""),
-                asistencia_pb2.AsistenciaItemRequest(id_matricula=102, estado="AUSENTE", justificacion="Faltó")
-            ]
-        )
+@patch("docentes.grpc_services.asistencia_service.validate_teacher_assignment", return_value={"is_valid": True})
+def test_autenticacion_valida(mock_validate):
+    assert AsistenciaServiceServicer()._validate_auth(auth_context(), 50) == 10
 
-        response = self.servicer.RegistrarAsistenciaGrupal(request, context)
 
-        self.assertTrue(response.success)
-        self.assertEqual(len(response.asistencias), 2)
-        
-        # Validar DB
-        self.assertEqual(Asistencia.objects.count(), 2)
-        
-        # Validar Resumen
-        res_101 = ResumenAsistencia.objects.get(id_matricula=101)
-        self.assertEqual(res_101.total_presentes, 1)
-        self.assertEqual(res_101.total_ausentes, 0)
-        
-        res_102 = ResumenAsistencia.objects.get(id_matricula=102)
-        self.assertEqual(res_102.total_ausentes, 1)
+@pytest.mark.parametrize("context", [auth_context(token="malo"), DummyContext((("internal_token", "***REMOVED***"),))])
+def test_autenticacion_rechaza_credenciales_invalidas(context):
+    with pytest.raises(grpc.RpcError):
+        AsistenciaServiceServicer()._validate_auth(context, 50)
+    assert context.code == grpc.StatusCode.UNAUTHENTICATED
 
-    @patch('docentes.grpc_services.asistencia_service.validate_teacher_assignment')
-    def test_asignacion_ajena(self, mock_validate_assignment):
-        mock_validate_assignment.return_value = {"is_valid": False}
 
-        context = DummyContext((
-            ('docente_id', '10'),
-            ('internal_token', '***REMOVED***')
-        ))
+@patch("docentes.grpc_services.asistencia_service.validate_teacher_assignment", return_value={"is_valid": False})
+def test_docente_sin_acceso(mock_validate):
+    context = auth_context()
+    with pytest.raises(grpc.RpcError):
+        AsistenciaServiceServicer()._validate_auth(context, 50)
+    assert context.code == grpc.StatusCode.PERMISSION_DENIED
 
-        request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
-            id_asignacion=50,
-            id_periodo=self.periodo.id_periodo,
-            fecha="2026-07-15",
-            asistencias=[]
-        )
 
-        with self.assertRaises(grpc.RpcError):
-            self.servicer.RegistrarAsistenciaGrupal(request, context)
-            
-        self.assertEqual(context._abort_code, grpc.StatusCode.PERMISSION_DENIED)
+@patch("docentes.grpc_services.asistencia_service.transaction.atomic", return_value=nullcontext())
+@patch("docentes.grpc_services.asistencia_service._usuario_de_persona", return_value=77)
+@patch("docentes.grpc_services.asistencia_service._asegurar_asignacion")
+@patch("docentes.grpc_services.asistencia_service.get_students_by_assignment")
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch.object(AsistenciaServiceServicer, "_recalcular_resumen_bulk")
+@patch("django.db.connection.cursor")
+@patch("docentes.grpc_services.asistencia_service.Asistencia.objects")
+@patch("docentes.grpc_services.asistencia_service.PeriodoEvaluacion.objects.get")
+def test_registro_grupal_todos_estados_y_reemplazo(mock_periodo, mock_objects, mock_connection,
+        mock_resumen, mock_auth, mock_students, mock_assignment, mock_user, mock_atomic):
+    periodo = SimpleNamespace(id_periodo=3)
+    mock_periodo.return_value = periodo
+    mock_students.return_value = [{"id_matricula": value} for value in range(101, 105)]
+    existentes = MagicMock()
+    creadas = [SimpleNamespace(id_asistencia=i, id_matricula=100+i, id_asignacion=50,
+        id_periodo_id=3, fecha="2026-07-15", estado=estado, justificacion=None)
+        for i, estado in enumerate(("PRESENTE", "AUSENTE", "JUSTIFICADO", "ATRASO"), 1)]
+    creadas_query = MagicMock()
+    creadas_query.order_by.return_value = creadas
+    mock_objects.filter.side_effect = [existentes, creadas_query]
+    cursor = mock_connection.return_value.__enter__.return_value
+    cursor.fetchone.side_effect = [(1,), (2,), (3,), (4,)]
+    request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(id_asignacion=50, id_periodo=3,
+        fecha="2026-07-15", asistencias=[
+            asistencia_pb2.AsistenciaItemRequest(id_matricula=101+i, estado=e)
+            for i, e in enumerate(("PRESENTE", "AUSENTE", "JUSTIFICADO", "ATRASO"))])
+    response = AsistenciaServiceServicer().RegistrarAsistenciaGrupal(request, auth_context())
+    assert response.success and len(response.asistencias) == 4
+    existentes.delete.assert_called_once()
+    assert cursor.execute.call_count == 4
+    mock_resumen.assert_called_once_with(50, periodo, [101, 102, 103, 104])
 
-    @patch('docentes.grpc_services.asistencia_service.validate_teacher_assignment')
-    @patch('docentes.grpc_services.asistencia_service.get_students_by_assignment')
-    def test_estudiante_no_matriculado(self, mock_get_students, mock_validate_assignment):
-        mock_validate_assignment.return_value = {"is_valid": True}
-        # Solo estudiante 101 es válido
-        mock_get_students.return_value = [
-            {"id_matricula": 101}
-        ]
 
-        context = DummyContext((
-            ('docente_id', '10'),
-            ('internal_token', '***REMOVED***')
-        ))
+@pytest.mark.parametrize(("students", "item"), [
+    ([{"id_matricula": 1}], asistencia_pb2.AsistenciaItemRequest(id_matricula=2, estado="PRESENTE")),
+    ([{"id_matricula": 1}], asistencia_pb2.AsistenciaItemRequest(id_matricula=1, estado="ATRASADO")),
+])
+@patch("docentes.grpc_services.asistencia_service._asegurar_asignacion")
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch("docentes.grpc_services.asistencia_service.PeriodoEvaluacion.objects.get", return_value=SimpleNamespace(id_periodo=3))
+def test_registro_valida_matricula_y_estado(mock_periodo, mock_auth, mock_assignment, students, item):
+    context = auth_context()
+    request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(id_asignacion=50, id_periodo=3,
+        fecha="2026-07-15", asistencias=[item])
+    with patch("docentes.grpc_services.asistencia_service.get_students_by_assignment", return_value=students):
+        with pytest.raises(grpc.RpcError):
+            AsistenciaServiceServicer().RegistrarAsistenciaGrupal(request, context)
+    assert context.code == grpc.StatusCode.INVALID_ARGUMENT
 
-        request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
-            id_asignacion=50,
-            id_periodo=self.periodo.id_periodo,
-            fecha="2026-07-15",
-            asistencias=[
-                asistencia_pb2.AsistenciaItemRequest(id_matricula=102, estado="PRESENTE", justificacion="")
-            ]
-        )
 
-        with self.assertRaises(grpc.RpcError):
-            self.servicer.RegistrarAsistenciaGrupal(request, context)
-            
-        self.assertEqual(context._abort_code, grpc.StatusCode.INVALID_ARGUMENT)
+@patch("docentes.grpc_services.asistencia_service.transaction.atomic", return_value=nullcontext())
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch.object(AsistenciaServiceServicer, "_actualizar_resumen")
+@patch("docentes.grpc_services.asistencia_service.Asistencia.objects.get")
+def test_actualiza_asistencia_y_resumen(mock_get, mock_resumen, mock_auth, mock_atomic):
+    asistencia = SimpleNamespace(id_asistencia=1, id_matricula=101, id_asignacion=50,
+        id_periodo=SimpleNamespace(), id_periodo_id=3, fecha="2026-07-15", estado="PRESENTE",
+        justificacion=None, save=MagicMock())
+    mock_get.return_value = asistencia
+    request = asistencia_pb2.ActualizarAsistenciaRequest(id_asistencia=1, estado="ATRASO", justificacion="Tarde")
+    response = AsistenciaServiceServicer().ActualizarAsistencia(request, auth_context())
+    assert response.success and response.asistencia.estado == "ATRASO"
+    asistencia.save.assert_called_once()
+    mock_resumen.assert_called_once()
 
-    @patch('docentes.grpc_services.asistencia_service.validate_teacher_assignment')
-    @patch('docentes.grpc_services.asistencia_service.get_students_by_assignment')
-    def test_registro_duplicado(self, mock_get_students, mock_validate_assignment):
-        mock_validate_assignment.return_value = {"is_valid": True}
-        mock_get_students.return_value = [
-            {"id_matricula": 101}
-        ]
-        
-        Asistencia.objects.create(
-            id_matricula=101,
-            id_asignacion=50,
-            id_periodo=self.periodo,
-            fecha="2026-07-15",
-            estado="PRESENTE",
-            registrado_por=10
-        )
 
-        context = DummyContext((
-            ('docente_id', '10'),
-            ('internal_token', '***REMOVED***')
-        ))
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch("docentes.grpc_services.asistencia_service.Asistencia.objects.filter")
+def test_consulta_asistencia_aplica_filtros(mock_filter, mock_auth):
+    row = SimpleNamespace(id_asistencia=1, id_matricula=101, id_asignacion=50,
+        id_periodo_id=3, fecha="2026-07-15", estado="PRESENTE", justificacion=None)
+    query = MagicMock(); query.filter.return_value = query; query.__iter__.return_value = iter([row])
+    mock_filter.return_value = query
+    request = asistencia_pb2.ConsultarAsistenciaRequest(id_asignacion=50, fecha="2026-07-15", id_periodo=3, id_matricula=101)
+    response = AsistenciaServiceServicer().ConsultarAsistencia(request, auth_context())
+    assert response.success and len(response.asistencias) == 1 and query.filter.call_count == 3
 
-        request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
-            id_asignacion=50,
-            id_periodo=self.periodo.id_periodo,
-            fecha="2026-07-15",
-            asistencias=[
-                asistencia_pb2.AsistenciaItemRequest(id_matricula=101, estado="PRESENTE", justificacion="")
-            ]
-        )
 
-        with self.assertRaises(grpc.RpcError):
-            self.servicer.RegistrarAsistenciaGrupal(request, context)
-            
-        self.assertEqual(context._abort_code, grpc.StatusCode.ALREADY_EXISTS)
+@patch("docentes.grpc_services.asistencia_service.get_students_by_assignment", return_value=[{"id_matricula": 101}])
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch("docentes.grpc_services.asistencia_service.ResumenAsistencia.objects.filter")
+def test_consulta_resumen_calcula_porcentaje(mock_filter, mock_auth, mock_students):
+    row = SimpleNamespace(id_resumen=1, id_matricula=101, id_asignacion=50, id_periodo_id=3,
+        total_presentes=1, total_ausentes=1, total_justificados=1, total_atrasos=1)
+    query = MagicMock(); query.filter.return_value = query; query.__iter__.return_value = iter([row])
+    mock_filter.return_value = query
+    request = asistencia_pb2.ConsultarResumenRequest(id_asignacion=50, id_periodo=3, id_matricula=101)
+    response = AsistenciaServiceServicer().ConsultarResumenAsistencia(request, auth_context())
+    assert response.resumenes[0].porcentaje_asistencia == 75.0
 
-    @patch('docentes.grpc_services.asistencia_service.validate_teacher_assignment')
-    def test_actualizacion_estado(self, mock_validate_assignment):
-        mock_validate_assignment.return_value = {"is_valid": True}
-        
-        asistencia = Asistencia.objects.create(
-            id_matricula=101,
-            id_asignacion=50,
-            id_periodo=self.periodo,
-            fecha="2026-07-15",
-            estado="PRESENTE",
-            registrado_por=10
-        )
-        
-        # Crear un resumen inicial
-        ResumenAsistencia.objects.create(
-            id_matricula=101,
-            id_asignacion=50,
-            id_periodo=self.periodo,
-            total_presentes=1
-        )
 
-        context = DummyContext((
-            ('docente_id', '10'),
-            ('internal_token', '***REMOVED***')
-        ))
+@patch("docentes.grpc_services.asistencia_service.ResumenAsistencia.objects")
+@patch("docentes.grpc_services.asistencia_service.Asistencia.objects.filter")
+def test_actualizar_resumen_cuenta_cada_estado(mock_filter, mock_resumen):
+    mock_filter.return_value = [SimpleNamespace(estado=e) for e in ("PRESENTE", "AUSENTE", "JUSTIFICADO", "ATRASO")]
+    resumen = SimpleNamespace(save=MagicMock())
+    mock_resumen.get_or_create.return_value = (resumen, False)
+    AsistenciaServiceServicer()._actualizar_resumen(1, 2, 3)
+    assert (resumen.total_presentes, resumen.total_ausentes, resumen.total_justificados, resumen.total_atrasos) == (1, 1, 1, 1)
 
-        request = asistencia_pb2.ActualizarAsistenciaRequest(
-            id_asistencia=asistencia.id_asistencia,
-            estado="ATRASO",
-            justificacion="Llegó tarde"
-        )
 
-        response = self.servicer.ActualizarAsistencia(request, context)
-        self.assertTrue(response.success)
-        
-        asistencia.refresh_from_db()
-        self.assertEqual(asistencia.estado, "ATRASO")
-        
-        # Validar recálculo
-        res = ResumenAsistencia.objects.get(id_matricula=101)
-        self.assertEqual(res.total_presentes, 0)
-        self.assertEqual(res.total_atrasos, 1)
-
-    def test_token_invalido(self):
-        context = DummyContext((
-            ('docente_id', '10'),
-            ('internal_token', 'bad-token')
-        ))
-
-        request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
-            id_asignacion=50,
-            id_periodo=self.periodo.id_periodo,
-            fecha="2026-07-15",
-            asistencias=[]
-        )
-
-        with self.assertRaises(grpc.RpcError):
-            self.servicer.RegistrarAsistenciaGrupal(request, context)
-            
-        self.assertEqual(context._abort_code, grpc.StatusCode.UNAUTHENTICATED)
+@patch("docentes.grpc_services.asistencia_service.ResumenAsistencia.objects")
+@patch("docentes.grpc_services.asistencia_service.Asistencia.objects")
+def test_recalculo_bulk_reemplaza_resumenes(mock_asistencia, mock_resumen):
+    from docentes.models import PeriodoEvaluacion
+    conteos = [{"id_matricula": 1, "estado": "PRESENTE", "n": 2}, {"id_matricula": 2, "estado": "ATRASO", "n": 1}]
+    mock_asistencia.filter.return_value.values.return_value.annotate.return_value = conteos
+    AsistenciaServiceServicer()._recalcular_resumen_bulk(50, PeriodoEvaluacion(), [1, 2])
+    creados = mock_resumen.bulk_create.call_args.args[0]
+    assert creados[0].total_presentes == 2 and creados[1].total_atrasos == 1
