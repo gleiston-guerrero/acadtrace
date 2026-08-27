@@ -31,6 +31,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "micro_docente.middleware.StructuredRequestLoggingMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
@@ -126,3 +127,18 @@ CORS_ALLOWED_ORIGINS.extend(
 )
 
 CORS_ALLOW_CREDENTIALS = True
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "micro_docente.http": {
+            "handlers": ["console"],
+            "level": os.environ.get("DJANGO_HTTP_LOG_LEVEL", "INFO"),
+            "propagate": False,
+        },
+    },
+}

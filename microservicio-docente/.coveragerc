@@ -1,0 +1,12 @@
+[run]
+omit =
+    */migrations/*
+    */grpc_services/*_pb2.py
+    */grpc_services/*_pb2_grpc.py
+    */grpc_services/server.py
+    */grpc_services/fix_imports.py
+    */management/commands/*
+
+[report]
+show_missing = True
+skip_covered = True
