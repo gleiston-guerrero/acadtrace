@@ -32,9 +32,11 @@ services:
     container_name: sga-haproxy
     depends_on:
       - sga-principal
+      - microservicio-secretaria
     ports:
       - "8080:8080"   # REST balanceado hacia las 2 replicas
       - "8081:8081"   # REST balanceado hacia las replicas de docente
+      - "8082:8082"   # REST balanceado hacia microservicio-secretaria
       - "9092:9092"   # gRPC balanceado hacia las 2 replicas
       - "8404:8404"   # Panel de estadisticas HAProxy
     volumes:
