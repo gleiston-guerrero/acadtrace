@@ -967,7 +967,7 @@ export default function Soporte() {
                                         {comentarios.map(c => {
                                             const propio = c.autor === username;
                                             return (
-                                                <div key={c.idComentario} className={`flex ${propio ? "justify-end" : "justify-start"}`}>
+                                                <div key={c.id} className={`flex ${propio ? "justify-end" : "justify-start"}`}>
                                                     <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs ${
                                                         c.notaInterna
                                                             ? "bg-amber-50 border border-amber-200"
