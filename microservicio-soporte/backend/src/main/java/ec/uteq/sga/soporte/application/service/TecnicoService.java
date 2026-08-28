@@ -1,7 +1,7 @@
-package ec.uteq.sga.soporte.service;
+package ec.uteq.sga.soporte.application.service;
 
 import ec.uteq.sga.soporte.common.ApiException;
-import ec.uteq.sga.soporte.grpc.TecnicoGrpcClient;
+import ec.uteq.sga.soporte.infrastructure.grpc.TecnicoGrpcClient;
 import io.grpc.StatusRuntimeException;
 import org.springframework.stereotype.Service;
 

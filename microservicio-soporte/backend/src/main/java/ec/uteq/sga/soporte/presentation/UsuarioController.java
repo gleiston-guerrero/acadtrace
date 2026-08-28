@@ -1,9 +1,10 @@
-package ec.uteq.sga.soporte.controller;
+package ec.uteq.sga.soporte.presentation;
 
-import ec.uteq.sga.soporte.grpc.TecnicoGrpcClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import ec.uteq.sga.soporte.infrastructure.grpc.TecnicoGrpcClient;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package ec.uteq.sga.soporte.grpc;
+package ec.uteq.sga.soporte.infrastructure.grpc;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

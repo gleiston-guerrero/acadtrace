@@ -6,6 +6,7 @@ import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;
 import ec.uteq.sga.soporte.dto.ComentarioRequest;
 import ec.uteq.sga.soporte.dto.EscalarTicketRequest;
 import ec.uteq.sga.soporte.dto.TicketRequest;
+import ec.uteq.sga.soporte.security.AuthenticatedUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,8 @@ public class TicketService {
         this.tickets = tickets;
     }
 
-    public List<Map<String, Object>> listar() {
+    public List<Map<String, Object>> listar(AuthenticatedUser user) {
+        exigirTecnicoODirector(user);
         return tickets.listarTodos();
     }
 
@@ -41,12 +43,14 @@ public class TicketService {
         return tickets.listarPorCreador(username);
     }
 
-    public Map<String, Object> estadisticas() {
+    public Map<String, Object> estadisticas(AuthenticatedUser user) {
+        exigirTecnicoODirector(user);
         return tickets.estadisticas();
     }
 
     /** Reportes de gestion: totales y tiempo promedio de resolucion (horas) por categoria y tecnico. */
-    public Map<String, Object> reportes() {
+    public Map<String, Object> reportes(AuthenticatedUser user) {
+        exigirTecnicoODirector(user);
         return Map.of(
                 "porCategoria", tickets.reportePorCategoria(),
                 "porTecnico", tickets.reportePorTecnico(),
@@ -54,9 +58,27 @@ public class TicketService {
         );
     }
 
+    /** Lanza 403 si el usuario no es del equipo de soporte (SOPORTE_TECNICO/DIRECTOR/ADMINISTRADOR). */
+    private void exigirTecnicoODirector(AuthenticatedUser user) {
+        if (user == null || !user.isTecnicoOrDirector()) {
+            throw ApiException.forbidden("Accion exclusiva del equipo de soporte");
+        }
+    }
+
     public Map<String, Object> obtener(long id) {
         return tickets.buscarPorId(id)
                 .orElseThrow(() -> ApiException.notFound("Ticket no encontrado"));
+    }
+
+    public Map<String, Object> obtener(long id, AuthenticatedUser user) {
+        Map<String, Object> ticket = obtener(id);
+        if (user == null || !user.isTecnicoOrDirector()) {
+            String creadoPor = (String) ticket.get("creadoPor");
+            if (user == null || creadoPor == null || !creadoPor.equals(user.username())) {
+                throw ApiException.forbidden("No tiene acceso a este ticket");
+            }
+        }
+        return ticket;
     }
 
     @Transactional
@@ -100,7 +122,9 @@ public class TicketService {
     }
 
     @Transactional
-    public Map<String, Object> actualizar(long id, ActualizarTicketRequest req, String modificadoPor) {
+    public Map<String, Object> actualizar(long id, ActualizarTicketRequest req, AuthenticatedUser user) {
+        exigirTecnicoODirector(user);
+        String modificadoPor = user.username();
         String estado = req.estado().toUpperCase();
         if (!ESTADOS.contains(estado)) {
             throw ApiException.badRequest("Estado inválido (ABIERTO, EN_PROCESO, RESUELTO, CERRADO)");
@@ -128,7 +152,9 @@ public class TicketService {
      * motivo registrado como nota interna en el timeline del ticket.
      */
     @Transactional
-    public Map<String, Object> escalar(long id, EscalarTicketRequest req, String actor) {
+    public Map<String, Object> escalar(long id, EscalarTicketRequest req, AuthenticatedUser user) {
+        exigirTecnicoODirector(user);
+        String actor = user.username();
         Map<String, Object> actual = obtener(id); // valida existencia y trae valores previos
         String estadoActual = (String) actual.get("estado");
         if ("CERRADO".equals(estadoActual)) {
@@ -164,8 +190,8 @@ public class TicketService {
         return obtener(id);
     }
 
-    public List<Map<String, Object>> listarHistorial(long idTicket) {
-        obtener(idTicket); // valida existencia
+    public List<Map<String, Object>> listarHistorial(long idTicket, AuthenticatedUser user) {
+        obtener(idTicket, user); // valida existencia y autorizacion
         return tickets.listarHistorial(idTicket);
     }
 
@@ -175,9 +201,9 @@ public class TicketService {
     }
 
     @Transactional
-    public Map<String, Object> comentar(long idTicket, ComentarioRequest req, String autor) {
+    public Map<String, Object> comentar(long idTicket, ComentarioRequest req, AuthenticatedUser user) {
         obtener(idTicket); // valida existencia
-        boolean notaInterna = req.notaInterna() != null && req.notaInterna();
-        return tickets.agregarComentario(idTicket, autor, req.contenido(), notaInterna);
+        boolean notaInterna = req.notaInterna() != null && req.notaInterna() && user.isTecnicoOrDirector();
+        return tickets.agregarComentario(idTicket, user.username(), req.contenido(), notaInterna);
     }
 }
