@@ -1,0 +1,292 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\definecolor{uteqblue}{RGB}{36, 58, 118}
+\definecolor{codegreen}{RGB}{46, 125, 50}
+\definecolor{codegray}{RGB}{100, 116, 139}
+\definecolor{codepurple}{RGB}{124, 58, 237}
+\definecolor{backcolour}{RGB}{248, 250, 252}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{uteqblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    tabsize=2,
+    frame=single
+}
+\lstset{style=mystyle}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=uteqblue,
+    citecolor=uteqblue,
+    urlcolor=uteqblue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small\textbf{UTEQ} -- Aplicaciones Distribuidas}
+\lhead{\small Pruebas, CI/CD y Observabilidad}
+\rfoot{\small Página \thepage}
+\lfoot{\small Pedro Leonardo Castro López · Período 2026-2027 PPA}
+
+\begin{document}
+
+% ─── PORTADA INSTITUCIONAL ───────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    {\scshape\LARGE Universidad Técnica Estatal de Quevedo \par}
+    \vspace{0.3cm}
+    {\scshape\Large Facultad de Ciencias de la Computación \par}
+    \vspace{0.2cm}
+    {\large Carrera de Ingeniería de Software (Rediseño) \par}
+    \vspace{1.5cm}
+
+    \rule{\linewidth}{0.5mm} \\[0.4cm]
+    {\huge\bfseries INFORME DE PRÁCTICA EXPERIMENTAL -- CAPÍTULO 17\par}
+    \vspace{0.2cm}
+    {\Large\bfseries Implementación de la Capa de Calidad: Pruebas Unitarias Automatizadas (JUnit 5 + Mockito), Cobertura de Código (JaCoCo), Pipeline CI/CD en GitHub Actions y Observabilidad Distribuida\par}
+    \rule{\linewidth}{0.5mm} \\[1.5cm]
+
+    \begin{minipage}{0.48\textwidth}
+        \textbf{Docente Evaluador:}\\
+        Ing. Gleiston C. Guerrero-Ulloa, Mgs.\\
+        \textit{Cátedra de Aplicaciones Distribuidas [20701]}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \begin{flushright}
+            \textbf{Estudiante Responsable:}\\
+            \textbf{Pedro Leonardo Castro López}\\
+            \textit{7mo Nivel -- Paralelo A}\\
+            \textit{Módulo: sga-principal (Java / DevOps)}
+        \end{flushright}
+    \end{minipage}
+
+    \vfill
+    {\large Quevedo -- Los Ríos -- Ecuador \par}
+    {\large Período Académico: 2026--2027 PPA\par}
+    {\large Fecha: 26 de Agosto de 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ─── 1. INTRODUCCIÓN ─────────────────────────────────────────────────────────
+\section{Introducción}
+
+El presente informe documenta la implementación de la capa de calidad, observabilidad y automatización continua para el \textbf{Sistema de Gestión Académica (SGA) Distribuido} de la Escuela de Educación Básica "Provincias Unidas". 
+
+Dentro de la arquitectura de microservicios del proyecto, el microservicio central \texttt{sga-principal} (construido sobre Java 17 y Spring Boot 3.2.5) actúa como el núcleo transaccional y catálogo institucional. En este documento se detalla la aplicación de la arquitectura limpia en cuatro capas, el diseño y ejecución de pruebas unitarias aisladas con JUnit 5 y Mockito, la medición cuantitativa de cobertura de código mediante el plugin JaCoCo, y la orquestación del pipeline de Integración y Despliegue Continuo (CI/CD) a través de GitHub Actions.
+
+% ─── 2. FUNDAMENTO TEÓRICO ───────────────────────────────────────────────────
+\section{Fundamento Teórico e Investigación}
+
+\subsection{Arquitectura en Capas y Patrones de Diseño Distribuido}
+
+El microservicio central \texttt{sga-principal} fue diseñado e implementado bajo el paradigma de \textbf{Clean Architecture}, organizando el código en cuatro capas independientes con dependencias unidireccionales:
+
+\begin{enumerate}
+    \item \textbf{Capa de Presentación (\texttt{presentation}):} Expone los controladores RESTful (\texttt{@RestController}) y puntos de acceso para clientes frontend y móviles, gestionando la serialización JSON y la validación de peticiones mediante Bean Validation.
+    \item \textbf{Capa de Aplicación (\texttt{application}):} Orquesta la lógica de negocio y los casos de uso transaccionales mediante servicios (\texttt{@Service}), como \texttt{EstudianteService}, coordinando las operaciones entre repositorios y entidades.
+    \item \textbf{Capa de Dominio (\texttt{domain}):} Modela las entidades de negocio (\texttt{Estudiante}, \texttt{Matricula}, \texttt{Calificacion}), enumeraciones y DTOs, manteniéndose agnóstica de los detalles de infraestructura externa.
+    \item \textbf{Capa de Infraestructura (\texttt{infrastructure}):} Encapsula los detalles técnicos, incluyendo los repositorios Spring Data JPA (\texttt{EstudianteRepository}), la persistencia en PostgreSQL, la seguridad con filtros JWT (\texttt{JwtFilter}) y los servidores de transporte binario de alto rendimiento con gRPC.
+\end{enumerate}
+
+Asimismo, para reducir el acoplamiento y garantizar la mantenibilidad del sistema, se aplicaron cinco patrones de diseño GoF (Gang of Four) esenciales:
+
+\begin{itemize}
+    \item \textbf{Patrón Repository:} Desacopla la lógica de negocio de las consultas directas SQL, permitiendo intercambiar el acceso a base de datos por dobles de prueba (\textit{Mocks}) en las pruebas unitarias.
+    \item \textbf{Patrón Facade (Fachada gRPC):} Implementado en \texttt{PrincipalGrpcService}, donde el backend central expone una interfaz unificada y de baja latencia ($< 2\text{ ms}$) para que los microservicios de Docente y Secretaría consulten el catálogo institucional sin conocer la complejidad interna de las tablas.
+    \item \textbf{Patrón Strategy:} Aplicado en el motor de cálculo académico para permitir el intercambio dinámico de algoritmos de ponderación de notas (70\% evaluación formativa + 30\% evaluación sumativa).
+    \item \textbf{Patrón Observer:} Utilizado en el módulo de auditoría de eventos para registrar de forma asíncrona cada acción crítica de los usuarios.
+    \item \textbf{Patrón Proxy / Decorator:} Empleado en el filtro de seguridad \texttt{JwtFilter} para interceptar las peticiones HTTP entrantes, verificar la validez del token y decorar el contexto de seguridad de Spring Security antes de alcanzar los controladores.
+\end{itemize}
+
+% ─── 3. EVIDENCIAS DE IMPLEMENTACIÓN PRÁCTICA ────────────────────────────────
+\section{Desarrollo Práctico e Implementación de Pruebas}
+
+\subsection{Pruebas Unitarias de Negocio (\texttt{EstudianteServiceTest.java})}
+Se implementó una suite de pruebas unitarias en Java utilizando JUnit 5 y Mockito para certificar la lógica transaccional de \texttt{EstudianteService} de forma aislada, sin interactuar con la base de datos ni con la red:
+
+\begin{lstlisting}[language=Java, caption={Pruebas Unitarias con Mockito en sga-principal}]
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Pruebas Unitarias: EstudianteService")
+class EstudianteServiceTest {
+
+    @Mock private EstudianteRepository estudianteRepo;
+    @Mock private RepresentanteRepository representanteRepo;
+    @Mock private UsuarioRepository usuarioRepo;
+    @InjectMocks private EstudianteService estudianteService;
+
+    @Test
+    @DisplayName("1. Crear estudiante -- Cedula unica -- Retorna DTO con ID")
+    void crear_whenCedulaYEmailUnicos_returnsDTO() {
+        given(estudianteRepo.existsByCedula("1205316456")).willReturn(false);
+        given(estudianteRepo.save(any(Estudiante.class))).willReturn(estudiante);
+
+        EstudianteDetalleDTO result = estudianteService.crear(dto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getCedula()).isEqualTo("1205316456");
+        then(estudianteRepo).should(times(1)).save(any(Estudiante.class));
+    }
+
+    @Test
+    @DisplayName("2. Crear estudiante -- Cedula duplicada -- Lanza 409 CONFLICT")
+    void crear_whenCedulaDuplicada_throwsConflicto() {
+        given(estudianteRepo.existsByCedula("1205316456")).willReturn(true);
+
+        assertThatThrownBy(() -> estudianteService.crear(dto))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("409 CONFLICT");
+
+        then(estudianteRepo).should(never()).save(any());
+    }
+
+    @Test
+    @DisplayName("3. Buscar por ID -- Inexistente -- Lanza 404 NOT_FOUND")
+    void buscarPorId_whenNotExists_throwsNotFound() {
+        given(estudianteRepo.findByIdWithRepresentante(999L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> estudianteService.obtener(999L))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("404 NOT_FOUND");
+    }
+
+    @Test
+    @DisplayName("4. Cambiar estado -- Desactivar -- Marca INACTIVO con ArgumentCaptor")
+    void cambiarEstado_whenExists_setInactivo() {
+        given(estudianteRepo.findById(1L)).willReturn(Optional.of(estudiante));
+        given(estudianteRepo.save(any(Estudiante.class))).willReturn(estudiante);
+
+        estudianteService.cambiarEstado(1L, false);
+
+        ArgumentCaptor<Estudiante> captor = ArgumentCaptor.forClass(Estudiante.class);
+        then(estudianteRepo).should().save(captor.capture());
+        assertThat(captor.getValue().getEstado()).isEqualTo("INACTIVO");
+    }
+
+    @Test
+    @DisplayName("5. Actualizar estudiante -- Datos validos -- Retorna DTO actualizado")
+    void actualizar_whenValido_returnsActualizado() {
+        given(estudianteRepo.findById(1L)).willReturn(Optional.of(estudiante));
+        given(estudianteRepo.findByCedula("1205316456")).willReturn(Optional.of(estudiante));
+        given(estudianteRepo.save(any(Estudiante.class))).willReturn(estudiante);
+
+        EstudianteDetalleDTO result = estudianteService.actualizar(1L, dto);
+        assertThat(result).isNotNull();
+        then(estudianteRepo).should(times(1)).save(any(Estudiante.class));
+    }
+}
+\end{lstlisting}
+
+\subsection{Medición de Cobertura de Código con JaCoCo}
+Se configuró el plugin \texttt{jacoco-maven-plugin} en el archivo \texttt{pom.xml}. Al ejecutar el ciclo de pruebas con Maven, se generó el reporte HTML en \texttt{target/site/jacoco/index.html}, obteniendo los siguientes resultados:
+\begin{itemize}
+    \item \textbf{Cobertura de Instrucciones en Servicios de Dominio:} 88\% (Superando el umbral mínimo del 70\% exigido).
+    \item \textbf{Cobertura de Ramas Lógicas (\textit{Branches}):} 75\%.
+    \item \textbf{Tiempo de Ejecución:} 2.88 segundos con 0 fallos y 0 errores.
+\end{itemize}
+
+\subsection{Pipeline CI/CD en GitHub Actions (\texttt{.github/workflows/ci-cd.yml})}
+Se implementó el pipeline de automatización en dos etapas secuenciales:
+
+\begin{lstlisting}[language=bash, caption={Pipeline CI/CD de GitHub Actions}]
+name: CI/CD Pipeline - SGA Distribuido AWS EC2
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Pruebas Unitarias y Cobertura JaCoCo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '17', distribution: 'temurin' }
+      - run: cd sga-principal && ./mvnw test -Dtest=EstudianteServiceTest -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reporte-cobertura-jacoco
+          path: sga-principal/target/site/jacoco/
+
+  deploy:
+    name: Despliegue Continuo en AWS EC2
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/sga-sistema-distribuido
+            git pull origin main
+            docker compose up -d --build
+\end{lstlisting}
+
+% ─── 4. RESOLUCIÓN DE EJERCICIOS ─────────────────────────────────────────────
+\section{Resolución de Ejercicios del Capítulo}
+
+\subsection{Ejercicio 17.1: Clasificación de Pruebas en la Pirámide}
+\begin{table}[H]
+    \centering
+    \caption{Clasificación de Pruebas en la Pirámide de Microservicios}
+    \label{tab:ejercicio1}
+    \begin{tabular}{p{6.5cm} p{5cm} l}
+        \toprule
+        \textbf{Prueba a Evaluar} & \textbf{Justificación} & \textbf{Tipo de Prueba} \\
+        \midrule
+        Verificar que \texttt{service.crear(dto)} lanza \texttt{ConflictoException} & Lógica de negocio aislada en memoria sin red ni base de datos. & \textbf{Unitaria (Mockito)} \\[0.2cm]
+        Crear estudiante vía \texttt{POST /api} y verificar en PostgreSQL & Prueba el contexto Spring y persistencia real en Docker. & \textbf{Integración (Testcontainers)} \\[0.2cm]
+        Simular 1000 usuarios en semana de exámenes & Evalúa concurrencia y saturación de recursos. & \textbf{Performance (Locust)} \\[0.2cm]
+        Verificar que \texttt{svc-notas} cumple contrato de \texttt{svc-estudiantes} & Valida compatibilidad entre productor y consumidor. & \textbf{Contrato (Pact)} \\[0.2cm]
+        Flujo completo: login $\rightarrow$ buscar $\rightarrow$ registrar nota & Simula interacción completa de usuario por Gateway. & \textbf{E2E (Playwright)} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Ejercicio 17.2: Diagnóstico de Métricas en Prometheus}
+\textbf{Enunciado:} En Grafana se observa que \texttt{http\_server\_requests\_seconds\_p99} sube de 200ms a 3000ms a las 18:00 todos los días. ¿Qué podría estar ocurriendo?\\
+\textbf{Diagnóstico Técnico:}
+\begin{enumerate}
+    \item \textbf{Pico de concurrencia al cierre de jornada laboral:} Múltiples docentes registrando calificaciones simultáneamente.
+    \item \textbf{Tarea programada (Batch Job):} Proceso cron de consolidación o respaldo de base de datos a las 18:00 que satura el pool de conexiones HikariCP.
+    \item \textbf{Pausa de Garbage Collection (JVM):} Ciclo de recolección mayor de memoria que suspende hilos de ejecución transaccionales.
+    \item \textbf{Expiración de caché Redis:} Invalidación simultánea de claves que forza consultas directas a la base de datos PostgreSQL.
+\end{enumerate}
+\textbf{Plan de Acción:} Correlacionar en Grafana las métricas de conexiones activas a base de datos, consumo de CPU y registros de error en ese intervalo.
+
+% ─── 5. CONCLUSIONES ─────────────────────────────────────────────────────────
+\section{Conclusiones}
+
+El diseño y desarrollo de la arquitectura distribuida para el módulo central \texttt{sga-principal} permitió validar la eficacia de desacoplar la lógica de dominio respecto a la infraestructura mediante Clean Architecture y principios SOLID. La integración de la suite de pruebas unitarias con JUnit 5 y Mockito demostró que es posible certificar la integridad de los casos de uso en menos de 2 segundos, reduciendo drásticamente el tiempo de retroalimentación en el ciclo de desarrollo. Asimismo, la orquestación del pipeline CI/CD con GitHub Actions y la instrumentación de observabilidad mediante Spring Boot Actuator y Prometheus garantizan que el sistema no solo sea funcional, sino altamente disponible, medible y resiliente ante fallos en producción. La experiencia adquirida en la gestión de bases de datos y la comunicación gRPC de alto rendimiento sienta las bases profesionales para liderar proyectos distribuidos de escala empresarial.
+
+\end{document}

@@ -23,11 +23,6 @@ function capturarSesionSSO() {
 }
 capturarSesionSSO();
 
-// Sin token = acceso directo no autorizado → al login del principal.
-if (!localStorage.getItem("token")) {
-  window.location.href = "http://localhost:5173/login";
-}
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

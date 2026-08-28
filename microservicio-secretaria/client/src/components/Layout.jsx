@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiPrincipal } from '../utils/api';
+import { useConfirm } from './Toast';
 import logo from '../assets/logo.png';
+import AsistenteIaSecretaria from './AsistenteIaSecretaria';
+import { detectarHostVivo } from '../utils/handoff';
+import { MICROSERVICIOS } from '../config/microservicios';
 
 const PRIMARY = '#243A76';
 const PRIMARY_LIGHT = '#2d4a96';
 
-export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle, menuItems = [], seccion, onSeccionChange }) {
+export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle, menuItems = [], seccion, onSeccionChange, headerRight }) {
   const [showPeriodo, setShowPeriodo] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -14,6 +18,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
   const [noLeidas, setNoLeidas] = useState(0);
   const [anoActual, setAnoActual] = useState(null);
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const username = localStorage.getItem('username') || 'Secretario';
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
@@ -49,8 +54,20 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
     setNoLeidas(0);
   };
 
-  // El login vive en el SGA Principal: cerrar sesión vuelve allá, no a una ruta local.
-  const handleLogout = () => { localStorage.clear(); window.location.href = 'http://localhost:5173/login'; };
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: '¿Cerrar sesión?',
+      message: 'Vas a salir del portal de Secretaría. Cualquier cambio sin guardar se perderá.',
+      confirmText: 'Sí, cerrar sesión',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
+    localStorage.clear();
+    const hostVivo = await detectarHostVivo(MICROSERVICIOS.DIRECTOR?.hosts || []);
+    const fallbackHost = typeof window !== 'undefined' ? `http://${window.location.hostname}:5174` : 'http://localhost:5174';
+    window.location.href = `${hostVivo || fallbackHost}/login`;
+  };
 
   const hasSidebar = menuItems.length > 0;
 
@@ -100,9 +117,12 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                   ) : (
                     <p className="text-xs text-slate-400 text-center px-2">No hay año lectivo activo</p>
                   )}
-                  <p className="text-xs text-slate-400 text-center mt-2 px-2">
-                    Gestiona los años lectivos desde el módulo correspondiente
-                  </p>
+                  <button
+                    onClick={() => { setShowPeriodo(false); navigate('/anos-lectivos'); }}
+                    className="w-full mt-2 py-1.5 px-3 text-xs font-semibold text-[#243A76] bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition"
+                  >
+                    Administrar Años Lectivos →
+                  </button>
                 </div>
               </div>
             )}
@@ -173,6 +193,15 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                 </div>
                 <div className="p-2">
                   <button
+                    onClick={() => navigate('/portales')}
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
+                  >
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Cambiar de Portal
+                  </button>
+                  <button
                     onClick={() => navigate('/cambiar-password')}
                     className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
                   >
@@ -213,6 +242,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
             </span>
           ))}
         </nav>
+        {headerRight}
       </div>
 
       {/* SIDEBAR + CONTENT */}
@@ -268,10 +298,13 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
         </main>
       </div>
 
-      {/* FOOTER — FIJO */}
+      {/* Footer Fijo */}
       <footer style={{ backgroundColor: PRIMARY }} className="fixed bottom-0 left-0 right-0 text-white text-opacity-80 text-xs text-center py-2 z-40">
         Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
       </footer>
+
+      {/* Widget Asistente IA Secretaría */}
+      <AsistenteIaSecretaria />
 
       {/* Overlay */}
       {(showPeriodo || showUserMenu || showNotifs) && (

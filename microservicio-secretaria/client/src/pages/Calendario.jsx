@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api from '../utils/api';
 
 const TIPO_COLOR = {
@@ -61,7 +60,7 @@ export default function Calendario() {
   for (let d = 1; d <= diasEnMes; d++) celdas.push(d);
 
   return (
-    <Layout breadcrumb={['Inicio', 'Calendario']} menuItems={MENU_PRINCIPAL} seccion="calendario">
+    <Layout breadcrumb={['Inicio', 'Calendario']}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Calendario Académico</h1>

@@ -33,7 +33,7 @@ const Detalle = ({ label, value, mono = false }) => (
   </div>
 );
 
-const IMG_BASE = "http://localhost:8080";
+const IMG_BASE = `http://${window.location.hostname}:8080`;
 const ID_DOCENTE = 3;
 
 const formInicial = {
@@ -129,7 +129,12 @@ const menuItems = [
   { id: "nuevo", label: "Nuevo usuario", icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
 ];
 
-export default function Usuarios() {
+const resolveFotoUrl = (url) => {
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${IMG_BASE}${url}`;
+};
+
+export default function Usuarios({ embed = false }) {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
@@ -150,7 +155,7 @@ export default function Usuarios() {
     const fd = new FormData();
     fd.append("archivo", file);
     try {
-      const { data } = await api.post(`/api/uploads/foto`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.post(`/api/uploads/foto`, fd);
       setter(data.url);
     } catch (err) {
       setError(err.response?.data?.message || "No se pudo subir la imagen.");
@@ -172,6 +177,15 @@ export default function Usuarios() {
       u.correo?.toLowerCase().includes(busqueda.toLowerCase()) ||
       u.roles?.some(r => r.toLowerCase().includes(busqueda.toLowerCase()))
   );
+
+  const toggleRol = (id) => {
+    setForm(prev => {
+      const roles = prev.roles.includes(id)
+          ? prev.roles.filter(r => r !== id)
+          : [...prev.roles, id];
+      return { ...prev, roles };
+    });
+  };
 
   const esDocente = form.roles.includes(ID_DOCENTE);
 
@@ -206,87 +220,103 @@ export default function Usuarios() {
             fotoUrl: form.fotoUrl || null,
           });
         }
-        try {
-          await api.post(`/api/personas`, personaPayload);
-        } catch (perr) {
-          const msg = perr.response?.data?.message || perr.message || "sin detalle";
-          setError(`Usuario creado, pero NO se guardó el perfil: ${msg}. Complétalo editando el usuario.`);
-          setShowModal(false);
-          setForm(formInicial);
-          cargar();
-          setSaving(false);
-          return;
-        }
+        await api.post(`/api/personas`, personaPayload);
       }
-      setSuccess("Usuario creado. Se enviaron las credenciales al correo.");
+      setSuccess("Usuario creado correctamente. Se envió la contraseña por correo.");
       setShowModal(false);
       setForm(formInicial);
       cargar();
-    } catch (e) {
-      setError(e.response?.data?.message || "Error al crear usuario");
+    } catch (err) {
+      setError(err.response?.data?.message || "Error al crear el usuario");
     } finally {
       setSaving(false);
     }
   };
 
   const verDetalle = async (u) => {
-    setDetalle({ usuario: u, persona: null });
     setCargandoDetalle(true);
     try {
-      const { data } = await api.get(`/api/personas/usuario/${u.idUsuario}`);
-      setDetalle({ usuario: u, persona: data });
-    } catch (err) {
-      setDetalle({ usuario: u, persona: null, sinPersona: err.response?.status === 404 });
+      const { data } = await api.get(`/api/usuarios/${u.idUsuario}/detalle`);
+      setDetalle(data);
+    } catch {
+      setError("No se pudo cargar el detalle del usuario");
     } finally {
       setCargandoDetalle(false);
     }
   };
 
-  const handleEditar = async (e) => {
-    e.preventDefault();
-    if (usuarioEdit.cedula && !/^\d{10}$/.test(usuarioEdit.cedula)) {
-      setError("La cédula debe tener 10 dígitos");
-      return;
+  const abrirEditar = async (u) => {
+    setUsuarioEdit(u);
+    setError("");
+    let rolesIds = [];
+    if (u.roles && u.roles.length) {
+      rolesIds = ROLES.filter(r => u.roles.includes(r.nombre)).map(r => r.id);
     }
-    const editDocente = usuarioEdit.roles.includes("DOCENTE");
-    if (editDocente && !(usuarioEdit.tituloAcademico || "").trim()) {
+    const base = {
+      cedula: "", nombres: u.nombres || "", apellidos: u.apellidos || "",
+      correo: u.correo || "", roles: rolesIds,
+      fechaNacimiento: "", genero: "", telefono: "", telefonoAlt: "",
+      direccion: "", correoPersonal: "", tituloAcademico: "", especializacion: "", fotoUrl: "",
+    };
+    try {
+      const { data } = await api.get(`/api/usuarios/${u.idUsuario}/detalle`);
+      if (data.persona) {
+        const p = data.persona;
+        base.idPersona = p.idPersona;
+        base.cedula = p.cedula || "";
+        base.nombres = p.nombres || base.nombres;
+        base.apellidos = p.apellidos || base.apellidos;
+        base.fechaNacimiento = p.fechaNacimiento || "";
+        base.genero = p.genero || "";
+        base.telefono = p.telefono || "";
+        base.telefonoAlt = p.telefonoAlt || "";
+        base.direccion = p.direccion || "";
+        base.correoPersonal = p.correoPersonal || "";
+        base.tituloAcademico = p.tituloAcademico || "";
+        base.especializacion = p.especializacion || "";
+        base.fotoUrl = p.fotoUrl || "";
+      }
+    } catch {}
+    setForm(base);
+    setShowEditModal(true);
+  };
+
+  const handleEditarSubmit = async (e) => {
+    e.preventDefault();
+    if (form.roles.length === 0) { setError("Selecciona al menos un rol"); return; }
+    if (!/^\d{10}$/.test(form.cedula)) { setError("La cédula debe tener 10 dígitos"); return; }
+    if (esDocente && !form.tituloAcademico.trim()) {
       setError("Como el usuario tiene rol DOCENTE, indica al menos el título académico.");
       return;
     }
     setSaving(true); setError("");
     try {
       await api.put(`/api/usuarios/${usuarioEdit.idUsuario}`, {
-        correo: usuarioEdit.correo,
-        roles: usuarioEdit.roles.map(r => {
-          const found = ROLES.find(x => x.nombre === r);
-          return found ? found.id : null;
-        }).filter(Boolean),
+        nombres: form.nombres,
+        apellidos: form.apellidos,
+        correo: form.correo,
+        roles: form.roles.map(Number),
       });
 
-      if (usuarioEdit.cedula) {
-        const payload = {
-          cedula: usuarioEdit.cedula,
-          nombres: usuarioEdit.nombres,
-          apellidos: usuarioEdit.apellidos,
-        };
-        if (editDocente) {
-          Object.assign(payload, {
-            fechaNacimiento: usuarioEdit.fechaNacimiento || null,
-            genero: usuarioEdit.genero || null,
-            telefono: usuarioEdit.telefono || null,
-            telefonoAlt: usuarioEdit.telefonoAlt || null,
-            direccion: usuarioEdit.direccion || null,
-            correoPersonal: usuarioEdit.correoPersonal || null,
-            tituloAcademico: usuarioEdit.tituloAcademico || null,
-            especializacion: usuarioEdit.especializacion || null,
-            fotoUrl: usuarioEdit.fotoUrl || null,
-          });
-        }
-        if (usuarioEdit.idPersona) {
-          await api.put(`/api/personas/${usuarioEdit.idPersona}`, payload);
-        } else {
-          await api.post(`/api/personas`, { idUsuario: usuarioEdit.idUsuario, ...payload });
-        }
+      const { cedula, nombres, apellidos } = form;
+      const payload = { cedula, nombres, apellidos };
+      if (esDocente) {
+        Object.assign(payload, {
+          fechaNacimiento: form.fechaNacimiento || null,
+          genero: form.genero || null,
+          telefono: form.telefono || null,
+          telefonoAlt: form.telefonoAlt || null,
+          direccion: form.direccion || null,
+          correoPersonal: form.correoPersonal || null,
+          tituloAcademico: form.tituloAcademico || null,
+          especializacion: form.especializacion || null,
+          fotoUrl: form.fotoUrl || null,
+        });
+      }
+      if (usuarioEdit.idPersona) {
+        await api.put(`/api/personas/${usuarioEdit.idPersona}`, payload);
+      } else {
+        await api.post(`/api/personas`, { idUsuario: usuarioEdit.idUsuario, ...payload });
       }
 
       setSuccess("Usuario actualizado correctamente.");
@@ -312,9 +342,7 @@ export default function Usuarios() {
     try {
       await api.patch(`/api/usuarios/${id}/reset-password`, {});
       setSuccess("Contraseña reseteada. Se envió al correo del usuario.");
-      cargar();
     } catch { setError("Error al resetear contraseña"); }
-    setShowConfirm(null);
   };
 
   const handleEliminar = async (id) => {
@@ -324,13 +352,6 @@ export default function Usuarios() {
       cargar();
     } catch { setError("No se puede eliminar este usuario."); }
     setShowConfirm(null);
-  };
-
-  const toggleRol = (id) => {
-    setForm(f => ({
-      ...f,
-      roles: f.roles.includes(id) ? f.roles.filter(r => r !== id) : [...f.roles, id],
-    }));
   };
 
   useEffect(() => {
@@ -344,28 +365,21 @@ export default function Usuarios() {
     if (id === "nuevo") { setShowModal(true); setError(""); }
   };
 
-  return (
-      <Layout
-        breadcrumb={["Inicio", "Usuarios"]}
-        sidebarTitle="Usuarios"
-        menuItems={menuItems}
-        seccion={seccion}
-        onSeccionChange={handleSeccion}
-      >
-
-        {/* Alertas */}
-        {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
-              <span className="text-red-600 text-sm">{error}</span>
-              <button onClick={() => setError("")} className="text-red-400 hover:text-red-600">✕</button>
-            </div>
-        )}
-        {success && (
-            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between">
-              <span className="text-green-600 text-sm">{success}</span>
-              <button onClick={() => setSuccess("")} className="text-green-400 hover:text-green-600">✕</button>
-            </div>
-        )}
+  const mainContent = (
+    <div>
+      {/* Alertas */}
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+          <span className="text-red-600 text-sm">{error}</span>
+          <button onClick={() => setError("")} className="text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between">
+          <span className="text-green-600 text-sm">{success}</span>
+          <button onClick={() => setSuccess("")} className="text-green-400 hover:text-green-600">✕</button>
+        </div>
+      )}
 
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -425,8 +439,14 @@ export default function Usuarios() {
                         <td className="px-4 py-3 text-slate-400 text-xs">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div style={{ backgroundColor: PRIMARY }} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase flex-shrink-0">
-                              {u.username?.charAt(0)}
+                            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {u.fotoUrl ? (
+                                <img src={resolveFotoUrl(u.fotoUrl)} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span style={{ backgroundColor: PRIMARY }} className="w-full h-full flex items-center justify-center text-white text-xs font-bold uppercase">
+                                  {u.username?.charAt(0)}
+                                </span>
+                              )}
                             </div>
                             <span className="font-medium text-slate-700">{u.username}</span>
                           </div>
@@ -819,7 +839,7 @@ export default function Usuarios() {
                   <div className="flex items-center gap-4 pb-3 border-b border-slate-100">
                     <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
                       {detalle.persona?.fotoUrl ? (
-                          <img src={detalle.persona.fotoUrl} alt="" className="w-full h-full object-cover" />
+                          <img src={resolveFotoUrl(detalle.persona.fotoUrl)} alt="" className="w-full h-full object-cover" />
                       ) : (
                           <span className="text-slate-400 text-xl font-bold">{detalle.usuario.username?.[0]?.toUpperCase() || "?"}</span>
                       )}
@@ -867,6 +887,20 @@ export default function Usuarios() {
               </div>
             </div>
         )}
-      </Layout>
+    </div>
+  );
+
+  if (embed) return mainContent;
+
+  return (
+    <Layout
+      breadcrumb={["Inicio", "Usuarios"]}
+      sidebarTitle="Usuarios"
+      menuItems={menuItems}
+      seccion={seccion}
+      onSeccionChange={handleSeccion}
+    >
+      {mainContent}
+    </Layout>
   );
 }

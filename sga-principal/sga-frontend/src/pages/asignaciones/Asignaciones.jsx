@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Layout from "../../components/Layout";
+import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
-const API = "http://localhost:8080/api";
+const API = `http://${window.location.hostname}:8080/api`;
 const PRIMARY = "#243A76";
 
 const menuItems = [
@@ -26,6 +28,7 @@ const formVacio = {
   idParalelo: "",
   idAnoLectivo: "",
   esTutor: false,
+  horasSemanales: 4,
 };
 
 const CARD_PALETTES = [
@@ -60,8 +63,59 @@ export default function Asignaciones() {
   const [modoBusqueda, setModoBusqueda] = useState("cedula"); // "cedula" | "nombre"
   const [nombreQuery, setNombreQuery] = useState("");
 
+  const [filtroAsignatura, setFiltroAsignatura] = useState("");
   const [personasDocentes, setPersonasDocentes] = useState([]);
   const [loadingDocentes, setLoadingDocentes] = useState(false);
+
+  const ALIASES = {
+    lenguaje: "lengua",
+    literatura: "lengua",
+    mate: "matemática",
+    matematica: "matemática",
+    matematicas: "matemática",
+    ciencias: "ciencias",
+    naturales: "ciencias",
+    cn: "ciencias",
+    sociales: "estudios",
+    estudios: "estudios",
+    "ee.ss": "estudios",
+    fisica: "física",
+    deporte: "física",
+    ef: "física",
+    eca: "cultural",
+    arte: "cultural",
+    cultural: "cultural",
+    ingles: "inglés",
+    english: "inglés",
+    lectura: "lectura",
+    animacion: "lectura",
+    tutor: "acompañamiento",
+    "acompañamiento": "acompañamiento",
+    curriculo: "currículo",
+    integrado: "currículo",
+  };
+
+  const opcionesAsignaturas = (() => {
+    const mapa = new Map();
+    (materiasMalla || []).forEach(m => {
+      if (m.idAsignatura) mapa.set(Number(m.idAsignatura), m.asignatura || m.nombre);
+    });
+    (asignaturas || []).forEach(a => {
+      if (!mapa.has(Number(a.idAsignatura))) {
+        mapa.set(Number(a.idAsignatura), a.nombre);
+      }
+    });
+    let list = Array.from(mapa.entries()).map(([id, nombre]) => ({ idAsignatura: id, nombre }));
+    if (filtroAsignatura.trim()) {
+      const qRaw = filtroAsignatura.toLowerCase().trim();
+      const qAlias = ALIASES[qRaw] || qRaw;
+      list = list.filter(item => {
+        const nom = item.nombre.toLowerCase();
+        return nom.includes(qRaw) || nom.includes(qAlias);
+      });
+    }
+    return list;
+  })();
   const [asignEdit, setAsignEdit] = useState(null);
   const [asignVer, setAsignVer] = useState(null);
   const [docenteVer, setDocenteVer] = useState(null);
@@ -187,6 +241,28 @@ export default function Asignaciones() {
         `${p.nombres} ${p.apellidos} ${p.cedula}`.toLowerCase().includes(nombreQuery.trim().toLowerCase())
       ).slice(0, 8);
 
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const eliminarAsignacion = async (id, nombreMateria) => {
+    const isOk = await confirm({
+      title: "¿Eliminar asignación?",
+      message: `Se eliminará la materia "${nombreMateria || 'esta materia'}" del distributivo de este curso.`,
+      confirmText: "Sí, eliminar",
+      cancelText: "Cancelar",
+      type: "danger"
+    });
+    if (!isOk) return;
+    try {
+      await axios.delete(`${API}/asignaciones/${id}`, { headers: H });
+      toast.success("Asignación eliminada", "Se ha retirado la asignatura del curso correctamente.");
+      cargar();
+    } catch (err) {
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "No se pudo eliminar la asignación.";
+      toast.error("Error al eliminar", errMsg);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -199,6 +275,7 @@ export default function Asignaciones() {
     if (!form.idAnoLectivo) faltantes.push("año lectivo");
     if (faltantes.length > 0) {
       setError("Falta seleccionar: " + faltantes.join(", ") + ".");
+      toast.warning("Formulario incompleto", "Por favor completa todos los campos obligatorios.");
       return;
     }
 
@@ -211,13 +288,17 @@ export default function Asignaciones() {
         idParalelo: parseInt(form.idParalelo),
         idAnoLectivo: parseInt(form.idAnoLectivo),
         esTutor: form.esTutor,
+        horasSemanales: form.horasSemanales ? parseInt(form.horasSemanales) : 4,
       }, { headers: H });
+      toast.success("Asignación creada", "Materia agregada al distributivo docente correctamente.");
       setSuccess("Asignación creada correctamente.");
       setForm(formVacio);
       setSeccion("lista");
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "No se pudo crear la asignación.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "No se pudo crear la asignación.";
+      setError(errMsg);
+      toast.error("Error al crear asignación", errMsg);
     } finally {
       setSaving(false);
     }
@@ -226,9 +307,10 @@ export default function Asignaciones() {
   const toggleEstado = async (a) => {
     try {
       await axios.patch(`${API}/asignaciones/${a.idAsignacion}/estado?activo=${!a.activo}`, {}, { headers: H });
+      toast.info("Estado actualizado", "Se cambió el estado de la asignación.");
       cargar();
     } catch {
-      setError("No se pudo cambiar el estado.");
+      toast.error("Error de estado", "No se pudo cambiar el estado de la asignación.");
     }
   };
 
@@ -244,6 +326,7 @@ export default function Asignaciones() {
       idParalelo: String(a.idParalelo || ""),
       idAnoLectivo: String(a.idAnoLectivo || ""),
       esTutor: a.esTutor,
+      horasSemanales: a.horasSemanales || 4,
     });
     if (a.idGrado) {
       axios.get(`${API}/asignaciones/grado/${a.idGrado}/paralelos`, { headers: H })
@@ -263,12 +346,16 @@ export default function Asignaciones() {
         idParalelo: parseInt(asignEdit.idParalelo),
         idAnoLectivo: parseInt(asignEdit.idAnoLectivo),
         esTutor: asignEdit.esTutor,
+        horasSemanales: asignEdit.horasSemanales ? parseInt(asignEdit.horasSemanales) : 4,
       }, { headers: H });
+      toast.success("Asignación actualizada", "Los cambios en el distributivo se guardaron con éxito.");
       setSuccess("Asignación actualizada.");
       setAsignEdit(null);
       cargar();
     } catch (err) {
-      setError(err.response?.data?.message || "No se pudo actualizar la asignación.");
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "No se pudo actualizar la asignación.";
+      setError(errMsg);
+      toast.error("Error al actualizar", errMsg);
     } finally {
       setSaving(false);
     }
@@ -289,9 +376,6 @@ export default function Asignaciones() {
       seccion={seccion}
       onSeccionChange={handleSeccion}
     >
-      {error && <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex justify-between"><span className="text-red-600 text-sm">{error}</span><button onClick={() => setError("")} className="text-red-400 ml-4">✕</button></div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3"><span className="text-green-700 text-sm">{success}</span></div>}
-
       <h1 className="text-lg font-bold text-slate-700 mb-1">Asignaciones</h1>
       <p className="text-slate-400 text-xs mb-5">Asigne docentes a cursos, asignaturas y paralelos.</p>
 
@@ -363,14 +447,19 @@ export default function Asignaciones() {
                   <div className="divide-y divide-slate-100">
                     {items.map((a) => (
                       <div key={a.idAsignacion} className="px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-700 truncate">{a.asignatura}</p>
-                          <p className="text-xs text-slate-500 truncate">
+                        <div className="min-w-0 flex-1 pr-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-slate-700 truncate">{a.asignatura}</p>
+                            <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-indigo-100 flex-shrink-0">
+                              {a.horasSemanales || 4} hrs/sem
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">
                             {a.docente}
                             {a.esTutor && <span className="ml-2 bg-blue-50 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">TUTOR</span>}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <button onClick={() => setAsignVer(a)} title="Ver detalle"
                             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -378,6 +467,10 @@ export default function Asignaciones() {
                           <button onClick={() => abrirEditar(a)} title="Editar"
                             className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                          </button>
+                          <button onClick={() => eliminarAsignacion(a.idAsignacion, a.asignatura)} title="Eliminar asignación"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                           <button onClick={() => toggleEstado(a)}
                             className={`text-xs font-semibold px-2 py-1 rounded transition ${a.activo ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
@@ -532,27 +625,40 @@ export default function Asignaciones() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
-                    Asignatura <span className="text-slate-400 normal-case font-normal">— materias de la malla del grado</span>
+                    Asignatura <span className="text-slate-400 normal-case font-normal">— seleccione o busque directamente</span>
                   </label>
+                  <div className="mb-2">
+                    <input
+                      type="text"
+                      value={filtroAsignatura}
+                      onChange={(e) => setFiltroAsignatura(e.target.value)}
+                      placeholder="🔍 Buscar materia por nombre (Lengua, Matemática, etc.)..."
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
                   <select required value={form.idAsignatura} onChange={(e) => setForm({ ...form, idAsignatura: e.target.value })}
-                    disabled={!form.idGrado || !form.idAnoLectivo || loadingMaterias}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 disabled:opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="">
-                      {!form.idGrado || !form.idAnoLectivo
-                        ? "Elija grado y año lectivo primero"
-                        : loadingMaterias
-                          ? "Cargando materias..."
-                          : materiasMalla.length === 0
-                            ? "El grado no tiene materias en su malla"
-                            : "Seleccione..."}
-                    </option>
-                    {materiasMalla.map((m) => <option key={m.idAsignatura} value={m.idAsignatura}>{m.asignatura}</option>)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Seleccione la materia...</option>
+                    {opcionesAsignaturas.map((m) => (
+                      <option key={m.idAsignatura} value={m.idAsignatura}>{m.nombre}</option>
+                    ))}
                   </select>
-                  {form.idGrado && form.idAnoLectivo && !loadingMaterias && materiasMalla.length === 0 && (
-                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-2">
-                      Este grado no tiene materias asignadas en su malla. Agrégalas primero en el módulo <strong>Asignaturas → Malla por grado</strong>.
-                    </p>
-                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
+                    Horas Semanales <span className="text-slate-400 normal-case font-normal">— asignación según distributivo</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={40}
+                    required
+                    value={form.horasSemanales}
+                    onChange={(e) => setForm({ ...form, horasSemanales: Math.max(1, parseInt(e.target.value) || 1) })}
+                    placeholder="Ej. 1, 3, 4, 5, 20..."
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold text-slate-700"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Configura cuántas horas periódicas o bloques recibe el curso.</p>
                 </div>
               </div>
 
@@ -693,6 +799,7 @@ export default function Asignaciones() {
                 </div>
               </div>
               <Detalle label="Asignatura" value={asignVer.asignatura} />
+              <Detalle label="Horas semanales" value={`${asignVer.horasSemanales || 4} horas / semana`} />
               <Detalle label="Grado" value={asignVer.grado} />
               <Detalle label="Paralelo" value={asignVer.paralelo} />
               <Detalle label="Año lectivo" value={asignVer.anoLectivo} />
@@ -722,6 +829,18 @@ export default function Asignaciones() {
             </div>
             <form onSubmit={guardarEdicionAsign} className="p-6 space-y-4">
               {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-600 text-xs">{error}</div>}
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Docente Asignado</label>
+                <select required value={asignEdit.idDocente} onChange={(e) => setAsignEdit({ ...asignEdit, idDocente: e.target.value })}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 font-medium">
+                  <option value="">Seleccione docente...</option>
+                  {personasDocentes.map((p) => (
+                    <option key={p.idPersona} value={p.idPersona}>
+                      {p.nombres} {p.apellidos} ({p.cedula || p.username})
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Grado</label>
@@ -774,6 +893,18 @@ export default function Asignaciones() {
                   </option>
                   {materiasMallaEdit.map((m) => <option key={m.idAsignatura} value={m.idAsignatura}>{m.asignatura}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">Horas Semanales</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={40}
+                  required
+                  value={asignEdit.horasSemanales || 4}
+                  onChange={(e) => setAsignEdit({ ...asignEdit, horasSemanales: Math.max(1, parseInt(e.target.value) || 1) })}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold"
+                />
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" checked={asignEdit.esTutor} onChange={(e) => setAsignEdit({ ...asignEdit, esTutor: e.target.checked })} />

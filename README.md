@@ -1,8 +1,11 @@
-# SGA - Sistema de Gestion Academica Distribuido
+# AcadTrace
 
-Sistema distribuido desacoplado bajo arquitectura de Microservicios, disenado para la gestion academica, control docentes, asistencias, administracion de matricula y soporte tecnico. La arquitectura se comunica mediante Protocolos Hibridos (REST API y gRPC de alto rendimiento) con persistencia de datos distribuida en PostgreSQL sobre AWS EC2.
+> **Nota histórica:** Este proyecto se denominó anteriormente *SGA — Escuela Provincias Unidas*. A partir de la Entrega 4 adopta oficialmente la denominación **AcadTrace** (*Capa de auditoría verificable para expedientes académicos en sistemas escolares distribuidos*).
+
+Sistema distribuido desacoplado bajo arquitectura de Microservicios con capa de auditoría verificable y criptográfica (SHA-256 / Relojes de Lamport y Vectoriales) para la gestión académica, control docente, asistencias, administración de matrícula y soporte técnico. La arquitectura se comunica mediante Protocolos Híbridos (REST API y gRPC de alto rendimiento) con persistencia de datos distribuida en PostgreSQL sobre AWS EC2.
 
 ---
+
 
 ## Arquitectura General y Mapeo de Puertos
 

@@ -5,6 +5,7 @@ from uuid import uuid4
 from django.db import DatabaseError, connection
 from django.core.files.storage import default_storage
 from rest_framework import serializers
+from django.db.models import Sum
 
 from .models import (
     Actividad,
@@ -32,6 +33,30 @@ class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actividad
         fields = "__all__"
+
+    def validate(self, attrs):
+        asignacion = attrs.get("id_asignacion", getattr(self.instance, "id_asignacion", None))
+        periodo = attrs.get("id_periodo", getattr(self.instance, "id_periodo", None))
+        es_sumativa = attrs.get("es_sumativa", getattr(self.instance, "es_sumativa", False))
+        ponderacion = attrs.get("ponderacion", getattr(self.instance, "ponderacion", 0))
+        if ponderacion is None or ponderacion < 0:
+            raise serializers.ValidationError({"ponderacion": "La ponderación no puede ser negativa."})
+        if asignacion and periodo:
+            consulta = Actividad.objects.filter(
+                id_asignacion=asignacion,
+                id_periodo=periodo,
+                es_sumativa=es_sumativa,
+            )
+            if self.instance:
+                consulta = consulta.exclude(pk=self.instance.pk)
+            total = consulta.aggregate(total=Sum("ponderacion"))["total"] or 0
+            limite = 30 if es_sumativa else 70
+            if total + ponderacion > limite:
+                categoria = "sumativa" if es_sumativa else "formativa"
+                raise serializers.ValidationError({
+                    "ponderacion": f"La ponderación total {categoria} no puede superar {limite}%."
+                })
+        return attrs
 
 
 class CalificacionSerializer(serializers.ModelSerializer):

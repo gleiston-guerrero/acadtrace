@@ -1,11 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api, { apiPrincipal } from '../utils/api';
 import FichaEstudianteModal from './FichaEstudianteModal';
 
 const PRIMARY = '#243A76';
 const PRINCIPAL_ORIGIN = (apiPrincipal.defaults.baseURL || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+
+const resolveFotoUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/uploads/')) return `/api/secretario${url}`;
+  return `${PRINCIPAL_ORIGIN}${url}`;
+};
+
+const menuItems = [
+  { id: 'lista', label: 'Lista de estudiantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+  { id: 'nuevo', label: 'Nuevo estudiante', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
+  { id: 'importar', label: 'Importar estudiantes', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 12v9m0-9l-3 3m3-3l3 3" /></svg> },
+];
 
 const EMPTY = {
   cedula: '', nombres: '', apellidos: '', fecha_nacimiento: '',
@@ -73,8 +85,13 @@ export default function Estudiantes() {
 
   const esActivo = (e) => e.estado === true || e.estado === 'true';
 
+  const handleSeccion = (id) => {
+    if (id === 'nuevo') { setEditId(null); setModal('form'); return; }
+    if (id === 'importar') { setShowImportModal(true); return; }
+  };
+
   return (
-    <Layout breadcrumb={['Inicio', 'Estudiantes']} menuItems={MENU_PRINCIPAL} seccion="estudiantes">
+    <Layout breadcrumb={['Inicio', 'Estudiantes']} sidebarTitle="Estudiantes" menuItems={menuItems} seccion="lista" onSeccionChange={handleSeccion}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Estudiantes</h1>
@@ -157,7 +174,7 @@ export default function Estudiantes() {
                     {e.foto_url ? (
                       <button type="button" onClick={() => setFotoAmpliada({ url: e.foto_url, nombre: `${e.nombres} ${e.apellidos}` })}
                         className="relative w-8 h-8 rounded-full flex-shrink-0 group" title="Ver foto">
-                        <img src={`${PRINCIPAL_ORIGIN}${e.foto_url}`} alt="" className="w-8 h-8 rounded-full object-cover border border-slate-200" />
+                        <img src={resolveFotoUrl(e.foto_url)} alt="" className="w-8 h-8 rounded-full object-cover border border-slate-200" />
                         <span className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center">
                           <svg className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -257,7 +274,7 @@ export default function Estudiantes() {
               <button onClick={() => setFotoAmpliada(null)} className="text-slate-400 hover:text-slate-600 flex-shrink-0 ml-3">✕</button>
             </div>
             <div className="p-4 flex items-center justify-center bg-slate-50">
-              <img src={`${PRINCIPAL_ORIGIN}${fotoAmpliada.url}`} alt={fotoAmpliada.nombre} className="max-w-full max-h-[70vh] rounded-xl object-contain shadow-sm" />
+              <img src={resolveFotoUrl(fotoAmpliada.url)} alt={fotoAmpliada.nombre} className="max-w-full max-h-[70vh] rounded-xl object-contain shadow-sm" />
             </div>
           </div>
         </div>
@@ -288,7 +305,12 @@ function FotoUpload({ fotoUrl, nombres, apellidos, onUploaded }) {
     try {
       const formData = new FormData();
       formData.append('archivo', archivo);
-      const r = await apiPrincipal.post('/uploads/foto', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      let r;
+      try {
+        r = await api.post('/uploads/foto', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      } catch {
+        r = await apiPrincipal.post('/uploads/foto', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      }
       onUploaded(r.data.url);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo subir la foto');
@@ -298,7 +320,7 @@ function FotoUpload({ fotoUrl, nombres, apellidos, onUploaded }) {
     }
   };
 
-  const src = preview || (fotoUrl ? `${PRINCIPAL_ORIGIN}${fotoUrl}` : null);
+  const src = preview || resolveFotoUrl(fotoUrl);
 
   return (
     <div className="flex items-center gap-4">

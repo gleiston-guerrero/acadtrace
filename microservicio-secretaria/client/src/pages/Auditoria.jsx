@@ -1,0 +1,316 @@
+import { useState, useEffect, useCallback } from 'react';
+import Layout from '../components/Layout';
+import { apiPrincipal } from '../utils/api';
+
+const PRIMARY = '#243A76';
+
+const ACCIONES = ["", "CREAR", "EDITAR", "ELIMINAR", "LOGIN", "LOGIN_FALLIDO", "LOGOUT",
+  "CAMBIO_PASSWORD", "BLOQUEO", "DESBLOQUEO", "ROL_ASIGNADO", "LLAMADA_GRPC"];
+const ORIGENES = ["", "PRINCIPAL", "SECRETARIA", "DOCENTE"];
+
+const BADGE_ORIGEN = {
+  PRINCIPAL: 'bg-blue-50 text-blue-600',
+  SECRETARIA: 'bg-cyan-50 text-cyan-600',
+  DOCENTE: 'bg-purple-50 text-purple-600',
+};
+
+const SECCIONES = [
+  { id: 'todos', label: 'Todos los eventos', categoria: null,
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+  { id: 'crud', label: 'CRUD sensible', categoria: 'CRUD',
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg> },
+  { id: 'accesos', label: 'Accesos', categoria: 'ACCESOS',
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> },
+  { id: 'config', label: 'Config y roles', categoria: 'CONFIG',
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
+  { id: 'grpc', label: 'Llamadas entre microservicios', categoria: 'GRPC',
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-4 4a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l4-4a4 4 0 015.656 5.656l-1.5 1.5" /></svg> },
+];
+
+function fmtFecha(f) {
+  if (!f) return '—';
+  return new Date(f).toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'medium' });
+}
+
+function Field({ label, value, mono, full }) {
+  return (
+    <div className={`min-w-0 ${full ? 'col-span-2' : ''}`}>
+      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
+      <p className={`text-sm text-slate-700 ${mono ? 'font-mono break-all' : ''}`}>{value ?? '—'}</p>
+    </div>
+  );
+}
+
+function Card({ title, children }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 bg-slate-50/70">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">{title}</h4>
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * Solo lectura: consulta directo a sga-principal (dueño de la tabla
+ * centralizada sga_principal.auditoria) via apiPrincipal, igual que ya se
+ * hace para /anos-lectivos/actual. La autorizacion real (solo DIRECTOR) la
+ * aplica sga-principal en su SecurityConfig — este filtro de rol es solo
+ * para no mostrar el módulo a quien no lo puede usar.
+ */
+export default function Auditoria() {
+  const [filas, setFilas] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [filtros, setFiltros] = useState({ schemaOrigen: '', accion: '', tablaAfectada: '', resultado: '', username: '' });
+  const [seccion, setSeccion] = useState('todos');
+  const [cadena, setCadena] = useState(null); // { traceId, eventos }
+  const [cargandoCadena, setCargandoCadena] = useState(false);
+  const [selected, setSelected] = useState(null);
+
+  const cargar = useCallback(() => {
+    setLoading(true);
+    const categoria = SECCIONES.find(s => s.id === seccion)?.categoria;
+    const params = { page, size: 20 };
+    if (categoria) params.categoria = categoria;
+    Object.entries(filtros).forEach(([k, v]) => { if (v) params[k] = v; });
+    apiPrincipal.get('/auditoria', { params })
+      .then(r => { setFilas(r.data.content); setTotalPages(r.data.totalPages); })
+      .catch(() => setError('Error al cargar la auditoría'))
+      .finally(() => setLoading(false));
+  }, [page, filtros, seccion]);
+
+  useEffect(() => { cargar(); }, [cargar]);
+
+  const cambiarFiltro = (campo, valor) => {
+    setPage(0);
+    setFiltros(f => ({ ...f, [campo]: valor }));
+  };
+
+  const cambiarSeccion = (id) => {
+    setPage(0);
+    setSeccion(id);
+  };
+
+  const verCadena = (traceId) => {
+    setCargandoCadena(true);
+    setCadena({ traceId, eventos: [] });
+    apiPrincipal.get(`/auditoria/trace/${traceId}`)
+      .then(r => setCadena({ traceId, eventos: r.data }))
+      .catch(() => setError('Error al cargar la cadena de eventos'))
+      .finally(() => setCargandoCadena(false));
+  };
+
+  return (
+    <Layout breadcrumb={['Inicio', 'Auditoría']} sidebarTitle="Auditoría"
+      menuItems={SECCIONES} seccion={seccion} onSeccionChange={cambiarSeccion}>
+      <div className="mb-4">
+        <h1 className="text-base font-bold text-slate-700">Auditoría del sistema</h1>
+        <p className="text-xs text-slate-400">
+          Vista de solo lectura — CRUD sensible, accesos y llamadas entre microservicios registrados en sga-principal.
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
+          <span className="text-red-600 text-sm">{error}</span>
+          <button onClick={() => setError('')} className="text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+
+      <div className="bg-white border border-slate-200 rounded-xl p-3 mb-4 flex flex-wrap gap-2 items-center">
+        <select value={filtros.schemaOrigen} onChange={e => cambiarFiltro('schemaOrigen', e.target.value)}
+          className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none">
+          {ORIGENES.map(o => <option key={o} value={o}>{o || 'Todos los servicios'}</option>)}
+        </select>
+        <select value={filtros.accion} onChange={e => cambiarFiltro('accion', e.target.value)}
+          className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none">
+          {ACCIONES.map(a => <option key={a} value={a}>{a || 'Todas las acciones'}</option>)}
+        </select>
+        <select value={filtros.resultado} onChange={e => cambiarFiltro('resultado', e.target.value)}
+          className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none">
+          <option value="">Éxito y fallo</option>
+          <option value="EXITO">Solo éxito</option>
+          <option value="FALLO">Solo fallo</option>
+        </select>
+        <input type="text" placeholder="Entidad (ej. representante)" value={filtros.tablaAfectada}
+          onChange={e => cambiarFiltro('tablaAfectada', e.target.value)}
+          className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none w-44" />
+        <input type="text" placeholder="Usuario" value={filtros.username}
+          onChange={e => cambiarFiltro('username', e.target.value)}
+          className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none w-32" />
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center text-slate-400 text-sm">Cargando...</div>
+        ) : filas.length === 0 ? (
+          <div className="p-12 text-center text-slate-400 text-sm">Sin eventos que coincidan con el filtro</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ backgroundColor: PRIMARY }} className="text-white text-xs">
+                  <th className="text-left px-4 py-3 font-semibold">Fecha</th>
+                  <th className="text-left px-4 py-3 font-semibold">Origen</th>
+                  <th className="text-left px-4 py-3 font-semibold">Usuario</th>
+                  <th className="text-left px-4 py-3 font-semibold">Acción</th>
+                  <th className="text-left px-4 py-3 font-semibold">Entidad</th>
+                  <th className="text-left px-4 py-3 font-semibold">Descripción</th>
+                  <th className="text-center px-4 py-3 font-semibold">Resultado</th>
+                  <th className="text-center px-4 py-3 font-semibold">Integridad</th>
+                  <th className="text-center px-4 py-3 font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filas.map((f, i) => (
+                  <tr key={f.idAuditoria} className={`border-t border-slate-100 hover:bg-slate-50 transition ${i % 2 === 1 ? 'bg-slate-50/40' : ''}`}>
+                    <td className="px-4 py-2.5 text-slate-500 text-xs whitespace-nowrap">{fmtFecha(f.fecha)}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${BADGE_ORIGEN[f.schemaOrigen] || 'bg-slate-100 text-slate-500'}`}>
+                        {f.schemaOrigen}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-700 font-medium">{f.username || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-600 font-mono text-xs">{f.accion}</td>
+                    <td className="px-4 py-2.5 text-slate-500 text-xs">{f.tablaAfectada || '—'}{f.registroId ? ` #${f.registroId}` : ''}</td>
+                    <td className="px-4 py-2.5 text-slate-500 text-xs max-w-[140px] truncate" title={f.descripcion}>{f.descripcion || '—'}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${f.resultado === 'EXITO' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {f.resultado}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-center" title={f.hmacValido ? 'Fila intacta (HMAC valido)' : 'Posible alteracion: el HMAC no coincide'}>
+                      {f.hmacValido ? <span className="text-green-500">✓</span> : <span className="text-red-500">⚠</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => setSelected(f)} title="Ver detalle"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button onClick={() => verCadena(f.traceId)} title="Ver cadena de eventos correlacionados"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-4 4a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l4-4a4 4 0 015.656 5.656l-1.5 1.5" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
+            <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
+              className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">Anterior</button>
+            <span className="text-xs text-slate-400">Página {page + 1} de {totalPages}</span>
+            <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}
+              className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">Siguiente</button>
+          </div>
+        )}
+      </div>
+
+      {/* MODAL VER DETALLE */}
+      {selected && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
+          <div className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, #3d5a9e 100%)` }} className="px-6 py-5 text-white flex items-center justify-between flex-shrink-0">
+              <div className="min-w-0">
+                <h3 className="font-bold text-lg truncate">{selected.accion}</h3>
+                <div className="flex items-center gap-2 text-xs text-white/80 mt-0.5 flex-wrap">
+                  <span className={`font-semibold px-2 py-0.5 rounded-md ${BADGE_ORIGEN[selected.schemaOrigen] || 'bg-white/15'}`}>{selected.schemaOrigen}</span>
+                  <span>·</span>
+                  <span>{fmtFecha(selected.fecha)}</span>
+                  <span className={`font-semibold px-2 py-0.5 rounded-full ${selected.resultado === 'EXITO' ? 'bg-emerald-400/90 text-emerald-950' : 'bg-red-400/90 text-red-950'}`}>
+                    {selected.resultado}
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setSelected(null)} className="text-white/70 hover:text-white text-xl flex-shrink-0 ml-3 w-8 h-8 rounded-lg hover:bg-white/10 transition">✕</button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <Card title="Evento">
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Usuario" value={selected.username} />
+                  <Field label="IP de origen" value={selected.ipAddress} mono />
+                  <Field label="Entidad" value={selected.tablaAfectada} />
+                  <Field label="ID del registro" value={selected.registroId} mono />
+                  <Field label="Integridad (HMAC)" value={selected.hmacValido ? '✓ Fila intacta' : '⚠ Posible alteración'} />
+                  <Field label="Trace ID" value={selected.traceId} mono />
+                </div>
+              </Card>
+
+              <Card title="Descripción">
+                <p className="text-sm text-slate-700 leading-relaxed">{selected.descripcion || 'Sin descripción.'}</p>
+              </Card>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-200 flex gap-3 bg-white flex-shrink-0">
+              <button onClick={() => { const t = selected.traceId; setSelected(null); verCadena(t); }}
+                className="flex-1 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
+                Ver cadena de eventos
+              </button>
+              <button onClick={() => setSelected(null)} style={{ backgroundColor: PRIMARY }}
+                className="flex-1 py-2.5 rounded-lg text-sm text-white font-semibold hover:opacity-90 transition">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CADENA DE TRAZA */}
+      {cadena && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setCadena(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div style={{ backgroundColor: PRIMARY }} className="px-6 py-4 flex items-center justify-between flex-shrink-0">
+              <div>
+                <h2 className="text-white font-bold text-base">Cadena de eventos correlacionados</h2>
+                <p className="text-white/70 text-[11px] font-mono mt-0.5">trace_id: {cadena.traceId}</p>
+              </div>
+              <button onClick={() => setCadena(null)} className="text-white/70 hover:text-white">✕</button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-3">
+              {cargandoCadena ? (
+                <p className="text-sm text-slate-400 text-center py-6">Cargando...</p>
+              ) : cadena.eventos.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-6">No hay eventos para esta traza.</p>
+              ) : (
+                cadena.eventos.map((ev, i) => (
+                  <div key={ev.idAuditoria} className="flex gap-3">
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <span className={`w-2.5 h-2.5 rounded-full ${ev.resultado === 'EXITO' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      {i < cadena.eventos.length - 1 && <span className="w-px flex-1 bg-slate-200" />}
+                    </div>
+                    <div className="pb-3 min-w-0">
+                      <p className="text-xs text-slate-400">{fmtFecha(ev.fecha)}</p>
+                      <p className="text-sm font-medium text-slate-700">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded mr-1.5 ${BADGE_ORIGEN[ev.schemaOrigen] || 'bg-slate-100 text-slate-500'}`}>
+                          {ev.schemaOrigen}
+                        </span>
+                        {ev.accion} {ev.tablaAfectada ? `— ${ev.tablaAfectada}` : ''} {ev.username ? `(${ev.username})` : ''}
+                      </p>
+                      {ev.descripcion && <p className="text-xs text-slate-500 mt-0.5">{ev.descripcion}</p>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </Layout>
+  );
+}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { modulos } from "../../config/modulos";
+import { getAnoLectivoActual, PRINCIPAL_LOGIN_URL } from "../../services/api";
 
 const PRIMARY = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
@@ -15,7 +16,32 @@ export default function PanelPrincipal() {
 
     const username = localStorage.getItem("username") || "Docente";
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-    const anoActual = { nombre: "2026 - Segundo Trimestre" };
+    const [anoActual, setAnoActual] = useState(null);
+    const [anoEstado, setAnoEstado] = useState("cargando");
+    const [banner1, setBanner1] = useState(localStorage.getItem("sga_banner_1") || null);
+    const [banner2, setBanner2] = useState(localStorage.getItem("sga_banner_2") || null);
+    const [modalImagen, setModalImagen] = useState(null);
+
+    useEffect(() => {
+        getAnoLectivoActual().then((r) => { setAnoActual(r.data || null); setAnoEstado(r.data ? "dato" : "no-disponible"); })
+            .catch(() => setAnoEstado("error"));
+
+        // Cargar banners institucionales compartidos desde backend central
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        fetch(`http://${host}:8080/api/uploads/banners`)
+            .then(r => r.json())
+            .then(data => {
+                if (data?.banner1) {
+                    setBanner1(data.banner1);
+                    localStorage.setItem("sga_banner_1", data.banner1);
+                }
+                if (data?.banner2) {
+                    setBanner2(data.banner2);
+                    localStorage.setItem("sga_banner_2", data.banner2);
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const handleModulo = (m) => {
         setBreadcrumb(["Inicio", m.label]);
@@ -29,7 +55,7 @@ export default function PanelPrincipal() {
 
     const handleLogout = () => {
         localStorage.clear();
-        window.location.href = "http://localhost:5173/login";
+        window.location.href = PRINCIPAL_LOGIN_URL;
     };
 
     return (
@@ -54,7 +80,7 @@ export default function PanelPrincipal() {
                             <svg className="w-4 h-4 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span className="hidden sm:inline">{anoActual?.nombre || "Sin período"}</span>
+                            <span className="hidden sm:inline">{anoEstado === "cargando" ? "Cargando año..." : anoActual?.nombre || (anoEstado === "error" ? "Año no disponible" : "Sin año lectivo")}</span>
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
@@ -72,7 +98,7 @@ export default function PanelPrincipal() {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
-                                        {anoActual.nombre} (Actual)
+                                        {anoActual?.nombre || "No disponible"}{anoActual ? " (Actual)" : ""}
                                     </div>
                                     <p className="text-xs text-slate-400 text-center mt-2 px-2">
                                         Gestiona los años lectivos desde el módulo correspondiente
@@ -161,24 +187,98 @@ export default function PanelPrincipal() {
             </div>
 
             {/* BODY */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden" style={{ paddingBottom: "2.5rem" }}>
 
-                {/* PANEL IZQUIERDO */}
-                <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 hidden lg:block">
-                    <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center h-48 text-slate-400 transition cursor-pointer">
-                        <svg className="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-xs">Imagen informativa</p>
-                        <p className="text-xs text-slate-300 mt-1">Avisos y comunicados</p>
+                {/* PANEL IZQUIERDO — BANNERS Y AVISOS INSTITUCIONALES COMPARTIDOS */}
+                <aside className="w-80 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 hidden lg:flex flex-col gap-4">
+                    {/* Afiche 1: Avisos y Comunicados Oficiales */}
+                    <div className="relative group rounded-2xl overflow-hidden shadow-xs border border-slate-200 bg-white transition hover:shadow-md cursor-pointer">
+                        {banner1 ? (
+                            <div className="relative w-full">
+                                <img
+                                    src={banner1}
+                                    alt="Avisos y Comunicados"
+                                    onClick={() => setModalImagen({ src: banner1, title: "Aviso Importante — Docentes" })}
+                                    className="w-full h-auto object-contain block rounded-2xl"
+                                />
+                                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-xs rounded-2xl">
+                                    <button
+                                        onClick={() => setModalImagen({ src: banner1, title: "Aviso Importante — Docentes" })}
+                                        className="px-4 py-2 bg-white text-slate-800 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-50 transition flex items-center gap-1.5">
+                                        🔍 Ver Afiche Completo
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                onClick={() => setModalImagen({ src: null, title: "Período Lectivo 2026-2027", desc: "Sistema de matrículas y registro de calificaciones activo." })}
+                                className="bg-gradient-to-br from-[#1a2d5f] via-[#243A76] to-[#1e3a8a] p-5 text-white flex flex-col justify-between min-h-[220px]"
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-blue-100 backdrop-blur-xs">
+                                            📢 AVISO OFICIAL
+                                        </span>
+                                        <span className="text-[10px] text-blue-200 font-bold">2026 - 2027</span>
+                                    </div>
+                                    <h4 className="font-bold text-base leading-snug text-white mt-1">
+                                        Período Lectivo 2026-2027
+                                    </h4>
+                                    <p className="text-xs text-blue-100/90 mt-2 leading-relaxed font-sans">
+                                        Sistema de matrículas y registro de calificaciones 70/30 activo en toda la institución.
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-blue-200">
+                                    <span className="font-medium text-[11px]">Escuela Provincias Unidas</span>
+                                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-blue-100">Oficial</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="mt-3 rounded-xl border-2 border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center h-48 text-slate-400 transition cursor-pointer">
-                        <svg className="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-xs">Imagen informativa</p>
-                        <p className="text-xs text-slate-300 mt-1">Eventos y noticias</p>
+                    {/* Afiche 2: Calendario y Eventos Académicos */}
+                    <div className="relative group rounded-2xl overflow-hidden shadow-xs border border-slate-200 bg-white transition hover:shadow-md cursor-pointer">
+                        {banner2 ? (
+                            <div className="relative w-full">
+                                <img
+                                    src={banner2}
+                                    alt="Calendario y Eventos"
+                                    onClick={() => setModalImagen({ src: banner2, title: "Calendario Académico — Eventos" })}
+                                    className="w-full h-auto object-contain block rounded-2xl"
+                                />
+                                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-xs rounded-2xl">
+                                    <button
+                                        onClick={() => setModalImagen({ src: banner2, title: "Calendario Académico — Eventos" })}
+                                        className="px-4 py-2 bg-white text-slate-800 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-50 transition flex items-center gap-1.5">
+                                        🔍 Ver Afiche Completo
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                onClick={() => setModalImagen({ src: null, title: "Calendario Académico", desc: "Cronograma de exámenes y asentamiento de notas." })}
+                                className="bg-gradient-to-br from-[#0f766e] via-[#115e59] to-[#134e4a] p-5 text-white flex flex-col justify-between min-h-[220px]"
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-teal-100 backdrop-blur-xs">
+                                            🗓️ CALENDARIO
+                                        </span>
+                                        <span className="text-[10px] text-teal-200 font-bold">Trimestre 1</span>
+                                    </div>
+                                    <h4 className="font-bold text-base leading-snug text-white mt-1">
+                                        Asentamiento de Notas
+                                    </h4>
+                                    <p className="text-xs text-teal-100/90 mt-2 leading-relaxed font-sans">
+                                        Registro de aportes formativos (70%) y examen sumativo (30%) por docentes titulares.
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-teal-200">
+                                    <span className="font-medium text-[11px]">Tutoría con IA Activa</span>
+                                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-teal-100">Oficial</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </aside>
 
@@ -189,7 +289,7 @@ export default function PanelPrincipal() {
                             Bienvenido, <span style={{ color: PRIMARY }} className="capitalize">{username}</span>
                         </h1>
                         <p className="text-slate-400 text-xs mt-0.5">
-                            Período activo: <span style={{ color: PRIMARY }} className="font-semibold">{anoActual.nombre}</span>
+                            Año lectivo: <span style={{ color: PRIMARY }} className="font-semibold">{anoActual?.nombre || (anoEstado === "cargando" ? "Cargando..." : "N/D")}</span>
                         </p>
                     </div>
 
@@ -221,9 +321,39 @@ export default function PanelPrincipal() {
             </div>
 
             {/* FOOTER */}
-            <footer style={{ backgroundColor: PRIMARY }} className="text-white text-opacity-80 text-xs text-center py-2 flex-shrink-0">
+            <footer style={{ backgroundColor: PRIMARY }} className="fixed bottom-0 left-0 right-0 text-white text-opacity-80 text-xs text-center py-2 z-40 flex-shrink-0">
                 Sistema de Gestión Académica — Escuela Provincias Unidas © 2026
             </footer>
+
+            {/* MODAL VISOR LIGHTBOX DE AFICHE */}
+            {modalImagen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in" onClick={() => setModalImagen(null)}>
+                    <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-slate-200" onClick={e => e.stopPropagation()}>
+                        <div style={{ backgroundColor: PRIMARY }} className="px-5 py-3.5 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-base">📢</span>
+                                <h3 className="font-bold text-sm">{modalImagen.title}</h3>
+                            </div>
+                            <button onClick={() => setModalImagen(null)} className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="p-4 flex items-center justify-center bg-slate-50 overflow-y-auto max-h-[calc(90vh-60px)]">
+                            {modalImagen.src ? (
+                                <img src={modalImagen.src} alt={modalImagen.title} className="max-w-full h-auto rounded-2xl shadow-sm object-contain" />
+                            ) : (
+                                <div className="p-8 text-center text-slate-600">
+                                    <p className="font-bold text-base">{modalImagen.title}</p>
+                                    <p className="text-sm mt-2">{modalImagen.desc}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Overlay */}
             {(showPeriodo || showUserMenu) && (

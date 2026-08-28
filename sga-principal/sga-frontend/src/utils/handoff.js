@@ -6,15 +6,15 @@ async function detectarHostVivo(hosts) {
   for (const host of hosts) {
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 900);
+      const timer = setTimeout(() => ctrl.abort(), 3500);
       await fetch(host, { mode: "no-cors", signal: ctrl.signal });
       clearTimeout(timer);
       return host; // respondió → está corriendo aquí
     } catch (_) {
-      // no respondió, se prueba el siguiente puerto
+      // no respondió en el tiempo límite, se prueba el siguiente puerto
     }
   }
-  return null;
+  return hosts[0] || null;
 }
 
 // Entrega la sesión al microservicio del rol indicado y redirige.

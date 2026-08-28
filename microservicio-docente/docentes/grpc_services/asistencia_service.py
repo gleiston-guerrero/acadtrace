@@ -168,19 +168,38 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                     fecha=request.fecha, id_matricula__in=matriculas,
                 ).delete()
 
-                nuevas = [
-                    Asistencia(
-                        id_matricula=item.id_matricula,
-                        id_asignacion=request.id_asignacion,
-                        id_periodo=periodo,
-                        fecha=request.fecha,
-                        estado=item.estado,
-                        justificacion=item.justificacion,
-                        registrado_por=usuario_registra,
+                # Se usa INSERT raw con cast explicito a estado_asistencia_t porque
+                # la columna es un ENUM nativo de Postgres y Django bulk_create genera
+                # UNNEST(text[]) sin cast, lo que falla con "column is of type
+                # estado_asistencia_t but expression is of type character varying".
+                from django.db import connection
+                filas = [
+                    (
+                        item.id_matricula,
+                        request.id_asignacion,
+                        periodo.id_periodo,
+                        request.fecha,
+                        item.estado,
+                        item.justificacion or None,
+                        usuario_registra,
                     )
                     for item in items
                 ]
-                Asistencia.objects.bulk_create(nuevas)
+                sql = (
+                    'INSERT INTO sga_docente.asistencias '
+                    '(id_matricula, id_asignacion, id_periodo, fecha, estado, '
+                    ' justificacion, registrado_por, fecha_registro, fecha_actualizacion) '
+                    'VALUES (%s, %s, %s, %s, %s::sga_docente.estado_asistencia_t, %s, %s, NOW(), NOW()) '
+                    'RETURNING id_asistencia'
+                )
+                ids_creados = []
+                with connection.cursor() as cursor:
+                    for fila in filas:
+                        cursor.execute(sql, fila)
+                        ids_creados.append(cursor.fetchone()[0])
+                nuevas = list(
+                    Asistencia.objects.filter(id_asistencia__in=ids_creados).order_by("id_asistencia")
+                )
 
                 # Resumen del periodo recalculado con UNA sola consulta agregada.
                 self._recalcular_resumen_bulk(request.id_asignacion, periodo, matriculas)

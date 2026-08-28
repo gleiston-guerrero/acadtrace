@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { getPeriodos } from "../services/api";
+import { getAnoLectivoActual, PRINCIPAL_LOGIN_URL } from "../services/api";
 
 const PRIMARY = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
@@ -11,22 +11,20 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const [anoActual, setAnoActual] = useState(null);
+  const [anoEstado, setAnoEstado] = useState("cargando");
   const navigate = useNavigate();
 
   const username = localStorage.getItem("username") || "Docente";
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
   useEffect(() => {
-    getPeriodos()
-      .then((response) => {
-        const periodos = response.data || [];
-        setAnoActual(periodos.find((periodo) => periodo.activo) || periodos[0] || null);
-      })
-      .catch(() => setAnoActual(null));
+    getAnoLectivoActual()
+      .then((response) => { setAnoActual(response.data || null); setAnoEstado(response.data ? "dato" : "no-disponible"); })
+      .catch(() => { setAnoActual(null); setAnoEstado("error"); });
   }, []);
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "http://localhost:5173/login";
+    window.location.href = PRINCIPAL_LOGIN_URL;
   };
 
   const hasSidebar = menuItems.length > 0;
@@ -53,7 +51,7 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
               <svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="hidden sm:inline">{anoActual?.nombre || "Sin período"}</span>
+              <span className="hidden sm:inline">{anoEstado === "cargando" ? "Cargando año..." : anoActual?.nombre || (anoEstado === "error" ? "Año no disponible" : "Sin año lectivo")}</span>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>

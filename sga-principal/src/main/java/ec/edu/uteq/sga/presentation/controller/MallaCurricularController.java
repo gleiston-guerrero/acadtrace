@@ -1,0 +1,242 @@
+package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.entity.AnoLectivo;
+import ec.edu.uteq.sga.domain.entity.Asignacion;
+import ec.edu.uteq.sga.domain.entity.Asignatura;
+import ec.edu.uteq.sga.domain.entity.Grado;
+import ec.edu.uteq.sga.domain.entity.MallaCurricular;
+import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignacionRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignaturaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.GradoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.MallaCurricularRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/malla")
+@RequiredArgsConstructor
+public class MallaCurricularController {
+
+    private final MallaCurricularRepository mallaRepo;
+    private final GradoRepository gradoRepo;
+    private final AsignaturaRepository asignaturaRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final AsignacionRepository asignacionRepo;
+
+    @GetMapping("/grado/{idGrado}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> porGrado(@PathVariable Long idGrado,
+                                                        @RequestParam Long idAnoLectivo) {
+        List<MallaCurricular> malla = mallaRepo.findByGradoAnoWithAsignatura(idGrado, idAnoLectivo);
+        List<Asignacion> asignaciones = asignacionRepo.findAll().stream()
+                .filter(a -> a.getGrado().getIdGrado().equals(idGrado) 
+                        && a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo)
+                        && a.isActivo())
+                .collect(Collectors.toList());
+
+        Map<Long, Map<String, Object>> mapaMaterias = new LinkedHashMap<>();
+
+        for (MallaCurricular m : malla) {
+            Asignatura asig = m.getAsignatura();
+            Map<String, Object> item = new HashMap<>();
+            item.put("idMalla", m.getIdMalla());
+            item.put("idAsignatura", asig.getIdAsignatura());
+            item.put("asignatura", asig.getNombre());
+            item.put("codigo", asig.getCodigo());
+            item.put("horasSemana", m.getHorasSemana() != null ? m.getHorasSemana() : 4);
+            item.put("diasSemana", m.getDiasSemana());
+            item.put("duracion", m.getDuracion());
+            item.put("docentes", new ArrayList<String>());
+            item.put("origen", "MALLA");
+            mapaMaterias.put(asig.getIdAsignatura(), item);
+        }
+
+        for (Asignacion a : asignaciones) {
+            Asignatura asig = a.getAsignatura();
+            Long idAsig = asig.getIdAsignatura();
+            String nombreDocente = a.getDocente().getNombres() + " " + a.getDocente().getApellidos();
+            int horas = a.getHorasSemanales() != null && a.getHorasSemanales() > 0 ? a.getHorasSemanales() : 4;
+
+            if (mapaMaterias.containsKey(idAsig)) {
+                Map<String, Object> item = mapaMaterias.get(idAsig);
+                @SuppressWarnings("unchecked")
+                List<String> docs = (List<String>) item.get("docentes");
+                if (!docs.contains(nombreDocente)) docs.add(nombreDocente);
+                int hActual = Integer.parseInt(item.get("horasSemana").toString());
+                if (horas > hActual) item.put("horasSemana", horas);
+            } else {
+                Map<String, Object> item = new HashMap<>();
+                item.put("idMalla", null);
+                item.put("idAsignatura", asig.getIdAsignatura());
+                item.put("asignatura", asig.getNombre());
+                item.put("codigo", asig.getCodigo());
+                item.put("horasSemana", horas);
+                List<String> docs = new ArrayList<>();
+                docs.add(nombreDocente);
+                item.put("docentes", docs);
+                item.put("origen", "ASIGNACION");
+                mapaMaterias.put(idAsig, item);
+            }
+        }
+
+        List<Map<String, Object>> items = new ArrayList<>(mapaMaterias.values());
+        int total = items.stream().mapToInt(i -> Integer.parseInt(i.get("horasSemana").toString())).sum();
+
+        return ResponseEntity.ok(Map.of("totalHoras", total, "materias", items));
+    }
+
+    @GetMapping("/resumen-grados")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<Long, Map<String, Object>>> resumenGrados(@RequestParam Long idAnoLectivo) {
+        List<MallaCurricular> mallas = mallaRepo.findAll().stream()
+                .filter(m -> m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))
+                .collect(Collectors.toList());
+
+        List<Asignacion> asignaciones = asignacionRepo.findAll().stream()
+                .filter(a -> a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo) && a.isActivo())
+                .collect(Collectors.toList());
+
+        Map<Long, Map<Long, Map<String, Object>>> mapaGrados = new HashMap<>();
+
+        for (MallaCurricular m : mallas) {
+            Long idG = m.getGrado().getIdGrado();
+            Long idA = m.getAsignatura().getIdAsignatura();
+            mapaGrados.putIfAbsent(idG, new HashMap<>());
+            Map<String, Object> item = new HashMap<>();
+            item.put("horas", m.getHorasSemana() != null ? m.getHorasSemana() : 4);
+            mapaGrados.get(idG).put(idA, item);
+        }
+
+        for (Asignacion a : asignaciones) {
+            Long idG = a.getGrado().getIdGrado();
+            Long idA = a.getAsignatura().getIdAsignatura();
+            int h = a.getHorasSemanales() != null && a.getHorasSemanales() > 0 ? a.getHorasSemanales() : 4;
+            mapaGrados.putIfAbsent(idG, new HashMap<>());
+            Map<Long, Map<String, Object>> mapG = mapaGrados.get(idG);
+            if (mapG.containsKey(idA)) {
+                int hActual = Integer.parseInt(mapG.get(idA).get("horas").toString());
+                if (h > hActual) mapG.get(idA).put("horas", h);
+            } else {
+                Map<String, Object> item = new HashMap<>();
+                item.put("horas", h);
+                mapG.put(idA, item);
+            }
+        }
+
+        Map<Long, Map<String, Object>> res = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Map<String, Object>>> entry : mapaGrados.entrySet()) {
+            Long idG = entry.getKey();
+            Map<Long, Map<String, Object>> mapG = entry.getValue();
+            int totalH = mapG.values().stream().mapToInt(v -> Integer.parseInt(v.get("horas").toString())).sum();
+            res.put(idG, Map.of("totalHoras", totalH, "cantMaterias", mapG.size()));
+        }
+
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping
+    @Transactional
+    public ResponseEntity<Void> agregar(@RequestBody Map<String, Object> body) {
+        Long idGrado = Long.valueOf(body.get("idGrado").toString());
+        Long idAsignatura = Long.valueOf(body.get("idAsignatura").toString());
+        Long idAnoLectivo = Long.valueOf(body.get("idAnoLectivo").toString());
+        Short horas = Short.valueOf(body.get("horasSemana").toString());
+
+        if (mallaRepo.existsByGrado_IdGradoAndAsignatura_IdAsignaturaAndAnoLectivo_IdAnoLectivo(idGrado, idAsignatura, idAnoLectivo)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esa asignatura ya está en la malla del grado");
+        }
+        Grado grado = gradoRepo.findById(idGrado)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Grado no existe"));
+        Asignatura asignatura = asignaturaRepo.findById(idAsignatura)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignatura no existe"));
+        AnoLectivo ano = anoLectivoRepo.findById(idAnoLectivo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Año lectivo no existe"));
+
+        mallaRepo.save(MallaCurricular.builder()
+                .grado(grado).asignatura(asignatura).anoLectivo(ano).horasSemana(horas)
+                .diasSemana(body.get("diasSemana") != null ? Short.valueOf(body.get("diasSemana").toString()) : null)
+                .duracion(body.get("duracion") != null ? Short.valueOf(body.get("duracion").toString()) : null)
+                .build());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PatchMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> actualizarHoras(@PathVariable Long id, @RequestParam Short horasSemana) {
+        MallaCurricular m = mallaRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro no existe"));
+        m.setHorasSemana(horasSemana);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/actualizar-horas-grado")
+    @Transactional
+    public ResponseEntity<Void> actualizarHorasGrado(@RequestBody Map<String, Object> body) {
+        Long idGrado = Long.valueOf(body.get("idGrado").toString());
+        Long idAnoLectivo = Long.valueOf(body.get("idAnoLectivo").toString());
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> cambios = (List<Map<String, Object>>) body.get("cambios");
+
+        if (cambios != null) {
+            for (Map<String, Object> cambio : cambios) {
+                Long idAsignatura = Long.valueOf(cambio.get("idAsignatura").toString());
+                int nuevasHoras = Integer.parseInt(cambio.get("horasSemana").toString());
+
+                Optional<MallaCurricular> optMalla = mallaRepo.findAll().stream()
+                        .filter(m -> m.getGrado().getIdGrado().equals(idGrado)
+                                && m.getAsignatura().getIdAsignatura().equals(idAsignatura)
+                                && m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))
+                        .findFirst();
+
+                if (optMalla.isPresent()) {
+                    optMalla.get().setHorasSemana((short) nuevasHoras);
+                    mallaRepo.save(optMalla.get());
+                } else {
+                    Grado g = gradoRepo.findById(idGrado).orElse(null);
+                    Asignatura asig = asignaturaRepo.findById(idAsignatura).orElse(null);
+                    AnoLectivo ano = anoLectivoRepo.findById(idAnoLectivo).orElse(null);
+                    if (g != null && asig != null && ano != null) {
+                        mallaRepo.save(MallaCurricular.builder()
+                                .grado(g).asignatura(asig).anoLectivo(ano).horasSemana((short) nuevasHoras)
+                                .build());
+                    }
+                }
+
+                List<Asignacion> asigs = asignacionRepo.findAll().stream()
+                        .filter(a -> a.getGrado().getIdGrado().equals(idGrado)
+                                && a.getAsignatura().getIdAsignatura().equals(idAsignatura)
+                                && a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))
+                        .collect(Collectors.toList());
+
+                for (Asignacion a : asigs) {
+                    a.setHorasSemanales(nuevasHoras);
+                    asignacionRepo.save(a);
+                }
+            }
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        if (!mallaRepo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro no existe");
+        }
+        mallaRepo.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+}

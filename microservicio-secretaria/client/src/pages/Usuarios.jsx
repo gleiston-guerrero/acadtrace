@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { MENU_PRINCIPAL } from '../config/menu';
 import api from '../utils/api';
 
 const PRIMARY = '#243A76';
+
+const menuItems = [
+  { id: 'lista', label: 'Todos los usuarios', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
+  { id: 'activos', label: 'Activos', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+  { id: 'inactivos', label: 'Inactivos', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+  { id: 'nuevo', label: 'Nuevo usuario', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> },
+];
 
 // Nuestro microservicio devuelve: id_usuario, username, correo, estado (bool),
 // nombres, apellidos (del JOIN con personas), roles (array)
@@ -20,6 +26,7 @@ export default function Usuarios() {
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [seccion, setSeccion] = useState('lista');
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -43,16 +50,21 @@ export default function Usuarios() {
 
   useEffect(() => { cargar(); }, []);
 
-  const filtrados = usuarios.filter(u => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      u.username?.toLowerCase().includes(q) ||
-      u.nombres?.toLowerCase().includes(q) ||
-      u.apellidos?.toLowerCase().includes(q) ||
-      u.correo?.toLowerCase().includes(q)
-    );
-  });
+  const filtrados = usuarios
+    .filter(u => seccion === 'activos' ? u.estado : seccion === 'inactivos' ? !u.estado : true)
+    .filter(u => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        u.username?.toLowerCase().includes(q) ||
+        u.nombres?.toLowerCase().includes(q) ||
+        u.apellidos?.toLowerCase().includes(q) ||
+        u.correo?.toLowerCase().includes(q)
+      );
+    });
+
+  const totalActivos = usuarios.filter(u => u.estado).length;
+  const totalInactivos = usuarios.length - totalActivos;
 
   const toggleRol = (nombre) => {
     setForm(f => ({
@@ -105,12 +117,17 @@ export default function Usuarios() {
     return u.username;
   };
 
+  const handleSeccion = (id) => {
+    if (id === 'nuevo') { setForm(EMPTY); setError(''); setModal('crear'); return; }
+    setSeccion(id);
+  };
+
   return (
-    <Layout breadcrumb={['Inicio', 'Usuarios']} menuItems={MENU_PRINCIPAL} seccion="usuarios">
+    <Layout breadcrumb={['Inicio', 'Usuarios']} sidebarTitle="Usuarios" menuItems={menuItems} seccion={seccion} onSeccionChange={handleSeccion}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-bold text-slate-700">Usuarios y Docentes</h1>
-          <p className="text-xs text-slate-400">Gestión de accesos al sistema</p>
+          <p className="text-xs text-slate-400">{totalActivos} activo{totalActivos !== 1 ? 's' : ''} · {totalInactivos} inactivo{totalInactivos !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => { setForm(EMPTY); setError(''); setModal('crear'); }}
           style={{ backgroundColor: PRIMARY }}

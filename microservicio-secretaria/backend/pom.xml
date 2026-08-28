@@ -179,6 +179,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
+          <mainClass>ec.uteq.sga.secretaria.SgaSecretariaApplication</mainClass>
           <!-- CWD = raiz del repo, para que .env (spring-dotenv) y client/dist se resuelvan igual que con "npm start" -->
           <workingDirectory>${project.basedir}/..</workingDirectory>
         </configuration>

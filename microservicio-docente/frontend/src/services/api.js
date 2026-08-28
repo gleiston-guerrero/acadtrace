@@ -1,15 +1,15 @@
 import axios from "axios";
 
 // ─────────────────────────────────────────────────────────────
-// El frontend SOLO habla con el SGA Principal (Java 8080) vía REST.
-// El SGA Principal internamente usa gRPC hacia el microservicio
-// docente (Django) para actividades, asistencia y calificaciones.
-// (Patrón API Gateway — el frontend nunca habla gRPC ni toca Django.)
+// Bases públicas del despliegue. El Gateway cubre identidad, asignaciones,
+// actividades y asistencia; Django REST conserva recursos aún no expuestos allí.
 // ─────────────────────────────────────────────────────────────
-const API = "http://localhost:8080/api";
-
-// Datos de referencia (períodos) que aún solo expone Django por REST.
-const API_DOCENTE_REST = "http://localhost:8081/api/docente";
+const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+export const API_GATEWAY_BASE = `http://${host}:8080/api`;
+export const DOCENTE_API_BASE = `http://${host}:8081/api/docente`;
+export const PRINCIPAL_LOGIN_URL = `http://${host}:5174/login`;
+const API = API_GATEWAY_BASE;
+const API_DOCENTE_REST = DOCENTE_API_BASE;
 
 const authHeaders = () => {
   const token = localStorage.getItem("token");
@@ -24,6 +24,9 @@ export const getEstudiantesPorAsignacion = (asignacionId) =>
   axios.get(`${API}/docentes/asignaciones/${asignacionId}/estudiantes`, {
     headers: authHeaders(),
   });
+
+export const getAnoLectivoActual = () =>
+  axios.get(`${API}/anos-lectivos/actual`, { headers: authHeaders() });
 
 // ─── ACTIVIDADES (Java → gRPC → Django) ──────────────────────
 // Nota: el body viaja en camelCase porque Java usa ProtobufHttpMessageConverter.
@@ -79,12 +82,16 @@ export const getPromedioFinal = (idMatricula, trimestre) =>
 
 // Notas ya registradas de una actividad (para precargar la tabla de calificar).
 export const getCalificacionesPorActividad = (idActividad) =>
-  axios.get(`${API_DOCENTE_REST}/calificaciones/`, { params: { id_actividad: idActividad } });
+  axios.get(`${API_DOCENTE_REST}/calificaciones/`, { params: { id_actividad: idActividad }, headers: authHeaders() });
+
+export const guardarCalificacion = (data, idCalificacion) => idCalificacion
+  ? axios.patch(`${API_DOCENTE_REST}/calificaciones/${idCalificacion}/`, data, { headers: authHeaders() })
+  : axios.post(`${API_DOCENTE_REST}/calificaciones/`, data, { headers: authHeaders() });
 
 // ─── PERÍODOS DE EVALUACIÓN (aún solo REST en Django) ────────
 // TODO: exponer como endpoint en el gateway Java cuando exista.
 export const getPeriodos = () =>
-  axios.get(`${API_DOCENTE_REST}/periodos-evaluacion/`);
+  axios.get(`${API}/docente/actividades/periodos`, { headers: authHeaders() });
 
 export const getAulaVirtualResumen = (asignaciones) => {
   const params = new URLSearchParams();
@@ -100,25 +107,25 @@ export const getAulaVirtualSemanas = (idAsignacion) =>
   });
 
 export const getAnuncios = (idAsignacion) =>
-  axios.get(`${API_DOCENTE_REST}/anuncios/`, { params: { id_asignacion: idAsignacion } });
+  axios.get(`${API_DOCENTE_REST}/anuncios/`, { params: { id_asignacion: idAsignacion }, headers: authHeaders() });
 
 export const createAnuncio = (data) =>
-  axios.post(`${API_DOCENTE_REST}/anuncios/`, data);
+  axios.post(`${API_DOCENTE_REST}/anuncios/`, data, { headers: authHeaders() });
 
 export const deleteAnuncio = (idAnuncio) =>
-  axios.delete(`${API_DOCENTE_REST}/anuncios/${idAnuncio}/`);
+  axios.delete(`${API_DOCENTE_REST}/anuncios/${idAnuncio}/`, { headers: authHeaders() });
 
 export const getMateriales = (idAsignacion) =>
-  axios.get(`${API_DOCENTE_REST}/materiales/`, { params: { id_asignacion: idAsignacion } });
+  axios.get(`${API_DOCENTE_REST}/materiales/`, { params: { id_asignacion: idAsignacion }, headers: authHeaders() });
 
 export const createMaterial = (data) =>
-  axios.post(`${API_DOCENTE_REST}/materiales/`, data);
+  axios.post(`${API_DOCENTE_REST}/materiales/`, data, { headers: authHeaders() });
 
 export const updateMaterial = (idMaterial, data) =>
-  axios.patch(`${API_DOCENTE_REST}/materiales/${idMaterial}/`, data);
+  axios.patch(`${API_DOCENTE_REST}/materiales/${idMaterial}/`, data, { headers: authHeaders() });
 
 export const deleteMaterial = (idMaterial) =>
-  axios.delete(`${API_DOCENTE_REST}/materiales/${idMaterial}/`);
+  axios.delete(`${API_DOCENTE_REST}/materiales/${idMaterial}/`, { headers: authHeaders() });
 
 export const getSeguimientos = (params) =>
   axios.get(`${API_DOCENTE_REST}/seguimiento/`, { params });
