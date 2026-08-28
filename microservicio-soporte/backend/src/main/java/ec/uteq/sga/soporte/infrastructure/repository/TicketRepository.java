@@ -1,4 +1,4 @@
-package ec.uteq.sga.soporte.repository;
+package ec.uteq.sga.soporte.infrastructure.repository;
 
 import ec.uteq.sga.soporte.model.Ticket;
 import org.springframework.data.repository.CrudRepository;
