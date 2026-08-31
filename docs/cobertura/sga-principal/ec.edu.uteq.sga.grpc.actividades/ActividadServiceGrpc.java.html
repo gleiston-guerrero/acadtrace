@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ActividadServiceGrpc.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.grpc.actividades</a> &gt; <span class="el_source">ActividadServiceGrpc.java</span></div><h1>ActividadServiceGrpc.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.grpc.actividades;
+
+import static io.grpc.MethodDescriptor.generateFullMethodName;
+
+/**
+ * &lt;pre&gt;
+ * Servicio para gestionar Actividades
+ * &lt;/pre&gt;
+ */
+@javax.annotation.Generated(
+    value = &quot;by gRPC proto compiler (version 1.65.1)&quot;,
+    comments = &quot;Source: actividades.proto&quot;)
+@io.grpc.stub.annotations.GrpcGenerated
+public final class ActividadServiceGrpc {
+
+  private ActividadServiceGrpc() {}
+
+  public static final java.lang.String SERVICE_NAME = &quot;sga.docente.actividades.ActividadService&quot;;
+
+  // Static method descriptors that strictly reflect the proto.
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getCrearActividadMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CrearActividad&quot;,
+      requestType = ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.actividades.ActividadResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getCrearActividadMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest, ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getCrearActividadMethod;
+    if ((getCrearActividadMethod = ActividadServiceGrpc.getCrearActividadMethod) == null) {
+      synchronized (ActividadServiceGrpc.class) {
+        if ((getCrearActividadMethod = ActividadServiceGrpc.getCrearActividadMethod) == null) {
+          ActividadServiceGrpc.getCrearActividadMethod = getCrearActividadMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest, ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CrearActividad&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.ActividadResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ActividadServiceMethodDescriptorSupplier(&quot;CrearActividad&quot;))
+              .build();
+        }
+      }
+    }
+    return getCrearActividadMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getEditarActividadMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;EditarActividad&quot;,
+      requestType = ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.actividades.ActividadResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getEditarActividadMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest, ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getEditarActividadMethod;
+    if ((getEditarActividadMethod = ActividadServiceGrpc.getEditarActividadMethod) == null) {
+      synchronized (ActividadServiceGrpc.class) {
+        if ((getEditarActividadMethod = ActividadServiceGrpc.getEditarActividadMethod) == null) {
+          ActividadServiceGrpc.getEditarActividadMethod = getEditarActividadMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest, ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;EditarActividad&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.ActividadResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ActividadServiceMethodDescriptorSupplier(&quot;EditarActividad&quot;))
+              .build();
+        }
+      }
+    }
+    return getEditarActividadMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getObtenerActividadMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ObtenerActividad&quot;,
+      requestType = ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.actividades.ActividadResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getObtenerActividadMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest, ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; getObtenerActividadMethod;
+    if ((getObtenerActividadMethod = ActividadServiceGrpc.getObtenerActividadMethod) == null) {
+      synchronized (ActividadServiceGrpc.class) {
+        if ((getObtenerActividadMethod = ActividadServiceGrpc.getObtenerActividadMethod) == null) {
+          ActividadServiceGrpc.getObtenerActividadMethod = getObtenerActividadMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest, ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ObtenerActividad&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.ActividadResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ActividadServiceMethodDescriptorSupplier(&quot;ObtenerActividad&quot;))
+              .build();
+        }
+      }
+    }
+    return getObtenerActividadMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest,
+      ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt; getListarActividadesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarActividades&quot;,
+      requestType = ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest,
+      ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt; getListarActividadesMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest, ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt; getListarActividadesMethod;
+    if ((getListarActividadesMethod = ActividadServiceGrpc.getListarActividadesMethod) == null) {
+      synchronized (ActividadServiceGrpc.class) {
+        if ((getListarActividadesMethod = ActividadServiceGrpc.getListarActividadesMethod) == null) {
+          ActividadServiceGrpc.getListarActividadesMethod = getListarActividadesMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest, ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarActividades&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ActividadServiceMethodDescriptorSupplier(&quot;ListarActividades&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarActividadesMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt; getEliminarActividadMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;EliminarActividad&quot;,
+      requestType = ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest,
+      ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt; getEliminarActividadMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest, ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt; getEliminarActividadMethod;
+    if ((getEliminarActividadMethod = ActividadServiceGrpc.getEliminarActividadMethod) == null) {
+      synchronized (ActividadServiceGrpc.class) {
+        if ((getEliminarActividadMethod = ActividadServiceGrpc.getEliminarActividadMethod) == null) {
+          ActividadServiceGrpc.getEliminarActividadMethod = getEliminarActividadMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest, ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;EliminarActividad&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ActividadServiceMethodDescriptorSupplier(&quot;EliminarActividad&quot;))
+              .build();
+        }
+      }
+    }
+    return getEliminarActividadMethod;
+  }
+
+  /**
+   * Creates a new async stub that supports all call types for the service
+   */
+  public static ActividadServiceStub newStub(io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceStub&gt; factory =
+<span class="nc" id="L181">      new io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceStub&gt;() {</span>
+        @java.lang.Override
+        public ActividadServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L184">          return new ActividadServiceStub(channel, callOptions);</span>
+        }
+      };
+    return ActividadServiceStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new blocking-style stub that supports unary and streaming output calls on the service
+   */
+  public static ActividadServiceBlockingStub newBlockingStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceBlockingStub&gt; factory =
+<span class="nc" id="L196">      new io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceBlockingStub&gt;() {</span>
+        @java.lang.Override
+        public ActividadServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L199">          return new ActividadServiceBlockingStub(channel, callOptions);</span>
+        }
+      };
+    return ActividadServiceBlockingStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new ListenableFuture-style stub that supports unary calls on the service
+   */
+  public static ActividadServiceFutureStub newFutureStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceFutureStub&gt; factory =
+<span class="nc" id="L211">      new io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceFutureStub&gt;() {</span>
+        @java.lang.Override
+        public ActividadServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L214">          return new ActividadServiceFutureStub(channel, callOptions);</span>
+        }
+      };
+    return ActividadServiceFutureStub.newStub(factory, channel);
+  }
+
+  /**
+   * &lt;pre&gt;
+   * Servicio para gestionar Actividades
+   * &lt;/pre&gt;
+   */
+  public interface AsyncService {
+
+    /**
+     */
+    default void crearActividad(ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; responseObserver) {
+<span class="nc" id="L231">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCrearActividadMethod(), responseObserver);</span>
+<span class="nc" id="L232">    }</span>
+
+    /**
+     */
+    default void editarActividad(ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; responseObserver) {
+<span class="nc" id="L238">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getEditarActividadMethod(), responseObserver);</span>
+<span class="nc" id="L239">    }</span>
+
+    /**
+     */
+    default void obtenerActividad(ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; responseObserver) {
+<span class="nc" id="L245">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getObtenerActividadMethod(), responseObserver);</span>
+<span class="nc" id="L246">    }</span>
+
+    /**
+     */
+    default void listarActividades(ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt; responseObserver) {
+<span class="nc" id="L252">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarActividadesMethod(), responseObserver);</span>
+<span class="nc" id="L253">    }</span>
+
+    /**
+     */
+    default void eliminarActividad(ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt; responseObserver) {
+<span class="nc" id="L259">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getEliminarActividadMethod(), responseObserver);</span>
+<span class="nc" id="L260">    }</span>
+  }
+
+  /**
+   * Base class for the server implementation of the service ActividadService.
+   * &lt;pre&gt;
+   * Servicio para gestionar Actividades
+   * &lt;/pre&gt;
+   */
+<span class="nc" id="L269">  public static abstract class ActividadServiceImplBase</span>
+      implements io.grpc.BindableService, AsyncService {
+
+    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+<span class="nc" id="L273">      return ActividadServiceGrpc.bindService(this);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do asynchronous rpc calls to service ActividadService.
+   * &lt;pre&gt;
+   * Servicio para gestionar Actividades
+   * &lt;/pre&gt;
+   */
+  public static final class ActividadServiceStub
+      extends io.grpc.stub.AbstractAsyncStub&lt;ActividadServiceStub&gt; {
+    private ActividadServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L287">      super(channel, callOptions);</span>
+<span class="nc" id="L288">    }</span>
+
+    @java.lang.Override
+    protected ActividadServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L293">      return new ActividadServiceStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public void crearActividad(ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; responseObserver) {
+<span class="nc" id="L300">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L301">          getChannel().newCall(getCrearActividadMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L302">    }</span>
+
+    /**
+     */
+    public void editarActividad(ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; responseObserver) {
+<span class="nc" id="L308">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L309">          getChannel().newCall(getEditarActividadMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L310">    }</span>
+
+    /**
+     */
+    public void obtenerActividad(ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; responseObserver) {
+<span class="nc" id="L316">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L317">          getChannel().newCall(getObtenerActividadMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L318">    }</span>
+
+    /**
+     */
+    public void listarActividades(ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt; responseObserver) {
+<span class="nc" id="L324">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L325">          getChannel().newCall(getListarActividadesMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L326">    }</span>
+
+    /**
+     */
+    public void eliminarActividad(ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt; responseObserver) {
+<span class="nc" id="L332">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L333">          getChannel().newCall(getEliminarActividadMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L334">    }</span>
+  }
+
+  /**
+   * A stub to allow clients to do synchronous rpc calls to service ActividadService.
+   * &lt;pre&gt;
+   * Servicio para gestionar Actividades
+   * &lt;/pre&gt;
+   */
+  public static final class ActividadServiceBlockingStub
+      extends io.grpc.stub.AbstractBlockingStub&lt;ActividadServiceBlockingStub&gt; {
+    private ActividadServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L347">      super(channel, callOptions);</span>
+<span class="nc" id="L348">    }</span>
+
+    @java.lang.Override
+    protected ActividadServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L353">      return new ActividadServiceBlockingStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.actividades.ActividadResponse crearActividad(ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest request) {
+<span class="nc" id="L359">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L360">          getChannel(), getCrearActividadMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.actividades.ActividadResponse editarActividad(ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest request) {
+<span class="nc" id="L366">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L367">          getChannel(), getEditarActividadMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.actividades.ActividadResponse obtenerActividad(ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest request) {
+<span class="nc" id="L373">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L374">          getChannel(), getObtenerActividadMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse listarActividades(ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest request) {
+<span class="nc" id="L380">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L381">          getChannel(), getListarActividadesMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse eliminarActividad(ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest request) {
+<span class="nc" id="L387">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L388">          getChannel(), getEliminarActividadMethod(), getCallOptions(), request);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do ListenableFuture-style rpc calls to service ActividadService.
+   * &lt;pre&gt;
+   * Servicio para gestionar Actividades
+   * &lt;/pre&gt;
+   */
+  public static final class ActividadServiceFutureStub
+      extends io.grpc.stub.AbstractFutureStub&lt;ActividadServiceFutureStub&gt; {
+    private ActividadServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L402">      super(channel, callOptions);</span>
+<span class="nc" id="L403">    }</span>
+
+    @java.lang.Override
+    protected ActividadServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L408">      return new ActividadServiceFutureStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; crearActividad(
+        ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest request) {
+<span class="nc" id="L415">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L416">          getChannel().newCall(getCrearActividadMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; editarActividad(
+        ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest request) {
+<span class="nc" id="L423">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L424">          getChannel().newCall(getEditarActividadMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt; obtenerActividad(
+        ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest request) {
+<span class="nc" id="L431">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L432">          getChannel().newCall(getObtenerActividadMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt; listarActividades(
+        ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest request) {
+<span class="nc" id="L439">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L440">          getChannel().newCall(getListarActividadesMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt; eliminarActividad(
+        ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest request) {
+<span class="nc" id="L447">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L448">          getChannel().newCall(getEliminarActividadMethod(), getCallOptions()), request);</span>
+    }
+  }
+
+  private static final int METHODID_CREAR_ACTIVIDAD = 0;
+  private static final int METHODID_EDITAR_ACTIVIDAD = 1;
+  private static final int METHODID_OBTENER_ACTIVIDAD = 2;
+  private static final int METHODID_LISTAR_ACTIVIDADES = 3;
+  private static final int METHODID_ELIMINAR_ACTIVIDAD = 4;
+
+  private static final class MethodHandlers&lt;Req, Resp&gt; implements
+      io.grpc.stub.ServerCalls.UnaryMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ServerStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ClientStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.BidiStreamingMethod&lt;Req, Resp&gt; {
+    private final AsyncService serviceImpl;
+    private final int methodId;
+
+<span class="nc" id="L466">    MethodHandlers(AsyncService serviceImpl, int methodId) {</span>
+<span class="nc" id="L467">      this.serviceImpl = serviceImpl;</span>
+<span class="nc" id="L468">      this.methodId = methodId;</span>
+<span class="nc" id="L469">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public void invoke(Req request, io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc bnc" id="L474" title="All 6 branches missed.">      switch (methodId) {</span>
+        case METHODID_CREAR_ACTIVIDAD:
+<span class="nc" id="L476">          serviceImpl.crearActividad((ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;) responseObserver);
+<span class="nc" id="L478">          break;</span>
+        case METHODID_EDITAR_ACTIVIDAD:
+<span class="nc" id="L480">          serviceImpl.editarActividad((ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;) responseObserver);
+<span class="nc" id="L482">          break;</span>
+        case METHODID_OBTENER_ACTIVIDAD:
+<span class="nc" id="L484">          serviceImpl.obtenerActividad((ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;) responseObserver);
+<span class="nc" id="L486">          break;</span>
+        case METHODID_LISTAR_ACTIVIDADES:
+<span class="nc" id="L488">          serviceImpl.listarActividades((ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt;) responseObserver);
+<span class="nc" id="L490">          break;</span>
+        case METHODID_ELIMINAR_ACTIVIDAD:
+<span class="nc" id="L492">          serviceImpl.eliminarActividad((ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt;) responseObserver);
+<span class="nc" id="L494">          break;</span>
+        default:
+<span class="nc" id="L496">          throw new AssertionError();</span>
+      }
+<span class="nc" id="L498">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public io.grpc.stub.StreamObserver&lt;Req&gt; invoke(
+        io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc" id="L504">      switch (methodId) {</span>
+        default:
+<span class="nc" id="L506">          throw new AssertionError();</span>
+      }
+    }
+  }
+
+  public static final io.grpc.ServerServiceDefinition bindService(AsyncService service) {
+    return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+        .addMethod(
+          getCrearActividadMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.actividades.CrearActividadRequest,
+              ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;(
+                service, METHODID_CREAR_ACTIVIDAD)))
+        .addMethod(
+          getEditarActividadMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.actividades.EditarActividadRequest,
+              ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;(
+                service, METHODID_EDITAR_ACTIVIDAD)))
+        .addMethod(
+          getObtenerActividadMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.actividades.ObtenerActividadRequest,
+              ec.edu.uteq.sga.grpc.actividades.ActividadResponse&gt;(
+                service, METHODID_OBTENER_ACTIVIDAD)))
+        .addMethod(
+          getListarActividadesMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.actividades.ListarActividadesRequest,
+              ec.edu.uteq.sga.grpc.actividades.ListarActividadesResponse&gt;(
+                service, METHODID_LISTAR_ACTIVIDADES)))
+        .addMethod(
+          getEliminarActividadMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.actividades.EliminarActividadRequest,
+              ec.edu.uteq.sga.grpc.actividades.EliminarActividadResponse&gt;(
+                service, METHODID_ELIMINAR_ACTIVIDAD)))
+        .build();
+  }
+
+  private static abstract class ActividadServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
+<span class="nc" id="L553">    ActividadServiceBaseDescriptorSupplier() {}</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
+<span class="nc" id="L557">      return ec.edu.uteq.sga.grpc.actividades.Actividades.getDescriptor();</span>
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
+<span class="nc" id="L562">      return getFileDescriptor().findServiceByName(&quot;ActividadService&quot;);</span>
+    }
+  }
+
+  private static final class ActividadServiceFileDescriptorSupplier
+      extends ActividadServiceBaseDescriptorSupplier {
+<span class="nc" id="L568">    ActividadServiceFileDescriptorSupplier() {}</span>
+  }
+
+  private static final class ActividadServiceMethodDescriptorSupplier
+      extends ActividadServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
+    private final java.lang.String methodName;
+
+<span class="nc" id="L576">    ActividadServiceMethodDescriptorSupplier(java.lang.String methodName) {</span>
+<span class="nc" id="L577">      this.methodName = methodName;</span>
+<span class="nc" id="L578">    }</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
+<span class="nc" id="L582">      return getServiceDescriptor().findMethodByName(methodName);</span>
+    }
+  }
+
+  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
+
+  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
+    io.grpc.ServiceDescriptor result = serviceDescriptor;
+    if (result == null) {
+      synchronized (ActividadServiceGrpc.class) {
+        result = serviceDescriptor;
+        if (result == null) {
+          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
+              .setSchemaDescriptor(new ActividadServiceFileDescriptorSupplier())
+              .addMethod(getCrearActividadMethod())
+              .addMethod(getEditarActividadMethod())
+              .addMethod(getObtenerActividadMethod())
+              .addMethod(getListarActividadesMethod())
+              .addMethod(getEliminarActividadMethod())
+              .build();
+        }
+      }
+    }
+    return result;
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

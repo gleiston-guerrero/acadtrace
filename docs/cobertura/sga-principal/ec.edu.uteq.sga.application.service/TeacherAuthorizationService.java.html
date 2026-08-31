@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TeacherAuthorizationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">TeacherAuthorizationService.java</span></div><h1>TeacherAuthorizationService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignacionRepository;
+import ec.edu.uteq.sga.infrastructure.repository.MatriculaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.PersonaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class TeacherAuthorizationService {
+
+    private final UsuarioRepository usuarioRepository;
+    private final PersonaRepository personaRepository;
+    private final AsignacionRepository asignacionRepository;
+    private final MatriculaRepository matriculaRepository;
+    private final AnoLectivoRepository anoLectivoRepository;
+
+    /**
+     * Resuelve el docente autenticado a partir del SecurityContext.
+     */
+    public Persona getAuthenticatedTeacher() {
+<span class="nc" id="L32">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc bnc" id="L33" title="All 6 branches missed.">        if (auth == null || !auth.isAuthenticated() || &quot;anonymousUser&quot;.equals(auth.getPrincipal())) {</span>
+<span class="nc" id="L34">            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, &quot;No hay usuario autenticado en el contexto&quot;);</span>
+        }
+
+<span class="nc" id="L37">        String username = auth.getName();</span>
+<span class="nc" id="L38">        Usuario usuario = usuarioRepository.findByUsername(username)</span>
+<span class="nc" id="L39">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Usuario no encontrado&quot;));</span>
+
+<span class="nc" id="L41">        boolean isDocente = usuario.getRoles().stream()</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">                .anyMatch(r -&gt; r.getNombre().toUpperCase().contains(&quot;DOCENTE&quot;) ||</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">                               r.getNombre().toUpperCase().contains(&quot;DIRECTOR&quot;) ||</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                               r.getNombre().toUpperCase().contains(&quot;ADMIN&quot;));</span>
+
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (!isDocente) {</span>
+<span class="nc" id="L47">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;El usuario autenticado no tiene rol autorizado&quot;);</span>
+        }
+
+<span class="nc" id="L50">        return personaRepository.findByUsuario_IdUsuario(usuario.getIdUsuario())</span>
+<span class="nc" id="L51">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;No existe un perfil de Persona (Docente) asociado a este usuario&quot;));</span>
+    }
+
+    /**
+     * Obtiene las asignaciones de un docente.
+     */
+    public List&lt;Asignacion&gt; getTeacherAssignments(Long idDocente) {
+<span class="nc" id="L58">        return asignacionRepository.findByDocente_IdPersona(idDocente);</span>
+    }
+
+    /**
+     * Valida que una asignación pertenezca al docente o que el solicitante sea Director/Admin y esté activa.
+     */
+    public Asignacion validateTeacherAssignment(Long idDocente, Long idAsignacion) {
+<span class="nc" id="L65">        Asignacion asignacion = asignacionRepository.findById(idAsignacion)</span>
+<span class="nc" id="L66">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
+
+<span class="nc" id="L68">        Persona persona = personaRepository.findById(idDocente).orElse(null);</span>
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        boolean isDirectorOrAdmin = persona != null &amp;&amp; persona.getUsuario() != null &amp;&amp; persona.getUsuario().getRoles().stream()</span>
+<span class="nc bnc" id="L70" title="All 6 branches missed.">                .anyMatch(r -&gt; r.getNombre().toUpperCase().contains(&quot;DIRECTOR&quot;) || r.getNombre().toUpperCase().contains(&quot;ADMIN&quot;));</span>
+
+<span class="nc bnc" id="L72" title="All 4 branches missed.">        if (!isDirectorOrAdmin &amp;&amp; !asignacion.getDocente().getIdPersona().equals(idDocente)) {</span>
+<span class="nc" id="L73">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;La asignación no pertenece al docente indicado&quot;);</span>
+        }
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (!asignacion.isActivo()) {</span>
+<span class="nc" id="L77">            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, &quot;La asignación está inactiva&quot;);</span>
+        }
+
+<span class="nc" id="L80">        return asignacion;</span>
+    }
+
+    /**
+     * Obtiene los estudiantes de una asignación.
+     */
+    public List&lt;Matricula&gt; getStudentsByAssignment(Long idAsignacion) {
+<span class="nc" id="L87">        Asignacion asignacion = asignacionRepository.findById(idAsignacion)</span>
+<span class="nc" id="L88">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
+
+        // La asignación pertenece a UN paralelo específico (Décimo &quot;A&quot;), así que
+        // los estudiantes deben filtrarse por grado + paralelo + año lectivo, no solo
+        // por grado (eso mezclaba A, B y C en un mismo listado).
+<span class="nc" id="L93">        return matriculaRepository.findByGradoParaleloAndAnoLectivoWithEstudiante(</span>
+<span class="nc" id="L94">                asignacion.getGrado().getIdGrado(),</span>
+<span class="nc" id="L95">                asignacion.getParalelo().getIdParalelo(),</span>
+<span class="nc" id="L96">                asignacion.getAnoLectivo().getIdAnoLectivo()</span>
+<span class="nc" id="L97">        ).stream().filter(m -&gt; &quot;ACTIVA&quot;.equalsIgnoreCase(m.getEstado())).toList();</span>
+    }
+
+    /**
+     * Valida que una matrícula pertenezca al curso indicado por la asignación.
+     */
+    public Matricula validateStudentEnrollment(Long idMatricula, Long idAsignacion) {
+<span class="nc" id="L104">        Asignacion asignacion = asignacionRepository.findById(idAsignacion)</span>
+<span class="nc" id="L105">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
+
+<span class="nc" id="L107">        Matricula matricula = matriculaRepository.findById(idMatricula)</span>
+<span class="nc" id="L108">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Matrícula no encontrada&quot;));</span>
+
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (!matricula.getEstado().equalsIgnoreCase(&quot;ACTIVA&quot;)) {</span>
+<span class="nc" id="L111">            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, &quot;La matrícula no está activa&quot;);</span>
+        }
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (!matricula.getGrado().getIdGrado().equals(asignacion.getGrado().getIdGrado()) ||</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            !matricula.getAnoLectivo().getIdAnoLectivo().equals(asignacion.getAnoLectivo().getIdAnoLectivo())) {</span>
+<span class="nc" id="L116">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;El estudiante no pertenece al grado y año lectivo de esta asignación&quot;);</span>
+        }
+
+<span class="nc" id="L119">        return matricula;</span>
+    }
+
+    /**
+     * Obtiene el año lectivo actual.
+     */
+    public AnoLectivo getCurrentAcademicYear() {
+<span class="nc" id="L126">        return anoLectivoRepository.findByEsActualTrue()</span>
+<span class="nc" id="L127">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;No hay un año lectivo activo configurado&quot;));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

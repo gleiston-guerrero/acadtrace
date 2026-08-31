@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TeacherContextServiceGrpc.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.grpc.contexto</a> &gt; <span class="el_source">TeacherContextServiceGrpc.java</span></div><h1>TeacherContextServiceGrpc.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.grpc.contexto;
+
+import static io.grpc.MethodDescriptor.generateFullMethodName;
+
+/**
+ * &lt;pre&gt;
+ * Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+ * consulte datos institucionales y valide permisos de manera segura.
+ * &lt;/pre&gt;
+ */
+@javax.annotation.Generated(
+    value = &quot;by gRPC proto compiler (version 1.65.1)&quot;,
+    comments = &quot;Source: contexto_docente.proto&quot;)
+@io.grpc.stub.annotations.GrpcGenerated
+public final class TeacherContextServiceGrpc {
+
+  private TeacherContextServiceGrpc() {}
+
+  public static final java.lang.String SERVICE_NAME = &quot;sga.contexto.TeacherContextService&quot;;
+
+  // Static method descriptors that strictly reflect the proto.
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest,
+      ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt; getValidateTeacherAssignmentMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ValidateTeacherAssignment&quot;,
+      requestType = ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest,
+      ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt; getValidateTeacherAssignmentMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest, ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt; getValidateTeacherAssignmentMethod;
+    if ((getValidateTeacherAssignmentMethod = TeacherContextServiceGrpc.getValidateTeacherAssignmentMethod) == null) {
+      synchronized (TeacherContextServiceGrpc.class) {
+        if ((getValidateTeacherAssignmentMethod = TeacherContextServiceGrpc.getValidateTeacherAssignmentMethod) == null) {
+          TeacherContextServiceGrpc.getValidateTeacherAssignmentMethod = getValidateTeacherAssignmentMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest, ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ValidateTeacherAssignment&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new TeacherContextServiceMethodDescriptorSupplier(&quot;ValidateTeacherAssignment&quot;))
+              .build();
+        }
+      }
+    }
+    return getValidateTeacherAssignmentMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest,
+      ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt; getGetStudentsByAssignmentMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;GetStudentsByAssignment&quot;,
+      requestType = ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest,
+      ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt; getGetStudentsByAssignmentMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest, ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt; getGetStudentsByAssignmentMethod;
+    if ((getGetStudentsByAssignmentMethod = TeacherContextServiceGrpc.getGetStudentsByAssignmentMethod) == null) {
+      synchronized (TeacherContextServiceGrpc.class) {
+        if ((getGetStudentsByAssignmentMethod = TeacherContextServiceGrpc.getGetStudentsByAssignmentMethod) == null) {
+          TeacherContextServiceGrpc.getGetStudentsByAssignmentMethod = getGetStudentsByAssignmentMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest, ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;GetStudentsByAssignment&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new TeacherContextServiceMethodDescriptorSupplier(&quot;GetStudentsByAssignment&quot;))
+              .build();
+        }
+      }
+    }
+    return getGetStudentsByAssignmentMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest,
+      ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt; getValidateStudentEnrollmentMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ValidateStudentEnrollment&quot;,
+      requestType = ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest,
+      ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt; getValidateStudentEnrollmentMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest, ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt; getValidateStudentEnrollmentMethod;
+    if ((getValidateStudentEnrollmentMethod = TeacherContextServiceGrpc.getValidateStudentEnrollmentMethod) == null) {
+      synchronized (TeacherContextServiceGrpc.class) {
+        if ((getValidateStudentEnrollmentMethod = TeacherContextServiceGrpc.getValidateStudentEnrollmentMethod) == null) {
+          TeacherContextServiceGrpc.getValidateStudentEnrollmentMethod = getValidateStudentEnrollmentMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest, ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ValidateStudentEnrollment&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new TeacherContextServiceMethodDescriptorSupplier(&quot;ValidateStudentEnrollment&quot;))
+              .build();
+        }
+      }
+    }
+    return getValidateStudentEnrollmentMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.EmptyRequest,
+      ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt; getGetCurrentAcademicYearMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;GetCurrentAcademicYear&quot;,
+      requestType = ec.edu.uteq.sga.grpc.contexto.EmptyRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.EmptyRequest,
+      ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt; getGetCurrentAcademicYearMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.contexto.EmptyRequest, ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt; getGetCurrentAcademicYearMethod;
+    if ((getGetCurrentAcademicYearMethod = TeacherContextServiceGrpc.getGetCurrentAcademicYearMethod) == null) {
+      synchronized (TeacherContextServiceGrpc.class) {
+        if ((getGetCurrentAcademicYearMethod = TeacherContextServiceGrpc.getGetCurrentAcademicYearMethod) == null) {
+          TeacherContextServiceGrpc.getGetCurrentAcademicYearMethod = getGetCurrentAcademicYearMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.contexto.EmptyRequest, ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;GetCurrentAcademicYear&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.EmptyRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new TeacherContextServiceMethodDescriptorSupplier(&quot;GetCurrentAcademicYear&quot;))
+              .build();
+        }
+      }
+    }
+    return getGetCurrentAcademicYearMethod;
+  }
+
+  /**
+   * Creates a new async stub that supports all call types for the service
+   */
+  public static TeacherContextServiceStub newStub(io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;TeacherContextServiceStub&gt; factory =
+<span class="nc" id="L151">      new io.grpc.stub.AbstractStub.StubFactory&lt;TeacherContextServiceStub&gt;() {</span>
+        @java.lang.Override
+        public TeacherContextServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L154">          return new TeacherContextServiceStub(channel, callOptions);</span>
+        }
+      };
+    return TeacherContextServiceStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new blocking-style stub that supports unary and streaming output calls on the service
+   */
+  public static TeacherContextServiceBlockingStub newBlockingStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;TeacherContextServiceBlockingStub&gt; factory =
+<span class="nc" id="L166">      new io.grpc.stub.AbstractStub.StubFactory&lt;TeacherContextServiceBlockingStub&gt;() {</span>
+        @java.lang.Override
+        public TeacherContextServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L169">          return new TeacherContextServiceBlockingStub(channel, callOptions);</span>
+        }
+      };
+    return TeacherContextServiceBlockingStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new ListenableFuture-style stub that supports unary calls on the service
+   */
+  public static TeacherContextServiceFutureStub newFutureStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;TeacherContextServiceFutureStub&gt; factory =
+<span class="nc" id="L181">      new io.grpc.stub.AbstractStub.StubFactory&lt;TeacherContextServiceFutureStub&gt;() {</span>
+        @java.lang.Override
+        public TeacherContextServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L184">          return new TeacherContextServiceFutureStub(channel, callOptions);</span>
+        }
+      };
+    return TeacherContextServiceFutureStub.newStub(factory, channel);
+  }
+
+  /**
+   * &lt;pre&gt;
+   * Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+   * consulte datos institucionales y valide permisos de manera segura.
+   * &lt;/pre&gt;
+   */
+  public interface AsyncService {
+
+    /**
+     */
+    default void validateTeacherAssignment(ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt; responseObserver) {
+<span class="nc" id="L202">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getValidateTeacherAssignmentMethod(), responseObserver);</span>
+<span class="nc" id="L203">    }</span>
+
+    /**
+     */
+    default void getStudentsByAssignment(ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt; responseObserver) {
+<span class="nc" id="L209">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetStudentsByAssignmentMethod(), responseObserver);</span>
+<span class="nc" id="L210">    }</span>
+
+    /**
+     */
+    default void validateStudentEnrollment(ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt; responseObserver) {
+<span class="nc" id="L216">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getValidateStudentEnrollmentMethod(), responseObserver);</span>
+<span class="nc" id="L217">    }</span>
+
+    /**
+     */
+    default void getCurrentAcademicYear(ec.edu.uteq.sga.grpc.contexto.EmptyRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt; responseObserver) {
+<span class="nc" id="L223">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetCurrentAcademicYearMethod(), responseObserver);</span>
+<span class="nc" id="L224">    }</span>
+  }
+
+  /**
+   * Base class for the server implementation of the service TeacherContextService.
+   * &lt;pre&gt;
+   * Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+   * consulte datos institucionales y valide permisos de manera segura.
+   * &lt;/pre&gt;
+   */
+<span class="nc" id="L234">  public static abstract class TeacherContextServiceImplBase</span>
+      implements io.grpc.BindableService, AsyncService {
+
+    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+<span class="nc" id="L238">      return TeacherContextServiceGrpc.bindService(this);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do asynchronous rpc calls to service TeacherContextService.
+   * &lt;pre&gt;
+   * Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+   * consulte datos institucionales y valide permisos de manera segura.
+   * &lt;/pre&gt;
+   */
+  public static final class TeacherContextServiceStub
+      extends io.grpc.stub.AbstractAsyncStub&lt;TeacherContextServiceStub&gt; {
+    private TeacherContextServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L253">      super(channel, callOptions);</span>
+<span class="nc" id="L254">    }</span>
+
+    @java.lang.Override
+    protected TeacherContextServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L259">      return new TeacherContextServiceStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public void validateTeacherAssignment(ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt; responseObserver) {
+<span class="nc" id="L266">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L267">          getChannel().newCall(getValidateTeacherAssignmentMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L268">    }</span>
+
+    /**
+     */
+    public void getStudentsByAssignment(ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt; responseObserver) {
+<span class="nc" id="L274">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L275">          getChannel().newCall(getGetStudentsByAssignmentMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L276">    }</span>
+
+    /**
+     */
+    public void validateStudentEnrollment(ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt; responseObserver) {
+<span class="nc" id="L282">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L283">          getChannel().newCall(getValidateStudentEnrollmentMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L284">    }</span>
+
+    /**
+     */
+    public void getCurrentAcademicYear(ec.edu.uteq.sga.grpc.contexto.EmptyRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt; responseObserver) {
+<span class="nc" id="L290">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L291">          getChannel().newCall(getGetCurrentAcademicYearMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L292">    }</span>
+  }
+
+  /**
+   * A stub to allow clients to do synchronous rpc calls to service TeacherContextService.
+   * &lt;pre&gt;
+   * Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+   * consulte datos institucionales y valide permisos de manera segura.
+   * &lt;/pre&gt;
+   */
+  public static final class TeacherContextServiceBlockingStub
+      extends io.grpc.stub.AbstractBlockingStub&lt;TeacherContextServiceBlockingStub&gt; {
+    private TeacherContextServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L306">      super(channel, callOptions);</span>
+<span class="nc" id="L307">    }</span>
+
+    @java.lang.Override
+    protected TeacherContextServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L312">      return new TeacherContextServiceBlockingStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse validateTeacherAssignment(ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest request) {
+<span class="nc" id="L318">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L319">          getChannel(), getValidateTeacherAssignmentMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse getStudentsByAssignment(ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest request) {
+<span class="nc" id="L325">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L326">          getChannel(), getGetStudentsByAssignmentMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse validateStudentEnrollment(ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest request) {
+<span class="nc" id="L332">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L333">          getChannel(), getValidateStudentEnrollmentMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse getCurrentAcademicYear(ec.edu.uteq.sga.grpc.contexto.EmptyRequest request) {
+<span class="nc" id="L339">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L340">          getChannel(), getGetCurrentAcademicYearMethod(), getCallOptions(), request);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do ListenableFuture-style rpc calls to service TeacherContextService.
+   * &lt;pre&gt;
+   * Servicio expuesto por SGA Principal (9092) para que el Microservicio Docente (9091)
+   * consulte datos institucionales y valide permisos de manera segura.
+   * &lt;/pre&gt;
+   */
+  public static final class TeacherContextServiceFutureStub
+      extends io.grpc.stub.AbstractFutureStub&lt;TeacherContextServiceFutureStub&gt; {
+    private TeacherContextServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L355">      super(channel, callOptions);</span>
+<span class="nc" id="L356">    }</span>
+
+    @java.lang.Override
+    protected TeacherContextServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L361">      return new TeacherContextServiceFutureStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt; validateTeacherAssignment(
+        ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest request) {
+<span class="nc" id="L368">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L369">          getChannel().newCall(getValidateTeacherAssignmentMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt; getStudentsByAssignment(
+        ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest request) {
+<span class="nc" id="L376">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L377">          getChannel().newCall(getGetStudentsByAssignmentMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt; validateStudentEnrollment(
+        ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest request) {
+<span class="nc" id="L384">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L385">          getChannel().newCall(getValidateStudentEnrollmentMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt; getCurrentAcademicYear(
+        ec.edu.uteq.sga.grpc.contexto.EmptyRequest request) {
+<span class="nc" id="L392">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L393">          getChannel().newCall(getGetCurrentAcademicYearMethod(), getCallOptions()), request);</span>
+    }
+  }
+
+  private static final int METHODID_VALIDATE_TEACHER_ASSIGNMENT = 0;
+  private static final int METHODID_GET_STUDENTS_BY_ASSIGNMENT = 1;
+  private static final int METHODID_VALIDATE_STUDENT_ENROLLMENT = 2;
+  private static final int METHODID_GET_CURRENT_ACADEMIC_YEAR = 3;
+
+  private static final class MethodHandlers&lt;Req, Resp&gt; implements
+      io.grpc.stub.ServerCalls.UnaryMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ServerStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ClientStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.BidiStreamingMethod&lt;Req, Resp&gt; {
+    private final AsyncService serviceImpl;
+    private final int methodId;
+
+<span class="nc" id="L410">    MethodHandlers(AsyncService serviceImpl, int methodId) {</span>
+<span class="nc" id="L411">      this.serviceImpl = serviceImpl;</span>
+<span class="nc" id="L412">      this.methodId = methodId;</span>
+<span class="nc" id="L413">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public void invoke(Req request, io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc bnc" id="L418" title="All 5 branches missed.">      switch (methodId) {</span>
+        case METHODID_VALIDATE_TEACHER_ASSIGNMENT:
+<span class="nc" id="L420">          serviceImpl.validateTeacherAssignment((ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt;) responseObserver);
+<span class="nc" id="L422">          break;</span>
+        case METHODID_GET_STUDENTS_BY_ASSIGNMENT:
+<span class="nc" id="L424">          serviceImpl.getStudentsByAssignment((ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt;) responseObserver);
+<span class="nc" id="L426">          break;</span>
+        case METHODID_VALIDATE_STUDENT_ENROLLMENT:
+<span class="nc" id="L428">          serviceImpl.validateStudentEnrollment((ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt;) responseObserver);
+<span class="nc" id="L430">          break;</span>
+        case METHODID_GET_CURRENT_ACADEMIC_YEAR:
+<span class="nc" id="L432">          serviceImpl.getCurrentAcademicYear((ec.edu.uteq.sga.grpc.contexto.EmptyRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt;) responseObserver);
+<span class="nc" id="L434">          break;</span>
+        default:
+<span class="nc" id="L436">          throw new AssertionError();</span>
+      }
+<span class="nc" id="L438">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public io.grpc.stub.StreamObserver&lt;Req&gt; invoke(
+        io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc" id="L444">      switch (methodId) {</span>
+        default:
+<span class="nc" id="L446">          throw new AssertionError();</span>
+      }
+    }
+  }
+
+  public static final io.grpc.ServerServiceDefinition bindService(AsyncService service) {
+    return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+        .addMethod(
+          getValidateTeacherAssignmentMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentRequest,
+              ec.edu.uteq.sga.grpc.contexto.ValidateAssignmentResponse&gt;(
+                service, METHODID_VALIDATE_TEACHER_ASSIGNMENT)))
+        .addMethod(
+          getGetStudentsByAssignmentMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentRequest,
+              ec.edu.uteq.sga.grpc.contexto.StudentsByAssignmentResponse&gt;(
+                service, METHODID_GET_STUDENTS_BY_ASSIGNMENT)))
+        .addMethod(
+          getValidateStudentEnrollmentMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentRequest,
+              ec.edu.uteq.sga.grpc.contexto.ValidateEnrollmentResponse&gt;(
+                service, METHODID_VALIDATE_STUDENT_ENROLLMENT)))
+        .addMethod(
+          getGetCurrentAcademicYearMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.contexto.EmptyRequest,
+              ec.edu.uteq.sga.grpc.contexto.AcademicYearResponse&gt;(
+                service, METHODID_GET_CURRENT_ACADEMIC_YEAR)))
+        .build();
+  }
+
+  private static abstract class TeacherContextServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
+<span class="nc" id="L486">    TeacherContextServiceBaseDescriptorSupplier() {}</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
+<span class="nc" id="L490">      return ec.edu.uteq.sga.grpc.contexto.ContextoDocente.getDescriptor();</span>
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
+<span class="nc" id="L495">      return getFileDescriptor().findServiceByName(&quot;TeacherContextService&quot;);</span>
+    }
+  }
+
+  private static final class TeacherContextServiceFileDescriptorSupplier
+      extends TeacherContextServiceBaseDescriptorSupplier {
+<span class="nc" id="L501">    TeacherContextServiceFileDescriptorSupplier() {}</span>
+  }
+
+  private static final class TeacherContextServiceMethodDescriptorSupplier
+      extends TeacherContextServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
+    private final java.lang.String methodName;
+
+<span class="nc" id="L509">    TeacherContextServiceMethodDescriptorSupplier(java.lang.String methodName) {</span>
+<span class="nc" id="L510">      this.methodName = methodName;</span>
+<span class="nc" id="L511">    }</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
+<span class="nc" id="L515">      return getServiceDescriptor().findMethodByName(methodName);</span>
+    }
+  }
+
+  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
+
+  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
+    io.grpc.ServiceDescriptor result = serviceDescriptor;
+    if (result == null) {
+      synchronized (TeacherContextServiceGrpc.class) {
+        result = serviceDescriptor;
+        if (result == null) {
+          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
+              .setSchemaDescriptor(new TeacherContextServiceFileDescriptorSupplier())
+              .addMethod(getValidateTeacherAssignmentMethod())
+              .addMethod(getGetStudentsByAssignmentMethod())
+              .addMethod(getValidateStudentEnrollmentMethod())
+              .addMethod(getGetCurrentAcademicYearMethod())
+              .build();
+        }
+      }
+    }
+    return result;
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstudianteController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">EstudianteController.java</span></div><h1>EstudianteController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.dto.CrearEstudianteDTO;
+import ec.edu.uteq.sga.domain.dto.EstudianteDetalleDTO;
+import ec.edu.uteq.sga.domain.dto.EstudianteListDTO;
+import ec.edu.uteq.sga.application.service.EstudianteService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * La ficha completa de estudiante (representantes, matrículas, documentos)
+ * es dominio de sga-secretaria (ver principal.proto). Este controller opera
+ * sobre el espejo legacy en sga_principal.estudiantes — el mismo que
+ * alimentan los imports de respaldo (CAS/Excel/CSV/PDF, ver
+ * ImportacionExcelService) y el registro manual rápido de este endpoint.
+ */
+@RestController
+@RequestMapping(&quot;/api/estudiantes&quot;)
+@RequiredArgsConstructor
+public class EstudianteController {
+
+    private final EstudianteService estudianteService;
+
+    @GetMapping
+    public ResponseEntity&lt;List&lt;EstudianteListDTO&gt;&gt; listar(@RequestParam(required = false) String q) {
+<span class="nc" id="L29">        return ResponseEntity.ok(estudianteService.listar(q));</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;EstudianteDetalleDTO&gt; obtener(@PathVariable Long id) {
+<span class="nc" id="L34">        return ResponseEntity.ok(estudianteService.obtener(id));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;EstudianteDetalleDTO&gt; crear(@RequestBody CrearEstudianteDTO dto) {
+<span class="nc" id="L39">        return ResponseEntity.ok(estudianteService.crear(dto));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;EstudianteDetalleDTO&gt; actualizar(@PathVariable Long id, @RequestBody CrearEstudianteDTO dto) {
+<span class="nc" id="L44">        return ResponseEntity.ok(estudianteService.actualizar(id, dto));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

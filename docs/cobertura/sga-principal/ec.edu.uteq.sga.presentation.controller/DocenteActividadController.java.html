@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocenteActividadController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">DocenteActividadController.java</span></div><h1>DocenteActividadController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.infrastructure.grpc.ActividadGrpcClient;
+import ec.edu.uteq.sga.grpc.actividades.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/docente/actividades&quot;)
+@CrossOrigin(&quot;*&quot;)
+<span class="nc" id="L16">public class DocenteActividadController {</span>
+
+    @Autowired
+    private ActividadGrpcClient actividadGrpcClient;
+
+    @Autowired
+    private ec.edu.uteq.sga.infrastructure.repository.PeriodoEvaluacionRepository periodoEvaluacionRepository;
+
+    @GetMapping(&quot;/periodos&quot;)
+    public ResponseEntity&lt;?&gt; listarPeriodos() {
+<span class="nc" id="L26">        List&lt;ec.edu.uteq.sga.domain.entity.PeriodoEvaluacion&gt; periodos = periodoEvaluacionRepository.findAll();</span>
+<span class="nc" id="L27">        List&lt;Map&lt;String, Object&gt;&gt; response = periodos.stream().map(p -&gt; {</span>
+<span class="nc" id="L28">            Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L29">            map.put(&quot;id_periodo&quot;, p.getIdPeriodo());</span>
+<span class="nc" id="L30">            map.put(&quot;nombre&quot;, p.getNombre());</span>
+<span class="nc" id="L31">            map.put(&quot;tipo&quot;, p.getTipo());</span>
+<span class="nc" id="L32">            map.put(&quot;activo&quot;, p.isActivo());</span>
+<span class="nc" id="L33">            return map;</span>
+<span class="nc" id="L34">        }).collect(Collectors.toList());</span>
+<span class="nc" id="L35">        return ResponseEntity.ok(response);</span>
+    }
+
+    private Map&lt;String, Object&gt; mapActividadDto(ActividadDto a) {
+<span class="nc" id="L39">        Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L40">        map.put(&quot;idActividad&quot;, a.getIdActividad());</span>
+<span class="nc" id="L41">        map.put(&quot;idAsignacion&quot;, a.getIdAsignacion());</span>
+<span class="nc" id="L42">        map.put(&quot;idPeriodo&quot;, a.getIdPeriodo());</span>
+<span class="nc" id="L43">        map.put(&quot;tipo&quot;, a.getTipo());</span>
+<span class="nc" id="L44">        map.put(&quot;nombre&quot;, a.getNombre());</span>
+<span class="nc" id="L45">        map.put(&quot;descripcion&quot;, a.getDescripcion());</span>
+<span class="nc" id="L46">        map.put(&quot;fechaEntrega&quot;, a.getFechaEntrega());</span>
+<span class="nc" id="L47">        map.put(&quot;ponderacion&quot;, a.getPonderacion());</span>
+<span class="nc" id="L48">        map.put(&quot;notaMaxima&quot;, a.getNotaMaxima());</span>
+<span class="nc" id="L49">        map.put(&quot;esSumativa&quot;, a.getEsSumativa());</span>
+<span class="nc" id="L50">        return map;</span>
+    }
+
+    private Map&lt;String, Object&gt; mapActividadResponse(ActividadResponse r) {
+<span class="nc" id="L54">        Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L55">        map.put(&quot;exitoso&quot;, r.getExitoso());</span>
+<span class="nc" id="L56">        map.put(&quot;mensaje&quot;, r.getMensaje());</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (r.hasActividad()) {</span>
+<span class="nc" id="L58">            map.put(&quot;actividad&quot;, mapActividadDto(r.getActividad()));</span>
+        }
+<span class="nc" id="L60">        return map;</span>
+    }
+
+    private Map&lt;String, Object&gt; mapEliminarResponse(EliminarActividadResponse r) {
+<span class="nc" id="L64">        Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L65">        map.put(&quot;exitoso&quot;, r.getExitoso());</span>
+<span class="nc" id="L66">        map.put(&quot;mensaje&quot;, r.getMensaje());</span>
+<span class="nc" id="L67">        return map;</span>
+    }
+
+    @GetMapping
+    public ResponseEntity&lt;?&gt; listarActividades(
+            @RequestParam Long idAsignacion,
+            @RequestParam(required = false) Long idPeriodo) {
+
+<span class="nc" id="L75">        List&lt;ActividadDto&gt; actividades = actividadGrpcClient.listarActividades(idAsignacion, idPeriodo);</span>
+<span class="nc" id="L76">        List&lt;Map&lt;String, Object&gt;&gt; response = actividades.stream()</span>
+<span class="nc" id="L77">                .map(this::mapActividadDto)</span>
+<span class="nc" id="L78">                .collect(Collectors.toList());</span>
+<span class="nc" id="L79">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/asignacion/{asignacionId}&quot;)
+    public ResponseEntity&lt;List&lt;ActividadDto&gt;&gt; listarActividadesPorAsignacion(
+            @PathVariable Long asignacionId,
+            @RequestParam(required = false) Long idPeriodo) {
+
+<span class="nc" id="L87">        List&lt;ActividadDto&gt; actividades = actividadGrpcClient.listarActividades(asignacionId, idPeriodo);</span>
+<span class="nc" id="L88">        return ResponseEntity.ok(actividades);</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; obtenerActividad(@PathVariable Long id) {
+<span class="nc" id="L93">        ActividadResponse response = actividadGrpcClient.obtenerActividad(id);</span>
+<span class="nc" id="L94">        return ResponseEntity.ok(mapActividadResponse(response));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;?&gt; crearActividad(@RequestBody Map&lt;String, Object&gt; body) {
+<span class="nc" id="L99">        CrearActividadRequest request = CrearActividadRequest.newBuilder()</span>
+<span class="nc" id="L100">                .setIdAsignacion(Long.valueOf(body.get(&quot;asignacionId&quot;).toString()))</span>
+<span class="nc" id="L101">                .setIdPeriodo(Long.valueOf(body.get(&quot;periodoId&quot;).toString()))</span>
+<span class="nc" id="L102">                .setTipo((String) body.get(&quot;tipo&quot;))</span>
+<span class="nc" id="L103">                .setNombre((String) body.get(&quot;nombre&quot;))</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                .setDescripcion(body.get(&quot;descripcion&quot;) != null ? (String) body.get(&quot;descripcion&quot;) : &quot;&quot;)</span>
+<span class="nc" id="L105">                .setFechaEntrega((String) body.get(&quot;fechaEntrega&quot;))</span>
+<span class="nc" id="L106">                .setPonderacion(Double.valueOf(body.get(&quot;ponderacion&quot;).toString()))</span>
+<span class="nc" id="L107">                .setNotaMaxima(Double.valueOf(body.get(&quot;notaMaxima&quot;).toString()))</span>
+<span class="nc" id="L108">                .setEsSumativa((Boolean) body.get(&quot;esSumativa&quot;))</span>
+<span class="nc" id="L109">                .build();</span>
+<span class="nc" id="L110">        ActividadResponse response = actividadGrpcClient.crearActividad(request);</span>
+<span class="nc" id="L111">        return ResponseEntity.ok(mapActividadResponse(response));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; editarActividad(@PathVariable Long id, @RequestBody Map&lt;String, Object&gt; body) {
+<span class="nc" id="L116">        EditarActividadRequest request = EditarActividadRequest.newBuilder()</span>
+<span class="nc" id="L117">                .setIdActividad(id)</span>
+<span class="nc" id="L118">                .setTipo((String) body.get(&quot;tipo&quot;))</span>
+<span class="nc" id="L119">                .setNombre((String) body.get(&quot;nombre&quot;))</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                .setDescripcion(body.get(&quot;descripcion&quot;) != null ? (String) body.get(&quot;descripcion&quot;) : &quot;&quot;)</span>
+<span class="nc" id="L121">                .setFechaEntrega((String) body.get(&quot;fechaEntrega&quot;))</span>
+<span class="nc" id="L122">                .setPonderacion(Double.valueOf(body.get(&quot;ponderacion&quot;).toString()))</span>
+<span class="nc" id="L123">                .setNotaMaxima(Double.valueOf(body.get(&quot;notaMaxima&quot;).toString()))</span>
+<span class="nc" id="L124">                .setEsSumativa((Boolean) body.get(&quot;esSumativa&quot;))</span>
+<span class="nc" id="L125">                .build();</span>
+<span class="nc" id="L126">        ActividadResponse response = actividadGrpcClient.editarActividad(request);</span>
+<span class="nc" id="L127">        return ResponseEntity.ok(mapActividadResponse(response));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; eliminarActividad(@PathVariable Long id) {
+<span class="nc" id="L132">        EliminarActividadResponse response = actividadGrpcClient.eliminarActividad(id);</span>
+<span class="nc" id="L133">        return ResponseEntity.ok(mapEliminarResponse(response));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

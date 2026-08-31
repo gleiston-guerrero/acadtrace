@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrincipalGrpcService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.grpc</a> &gt; <span class="el_source">PrincipalGrpcService.java</span></div><h1>PrincipalGrpcService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.grpc;
+
+import ec.edu.uteq.sga.domain.dto.CrearEstudianteDTO;
+import ec.edu.uteq.sga.domain.dto.EstudianteDetalleDTO;
+import ec.edu.uteq.sga.domain.dto.grado.GradoRequestDTO;
+import ec.edu.uteq.sga.domain.dto.grado.GradoResponseDTO;
+import ec.edu.uteq.sga.domain.dto.grado.ParaleloDTO;
+import ec.edu.uteq.sga.domain.dto.matricula.MatriculaRequestDTO;
+import ec.edu.uteq.sga.domain.dto.matricula.MatriculaResponseDTO;
+import ec.edu.uteq.sga.domain.entity.AnoLectivo;
+import ec.edu.uteq.sga.domain.entity.Asignatura;
+import ec.edu.uteq.sga.domain.entity.Representante;
+import ec.edu.uteq.sga.grpc.principal.*;
+import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignaturaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.EstudianteRepository;
+import ec.edu.uteq.sga.infrastructure.repository.RepresentanteRepository;
+import ec.edu.uteq.sga.application.service.AuditoriaService;
+import ec.edu.uteq.sga.application.service.EstudianteService;
+import ec.edu.uteq.sga.application.service.GradoService;
+import ec.edu.uteq.sga.application.service.MatriculaService;
+import io.grpc.Status;
+import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
+import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Servidor gRPC de sga-principal.
+ * Expone el catalogo institucional (anos lectivos, grados, paralelos,
+ * asignaturas) de solo lectura, y desde esta migracion tambien la escritura
+ * de Estudiante (crear/actualizar) para que sga-secretaria deje de insertar
+ * por SQL directo — centraliza el punto de escritura de esa tabla compartida.
+ */
+@GrpcService
+@RequiredArgsConstructor
+public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceImplBase {
+
+    private final AnoLectivoRepository anoLectivoRepository;
+    private final AsignaturaRepository asignaturaRepository;
+    private final EstudianteService estudianteService;
+    private final GradoService gradoService;
+    private final RepresentanteRepository representanteRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final AuditoriaService auditoriaService;
+    private final MatriculaService matriculaService;
+
+    @Override
+    public void listarAnosLectivos(Empty request, StreamObserver&lt;AnosLectivosResponse&gt; responseObserver) {
+<span class="nc" id="L54">        AnosLectivosResponse.Builder response = AnosLectivosResponse.newBuilder();</span>
+<span class="nc" id="L55">        List&lt;AnoLectivo&gt; anos = anoLectivoRepository.findAll();</span>
+<span class="nc" id="L56">        anos.forEach(a -&gt; response.addAnosLectivos(toProto(a)));</span>
+<span class="nc" id="L57">        responseObserver.onNext(response.build());</span>
+<span class="nc" id="L58">        responseObserver.onCompleted();</span>
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    public void listarGrados(Empty request, StreamObserver&lt;GradosResponse&gt; responseObserver) {
+<span class="nc" id="L63">        GradosResponse.Builder response = GradosResponse.newBuilder();</span>
+<span class="nc" id="L64">        gradoService.listarTodos().forEach(g -&gt; response.addGrados(toProto(g)));</span>
+<span class="nc" id="L65">        responseObserver.onNext(response.build());</span>
+<span class="nc" id="L66">        responseObserver.onCompleted();</span>
+<span class="nc" id="L67">    }</span>
+
+    @Override
+    public void listarParalelos(ListarParalelosRequest request, StreamObserver&lt;ParalelosResponse&gt; responseObserver) {
+<span class="nc" id="L71">        ParalelosResponse.Builder response = ParalelosResponse.newBuilder();</span>
+<span class="nc" id="L72">        gradoService.listarTodos().stream()</span>
+<span class="nc bnc" id="L73" title="All 4 branches missed.">                .filter(g -&gt; request.getIdGrado() &lt;= 0 || request.getIdGrado() == g.getIdGrado())</span>
+<span class="nc" id="L74">                .flatMap(g -&gt; g.getParalelos().stream())</span>
+<span class="nc" id="L75">                .forEach(p -&gt; response.addParalelos(toProto(p)));</span>
+<span class="nc" id="L76">        responseObserver.onNext(response.build());</span>
+<span class="nc" id="L77">        responseObserver.onCompleted();</span>
+<span class="nc" id="L78">    }</span>
+
+    @Override
+    public void crearGrado(GuardarGradoRequest request, StreamObserver&lt;GradoProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L83">            GradoResponseDTO creado = gradoService.crear(fromProto(request));</span>
+<span class="nc" id="L84">            responseObserver.onNext(toProto(creado));</span>
+<span class="nc" id="L85">            responseObserver.onCompleted();</span>
+<span class="nc" id="L86">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L87">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L88">        }</span>
+<span class="nc" id="L89">    }</span>
+
+    @Override
+    public void actualizarGrado(GuardarGradoRequest request, StreamObserver&lt;GradoProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L94">            GradoResponseDTO actualizado = gradoService.actualizar(request.getIdGrado(), fromProto(request));</span>
+<span class="nc" id="L95">            responseObserver.onNext(toProto(actualizado));</span>
+<span class="nc" id="L96">            responseObserver.onCompleted();</span>
+<span class="nc" id="L97">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L98">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L99">        }</span>
+<span class="nc" id="L100">    }</span>
+
+    @Override
+    public void cambiarEstadoGrado(CambiarEstadoGradoRequest request, StreamObserver&lt;Empty&gt; responseObserver) {
+        try {
+<span class="nc" id="L105">            gradoService.cambiarEstado(request.getIdGrado(), request.getActivo());</span>
+<span class="nc" id="L106">            responseObserver.onNext(Empty.newBuilder().build());</span>
+<span class="nc" id="L107">            responseObserver.onCompleted();</span>
+<span class="nc" id="L108">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L109">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L110">        }</span>
+<span class="nc" id="L111">    }</span>
+
+    @Override
+    public void crearParalelo(GuardarParaleloRequest request, StreamObserver&lt;ParaleloProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L116">            ParaleloDTO creado = gradoService.crearParalelo(request.getIdGrado(), request.getLetra());</span>
+<span class="nc" id="L117">            responseObserver.onNext(toProto(creado));</span>
+<span class="nc" id="L118">            responseObserver.onCompleted();</span>
+<span class="nc" id="L119">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L120">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L121">        }</span>
+<span class="nc" id="L122">    }</span>
+
+    @Override
+    public void cambiarEstadoParalelo(CambiarEstadoParaleloRequest request, StreamObserver&lt;Empty&gt; responseObserver) {
+        try {
+<span class="nc" id="L127">            gradoService.cambiarEstadoParalelo(request.getIdParalelo(), request.getActivo());</span>
+<span class="nc" id="L128">            responseObserver.onNext(Empty.newBuilder().build());</span>
+<span class="nc" id="L129">            responseObserver.onCompleted();</span>
+<span class="nc" id="L130">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L131">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L132">        }</span>
+<span class="nc" id="L133">    }</span>
+
+    private GradoRequestDTO fromProto(GuardarGradoRequest r) {
+<span class="nc" id="L136">        return GradoRequestDTO.builder()</span>
+<span class="nc" id="L137">                .nombre(r.getNombre())</span>
+<span class="nc" id="L138">                .orden((short) r.getOrden())</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                .capacidadMax(r.getCapacidadMax() &gt; 0 ? (short) r.getCapacidadMax() : 35)</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                .idNivel(r.getIdNivel() &gt; 0 ? r.getIdNivel() : null)</span>
+<span class="nc" id="L141">                .build();</span>
+    }
+
+    @Override
+    public void listarAsignaturas(Empty request, StreamObserver&lt;AsignaturasResponse&gt; responseObserver) {
+<span class="nc" id="L146">        AsignaturasResponse.Builder response = AsignaturasResponse.newBuilder();</span>
+<span class="nc" id="L147">        asignaturaRepository.findAll().forEach(a -&gt; response.addAsignaturas(toProto(a)));</span>
+<span class="nc" id="L148">        responseObserver.onNext(response.build());</span>
+<span class="nc" id="L149">        responseObserver.onCompleted();</span>
+<span class="nc" id="L150">    }</span>
+
+    private AnoLectivoProto toProto(AnoLectivo a) {
+<span class="nc" id="L153">        return AnoLectivoProto.newBuilder()</span>
+<span class="nc" id="L154">                .setIdAnoLectivo(a.getIdAnoLectivo())</span>
+<span class="nc" id="L155">                .setNombre(nullToEmpty(a.getNombre()))</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                .setFechaInicio(a.getFechaInicio() != null ? a.getFechaInicio().toString() : &quot;&quot;)</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                .setFechaFin(a.getFechaFin() != null ? a.getFechaFin().toString() : &quot;&quot;)</span>
+<span class="nc" id="L158">                .setEsActual(a.isEsActual())</span>
+<span class="nc" id="L159">                .build();</span>
+    }
+
+    private GradoProto toProto(GradoResponseDTO d) {
+<span class="nc" id="L163">        return GradoProto.newBuilder()</span>
+<span class="nc" id="L164">                .setIdGrado(d.getIdGrado())</span>
+<span class="nc" id="L165">                .setNombre(nullToEmpty(d.getNombre()))</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                .setOrden(d.getOrden() != null ? d.getOrden() : 0)</span>
+<span class="nc" id="L167">                .setActivo(d.isActivo())</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                .setCapacidadMax(d.getCapacidadMax() != null ? d.getCapacidadMax() : 0)</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                .setIdNivel(d.getIdNivel() != null ? d.getIdNivel() : 0)</span>
+<span class="nc" id="L170">                .setNivelEducativo(nullToEmpty(d.getNivelEducativo()))</span>
+<span class="nc" id="L171">                .setTipoEscala(nullToEmpty(d.getTipoEscala()))</span>
+<span class="nc" id="L172">                .build();</span>
+    }
+
+    private ParaleloProto toProto(ParaleloDTO p) {
+<span class="nc" id="L176">        return ParaleloProto.newBuilder()</span>
+<span class="nc" id="L177">                .setIdParalelo(p.getIdParalelo())</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                .setIdGrado(p.getIdGrado() != null ? p.getIdGrado() : 0)</span>
+<span class="nc" id="L179">                .setLetra(nullToEmpty(p.getLetra()))</span>
+<span class="nc" id="L180">                .setActivo(p.isActivo())</span>
+<span class="nc" id="L181">                .setTotalEstudiantes(p.getTotalEstudiantes())</span>
+<span class="nc" id="L182">                .build();</span>
+    }
+
+    private AsignaturaProto toProto(Asignatura a) {
+<span class="nc" id="L186">        return AsignaturaProto.newBuilder()</span>
+<span class="nc" id="L187">                .setIdAsignatura(a.getIdAsignatura())</span>
+<span class="nc" id="L188">                .setNombre(nullToEmpty(a.getNombre()))</span>
+<span class="nc" id="L189">                .setCodigo(nullToEmpty(a.getCodigo()))</span>
+<span class="nc" id="L190">                .setActiva(a.isActiva())</span>
+<span class="nc" id="L191">                .build();</span>
+    }
+
+    @Override
+    public void crearEstudiante(GuardarEstudianteRequest request, StreamObserver&lt;EstudianteProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L197">            EstudianteDetalleDTO creado = estudianteService.crear(fromProto(request));</span>
+<span class="nc" id="L198">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, creado.getIdEstudiante(),</span>
+                    &quot;Llamada gRPC recibida: crearEstudiante&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L200">            responseObserver.onNext(toProto(creado));</span>
+<span class="nc" id="L201">            responseObserver.onCompleted();</span>
+<span class="nc" id="L202">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L203">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, null,</span>
+<span class="nc" id="L204">                    &quot;Llamada gRPC recibida: crearEstudiante&quot;, &quot;FALLO&quot;, e.getReason());</span>
+<span class="nc" id="L205">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L206">        }</span>
+<span class="nc" id="L207">    }</span>
+
+    @Override
+    public void actualizarEstudiante(GuardarEstudianteRequest request, StreamObserver&lt;EstudianteProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L212">            EstudianteDetalleDTO actualizado = estudianteService.actualizar(request.getIdEstudiante(), fromProto(request));</span>
+<span class="nc" id="L213">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, actualizado.getIdEstudiante(),</span>
+                    &quot;Llamada gRPC recibida: actualizarEstudiante&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L215">            responseObserver.onNext(toProto(actualizado));</span>
+<span class="nc" id="L216">            responseObserver.onCompleted();</span>
+<span class="nc" id="L217">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L218">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, request.getIdEstudiante(),</span>
+<span class="nc" id="L219">                    &quot;Llamada gRPC recibida: actualizarEstudiante&quot;, &quot;FALLO&quot;, e.getReason());</span>
+<span class="nc" id="L220">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L221">        }</span>
+<span class="nc" id="L222">    }</span>
+
+    @Override
+    public void listarEstudiantes(ListarEstudiantesRequest request, StreamObserver&lt;ListarEstudiantesResponse&gt; responseObserver) {
+<span class="nc" id="L226">        EstudianteService.PaginaEstudiantes pagina = estudianteService.listarPaginado(request.getQ(), request.getPage(), request.getLimit());</span>
+<span class="nc" id="L227">        ListarEstudiantesResponse.Builder response = ListarEstudiantesResponse.newBuilder().setTotal(pagina.total());</span>
+<span class="nc" id="L228">        pagina.items().forEach(d -&gt; response.addEstudiantes(toProto(d)));</span>
+<span class="nc" id="L229">        responseObserver.onNext(response.build());</span>
+<span class="nc" id="L230">        responseObserver.onCompleted();</span>
+<span class="nc" id="L231">    }</span>
+
+    @Override
+    public void obtenerEstudiante(ObtenerEstudianteRequest request, StreamObserver&lt;EstudianteProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L236">            responseObserver.onNext(toProto(estudianteService.obtener(request.getIdEstudiante())));</span>
+<span class="nc" id="L237">            responseObserver.onCompleted();</span>
+<span class="nc" id="L238">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L239">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L240">        }</span>
+<span class="nc" id="L241">    }</span>
+
+    @Override
+    public void cambiarEstadoEstudiante(CambiarEstadoEstudianteRequest request, StreamObserver&lt;Empty&gt; responseObserver) {
+        try {
+<span class="nc" id="L246">            estudianteService.cambiarEstado(request.getIdEstudiante(), request.getActivo());</span>
+<span class="nc" id="L247">            responseObserver.onNext(Empty.newBuilder().build());</span>
+<span class="nc" id="L248">            responseObserver.onCompleted();</span>
+<span class="nc" id="L249">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L250">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L251">        }</span>
+<span class="nc" id="L252">    }</span>
+
+    // ---------------- Matriculas (gRPC) ----------------
+
+    @Override
+    public void crearMatricula(GuardarMatriculaRequest request, StreamObserver&lt;MatriculaProto&gt; responseObserver) {
+        try {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">            Long idUsuarioRegistro = request.getIdUsuarioRegistro() &gt; 0 ? request.getIdUsuarioRegistro() : null;</span>
+<span class="nc" id="L260">            MatriculaResponseDTO creada = matriculaService.crear(fromProto(request), idUsuarioRegistro);</span>
+<span class="nc" id="L261">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, creada.getIdMatricula(),</span>
+                    &quot;Llamada gRPC recibida: crearMatricula&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L263">            responseObserver.onNext(toProto(creada));</span>
+<span class="nc" id="L264">            responseObserver.onCompleted();</span>
+<span class="nc" id="L265">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L266">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, null,</span>
+<span class="nc" id="L267">                    &quot;Llamada gRPC recibida: crearMatricula&quot;, &quot;FALLO&quot;, e.getReason());</span>
+<span class="nc" id="L268">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L269">        }</span>
+<span class="nc" id="L270">    }</span>
+
+    @Override
+    public void obtenerMatricula(ObtenerMatriculaRequest request, StreamObserver&lt;MatriculaProto&gt; responseObserver) {
+        try {
+<span class="nc" id="L275">            responseObserver.onNext(toProto(matriculaService.obtener(request.getIdMatricula())));</span>
+<span class="nc" id="L276">            responseObserver.onCompleted();</span>
+<span class="nc" id="L277">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L278">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L279">        }</span>
+<span class="nc" id="L280">    }</span>
+
+    @Override
+    public void listarMatriculas(ListarMatriculasRequest request, StreamObserver&lt;ListarMatriculasResponse&gt; responseObserver) {
+<span class="nc" id="L284">        MatriculaService.PaginaMatriculas pagina = matriculaService.listar(</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                request.getIdAnoLectivo() &gt; 0 ? request.getIdAnoLectivo() : null,</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                request.getIdEstudiante() &gt; 0 ? request.getIdEstudiante() : null,</span>
+                null,
+<span class="nc" id="L288">                request.getQ(), request.getPage(), request.getLimit());</span>
+<span class="nc" id="L289">        ListarMatriculasResponse.Builder response = ListarMatriculasResponse.newBuilder().setTotal(pagina.total());</span>
+<span class="nc" id="L290">        pagina.items().forEach(d -&gt; response.addMatriculas(toProto(d)));</span>
+<span class="nc" id="L291">        responseObserver.onNext(response.build());</span>
+<span class="nc" id="L292">        responseObserver.onCompleted();</span>
+<span class="nc" id="L293">    }</span>
+
+    @Override
+    public void cambiarEstadoMatricula(CambiarEstadoMatriculaRequest request, StreamObserver&lt;Empty&gt; responseObserver) {
+        try {
+<span class="nc" id="L298">            matriculaService.cambiarEstado(request.getIdMatricula(), request.getEstado());</span>
+<span class="nc" id="L299">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, request.getIdMatricula(),</span>
+                    &quot;Llamada gRPC recibida: cambiarEstadoMatricula&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L301">            responseObserver.onNext(Empty.newBuilder().build());</span>
+<span class="nc" id="L302">            responseObserver.onCompleted();</span>
+<span class="nc" id="L303">        } catch (ResponseStatusException e) {</span>
+<span class="nc" id="L304">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, request.getIdMatricula(),</span>
+<span class="nc" id="L305">                    &quot;Llamada gRPC recibida: cambiarEstadoMatricula&quot;, &quot;FALLO&quot;, e.getReason());</span>
+<span class="nc" id="L306">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
+<span class="nc" id="L307">        }</span>
+<span class="nc" id="L308">    }</span>
+
+    private MatriculaRequestDTO fromProto(GuardarMatriculaRequest r) {
+<span class="nc" id="L311">        return MatriculaRequestDTO.builder()</span>
+<span class="nc" id="L312">                .idEstudiante(r.getIdEstudiante())</span>
+<span class="nc" id="L313">                .idGrado(r.getIdGrado())</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                .idParalelo(r.getIdParalelo() &gt; 0 ? r.getIdParalelo() : null)</span>
+<span class="nc" id="L315">                .idAnoLectivo(r.getIdAnoLectivo())</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                .estado(r.getEstado().isBlank() ? null : r.getEstado())</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                .observaciones(r.getObservaciones().isBlank() ? null : r.getObservaciones())</span>
+<span class="nc" id="L318">                .build();</span>
+    }
+
+    private MatriculaProto toProto(MatriculaResponseDTO d) {
+<span class="nc" id="L322">        return MatriculaProto.newBuilder()</span>
+<span class="nc" id="L323">                .setIdMatricula(d.getIdMatricula())</span>
+<span class="nc" id="L324">                .setIdEstudiante(d.getIdEstudiante())</span>
+<span class="nc" id="L325">                .setEstudianteNombres(nullToEmpty(d.getEstudianteNombres()))</span>
+<span class="nc" id="L326">                .setEstudianteApellidos(nullToEmpty(d.getEstudianteApellidos()))</span>
+<span class="nc" id="L327">                .setEstudianteCedula(nullToEmpty(d.getEstudianteCedula()))</span>
+<span class="nc" id="L328">                .setEstudianteCodigo(nullToEmpty(d.getEstudianteCodigo()))</span>
+<span class="nc" id="L329">                .setIdGrado(d.getIdGrado())</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">                .setIdParalelo(d.getIdParalelo() != null ? d.getIdParalelo() : 0)</span>
+<span class="nc" id="L331">                .setIdAnoLectivo(d.getIdAnoLectivo())</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">                .setNumeroOrden(d.getNumeroOrden() != null ? d.getNumeroOrden() : 0)</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">                .setFechaRegistro(d.getFechaRegistro() != null ? d.getFechaRegistro().toString() : &quot;&quot;)</span>
+<span class="nc" id="L334">                .setEstado(nullToEmpty(d.getEstado()))</span>
+<span class="nc" id="L335">                .setObservaciones(nullToEmpty(d.getObservaciones()))</span>
+<span class="nc" id="L336">                .setRegistradoPor(nullToEmpty(d.getRegistradoPor()))</span>
+<span class="nc" id="L337">                .build();</span>
+    }
+
+    private CrearEstudianteDTO fromProto(GuardarEstudianteRequest r) {
+<span class="nc" id="L341">        CrearEstudianteDTO dto = new CrearEstudianteDTO();</span>
+<span class="nc" id="L342">        dto.setCedula(r.getCedula());</span>
+<span class="nc" id="L343">        dto.setNombres(r.getNombres());</span>
+<span class="nc" id="L344">        dto.setApellidos(r.getApellidos());</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">        dto.setFechaNacimiento(r.getFechaNacimiento().isBlank() ? null : LocalDate.parse(r.getFechaNacimiento()));</span>
+<span class="nc" id="L346">        dto.setGenero(r.getGenero());</span>
+<span class="nc" id="L347">        dto.setCorreo(r.getCorreo());</span>
+<span class="nc" id="L348">        dto.setDireccion(r.getDireccion());</span>
+<span class="nc" id="L349">        dto.setTelefono(r.getTelefono());</span>
+<span class="nc" id="L350">        dto.setDiscapacidad(r.getDiscapacidad());</span>
+<span class="nc" id="L351">        dto.setTipoDiscapacidad(r.getTipoDiscapacidad());</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        dto.setPorcentajeDisc(r.getPorcentajeDisc() &gt; 0 ? (short) r.getPorcentajeDisc() : null);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        dto.setIdRepresentante(r.getIdRepresentante() &gt; 0 ? r.getIdRepresentante() : null);</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        dto.setIdUsuarioCreador(r.getIdUsuarioCreador() &gt; 0 ? r.getIdUsuarioCreador() : null);</span>
+<span class="nc" id="L355">        dto.setCodigoEstudiante(r.getCodigoEstudiante());</span>
+<span class="nc" id="L356">        dto.setNacionalidad(r.getNacionalidad());</span>
+<span class="nc" id="L357">        dto.setEtnia(r.getEtnia());</span>
+<span class="nc" id="L358">        dto.setLugarNacimiento(r.getLugarNacimiento());</span>
+<span class="nc" id="L359">        dto.setViveCon(r.getViveCon());</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        dto.setNumerosHermanos(r.getNumerosHermanos() &gt; 0 ? (short) r.getNumerosHermanos() : null);</span>
+<span class="nc" id="L361">        dto.setBeneficioSocial(r.getBeneficioSocial());</span>
+<span class="nc" id="L362">        dto.setCarnetConadis(r.getCarnetConadis());</span>
+<span class="nc" id="L363">        dto.setFotoUrl(r.getFotoUrl());</span>
+<span class="nc" id="L364">        return dto;</span>
+    }
+
+    private EstudianteProto toProto(EstudianteDetalleDTO d) {
+<span class="nc" id="L368">        var rep = d.getRepresentante();</span>
+<span class="nc" id="L369">        return EstudianteProto.newBuilder()</span>
+<span class="nc" id="L370">                .setIdEstudiante(d.getIdEstudiante())</span>
+<span class="nc" id="L371">                .setCedula(nullToEmpty(d.getCedula()))</span>
+<span class="nc" id="L372">                .setCodigoEstudiante(nullToEmpty(d.getCodigoEstudiante()))</span>
+<span class="nc" id="L373">                .setNombres(nullToEmpty(d.getNombres()))</span>
+<span class="nc" id="L374">                .setApellidos(nullToEmpty(d.getApellidos()))</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">                .setFechaNacimiento(d.getFechaNacimiento() != null ? d.getFechaNacimiento().toString() : &quot;&quot;)</span>
+<span class="nc" id="L376">                .setGenero(nullToEmpty(d.getGenero()))</span>
+<span class="nc" id="L377">                .setCorreo(nullToEmpty(d.getCorreo()))</span>
+<span class="nc" id="L378">                .setDireccion(nullToEmpty(d.getDireccion()))</span>
+<span class="nc" id="L379">                .setTelefono(nullToEmpty(d.getTelefono()))</span>
+<span class="nc" id="L380">                .setDiscapacidad(d.isDiscapacidad())</span>
+<span class="nc" id="L381">                .setTipoDiscapacidad(nullToEmpty(d.getTipoDiscapacidad()))</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">                .setPorcentajeDisc(d.getPorcentajeDisc() != null ? d.getPorcentajeDisc() : 0)</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">                .setIdRepresentante(d.getIdRepresentante() != null ? d.getIdRepresentante() : 0)</span>
+<span class="nc" id="L384">                .setEstado(nullToEmpty(d.getEstado()))</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">                .setRepNombres(rep != null ? nullToEmpty(rep.getNombres()) : &quot;&quot;)</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">                .setRepApellidos(rep != null ? nullToEmpty(rep.getApellidos()) : &quot;&quot;)</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">                .setRepTelefono(rep != null ? nullToEmpty(rep.getTelefonoPrincipal()) : &quot;&quot;)</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">                .setRepParentesco(rep != null ? nullToEmpty(rep.getParentesco()) : &quot;&quot;)</span>
+<span class="nc" id="L389">                .setNacionalidad(nullToEmpty(d.getNacionalidad()))</span>
+<span class="nc" id="L390">                .setEtnia(nullToEmpty(d.getEtnia()))</span>
+<span class="nc" id="L391">                .setLugarNacimiento(nullToEmpty(d.getLugarNacimiento()))</span>
+<span class="nc" id="L392">                .setViveCon(nullToEmpty(d.getViveCon()))</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">                .setNumerosHermanos(d.getNumerosHermanos() != null ? d.getNumerosHermanos() : 0)</span>
+<span class="nc" id="L394">                .setBeneficioSocial(d.isBeneficioSocial())</span>
+<span class="nc" id="L395">                .setCarnetConadis(nullToEmpty(d.getCarnetConadis()))</span>
+<span class="nc" id="L396">                .setFotoUrl(nullToEmpty(d.getFotoUrl()))</span>
+<span class="nc" id="L397">                .build();</span>
+    }
+
+    // ---------------- Representantes (gRPC) ----------------
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public void obtenerRepresentante(ObtenerRepresentanteRequest request, StreamObserver&lt;RepresentanteProto&gt; responseObserver) {
+<span class="nc" id="L405">        Representante r = representanteRepository.findById(request.getIdRepresentante())</span>
+<span class="nc" id="L406">                .orElse(null);</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (r == null) {</span>
+<span class="nc" id="L408">            responseObserver.onError(Status.NOT_FOUND.withDescription(&quot;Representante no encontrado&quot;).asRuntimeException());</span>
+<span class="nc" id="L409">            return;</span>
+        }
+<span class="nc" id="L411">        responseObserver.onNext(toRepresentanteProto(r));</span>
+<span class="nc" id="L412">        responseObserver.onCompleted();</span>
+<span class="nc" id="L413">    }</span>
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public void listarRepresentantesPorEstudiantes(ListarRepresentantesPorEstudiantesRequest request,
+                                                    StreamObserver&lt;RepresentantesResponse&gt; responseObserver) {
+<span class="nc" id="L419">        RepresentantesResponse.Builder resp = RepresentantesResponse.newBuilder();</span>
+<span class="nc" id="L420">        List&lt;Long&gt; ids = request.getIdEstudianteList();</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        if (ids.isEmpty()) {</span>
+<span class="nc" id="L422">            responseObserver.onNext(resp.build());</span>
+<span class="nc" id="L423">            responseObserver.onCompleted();</span>
+<span class="nc" id="L424">            return;</span>
+        }
+        // JOIN estudiante-&gt;representante (mirror local sga_principal.representantes)
+<span class="nc" id="L427">        estudianteRepository.findAllById(ids).forEach(e -&gt; {</span>
+<span class="nc" id="L428">            Representante r = e.getRepresentante();</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">            if (r != null) {</span>
+<span class="nc" id="L430">                resp.addItems(RepresentanteEstudianteProto.newBuilder()</span>
+<span class="nc" id="L431">                        .setIdEstudiante(e.getIdEstudiante())</span>
+<span class="nc" id="L432">                        .setRepresentante(toRepresentanteProto(r))</span>
+<span class="nc" id="L433">                        .build());</span>
+            }
+<span class="nc" id="L435">        });</span>
+<span class="nc" id="L436">        responseObserver.onNext(resp.build());</span>
+<span class="nc" id="L437">        responseObserver.onCompleted();</span>
+<span class="nc" id="L438">    }</span>
+
+    private RepresentanteProto toRepresentanteProto(Representante r) {
+<span class="nc" id="L441">        return RepresentanteProto.newBuilder()</span>
+<span class="nc" id="L442">                .setIdRepresentante(r.getIdRepresentante())</span>
+<span class="nc" id="L443">                .setCedula(nullToEmpty(r.getCedula()))</span>
+<span class="nc" id="L444">                .setNombres(nullToEmpty(r.getNombres()))</span>
+<span class="nc" id="L445">                .setApellidos(nullToEmpty(r.getApellidos()))</span>
+<span class="nc" id="L446">                .setParentesco(nullToEmpty(r.getParentesco()))</span>
+<span class="nc" id="L447">                .setTelefonoPrincipal(nullToEmpty(r.getTelefonoPrincipal()))</span>
+<span class="nc" id="L448">                .setTelefonoAlt(nullToEmpty(r.getTelefonoAlt()))</span>
+<span class="nc" id="L449">                .setCorreo(nullToEmpty(r.getCorreo()))</span>
+<span class="nc" id="L450">                .setDireccion(nullToEmpty(r.getDireccion()))</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">                .setFechaNacimiento(r.getFechaNacimiento() != null ? r.getFechaNacimiento().toString() : &quot;&quot;)</span>
+<span class="nc" id="L452">                .setGenero(nullToEmpty(r.getGenero()))</span>
+<span class="nc" id="L453">                .setEstadoCivil(nullToEmpty(r.getEstadoCivil()))</span>
+<span class="nc" id="L454">                .setNacionalidad(nullToEmpty(r.getNacionalidad()))</span>
+<span class="nc" id="L455">                .setOcupacion(nullToEmpty(r.getOcupacion()))</span>
+<span class="nc" id="L456">                .setLugarTrabajo(nullToEmpty(r.getLugarTrabajo()))</span>
+<span class="nc" id="L457">                .setTelefonoTrabajo(nullToEmpty(r.getTelefonoTrabajo()))</span>
+<span class="nc" id="L458">                .setCargo(nullToEmpty(r.getCargo()))</span>
+<span class="nc" id="L459">                .setNivelInstruccion(nullToEmpty(r.getNivelInstruccion()))</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                .setIngresoMensual(r.getIngresoMensual() != null ? r.getIngresoMensual().doubleValue() : 0.0)</span>
+<span class="nc" id="L461">                .setConviveConEstudiante(Boolean.TRUE.equals(r.getConviveConEstudiante()))</span>
+<span class="nc" id="L462">                .setContactoEmergenciaNombre(nullToEmpty(r.getContactoEmergenciaNombre()))</span>
+<span class="nc" id="L463">                .setContactoEmergenciaTelefono(nullToEmpty(r.getContactoEmergenciaTelefono()))</span>
+<span class="nc" id="L464">                .setObservaciones(nullToEmpty(r.getObservaciones()))</span>
+<span class="nc" id="L465">                .build();</span>
+    }
+
+    private Status toGrpcStatus(ResponseStatusException e) {
+<span class="nc" id="L469">        HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());</span>
+<span class="nc bnc" id="L470" title="All 4 branches missed.">        Status grpcStatus = switch (status) {</span>
+<span class="nc" id="L471">            case NOT_FOUND -&gt; Status.NOT_FOUND;</span>
+<span class="nc" id="L472">            case CONFLICT -&gt; Status.ALREADY_EXISTS;</span>
+<span class="nc" id="L473">            case BAD_REQUEST -&gt; Status.INVALID_ARGUMENT;</span>
+<span class="nc" id="L474">            default -&gt; Status.INTERNAL;</span>
+        };
+<span class="nc" id="L476">        return grpcStatus.withDescription(e.getReason());</span>
+    }
+
+    private String nullToEmpty(String value) {
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        return value != null ? value : &quot;&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

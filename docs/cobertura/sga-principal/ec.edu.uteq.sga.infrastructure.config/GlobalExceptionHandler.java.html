@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.config</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.config;
+
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+<span class="nc" id="L16">public class GlobalExceptionHandler {</span>
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleResponseStatusException(ResponseStatusException ex) {
+<span class="nc" id="L20">        Map&lt;String, Object&gt; body = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L21">        body.put(&quot;timestamp&quot;, Instant.now().toString());</span>
+<span class="nc" id="L22">        body.put(&quot;status&quot;, ex.getStatusCode().value());</span>
+<span class="nc" id="L23">        body.put(&quot;error&quot;, ex.getStatusCode().toString());</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        body.put(&quot;message&quot;, ex.getReason() != null ? ex.getReason() : &quot;Error en la solicitud&quot;);</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        body.put(&quot;mensaje&quot;, ex.getReason() != null ? ex.getReason() : &quot;Error en la solicitud&quot;);</span>
+<span class="nc" id="L26">        return new ResponseEntity&lt;&gt;(body, ex.getStatusCode());</span>
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+<span class="nc" id="L31">        Map&lt;String, Object&gt; body = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L32">        body.put(&quot;timestamp&quot;, Instant.now().toString());</span>
+<span class="nc" id="L33">        body.put(&quot;status&quot;, HttpStatus.CONFLICT.value());</span>
+<span class="nc" id="L34">        body.put(&quot;error&quot;, &quot;Conflict&quot;);</span>
+        
+<span class="nc" id="L36">        String msg = &quot;No se pudo realizar la operación: el registro entra en conflicto con datos existentes o está en uso en otra parte del sistema.&quot;;</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        String lower = ex.getMessage() != null ? ex.getMessage().toLowerCase() : &quot;&quot;;</span>
+<span class="nc bnc" id="L38" title="All 6 branches missed.">        if (lower.contains(&quot;unique&quot;) || lower.contains(&quot;duplicada&quot;) || lower.contains(&quot;key&quot;)) {</span>
+<span class="nc" id="L39">            msg = &quot;Ya existe un registro con los mismos datos en el sistema (duplicado).&quot;;</span>
+<span class="nc bnc" id="L40" title="All 6 branches missed.">        } else if (lower.contains(&quot;foreign key&quot;) || lower.contains(&quot;violates&quot;) || lower.contains(&quot;fk&quot;)) {</span>
+<span class="nc" id="L41">            msg = &quot;No se puede eliminar o modificar este registro porque ya tiene datos vinculados (asistencias, actividades u horarios).&quot;;</span>
+        }
+<span class="nc" id="L43">        body.put(&quot;message&quot;, msg);</span>
+<span class="nc" id="L44">        body.put(&quot;mensaje&quot;, msg);</span>
+<span class="nc" id="L45">        return new ResponseEntity&lt;&gt;(body, HttpStatus.CONFLICT);</span>
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleValidationExceptions(MethodArgumentNotValidException ex) {
+<span class="nc" id="L50">        Map&lt;String, Object&gt; body = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L51">        body.put(&quot;timestamp&quot;, Instant.now().toString());</span>
+<span class="nc" id="L52">        body.put(&quot;status&quot;, HttpStatus.BAD_REQUEST.value());</span>
+        
+<span class="nc" id="L54">        StringBuilder sb = new StringBuilder(&quot;Datos de entrada no válidos: &quot;);</span>
+<span class="nc" id="L55">        ex.getBindingResult().getFieldErrors().forEach(error -&gt; </span>
+<span class="nc" id="L56">            sb.append(error.getField()).append(&quot; &quot;).append(error.getDefaultMessage()).append(&quot;; &quot;)</span>
+        );
+<span class="nc" id="L58">        String msg = sb.toString();</span>
+<span class="nc" id="L59">        body.put(&quot;message&quot;, msg);</span>
+<span class="nc" id="L60">        body.put(&quot;mensaje&quot;, msg);</span>
+<span class="nc" id="L61">        return new ResponseEntity&lt;&gt;(body, HttpStatus.BAD_REQUEST);</span>
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleAuthenticationException(org.springframework.security.core.AuthenticationException ex) {
+<span class="nc" id="L66">        Map&lt;String, Object&gt; body = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L67">        body.put(&quot;timestamp&quot;, Instant.now().toString());</span>
+<span class="nc" id="L68">        body.put(&quot;status&quot;, HttpStatus.UNAUTHORIZED.value());</span>
+<span class="nc" id="L69">        body.put(&quot;error&quot;, &quot;Unauthorized&quot;);</span>
+<span class="nc" id="L70">        body.put(&quot;message&quot;, &quot;Usuario o contraseña incorrectos.&quot;);</span>
+<span class="nc" id="L71">        body.put(&quot;mensaje&quot;, &quot;Usuario o contraseña incorrectos.&quot;);</span>
+<span class="nc" id="L72">        return new ResponseEntity&lt;&gt;(body, HttpStatus.UNAUTHORIZED);</span>
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleGeneralException(Exception ex) {
+<span class="nc" id="L77">        Map&lt;String, Object&gt; body = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L78">        body.put(&quot;timestamp&quot;, Instant.now().toString());</span>
+<span class="nc" id="L79">        body.put(&quot;status&quot;, HttpStatus.INTERNAL_SERVER_ERROR.value());</span>
+<span class="nc" id="L80">        body.put(&quot;error&quot;, &quot;Internal Server Error&quot;);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        String msg = ex.getMessage() != null ? ex.getMessage() : &quot;Ocurrió un error inesperado en el servidor.&quot;;</span>
+<span class="nc" id="L82">        body.put(&quot;message&quot;, msg);</span>
+<span class="nc" id="L83">        body.put(&quot;mensaje&quot;, msg);</span>
+<span class="nc" id="L84">        return new ResponseEntity&lt;&gt;(body, HttpStatus.INTERNAL_SERVER_ERROR);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.dto.AuthResponse;
+import ec.edu.uteq.sga.domain.dto.LoginRequest;
+import ec.edu.uteq.sga.domain.dto.usuario.CambioPasswordDTO;
+import ec.edu.uteq.sga.domain.entity.Usuario;
+import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
+import ec.edu.uteq.sga.infrastructure.security.JwtUtil;
+import ec.edu.uteq.sga.application.service.AuditoriaService;
+import ec.edu.uteq.sga.application.service.UsuarioService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/auth&quot;)
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService; // ← agregar esto
+    private final AuditoriaService auditoriaService;
+
+    @PostMapping(&quot;/login&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; login(@Valid @RequestBody LoginRequest request) {
+
+        Authentication auth;
+        try {
+<span class="nc" id="L39">            auth = authenticationManager.authenticate(</span>
+                    new UsernamePasswordAuthenticationToken(
+<span class="nc" id="L41">                            request.getUsername(),</span>
+<span class="nc" id="L42">                            request.getPassword()</span>
+                    )
+            );
+<span class="nc" id="L45">        } catch (AuthenticationException e) {</span>
+<span class="nc" id="L46">            auditoriaService.registrarAuth(&quot;LOGIN_FALLIDO&quot;, request.getUsername(), null, &quot;FALLO&quot;,</span>
+<span class="nc" id="L47">                    &quot;Credenciales invalidas: &quot; + e.getMessage());</span>
+<span class="nc" id="L48">            throw e;</span>
+<span class="nc" id="L49">        }</span>
+
+<span class="nc" id="L51">        Usuario usuario = usuarioRepository.findByUsername(request.getUsername())</span>
+<span class="nc" id="L52">                .orElseThrow();</span>
+
+<span class="nc" id="L54">        List&lt;String&gt; roles = usuario.getRoles().stream()</span>
+<span class="nc" id="L55">                .map(r -&gt; r.getNombre())</span>
+<span class="nc" id="L56">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L58">        String token = jwtUtil.generarToken(usuario.getUsername(), roles);</span>
+
+<span class="nc" id="L60">        auditoriaService.registrarAuth(&quot;LOGIN&quot;, usuario.getUsername(), usuario.getIdUsuario(), &quot;EXITO&quot;, null);</span>
+
+<span class="nc" id="L62">        return ResponseEntity.ok(AuthResponse.builder()</span>
+<span class="nc" id="L63">                .token(token)</span>
+<span class="nc" id="L64">                .idUsuario(usuario.getIdUsuario())</span>
+<span class="nc" id="L65">                .username(usuario.getUsername())</span>
+<span class="nc" id="L66">                .correo(usuario.getCorreo())</span>
+<span class="nc" id="L67">                .roles(roles)</span>
+<span class="nc" id="L68">                .primerIngreso(usuario.isPrimerIngreso())</span>
+<span class="nc" id="L69">                .build());</span>
+    }
+
+    @PatchMapping(&quot;/cambiar-password&quot;)
+    public ResponseEntity&lt;Void&gt; cambiarPassword(
+            Authentication auth,
+            @Valid @RequestBody CambioPasswordDTO dto) {
+<span class="nc" id="L76">        usuarioService.cambiarPassword(auth.getName(), dto);</span>
+<span class="nc" id="L77">        auditoriaService.registrarAuth(&quot;CAMBIO_PASSWORD&quot;, auth.getName(), null, &quot;EXITO&quot;, null);</span>
+<span class="nc" id="L78">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
