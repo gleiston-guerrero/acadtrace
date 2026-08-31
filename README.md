@@ -19,26 +19,12 @@ El sistema esta compuesto por un modulo principal y tres microservicios autonomo
 | **Microservicio Soporte** | Node.js / Express | 8083 | 9094 | 5176 | Tickets de Incidencias y Atencion Tecnica |
 
 ---
+## 🔐 Seguridad y Gestión de Variables de Entorno
 
-## Credenciales de Acceso para Evaluacion
-
-Para acceder a los distintos modulos del sistema utilizar las siguientes credenciales predeterminadas:
-
-| Rol | Usuario | Contrasena | Descripcion / Modulos |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | `pcastrol2` | `402/42745aA` | Acceso completo a SGA Principal, Grados, Matriculas y Administracion |
-| **Docente Titular** | `jsjimenezt` | `402/42745aA` | Acceso al portal docente, registro de notas y toma de asistencias |
-
----
-
-## Base de Datos Distribuida (AWS EC2)
-
-Todos los servicios convergen de forma distribuida en la base de datos alojada en la nube:
-
-* **Host:** 192.0.2.1
-* **Puerto PostgreSQL:** 5433
-* **Nombre de Base de Datos:** sga
-* **Esquemas:** sga_principal, sga_docente, public
+En cumplimiento con los estándares de seguridad y la norma **ISO/IEC 25010:2023**:
+* Las credenciales de acceso a bases de datos y llaves criptográficas JWT/AES se gestionan exclusivamente mediante **variables de entorno** (`.env`) y secretos de GitHub Actions (`secrets.EC2_SSH_KEY`).
+* Se provee la plantilla formal [`.env.example`](.env.example) con la estructura requerida para el despliegue del clúster distribuido en AWS.
+* Por higiene de seguridad en repositorios públicos, las contraseñas no se almacenan en texto plano.
 
 ---
 
