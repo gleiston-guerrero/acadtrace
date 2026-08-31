@@ -98,7 +98,7 @@ services:
     container_name: microservicio-secretaria
     ports:
       - "5176:5176"   # REST & Frontend integrado en Spring Boot
-      - "8082:5176"   # REST Backend alias compatible
+      # - "8082:5176"  # REST Backend alias compatible
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
