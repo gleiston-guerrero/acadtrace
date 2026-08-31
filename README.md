@@ -158,3 +158,39 @@ LIMIT 20;
 * **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
 * **Node.js:** v18.0.0 o superior (npm v9+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
+
+---
+
+## Declaracion de Uso de Inteligencia Artificial
+
+En cumplimiento de la transparencia academica exigida por la catedra, se declara el uso de asistentes de IA (Claude, Antigravity/Gemini) durante el desarrollo de la Entrega 4 del PFC, con el siguiente alcance:
+
+| Integrante | Herramienta | Proposito del uso | Revision realizada |
+|---|---|---|---|
+| Emanuel Pino Juliana (microservicio-soporte, Observabilidad) | Claude, Antigravity | Generacion de locustfile.py (prueba de carga), configuracion de Prometheus/remote_write a Grafana Cloud, paneles adicionales del dashboard (P50/P99/errores 4xx-5xx), correccion de vulnerabilidad de secreto JWT hardcodeado, redaccion asistida de la Seccion 5.4, Reflexion Etica, Anexos y Conclusion Individual del informe LaTeX | Se ejecutaron localmente todas las pruebas de carga y se verificaron sus resultados reales (CSV/dashboard) antes de documentarlos; se corrigieron manualmente discrepancias entre corridas (ver Anexo A del informe); se verifico que ninguna clave o credencial real quedara expuesta en los archivos subidos al repositorio |
+
+*(Los demas integrantes deben completar su fila correspondiente segun el uso que hayan dado a estas u otras herramientas de IA en sus propios modulos.)*
+
+Ningun contenido generado por IA fue incorporado sin revision humana previa; los hallazgos tecnicos documentados (cuello de botella, tasas de error, latencias) provienen de ejecuciones reales de las herramientas (Locust, Prometheus, Grafana) sobre el sistema, no de datos simulados o inventados por el modelo de IA.
+
+---
+
+## Compilacion del Informe LaTeX
+
+Los informes individuales de cada integrante (carpeta `Informe-E4_BCEL/`) se compilan con `pdflatex` (TeX Live 2023 o superior). Desde la carpeta `Informe-E4_BCEL/`:
+
+```bash
+# 1ra pasada: genera el .aux con las referencias de citas pendientes
+pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
+
+# Resuelve las citas bibliograficas contra referencias.bib
+bibtex TA_PFC_E4_Soporte
+
+# 2da y 3ra pasada: incorpora la bibliografia resuelta y fija la numeracion
+# de figuras/secciones cruzadas (se corre dos veces por convencion de LaTeX)
+pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
+pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
+```
+
+El PDF resultante es `TA_PFC_E4_Soporte.pdf`, en la misma carpeta. El mismo procedimiento aplica para el resto de informes individuales del equipo (reemplazando el nombre del archivo `.tex`).
+

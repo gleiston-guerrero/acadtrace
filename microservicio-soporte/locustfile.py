@@ -6,11 +6,21 @@ import hmac
 import hashlib
 from locust import HttpUser, task, between, tag
 
-# Clave secreta compartida configurada en docker-compose y application.properties
-DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET", "***REMOVED***")
+# La clave secreta NO se hardcodea aquí: debe venir de la variable de entorno
+# JWT_SECRET (la misma configurada en docker-compose/application.properties).
+# Sin valor por defecto: si no está seteada, el script falla explícitamente
+# en vez de firmar tokens con un secreto expuesto en el código fuente.
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET no está seteada. Exporta la variable de entorno antes de "
+        "correr Locust, por ejemplo:\n"
+        "  PowerShell:  $env:JWT_SECRET = \"<el-secreto-real>\"\n"
+        "  bash/zsh:    export JWT_SECRET=\"<el-secreto-real>\""
+    )
 
 
-def generate_jwt_token(secret: str = DEFAULT_JWT_SECRET, username: str = "soporte_loadtest", roles: list = None) -> str:
+def generate_jwt_token(secret: str = JWT_SECRET, username: str = "soporte_loadtest", roles: list = None) -> str:
     """
     Genera un token JWT HMAC-SHA256 válido compatible con JwtService de microservicio-soporte
     sin requerir librerías externas adicionales.
