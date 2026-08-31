@@ -16,21 +16,15 @@ export const MICROSERVICIOS = {
       `http://${host}:3002`,
       `http://${host}:3003`,
       `http://${host}:3004`,
-      `http://${host}:5174`,
     ],
   },
   SECRETARIA: {
     nombre: "Portal Secretaría",
     hosts: [
+      `http://${host}:5174`,
       `http://${host}:5176`,
       `http://${host}:8082`,
       `http://${host}:5175`,
-      `http://${host}:5174`,
-      `http://${host}:4000`,
-      `http://${host}:4001`,
-      `http://${host}:4002`,
-      `http://${host}:4003`,
-      `http://${host}:4004`,
     ],
   },
   SOPORTE_TECNICO: {

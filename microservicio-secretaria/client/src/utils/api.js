@@ -29,7 +29,7 @@ export const api = axios.create({
     (err) => {
       if (err.response?.status === 401) {
         localStorage.clear();
-        window.location.href = `http://${host}:5174/login`;
+        window.location.href = `http://${host}:5173/login`;
       }
       return Promise.reject(err);
     }

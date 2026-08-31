@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FichaEstudianteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">FichaEstudianteService.java</span></div><h1>FichaEstudianteService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.edu.uteq.sga.grpc.principal.FichaProto;
+import ec.edu.uteq.sga.grpc.principal.GuardarFichaRequest;
+import ec.uteq.sga.secretaria.domain.dto.FichaEstudianteRequest;
+import ec.uteq.sga.secretaria.infrastructure.grpc.PrincipalGrpcClient;
+import ec.uteq.sga.secretaria.infrastructure.security.CryptoService;
+import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Ficha medica/de emergencia del estudiante (sga_secretaria.fichas_estudiante,
+ * entidad JPA de sga-principal); se gestiona por completo via gRPC, igual
+ * que Estudiante. detalle_enfermedad/medicacion_permanente/alergias/
+ * direccion_referencia se cifran aqui (CryptoService) antes de mandarlas por
+ * gRPC — sga-principal guarda y devuelve el texto cifrado a ciegas, sin
+ * conocer la clave, igual que ya pasa con los campos sensibles de
+ * Estudiante. enfermedad_catastrofica es una bandera boolean y
+ * tipo_sangre/contacto_emergencia/telefono_emergencia quedan en claro
+ * (necesarios en texto plano ante una emergencia).
+ */
+@Service
+public class FichaEstudianteService {
+
+    private final PrincipalGrpcClient client;
+    private final CryptoService crypto;
+
+<span class="nc" id="L30">    public FichaEstudianteService(PrincipalGrpcClient client, CryptoService crypto) {</span>
+<span class="nc" id="L31">        this.client = client;</span>
+<span class="nc" id="L32">        this.crypto = crypto;</span>
+<span class="nc" id="L33">    }</span>
+
+    public Map&lt;String, Object&gt; obtenerPorEstudiante(long idEstudiante) {
+<span class="nc" id="L36">        return fromProto(client.obtenerFicha(idEstudiante));</span>
+    }
+
+    public Map&lt;String, Object&gt; guardar(long idEstudiante, FichaEstudianteRequest dto) {
+<span class="nc" id="L40">        GuardarFichaRequest request = GuardarFichaRequest.newBuilder()</span>
+<span class="nc" id="L41">                .setIdEstudiante(idEstudiante)</span>
+<span class="nc" id="L42">                .setTipoSangre(blankToEmpty(dto.tipo_sangre()))</span>
+<span class="nc bnc" id="L43" title="All 4 branches missed.">                .setEnfermedadCatastrofica(dto.enfermedad_catastrofica() != null &amp;&amp; dto.enfermedad_catastrofica())</span>
+<span class="nc" id="L44">                .setDetalleEnfermedad(cifrar(dto.detalle_enfermedad()))</span>
+<span class="nc" id="L45">                .setMedicacionPermanente(cifrar(dto.medicacion_permanente()))</span>
+<span class="nc" id="L46">                .setAlergias(cifrar(dto.alergias()))</span>
+<span class="nc" id="L47">                .setContactoEmergencia(blankToEmpty(dto.contacto_emergencia()))</span>
+<span class="nc" id="L48">                .setTelefonoEmergencia(blankToEmpty(dto.telefono_emergencia()))</span>
+<span class="nc" id="L49">                .setDireccionReferencia(cifrar(dto.direccion_referencia()))</span>
+<span class="nc" id="L50">                .build();</span>
+<span class="nc" id="L51">        return fromProto(client.guardarFicha(request));</span>
+    }
+
+    private String cifrar(String valor) {
+<span class="nc bnc" id="L55" title="All 4 branches missed.">        return (valor == null || valor.isBlank()) ? &quot;&quot; : crypto.encrypt(valor);</span>
+    }
+
+    private String descifrar(String valor) {
+<span class="nc bnc" id="L59" title="All 4 branches missed.">        if (valor == null || valor.isBlank()) return null;</span>
+        try {
+<span class="nc" id="L61">            return crypto.decrypt(valor);</span>
+<span class="nc" id="L62">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L63">            return valor; // dato en texto plano previo al cifrado: se devuelve tal cual</span>
+        }
+    }
+
+    private static String blankToEmpty(String value) {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        return value == null ? &quot;&quot; : value;</span>
+    }
+
+    private Map&lt;String, Object&gt; fromProto(FichaProto f) {
+<span class="nc" id="L72">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L73">        row.put(&quot;id_ficha&quot;, f.getIdFicha());</span>
+<span class="nc" id="L74">        row.put(&quot;id_estudiante&quot;, f.getIdEstudiante());</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        row.put(&quot;tipo_sangre&quot;, f.getTipoSangre().isBlank() ? null : f.getTipoSangre());</span>
+<span class="nc" id="L76">        row.put(&quot;enfermedad_catastrofica&quot;, f.getEnfermedadCatastrofica());</span>
+<span class="nc" id="L77">        row.put(&quot;detalle_enfermedad&quot;, descifrar(f.getDetalleEnfermedad()));</span>
+<span class="nc" id="L78">        row.put(&quot;medicacion_permanente&quot;, descifrar(f.getMedicacionPermanente()));</span>
+<span class="nc" id="L79">        row.put(&quot;alergias&quot;, descifrar(f.getAlergias()));</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        row.put(&quot;contacto_emergencia&quot;, f.getContactoEmergencia().isBlank() ? null : f.getContactoEmergencia());</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        row.put(&quot;telefono_emergencia&quot;, f.getTelefonoEmergencia().isBlank() ? null : f.getTelefonoEmergencia());</span>
+<span class="nc" id="L82">        row.put(&quot;direccion_referencia&quot;, descifrar(f.getDireccionReferencia()));</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        row.put(&quot;fecha_actualizacion&quot;, f.getFechaActualizacion().isBlank() ? null : f.getFechaActualizacion());</span>
+<span class="nc" id="L84">        return row;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

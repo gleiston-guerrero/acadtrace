@@ -111,7 +111,7 @@ export default function Portales() {
   const salir = async () => {
     localStorage.clear();
     const hostVivo = await detectarHostVivo(MICROSERVICIOS.DIRECTOR?.hosts || []);
-    const fallbackHost = typeof window !== "undefined" ? `http://${window.location.hostname}:5174` : "http://localhost:5174";
+    const fallbackHost = typeof window !== "undefined" ? `http://${window.location.hostname}:5173` : "http://localhost:5173";
     window.location.href = `${hostVivo || fallbackHost}/login`;
   };
 

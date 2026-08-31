@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportacionEstudiantesController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.presentation.controller</a> &gt; <span class="el_source">ImportacionEstudiantesController.java</span></div><h1>ImportacionEstudiantesController.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.presentation.controller;
+
+import ec.uteq.sga.secretaria.domain.dto.ConfirmarImportacionRequest;
+import ec.uteq.sga.secretaria.domain.dto.ImportacionResultado;
+import ec.uteq.sga.secretaria.infrastructure.security.AuthenticatedUser;
+import ec.uteq.sga.secretaria.application.service.ImportacionEstudiantesService;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/secretario/importacion-estudiantes&quot;)
+public class ImportacionEstudiantesController {
+
+    private final ImportacionEstudiantesService service;
+
+<span class="nc" id="L18">    public ImportacionEstudiantesController(ImportacionEstudiantesService service) {</span>
+<span class="nc" id="L19">        this.service = service;</span>
+<span class="nc" id="L20">    }</span>
+
+    @PostMapping(value = &quot;/parsear&quot;, consumes = &quot;multipart/form-data&quot;)
+    public ImportacionResultado parsear(@RequestParam(&quot;archivo&quot;) MultipartFile archivo) {
+<span class="nc" id="L24">        return service.parsearArchivo(archivo);</span>
+    }
+
+    @PostMapping(&quot;/confirmar&quot;)
+    public Map&lt;String, Object&gt; confirmar(@RequestBody ConfirmarImportacionRequest request, AuthenticatedUser user) {
+<span class="nc" id="L29">        return service.confirmarImportacion(request.estudiantes(), user.username(),</span>
+<span class="nc" id="L30">                request.id_grado(), request.id_paralelo(), request.id_ano_lectivo());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
