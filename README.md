@@ -19,26 +19,12 @@ El sistema esta compuesto por un modulo principal y tres microservicios autonomo
 | **Microservicio Soporte** | Node.js / Express | 8083 | 9094 | 5176 | Tickets de Incidencias y Atencion Tecnica |
 
 ---
+## 🔐 Seguridad y Gestión de Variables de Entorno
 
-## Credenciales de Acceso para Evaluacion
-
-Para acceder a los distintos modulos del sistema utilizar las siguientes credenciales predeterminadas:
-
-| Rol | Usuario | Contrasena | Descripcion / Modulos |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | `pcastrol2` | `402/42745aA` | Acceso completo a SGA Principal, Grados, Matriculas y Administracion |
-| **Docente Titular** | `jsjimenezt` | `402/42745aA` | Acceso al portal docente, registro de notas y toma de asistencias |
-
----
-
-## Base de Datos Distribuida (AWS EC2)
-
-Todos los servicios convergen de forma distribuida en la base de datos alojada en la nube:
-
-* **Host:** 192.0.2.1
-* **Puerto PostgreSQL:** 5433
-* **Nombre de Base de Datos:** sga
-* **Esquemas:** sga_principal, sga_docente, public
+En cumplimiento con los estándares de seguridad y la norma **ISO/IEC 25010:2023**:
+* Las credenciales de acceso a bases de datos y llaves criptográficas JWT/AES se gestionan exclusivamente mediante **variables de entorno** (`.env`) y secretos de GitHub Actions (`secrets.EC2_SSH_KEY`).
+* Se provee la plantilla formal [`.env.example`](.env.example) con la estructura requerida para el despliegue del clúster distribuido en AWS.
+* Por higiene de seguridad en repositorios públicos, las contraseñas no se almacenan en texto plano.
 
 ---
 
@@ -161,6 +147,7 @@ LIMIT 20;
 
 ---
 
+Juliana-Emanuel
 ## Declaracion de Uso de Inteligencia Artificial
 
 En cumplimiento de la transparencia academica exigida por la catedra, se declara el uso de asistentes de IA (Claude, Antigravity/Gemini) durante el desarrollo de la Entrega 4 del PFC, con el siguiente alcance:
@@ -193,4 +180,35 @@ pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
 ```
 
 El PDF resultante es `TA_PFC_E4_Soporte.pdf`, en la misma carpeta. El mismo procedimiento aplica para el resto de informes individuales del equipo (reemplazando el nombre del archivo `.tex`).
+
+## 🤖 Declaración de Uso de Inteligencia Artificial Generativa
+
+En cumplimiento con los lineamientos académicos e institucionales, se declara el uso ético y transparente de herramientas de Asistencia de Inteligencia Artificial (Google Antigravity / Gemini 2.5 Pro) durante el desarrollo de la Entrega 4 del proyecto **AcadTrace**:
+
+* **Propósito del uso:** Generación de estructuras base para pruebas unitarias (`Mockito`), depuración de configuraciones de pipelines CI/CD en YAML y asistencia en sintaxis LaTeX.
+* **Supervisión y Verificación Humana:** Todo el código generado, configuraciones de infraestructura en AWS EC2, reglas de negocio en Java/Python y redacción del informe técnico fueron rigurosamente revisados, ejecutados, medidos y validados por los 4 integrantes del equipo **BCEL** (Leonardo Castro, Keyla Bedon, Gregory Luna y Romina Emanuel).
+* **Autoría:** La lógica académica transaccional, el modelo de datos distribuido y los resultados experimentales son de autoría exclusiva del equipo de trabajo.
+
+---
+
+## 📄 Instrucciones de Compilación del Documento LaTeX Acumulativo
+
+El informe técnico final acumulativo de la Entrega 4 se encuentra en la carpeta `Informe-E4_BCEL/` y se compila de manera reproducible siguiendo estos pasos:
+
+### Prerrequisitos:
+Tener instalado una distribución completa de TeX Live (`pdflatex`, `bibtex`):
+```bash
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-lang-spanish
+```
+
+### Compilación limpia del informe maestro:
+```bash
+cd Informe-E4_BCEL
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+bibtex TA-PFC-E4_BCEL
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+```
+*(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
+
 

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfiguracionCalificacionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">ConfiguracionCalificacionController.java</span></div><h1>ConfiguracionCalificacionController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.dto.configuracion.*;
+import ec.edu.uteq.sga.application.service.ConfiguracionCalificacionService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * Configuración del esquema de calificación del año lectivo activo:
+ * trimestres, ponderación formativa/sumativa, tipos de aporte y escala cualitativa.
+ *
+ * Sólo se guarda la configuración; las notas viven en el microservicio docente.
+ */
+@RestController
+@RequestMapping(&quot;/api/configuracion/calificacion&quot;)
+@RequiredArgsConstructor
+public class ConfiguracionCalificacionController {
+
+    private final ConfiguracionCalificacionService service;
+
+    // ---------------------------------------------------------------- esquema
+
+    @GetMapping(&quot;/esquema&quot;)
+    public ResponseEntity&lt;EsquemaCalificacionDTO&gt; obtenerEsquema() {
+<span class="nc" id="L31">        return ResponseEntity.ok(service.obtenerEsquema());</span>
+    }
+
+    @PutMapping(&quot;/esquema&quot;)
+    public ResponseEntity&lt;EsquemaCalificacionDTO&gt; guardarEsquema(
+            @Valid @RequestBody EsquemaCalificacionDTO dto) {
+<span class="nc" id="L37">        return ResponseEntity.ok(service.guardarEsquema(dto));</span>
+    }
+
+    // ----------------------------------------------------------- tipos aporte
+
+    @GetMapping(&quot;/aportes&quot;)
+    public ResponseEntity&lt;List&lt;TipoAporteDTO&gt;&gt; listarAportes() {
+<span class="nc" id="L44">        return ResponseEntity.ok(service.listarTiposAporte());</span>
+    }
+
+    @PostMapping(&quot;/aportes&quot;)
+    public ResponseEntity&lt;TipoAporteDTO&gt; crearAporte(@Valid @RequestBody TipoAporteDTO dto) {
+<span class="nc" id="L49">        return ResponseEntity.status(HttpStatus.CREATED).body(service.crearTipoAporte(dto));</span>
+    }
+
+    @PutMapping(&quot;/aportes/{id}&quot;)
+    public ResponseEntity&lt;TipoAporteDTO&gt; actualizarAporte(
+            @PathVariable Long id, @Valid @RequestBody TipoAporteDTO dto) {
+<span class="nc" id="L55">        return ResponseEntity.ok(service.actualizarTipoAporte(id, dto));</span>
+    }
+
+    @DeleteMapping(&quot;/aportes/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; eliminarAporte(@PathVariable Long id) {
+<span class="nc" id="L60">        service.eliminarTipoAporte(id);</span>
+<span class="nc" id="L61">        return ResponseEntity.noContent().build();</span>
+    }
+
+    // ----------------------------------------------------------------- escala
+
+    @GetMapping(&quot;/escala&quot;)
+    public ResponseEntity&lt;List&lt;EscalaCalificacionDTO&gt;&gt; listarEscala(
+            @RequestParam(required = false) Long idNivel) {
+<span class="nc" id="L69">        return ResponseEntity.ok(service.listarEscala(idNivel));</span>
+    }
+
+    @PostMapping(&quot;/escala&quot;)
+    public ResponseEntity&lt;EscalaCalificacionDTO&gt; crearRango(@Valid @RequestBody EscalaCalificacionDTO dto) {
+<span class="nc" id="L74">        return ResponseEntity.status(HttpStatus.CREATED).body(service.crearRangoEscala(dto));</span>
+    }
+
+    @PutMapping(&quot;/escala/{id}&quot;)
+    public ResponseEntity&lt;EscalaCalificacionDTO&gt; actualizarRango(
+            @PathVariable Long id, @Valid @RequestBody EscalaCalificacionDTO dto) {
+<span class="nc" id="L80">        return ResponseEntity.ok(service.actualizarRangoEscala(id, dto));</span>
+    }
+
+    @DeleteMapping(&quot;/escala/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; eliminarRango(@PathVariable Long id) {
+<span class="nc" id="L85">        service.eliminarRangoEscala(id);</span>
+<span class="nc" id="L86">        return ResponseEntity.noContent().build();</span>
+    }
+
+    /** Convierte una nota cuantitativa a su equivalente cualitativo. */
+    @GetMapping(&quot;/escala/convertir&quot;)
+    public ResponseEntity&lt;EscalaCalificacionDTO&gt; convertir(
+            @RequestParam Long idNivel, @RequestParam BigDecimal nota) {
+<span class="nc" id="L93">        return ResponseEntity.ok(service.convertirACualitativa(idNivel, nota));</span>
+    }
+
+    // --------------------------------------------------------------- periodos
+
+    @GetMapping(&quot;/periodos&quot;)
+    public ResponseEntity&lt;List&lt;PeriodoEvaluacionDTO&gt;&gt; listarPeriodos() {
+<span class="nc" id="L100">        return ResponseEntity.ok(service.listarPeriodos());</span>
+    }
+
+    @PutMapping(&quot;/periodos/{id}&quot;)
+    public ResponseEntity&lt;PeriodoEvaluacionDTO&gt; actualizarPeriodo(
+            @PathVariable Long id, @Valid @RequestBody PeriodoEvaluacionDTO dto) {
+<span class="nc" id="L106">        return ResponseEntity.ok(service.actualizarPeriodo(id, dto));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

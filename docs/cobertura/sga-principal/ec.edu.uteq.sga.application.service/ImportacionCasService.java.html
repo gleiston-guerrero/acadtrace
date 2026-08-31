@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportacionCasService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">ImportacionCasService.java</span></div><h1>ImportacionCasService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.importacion.*;
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * DEUDA TECNICA CONOCIDA: escribe estudiantes/matriculas por JPA directo
+ * (estudianteRepo.save/matriculaRepo.save), igual que hacian los controllers
+ * de escritura ya eliminados de este servicio (ver EstudianteController/
+ * MatriculaController, removidos porque sga-secretaria es ahora la unica
+ * duena de esas tablas). Este import bypassa el cifrado AES, la generacion
+ * de codigo_estudiante y las validaciones de sga-secretaria. Pendiente
+ * migrar a llamar a un endpoint de sga-secretaria en vez de escribir aqui.
+ */
+<span class="nc" id="L32">@Slf4j</span>
+@Service
+@RequiredArgsConstructor
+public class ImportacionCasService {
+
+    private final EstudianteRepository estudianteRepo;
+    private final GradoRepository gradoRepo;
+    private final MatriculaRepository matriculaRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final ParaleloRepository paraleloRepo;
+
+    public CasPdfResultDTO parsearPdf(MultipartFile archivo) {
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (archivo.isEmpty())</span>
+<span class="nc" id="L45">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;El archivo está vacío&quot;);</span>
+
+        String texto;
+<span class="nc" id="L48">        try (PDDocument doc = Loader.loadPDF(archivo.getBytes())) {</span>
+<span class="nc" id="L49">            PDFTextStripper stripper = new PDFTextStripper();</span>
+<span class="nc" id="L50">            stripper.setSortByPosition(true);</span>
+<span class="nc" id="L51">            texto = stripper.getText(doc);</span>
+<span class="nc" id="L52">        } catch (IOException e) {</span>
+<span class="nc" id="L53">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;No se pudo leer el PDF: &quot; + e.getMessage());</span>
+<span class="nc" id="L54">        }</span>
+
+<span class="nc" id="L56">        log.info(&quot;=== TEXTO EXTRAÍDO DEL PDF ===\n{}&quot;, texto);</span>
+
+        // Unir líneas que son continuación de un email partido (ej: .edu.e\nc → .edu.ec)
+<span class="nc" id="L59">        texto = texto.replaceAll(&quot;(?i)(\\.edu\\.e)\\s*[\\r\\n]+\\s*(c)&quot;, &quot;$1$2&quot;);</span>
+
+<span class="nc" id="L61">        String[] lineas = texto.split(&quot;\\r?\\n&quot;);</span>
+
+<span class="nc" id="L63">        String anoEscolar = extraerCampo(lineas, &quot;Año Escolar:&quot;, &quot;Ano Escolar:&quot;);</span>
+<span class="nc" id="L64">        String paralelo = extraerCampo(lineas, &quot;Paralelo:&quot;);</span>
+<span class="nc" id="L65">        String anoLectivo = extraerCampo(lineas, &quot;Año Lectivo:&quot;, &quot;Ano Lectivo:&quot;);</span>
+<span class="nc" id="L66">        String regimen = extraerCampo(lineas, &quot;Régimen:&quot;, &quot;Regimen:&quot;);</span>
+<span class="nc" id="L67">        String jornada = extraerCampo(lineas, &quot;Jornada:&quot;);</span>
+<span class="nc" id="L68">        String institucion = extraerCampo(lineas, &quot;Institución Educativa:&quot;, &quot;Institucion Educativa:&quot;);</span>
+
+<span class="nc" id="L70">        List&lt;CasEstudianteDTO&gt; estudiantes = new ArrayList&lt;&gt;();</span>
+
+        // Estrategia 1: línea completa con email
+<span class="nc" id="L73">        Pattern p1 = Pattern.compile(</span>
+            &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+(.+?)\\s+([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)\\s*$&quot;
+        );
+
+        // Estrategia 2: sin email (solo número + cédula + nombres)
+<span class="nc" id="L78">        Pattern p2 = Pattern.compile(</span>
+            &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,})\\s*$&quot;
+        );
+
+        // Estrategia 3: buscar cédulas sueltas con nombres en la misma línea
+<span class="nc" id="L83">        Pattern p3 = Pattern.compile(</span>
+            &quot;(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,}?)\\s*([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)?\\s*$&quot;
+        );
+
+<span class="nc" id="L87">        int fila = 0;</span>
+
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        for (String linea : lineas) {</span>
+            // Saltar cabeceras y líneas vacías
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (linea.trim().isEmpty()) continue;</span>
+<span class="nc bnc" id="L92" title="All 6 branches missed.">            if (linea.contains(&quot;CÉDULA&quot;) || linea.contains(&quot;CEDULA&quot;) || linea.contains(&quot;NOMBRES COMPLETOS&quot;)) continue;</span>
+<span class="nc bnc" id="L93" title="All 4 branches missed.">            if (linea.contains(&quot;LISTADO&quot;) || linea.contains(&quot;Transformar&quot;)) continue;</span>
+<span class="nc bnc" id="L94" title="All 6 branches missed.">            if (linea.contains(&quot;Institución&quot;) || linea.contains(&quot;Régimen&quot;) || linea.contains(&quot;Jornada&quot;)) continue;</span>
+<span class="nc bnc" id="L95" title="All 6 branches missed.">            if (linea.contains(&quot;Año Escolar&quot;) || linea.contains(&quot;Año Lectivo&quot;) || linea.contains(&quot;Paralelo:&quot;)) continue;</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">            if (linea.contains(&quot;CUENTA&quot;) || linea.contains(&quot;No.&quot;)) continue;</span>
+
+<span class="nc" id="L98">            CasEstudianteDTO est = null;</span>
+
+            // Intentar estrategia 1
+<span class="nc" id="L101">            Matcher m1 = p1.matcher(linea);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (m1.matches()) {</span>
+<span class="nc" id="L103">                fila = Integer.parseInt(m1.group(1));</span>
+<span class="nc" id="L104">                est = construirEstudiante(fila, m1.group(2), m1.group(3).trim(), m1.group(4).trim());</span>
+            }
+
+            // Intentar estrategia 2
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (est == null) {</span>
+<span class="nc" id="L109">                Matcher m2 = p2.matcher(linea);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                if (m2.matches()) {</span>
+<span class="nc" id="L111">                    fila = Integer.parseInt(m2.group(1));</span>
+<span class="nc" id="L112">                    est = construirEstudiante(fila, m2.group(2), m2.group(3).trim(), &quot;&quot;);</span>
+                }
+            }
+
+            // Intentar estrategia 3
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (est == null) {</span>
+<span class="nc" id="L118">                Matcher m3 = p3.matcher(linea);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                if (m3.find()) {</span>
+<span class="nc" id="L120">                    fila++;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                    String email = m3.group(3) != null ? m3.group(3).trim() : &quot;&quot;;</span>
+<span class="nc" id="L122">                    est = construirEstudiante(fila, m3.group(1), m3.group(2).trim(), email);</span>
+                }
+            }
+
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (est != null) {</span>
+<span class="nc" id="L127">                estudiantes.add(est);</span>
+            }
+        }
+
+        // Segundo paso: recolectar TODOS los emails del texto y asignarlos por orden
+        // PDFBox extrae la columna CUENTA en líneas separadas
+<span class="nc" id="L133">        List&lt;String&gt; emailsEncontrados = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L134">        Pattern emailPattern = Pattern.compile(&quot;[a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec&quot;);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        for (String linea : lineas) {</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">            if (linea.contains(&quot;CUENTA&quot;) || linea.contains(&quot;CORREO&quot;)) continue;</span>
+<span class="nc" id="L137">            Matcher em = emailPattern.matcher(linea);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            while (em.find()) {</span>
+<span class="nc" id="L139">                emailsEncontrados.add(em.group());</span>
+            }
+        }
+<span class="nc" id="L142">        log.info(&quot;Emails encontrados: {} | Estudiantes: {}&quot;, emailsEncontrados.size(), estudiantes.size());</span>
+
+<span class="nc" id="L144">        int emailIdx = 0;</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        for (CasEstudianteDTO est : estudiantes) {</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            if (emailIdx &gt;= emailsEncontrados.size()) break;</span>
+<span class="nc bnc" id="L147" title="All 4 branches missed.">            if (est.getEmail() == null || est.getEmail().isBlank()) {</span>
+<span class="nc" id="L148">                est.setEmail(emailsEncontrados.get(emailIdx));</span>
+            }
+<span class="nc" id="L150">            emailIdx++;</span>
+<span class="nc" id="L151">        }</span>
+
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        if (estudiantes.isEmpty())</span>
+<span class="nc" id="L154">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;No se encontraron estudiantes en el PDF. Verifica que sea un listado CAS válido.&quot;);
+
+<span class="nc" id="L157">        return CasPdfResultDTO.builder()</span>
+<span class="nc" id="L158">                .anoEscolar(anoEscolar)</span>
+<span class="nc" id="L159">                .paralelo(paralelo)</span>
+<span class="nc" id="L160">                .anoLectivo(anoLectivo)</span>
+<span class="nc" id="L161">                .regimen(regimen)</span>
+<span class="nc" id="L162">                .jornada(jornada)</span>
+<span class="nc" id="L163">                .institucion(institucion)</span>
+<span class="nc" id="L164">                .estudiantes(estudiantes)</span>
+<span class="nc" id="L165">                .build();</span>
+    }
+
+    private CasEstudianteDTO construirEstudiante(int fila, String cedula, String nombresCompletos, String email) {
+        // Limpiar nombres
+<span class="nc" id="L170">        nombresCompletos = nombresCompletos.replaceAll(&quot;\\s+&quot;, &quot; &quot;).trim();</span>
+
+<span class="nc" id="L172">        String[] partes = nombresCompletos.split(&quot;\\s+&quot;);</span>
+        String apellidos;
+        String nombres;
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (partes.length &gt;= 4) {</span>
+<span class="nc" id="L176">            apellidos = partes[0] + &quot; &quot; + partes[1];</span>
+<span class="nc" id="L177">            nombres = String.join(&quot; &quot;, Arrays.copyOfRange(partes, 2, partes.length));</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        } else if (partes.length == 3) {</span>
+<span class="nc" id="L179">            apellidos = partes[0] + &quot; &quot; + partes[1];</span>
+<span class="nc" id="L180">            nombres = partes[2];</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        } else if (partes.length == 2) {</span>
+<span class="nc" id="L182">            apellidos = partes[0];</span>
+<span class="nc" id="L183">            nombres = partes[1];</span>
+        } else {
+<span class="nc" id="L185">            apellidos = nombresCompletos;</span>
+<span class="nc" id="L186">            nombres = &quot;&quot;;</span>
+        }
+
+<span class="nc" id="L189">        boolean yaExiste = estudianteRepo.existsByCedula(cedula);</span>
+
+<span class="nc" id="L191">        return CasEstudianteDTO.builder()</span>
+<span class="nc" id="L192">                .fila(fila)</span>
+<span class="nc" id="L193">                .cedula(cedula)</span>
+<span class="nc" id="L194">                .apellidos(apellidos)</span>
+<span class="nc" id="L195">                .nombres(nombres)</span>
+<span class="nc" id="L196">                .email(email)</span>
+<span class="nc" id="L197">                .yaExiste(yaExiste)</span>
+<span class="nc" id="L198">                .build();</span>
+    }
+
+    @Transactional
+    public Map&lt;String, Object&gt; confirmarImportacion(ConfirmarImportacionDTO dto) {
+<span class="nc" id="L203">        Grado grado = gradoRepo.findById(dto.getIdGrado())</span>
+<span class="nc" id="L204">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Grado no encontrado&quot;));</span>
+<span class="nc" id="L205">        AnoLectivo anoLectivo = anoLectivoRepo.findById(dto.getIdAnoLectivo())</span>
+<span class="nc" id="L206">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Año lectivo no encontrado&quot;));</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        Paralelo paralelo = dto.getIdParalelo() != null</span>
+<span class="nc" id="L208">                ? paraleloRepo.findById(dto.getIdParalelo())</span>
+<span class="nc" id="L209">                    .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Paralelo no encontrado&quot;))</span>
+<span class="nc" id="L210">                : null;</span>
+
+<span class="nc" id="L212">        int creados = 0;</span>
+<span class="nc" id="L213">        int existentes = 0;</span>
+<span class="nc" id="L214">        int matriculados = 0;</span>
+
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        for (CasEstudianteDTO est : dto.getEstudiantes()) {</span>
+<span class="nc" id="L217">            Optional&lt;Estudiante&gt; existente = estudianteRepo.findByCedula(est.getCedula());</span>
+            Estudiante estudiante;
+
+<span class="nc bnc" id="L220" title="All 2 branches missed.">            if (existente.isPresent()) {</span>
+<span class="nc" id="L221">                estudiante = existente.get();</span>
+<span class="nc" id="L222">                existentes++;</span>
+            } else {
+<span class="nc" id="L224">                estudiante = Estudiante.builder()</span>
+<span class="nc" id="L225">                        .cedula(est.getCedula())</span>
+<span class="nc" id="L226">                        .apellidos(est.getApellidos())</span>
+<span class="nc" id="L227">                        .nombres(est.getNombres())</span>
+<span class="nc" id="L228">                        .correo(est.getEmail())</span>
+<span class="nc" id="L229">                        .estado(&quot;ACTIVA&quot;)</span>
+<span class="nc" id="L230">                        .origenListado(&quot;CAS&quot;)</span>
+<span class="nc" id="L231">                        .nacionalidad(&quot;Ecuatoriana&quot;)</span>
+<span class="nc" id="L232">                        .fechaCreacion(Instant.now())</span>
+<span class="nc" id="L233">                        .fechaActualizacion(Instant.now())</span>
+<span class="nc" id="L234">                        .build();</span>
+<span class="nc" id="L235">                estudianteRepo.save(estudiante);</span>
+<span class="nc" id="L236">                creados++;</span>
+            }
+
+<span class="nc" id="L239">            boolean yaMatriculado = matriculaRepo.existsByEstudiante_IdEstudianteAndAnoLectivo_IdAnoLectivo(</span>
+<span class="nc" id="L240">                    estudiante.getIdEstudiante(), anoLectivo.getIdAnoLectivo());</span>
+
+<span class="nc bnc" id="L242" title="All 2 branches missed.">            if (!yaMatriculado) {</span>
+<span class="nc" id="L243">                Matricula matricula = Matricula.builder()</span>
+<span class="nc" id="L244">                        .estudiante(estudiante)</span>
+<span class="nc" id="L245">                        .grado(grado)</span>
+<span class="nc" id="L246">                        .paralelo(paralelo)</span>
+<span class="nc" id="L247">                        .anoLectivo(anoLectivo)</span>
+<span class="nc" id="L248">                        .estado(&quot;ACTIVA&quot;)</span>
+<span class="nc" id="L249">                        .build();</span>
+<span class="nc" id="L250">                matriculaRepo.save(matricula);</span>
+<span class="nc" id="L251">                matriculados++;</span>
+            }
+<span class="nc" id="L253">        }</span>
+
+<span class="nc" id="L255">        Map&lt;String, Object&gt; resultado = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L256">        resultado.put(&quot;creados&quot;, creados);</span>
+<span class="nc" id="L257">        resultado.put(&quot;existentes&quot;, existentes);</span>
+<span class="nc" id="L258">        resultado.put(&quot;matriculados&quot;, matriculados);</span>
+<span class="nc" id="L259">        resultado.put(&quot;total&quot;, dto.getEstudiantes().size());</span>
+<span class="nc" id="L260">        return resultado;</span>
+    }
+
+    private String extraerCampo(String[] lineas, String... claves) {
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        for (String linea : lineas) {</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">            for (String clave : claves) {</span>
+<span class="nc" id="L266">                int idx = linea.indexOf(clave);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                if (idx &gt;= 0) {</span>
+<span class="nc" id="L268">                    return linea.substring(idx + clave.length()).trim();</span>
+                }
+            }
+        }
+<span class="nc" id="L272">        return &quot;&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

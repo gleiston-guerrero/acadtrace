@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstudianteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">EstudianteService.java</span></div><h1>EstudianteService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.CrearEstudianteDTO;
+import ec.edu.uteq.sga.domain.dto.EstudianteDetalleDTO;
+import ec.edu.uteq.sga.domain.dto.EstudianteListDTO;
+import ec.edu.uteq.sga.domain.dto.RepresentanteInputDTO;
+import ec.edu.uteq.sga.domain.entity.Estudiante;
+import ec.edu.uteq.sga.domain.entity.Representante;
+import ec.edu.uteq.sga.domain.entity.Usuario;
+import ec.edu.uteq.sga.infrastructure.repository.EstudianteRepository;
+import ec.edu.uteq.sga.infrastructure.repository.RepresentanteRepository;
+import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class EstudianteService {
+
+    private final EstudianteRepository estudianteRepo;
+    private final RepresentanteRepository representanteRepo;
+    private final UsuarioRepository usuarioRepo;
+
+    public List&lt;EstudianteListDTO&gt; listar(String q) {
+<span class="pc bpc" id="L32" title="1 of 4 branches missed.">        List&lt;Estudiante&gt; estudiantes = (q == null || q.isBlank())</span>
+<span class="fc" id="L33">                ? estudianteRepo.findAllWithRepresentante()</span>
+<span class="fc" id="L34">                : estudianteRepo.searchWithRepresentante(q.trim());</span>
+
+<span class="fc" id="L36">        return estudiantes.stream().map(this::toDTO).toList();</span>
+    }
+
+    public EstudianteDetalleDTO obtener(Long id) {
+<span class="fc" id="L40">        Estudiante e = estudianteRepo.findByIdWithRepresentante(id)</span>
+<span class="fc" id="L41">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Estudiante no encontrado&quot;));</span>
+<span class="fc" id="L42">        return toDetalleDTO(e);</span>
+    }
+
+    /** Paginado en memoria (volumen de una sola institución, no amerita Pageable en el repositorio todavía). */
+    public PaginaEstudiantes listarPaginado(String q, int page, int limit) {
+<span class="pc bpc" id="L47" title="3 of 4 branches missed.">        List&lt;Estudiante&gt; todos = (q == null || q.isBlank())</span>
+<span class="fc" id="L48">                ? estudianteRepo.findAllWithRepresentante()</span>
+<span class="pc" id="L49">                : estudianteRepo.searchWithRepresentante(q.trim());</span>
+
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        int limiteReal = limit &gt; 0 ? limit : 15;</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        int paginaReal = page &gt; 0 ? page : 1;</span>
+<span class="fc" id="L53">        int desde = Math.min((paginaReal - 1) * limiteReal, todos.size());</span>
+<span class="fc" id="L54">        int hasta = Math.min(desde + limiteReal, todos.size());</span>
+
+<span class="fc" id="L56">        List&lt;EstudianteDetalleDTO&gt; items = todos.subList(desde, hasta).stream().map(this::toDetalleDTO).toList();</span>
+<span class="fc" id="L57">        return new PaginaEstudiantes(items, todos.size());</span>
+    }
+
+<span class="fc" id="L60">    public record PaginaEstudiantes(List&lt;EstudianteDetalleDTO&gt; items, long total) {}</span>
+
+    @Transactional
+    public void cambiarEstado(Long id, boolean activo) {
+<span class="fc" id="L64">        Estudiante estudiante = estudianteRepo.findById(id)</span>
+<span class="fc" id="L65">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Estudiante no encontrado&quot;));</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        estudiante.setEstado(activo ? &quot;ACTIVO&quot; : &quot;INACTIVO&quot;);</span>
+<span class="fc" id="L67">        estudiante.setFechaActualizacion(Instant.now());</span>
+<span class="fc" id="L68">        estudianteRepo.save(estudiante);</span>
+<span class="fc" id="L69">    }</span>
+
+    @Transactional
+    public EstudianteDetalleDTO crear(CrearEstudianteDTO dto) {
+<span class="fc" id="L73">        String cedula = validarCedula(dto.getCedula());</span>
+<span class="fc" id="L74">        String nombres = validarNombres(dto.getNombres());</span>
+<span class="fc" id="L75">        String apellidos = validarApellidos(dto.getApellidos());</span>
+
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (estudianteRepo.existsByCedula(cedula))</span>
+<span class="fc" id="L78">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe un estudiante con esa cédula&quot;);</span>
+
+<span class="fc" id="L80">        Estudiante estudiante = new Estudiante();</span>
+<span class="fc" id="L81">        estudiante.setEstado(&quot;ACTIVO&quot;);</span>
+<span class="fc" id="L82">        estudiante.setOrigenListado(&quot;MANUAL&quot;);</span>
+<span class="fc" id="L83">        estudiante.setFechaCreacion(Instant.now());</span>
+<span class="fc" id="L84">        aplicarCampos(estudiante, dto, cedula, nombres, apellidos);</span>
+
+<span class="fc" id="L86">        return toDetalleDTO(estudianteRepo.save(estudiante));</span>
+    }
+
+    @Transactional
+    public EstudianteDetalleDTO actualizar(Long id, CrearEstudianteDTO dto) {
+<span class="fc" id="L91">        Estudiante estudiante = estudianteRepo.findById(id)</span>
+<span class="pc" id="L92">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Estudiante no encontrado&quot;));</span>
+
+<span class="fc" id="L94">        String cedula = validarCedula(dto.getCedula());</span>
+<span class="fc" id="L95">        String nombres = validarNombres(dto.getNombres());</span>
+<span class="fc" id="L96">        String apellidos = validarApellidos(dto.getApellidos());</span>
+
+<span class="fc" id="L98">        Optional&lt;Estudiante&gt; otro = estudianteRepo.findByCedula(cedula);</span>
+<span class="pc bpc" id="L99" title="1 of 4 branches missed.">        if (otro.isPresent() &amp;&amp; !otro.get().getIdEstudiante().equals(id))</span>
+<span class="fc" id="L100">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe otro estudiante con esa cédula&quot;);</span>
+
+<span class="fc" id="L102">        aplicarCampos(estudiante, dto, cedula, nombres, apellidos);</span>
+
+<span class="fc" id="L104">        return toDetalleDTO(estudianteRepo.save(estudiante));</span>
+    }
+
+    private String validarCedula(String cedula) {
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        String limpia = cedula != null ? cedula.trim() : &quot;&quot;;</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (!limpia.matches(&quot;\\d{10}&quot;))</span>
+<span class="nc" id="L110">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Cédula inválida (debe tener 10 dígitos)&quot;);</span>
+<span class="fc" id="L111">        return limpia;</span>
+    }
+
+    private String validarNombres(String nombres) {
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        String limpio = nombres != null ? nombres.trim() : &quot;&quot;;</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        if (limpio.isEmpty())</span>
+<span class="nc" id="L117">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nombres y apellidos son obligatorios&quot;);</span>
+<span class="fc" id="L118">        return limpio;</span>
+    }
+
+    private String validarApellidos(String apellidos) {
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        String limpio = apellidos != null ? apellidos.trim() : &quot;&quot;;</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (limpio.isEmpty())</span>
+<span class="nc" id="L124">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nombres y apellidos son obligatorios&quot;);</span>
+<span class="fc" id="L125">        return limpio;</span>
+    }
+
+    private void aplicarCampos(Estudiante estudiante, CrearEstudianteDTO dto, String cedula, String nombres, String apellidos) {
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        Representante representante = dto.getIdRepresentante() != null</span>
+<span class="nc" id="L130">                ? representanteRepo.findById(dto.getIdRepresentante())</span>
+<span class="nc" id="L131">                        .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Representante no encontrado&quot;))</span>
+<span class="fc" id="L132">                : resolverRepresentante(dto.getRepresentante());</span>
+
+<span class="fc" id="L134">        estudiante.setCedula(cedula);</span>
+<span class="fc" id="L135">        estudiante.setNombres(nombres);</span>
+<span class="fc" id="L136">        estudiante.setApellidos(apellidos);</span>
+<span class="fc" id="L137">        estudiante.setCorreo(dto.getCorreo());</span>
+<span class="fc" id="L138">        estudiante.setTelefono(dto.getTelefono());</span>
+<span class="fc" id="L139">        estudiante.setTelefonoAlt(dto.getTelefonoAlt());</span>
+<span class="fc" id="L140">        estudiante.setFechaNacimiento(dto.getFechaNacimiento());</span>
+<span class="fc" id="L141">        estudiante.setGenero(dto.getGenero());</span>
+<span class="fc" id="L142">        estudiante.setDireccion(dto.getDireccion());</span>
+<span class="pc bpc" id="L143" title="3 of 4 branches missed.">        estudiante.setNacionalidad(dto.getNacionalidad() != null &amp;&amp; !dto.getNacionalidad().isBlank() ? dto.getNacionalidad() : &quot;Ecuatoriana&quot;);</span>
+<span class="fc" id="L144">        estudiante.setEtnia(dto.getEtnia());</span>
+<span class="fc" id="L145">        estudiante.setLugarNacimiento(dto.getLugarNacimiento());</span>
+<span class="fc" id="L146">        estudiante.setViveCon(dto.getViveCon());</span>
+<span class="fc" id="L147">        estudiante.setNumerosHermanos(dto.getNumerosHermanos());</span>
+<span class="fc" id="L148">        estudiante.setBeneficioSocial(dto.isBeneficioSocial());</span>
+<span class="fc" id="L149">        estudiante.setDiscapacidad(dto.isDiscapacidad());</span>
+<span class="fc" id="L150">        estudiante.setTipoDiscapacidad(dto.getTipoDiscapacidad());</span>
+<span class="fc" id="L151">        estudiante.setPorcentajeDisc(dto.getPorcentajeDisc());</span>
+<span class="fc" id="L152">        estudiante.setCarnetConadis(dto.getCarnetConadis());</span>
+<span class="fc" id="L153">        estudiante.setFotoUrl(dto.getFotoUrl());</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (representante != null) estudiante.setRepresentante(representante);</span>
+<span class="pc bpc" id="L155" title="3 of 4 branches missed.">        if (dto.getCodigoEstudiante() != null &amp;&amp; !dto.getCodigoEstudiante().isBlank())</span>
+<span class="nc" id="L156">            estudiante.setCodigoEstudiante(dto.getCodigoEstudiante());</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (dto.getIdUsuarioCreador() != null) {</span>
+<span class="nc" id="L158">            Usuario creador = usuarioRepo.findById(dto.getIdUsuarioCreador()).orElse(null);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (creador != null) estudiante.setCreadoPor(creador);</span>
+        }
+<span class="fc" id="L161">        estudiante.setFechaActualizacion(Instant.now());</span>
+<span class="fc" id="L162">    }</span>
+
+    private Representante resolverRepresentante(RepresentanteInputDTO r) {
+<span class="fc bfc" id="L165" title="All 2 branches covered.">        if (r == null) return null;</span>
+
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        String cedula = r.getCedula() != null ? r.getCedula().trim() : &quot;&quot;;</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        String nombres = r.getNombres() != null ? r.getNombres().trim() : &quot;&quot;;</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        String apellidos = r.getApellidos() != null ? r.getApellidos().trim() : &quot;&quot;;</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">        String telefono = r.getTelefonoPrincipal() != null ? r.getTelefonoPrincipal().trim() : &quot;&quot;;</span>
+
+<span class="pc bpc" id="L172" title="7 of 8 branches missed.">        boolean algunCampo = !cedula.isEmpty() || !nombres.isEmpty() || !apellidos.isEmpty() || !telefono.isEmpty();</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">        if (!algunCampo) return null;</span>
+
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (!cedula.isEmpty()) {</span>
+<span class="fc" id="L176">            var existente = representanteRepo.findByCedula(cedula);</span>
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">            if (existente.isPresent()) return existente.get();</span>
+        }
+
+<span class="nc bnc" id="L180" title="All 6 branches missed.">        if (nombres.isEmpty() || apellidos.isEmpty() || telefono.isEmpty())</span>
+<span class="nc" id="L181">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;Para registrar un representante nuevo se requiere nombres, apellidos y teléfono principal&quot;);
+
+<span class="nc" id="L184">        Representante nuevo = Representante.builder()</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                .cedula(cedula.isEmpty() ? null : cedula)</span>
+<span class="nc" id="L186">                .nombres(nombres)</span>
+<span class="nc" id="L187">                .apellidos(apellidos)</span>
+<span class="nc bnc" id="L188" title="All 4 branches missed.">                .parentesco(r.getParentesco() != null &amp;&amp; !r.getParentesco().isBlank() ? r.getParentesco() : &quot;No especificado&quot;)</span>
+<span class="nc" id="L189">                .telefonoPrincipal(telefono)</span>
+<span class="nc" id="L190">                .telefonoAlt(r.getTelefonoAlt())</span>
+<span class="nc" id="L191">                .correo(r.getCorreo())</span>
+<span class="nc" id="L192">                .direccion(r.getDireccion())</span>
+<span class="nc" id="L193">                .fechaCreacion(Instant.now())</span>
+<span class="nc" id="L194">                .build();</span>
+
+<span class="nc" id="L196">        return representanteRepo.save(nuevo);</span>
+    }
+
+    private EstudianteListDTO toDTO(Estudiante e) {
+<span class="fc" id="L200">        return EstudianteListDTO.builder()</span>
+<span class="fc" id="L201">                .idEstudiante(e.getIdEstudiante())</span>
+<span class="fc" id="L202">                .cedula(e.getCedula())</span>
+<span class="fc" id="L203">                .codigoEstudiante(e.getCodigoEstudiante())</span>
+<span class="fc" id="L204">                .nombres(e.getNombres())</span>
+<span class="fc" id="L205">                .apellidos(e.getApellidos())</span>
+<span class="fc" id="L206">                .correo(e.getCorreo())</span>
+<span class="fc" id="L207">                .estado(e.getEstado())</span>
+<span class="fc" id="L208">                .origenListado(e.getOrigenListado())</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">                .representante(e.getRepresentante() != null</span>
+<span class="fc" id="L210">                        ? e.getRepresentante().getNombres() + &quot; &quot; + e.getRepresentante().getApellidos()</span>
+<span class="fc" id="L211">                        : null)</span>
+<span class="fc" id="L212">                .fotoUrl(e.getFotoUrl())</span>
+<span class="fc" id="L213">                .build();</span>
+    }
+
+    private EstudianteDetalleDTO toDetalleDTO(Estudiante e) {
+<span class="fc" id="L217">        Representante r = e.getRepresentante();</span>
+<span class="fc" id="L218">        return EstudianteDetalleDTO.builder()</span>
+<span class="fc" id="L219">                .idEstudiante(e.getIdEstudiante())</span>
+<span class="fc" id="L220">                .cedula(e.getCedula())</span>
+<span class="fc" id="L221">                .codigoEstudiante(e.getCodigoEstudiante())</span>
+<span class="fc" id="L222">                .nombres(e.getNombres())</span>
+<span class="fc" id="L223">                .apellidos(e.getApellidos())</span>
+<span class="fc" id="L224">                .correo(e.getCorreo())</span>
+<span class="fc" id="L225">                .telefono(e.getTelefono())</span>
+<span class="fc" id="L226">                .telefonoAlt(e.getTelefonoAlt())</span>
+<span class="fc" id="L227">                .fechaNacimiento(e.getFechaNacimiento())</span>
+<span class="fc" id="L228">                .genero(e.getGenero())</span>
+<span class="fc" id="L229">                .direccion(e.getDireccion())</span>
+<span class="fc" id="L230">                .nacionalidad(e.getNacionalidad())</span>
+<span class="fc" id="L231">                .etnia(e.getEtnia())</span>
+<span class="fc" id="L232">                .lugarNacimiento(e.getLugarNacimiento())</span>
+<span class="fc" id="L233">                .viveCon(e.getViveCon())</span>
+<span class="fc" id="L234">                .numerosHermanos(e.getNumerosHermanos())</span>
+<span class="fc" id="L235">                .beneficioSocial(e.isBeneficioSocial())</span>
+<span class="fc" id="L236">                .discapacidad(e.isDiscapacidad())</span>
+<span class="fc" id="L237">                .tipoDiscapacidad(e.getTipoDiscapacidad())</span>
+<span class="fc" id="L238">                .porcentajeDisc(e.getPorcentajeDisc())</span>
+<span class="fc" id="L239">                .carnetConadis(e.getCarnetConadis())</span>
+<span class="fc" id="L240">                .fotoUrl(e.getFotoUrl())</span>
+<span class="fc" id="L241">                .estado(e.getEstado())</span>
+<span class="fc" id="L242">                .origenListado(e.getOrigenListado())</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">                .representante(r != null</span>
+<span class="fc" id="L244">                        ? new RepresentanteInputDTO(r.getCedula(), r.getNombres(), r.getApellidos(), r.getParentesco(),</span>
+<span class="fc" id="L245">                                r.getTelefonoPrincipal(), r.getTelefonoAlt(), r.getCorreo(), r.getDireccion())</span>
+<span class="fc" id="L246">                        : null)</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">                .idRepresentante(r != null ? r.getIdRepresentante() : null)</span>
+<span class="fc" id="L248">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

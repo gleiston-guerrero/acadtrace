@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MallaCurricularController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">MallaCurricularController.java</span></div><h1>MallaCurricularController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.entity.AnoLectivo;
+import ec.edu.uteq.sga.domain.entity.Asignacion;
+import ec.edu.uteq.sga.domain.entity.Asignatura;
+import ec.edu.uteq.sga.domain.entity.Grado;
+import ec.edu.uteq.sga.domain.entity.MallaCurricular;
+import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignacionRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignaturaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.GradoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.MallaCurricularRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/malla&quot;)
+@RequiredArgsConstructor
+public class MallaCurricularController {
+
+    private final MallaCurricularRepository mallaRepo;
+    private final GradoRepository gradoRepo;
+    private final AsignaturaRepository asignaturaRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final AsignacionRepository asignacionRepo;
+
+    @GetMapping(&quot;/grado/{idGrado}&quot;)
+    @Transactional(readOnly = true)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; porGrado(@PathVariable Long idGrado,
+                                                        @RequestParam Long idAnoLectivo) {
+<span class="nc" id="L43">        List&lt;MallaCurricular&gt; malla = mallaRepo.findByGradoAnoWithAsignatura(idGrado, idAnoLectivo);</span>
+<span class="nc" id="L44">        List&lt;Asignacion&gt; asignaciones = asignacionRepo.findAll().stream()</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">                .filter(a -&gt; a.getGrado().getIdGrado().equals(idGrado) </span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">                        &amp;&amp; a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo)</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                        &amp;&amp; a.isActivo())</span>
+<span class="nc" id="L48">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L50">        Map&lt;Long, Map&lt;String, Object&gt;&gt; mapaMaterias = new LinkedHashMap&lt;&gt;();</span>
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        for (MallaCurricular m : malla) {</span>
+<span class="nc" id="L53">            Asignatura asig = m.getAsignatura();</span>
+<span class="nc" id="L54">            Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L55">            item.put(&quot;idMalla&quot;, m.getIdMalla());</span>
+<span class="nc" id="L56">            item.put(&quot;idAsignatura&quot;, asig.getIdAsignatura());</span>
+<span class="nc" id="L57">            item.put(&quot;asignatura&quot;, asig.getNombre());</span>
+<span class="nc" id="L58">            item.put(&quot;codigo&quot;, asig.getCodigo());</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            item.put(&quot;horasSemana&quot;, m.getHorasSemana() != null ? m.getHorasSemana() : 4);</span>
+<span class="nc" id="L60">            item.put(&quot;diasSemana&quot;, m.getDiasSemana());</span>
+<span class="nc" id="L61">            item.put(&quot;duracion&quot;, m.getDuracion());</span>
+<span class="nc" id="L62">            item.put(&quot;docentes&quot;, new ArrayList&lt;String&gt;());</span>
+<span class="nc" id="L63">            item.put(&quot;origen&quot;, &quot;MALLA&quot;);</span>
+<span class="nc" id="L64">            mapaMaterias.put(asig.getIdAsignatura(), item);</span>
+<span class="nc" id="L65">        }</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        for (Asignacion a : asignaciones) {</span>
+<span class="nc" id="L68">            Asignatura asig = a.getAsignatura();</span>
+<span class="nc" id="L69">            Long idAsig = asig.getIdAsignatura();</span>
+<span class="nc" id="L70">            String nombreDocente = a.getDocente().getNombres() + &quot; &quot; + a.getDocente().getApellidos();</span>
+<span class="nc bnc" id="L71" title="All 4 branches missed.">            int horas = a.getHorasSemanales() != null &amp;&amp; a.getHorasSemanales() &gt; 0 ? a.getHorasSemanales() : 4;</span>
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (mapaMaterias.containsKey(idAsig)) {</span>
+<span class="nc" id="L74">                Map&lt;String, Object&gt; item = mapaMaterias.get(idAsig);</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L76">                List&lt;String&gt; docs = (List&lt;String&gt;) item.get(&quot;docentes&quot;);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if (!docs.contains(nombreDocente)) docs.add(nombreDocente);</span>
+<span class="nc" id="L78">                int hActual = Integer.parseInt(item.get(&quot;horasSemana&quot;).toString());</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                if (horas &gt; hActual) item.put(&quot;horasSemana&quot;, horas);</span>
+<span class="nc" id="L80">            } else {</span>
+<span class="nc" id="L81">                Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L82">                item.put(&quot;idMalla&quot;, null);</span>
+<span class="nc" id="L83">                item.put(&quot;idAsignatura&quot;, asig.getIdAsignatura());</span>
+<span class="nc" id="L84">                item.put(&quot;asignatura&quot;, asig.getNombre());</span>
+<span class="nc" id="L85">                item.put(&quot;codigo&quot;, asig.getCodigo());</span>
+<span class="nc" id="L86">                item.put(&quot;horasSemana&quot;, horas);</span>
+<span class="nc" id="L87">                List&lt;String&gt; docs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L88">                docs.add(nombreDocente);</span>
+<span class="nc" id="L89">                item.put(&quot;docentes&quot;, docs);</span>
+<span class="nc" id="L90">                item.put(&quot;origen&quot;, &quot;ASIGNACION&quot;);</span>
+<span class="nc" id="L91">                mapaMaterias.put(idAsig, item);</span>
+            }
+<span class="nc" id="L93">        }</span>
+
+<span class="nc" id="L95">        List&lt;Map&lt;String, Object&gt;&gt; items = new ArrayList&lt;&gt;(mapaMaterias.values());</span>
+<span class="nc" id="L96">        int total = items.stream().mapToInt(i -&gt; Integer.parseInt(i.get(&quot;horasSemana&quot;).toString())).sum();</span>
+
+<span class="nc" id="L98">        return ResponseEntity.ok(Map.of(&quot;totalHoras&quot;, total, &quot;materias&quot;, items));</span>
+    }
+
+    @GetMapping(&quot;/resumen-grados&quot;)
+    @Transactional(readOnly = true)
+    public ResponseEntity&lt;Map&lt;Long, Map&lt;String, Object&gt;&gt;&gt; resumenGrados(@RequestParam Long idAnoLectivo) {
+<span class="nc" id="L104">        List&lt;MallaCurricular&gt; mallas = mallaRepo.findAll().stream()</span>
+<span class="nc" id="L105">                .filter(m -&gt; m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))</span>
+<span class="nc" id="L106">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L108">        List&lt;Asignacion&gt; asignaciones = asignacionRepo.findAll().stream()</span>
+<span class="nc bnc" id="L109" title="All 4 branches missed.">                .filter(a -&gt; a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo) &amp;&amp; a.isActivo())</span>
+<span class="nc" id="L110">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L112">        Map&lt;Long, Map&lt;Long, Map&lt;String, Object&gt;&gt;&gt; mapaGrados = new HashMap&lt;&gt;();</span>
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        for (MallaCurricular m : mallas) {</span>
+<span class="nc" id="L115">            Long idG = m.getGrado().getIdGrado();</span>
+<span class="nc" id="L116">            Long idA = m.getAsignatura().getIdAsignatura();</span>
+<span class="nc" id="L117">            mapaGrados.putIfAbsent(idG, new HashMap&lt;&gt;());</span>
+<span class="nc" id="L118">            Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            item.put(&quot;horas&quot;, m.getHorasSemana() != null ? m.getHorasSemana() : 4);</span>
+<span class="nc" id="L120">            mapaGrados.get(idG).put(idA, item);</span>
+<span class="nc" id="L121">        }</span>
+
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        for (Asignacion a : asignaciones) {</span>
+<span class="nc" id="L124">            Long idG = a.getGrado().getIdGrado();</span>
+<span class="nc" id="L125">            Long idA = a.getAsignatura().getIdAsignatura();</span>
+<span class="nc bnc" id="L126" title="All 4 branches missed.">            int h = a.getHorasSemanales() != null &amp;&amp; a.getHorasSemanales() &gt; 0 ? a.getHorasSemanales() : 4;</span>
+<span class="nc" id="L127">            mapaGrados.putIfAbsent(idG, new HashMap&lt;&gt;());</span>
+<span class="nc" id="L128">            Map&lt;Long, Map&lt;String, Object&gt;&gt; mapG = mapaGrados.get(idG);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (mapG.containsKey(idA)) {</span>
+<span class="nc" id="L130">                int hActual = Integer.parseInt(mapG.get(idA).get(&quot;horas&quot;).toString());</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                if (h &gt; hActual) mapG.get(idA).put(&quot;horas&quot;, h);</span>
+<span class="nc" id="L132">            } else {</span>
+<span class="nc" id="L133">                Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L134">                item.put(&quot;horas&quot;, h);</span>
+<span class="nc" id="L135">                mapG.put(idA, item);</span>
+            }
+<span class="nc" id="L137">        }</span>
+
+<span class="nc" id="L139">        Map&lt;Long, Map&lt;String, Object&gt;&gt; res = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        for (Map.Entry&lt;Long, Map&lt;Long, Map&lt;String, Object&gt;&gt;&gt; entry : mapaGrados.entrySet()) {</span>
+<span class="nc" id="L141">            Long idG = entry.getKey();</span>
+<span class="nc" id="L142">            Map&lt;Long, Map&lt;String, Object&gt;&gt; mapG = entry.getValue();</span>
+<span class="nc" id="L143">            int totalH = mapG.values().stream().mapToInt(v -&gt; Integer.parseInt(v.get(&quot;horas&quot;).toString())).sum();</span>
+<span class="nc" id="L144">            res.put(idG, Map.of(&quot;totalHoras&quot;, totalH, &quot;cantMaterias&quot;, mapG.size()));</span>
+<span class="nc" id="L145">        }</span>
+
+<span class="nc" id="L147">        return ResponseEntity.ok(res);</span>
+    }
+
+    @PostMapping
+    @Transactional
+    public ResponseEntity&lt;Void&gt; agregar(@RequestBody Map&lt;String, Object&gt; body) {
+<span class="nc" id="L153">        Long idGrado = Long.valueOf(body.get(&quot;idGrado&quot;).toString());</span>
+<span class="nc" id="L154">        Long idAsignatura = Long.valueOf(body.get(&quot;idAsignatura&quot;).toString());</span>
+<span class="nc" id="L155">        Long idAnoLectivo = Long.valueOf(body.get(&quot;idAnoLectivo&quot;).toString());</span>
+<span class="nc" id="L156">        Short horas = Short.valueOf(body.get(&quot;horasSemana&quot;).toString());</span>
+
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (mallaRepo.existsByGrado_IdGradoAndAsignatura_IdAsignaturaAndAnoLectivo_IdAnoLectivo(idGrado, idAsignatura, idAnoLectivo)) {</span>
+<span class="nc" id="L159">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Esa asignatura ya está en la malla del grado&quot;);</span>
+        }
+<span class="nc" id="L161">        Grado grado = gradoRepo.findById(idGrado)</span>
+<span class="nc" id="L162">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Grado no existe&quot;));</span>
+<span class="nc" id="L163">        Asignatura asignatura = asignaturaRepo.findById(idAsignatura)</span>
+<span class="nc" id="L164">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignatura no existe&quot;));</span>
+<span class="nc" id="L165">        AnoLectivo ano = anoLectivoRepo.findById(idAnoLectivo)</span>
+<span class="nc" id="L166">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Año lectivo no existe&quot;));</span>
+
+<span class="nc" id="L168">        mallaRepo.save(MallaCurricular.builder()</span>
+<span class="nc" id="L169">                .grado(grado).asignatura(asignatura).anoLectivo(ano).horasSemana(horas)</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                .diasSemana(body.get(&quot;diasSemana&quot;) != null ? Short.valueOf(body.get(&quot;diasSemana&quot;).toString()) : null)</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                .duracion(body.get(&quot;duracion&quot;) != null ? Short.valueOf(body.get(&quot;duracion&quot;).toString()) : null)</span>
+<span class="nc" id="L172">                .build());</span>
+<span class="nc" id="L173">        return ResponseEntity.status(HttpStatus.CREATED).build();</span>
+    }
+
+    @PatchMapping(&quot;/{id}&quot;)
+    @Transactional
+    public ResponseEntity&lt;Void&gt; actualizarHoras(@PathVariable Long id, @RequestParam Short horasSemana) {
+<span class="nc" id="L179">        MallaCurricular m = mallaRepo.findById(id)</span>
+<span class="nc" id="L180">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Registro no existe&quot;));</span>
+<span class="nc" id="L181">        m.setHorasSemana(horasSemana);</span>
+<span class="nc" id="L182">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PostMapping(&quot;/actualizar-horas-grado&quot;)
+    @Transactional
+    public ResponseEntity&lt;Void&gt; actualizarHorasGrado(@RequestBody Map&lt;String, Object&gt; body) {
+<span class="nc" id="L188">        Long idGrado = Long.valueOf(body.get(&quot;idGrado&quot;).toString());</span>
+<span class="nc" id="L189">        Long idAnoLectivo = Long.valueOf(body.get(&quot;idAnoLectivo&quot;).toString());</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L191">        List&lt;Map&lt;String, Object&gt;&gt; cambios = (List&lt;Map&lt;String, Object&gt;&gt;) body.get(&quot;cambios&quot;);</span>
+
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (cambios != null) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            for (Map&lt;String, Object&gt; cambio : cambios) {</span>
+<span class="nc" id="L195">                Long idAsignatura = Long.valueOf(cambio.get(&quot;idAsignatura&quot;).toString());</span>
+<span class="nc" id="L196">                int nuevasHoras = Integer.parseInt(cambio.get(&quot;horasSemana&quot;).toString());</span>
+
+<span class="nc" id="L198">                Optional&lt;MallaCurricular&gt; optMalla = mallaRepo.findAll().stream()</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">                        .filter(m -&gt; m.getGrado().getIdGrado().equals(idGrado)</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                                &amp;&amp; m.getAsignatura().getIdAsignatura().equals(idAsignatura)</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                                &amp;&amp; m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))</span>
+<span class="nc" id="L202">                        .findFirst();</span>
+
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                if (optMalla.isPresent()) {</span>
+<span class="nc" id="L205">                    optMalla.get().setHorasSemana((short) nuevasHoras);</span>
+<span class="nc" id="L206">                    mallaRepo.save(optMalla.get());</span>
+                } else {
+<span class="nc" id="L208">                    Grado g = gradoRepo.findById(idGrado).orElse(null);</span>
+<span class="nc" id="L209">                    Asignatura asig = asignaturaRepo.findById(idAsignatura).orElse(null);</span>
+<span class="nc" id="L210">                    AnoLectivo ano = anoLectivoRepo.findById(idAnoLectivo).orElse(null);</span>
+<span class="nc bnc" id="L211" title="All 6 branches missed.">                    if (g != null &amp;&amp; asig != null &amp;&amp; ano != null) {</span>
+<span class="nc" id="L212">                        mallaRepo.save(MallaCurricular.builder()</span>
+<span class="nc" id="L213">                                .grado(g).asignatura(asig).anoLectivo(ano).horasSemana((short) nuevasHoras)</span>
+<span class="nc" id="L214">                                .build());</span>
+                    }
+                }
+
+<span class="nc" id="L218">                List&lt;Asignacion&gt; asigs = asignacionRepo.findAll().stream()</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                        .filter(a -&gt; a.getGrado().getIdGrado().equals(idGrado)</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                                &amp;&amp; a.getAsignatura().getIdAsignatura().equals(idAsignatura)</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                                &amp;&amp; a.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo))</span>
+<span class="nc" id="L222">                        .collect(Collectors.toList());</span>
+
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                for (Asignacion a : asigs) {</span>
+<span class="nc" id="L225">                    a.setHorasSemanales(nuevasHoras);</span>
+<span class="nc" id="L226">                    asignacionRepo.save(a);</span>
+<span class="nc" id="L227">                }</span>
+<span class="nc" id="L228">            }</span>
+        }
+<span class="nc" id="L230">        return ResponseEntity.ok().build();</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @Transactional
+    public ResponseEntity&lt;Void&gt; eliminar(@PathVariable Long id) {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (!mallaRepo.existsById(id)) {</span>
+<span class="nc" id="L237">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Registro no existe&quot;);</span>
+        }
+<span class="nc" id="L239">        mallaRepo.deleteById(id);</span>
+<span class="nc" id="L240">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

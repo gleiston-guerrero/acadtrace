@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocenteGrpcClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.grpc</a> &gt; <span class="el_source">DocenteGrpcClient.java</span></div><h1>DocenteGrpcClient.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.grpc;
+
+import ec.edu.uteq.sga.grpc.docente.*;
+import io.grpc.StatusRuntimeException;
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import ec.edu.uteq.sga.application.service.TeacherAuthorizationService;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Cliente gRPC hacia MICRO-DOCENTE.
+ * Reemplaza al antiguo DocenteRpcClient (XML-RPC), que solo se usó para
+ * una presentación y ya no está en uso.
+ */
+@Component
+<span class="nc" id="L20">public class DocenteGrpcClient {</span>
+
+    @GrpcClient(&quot;docente-service&quot;)
+    private DocenteServiceGrpc.DocenteServiceBlockingStub stub;
+
+    @Autowired
+    private TeacherAuthorizationService authService;
+
+    private DocenteServiceGrpc.DocenteServiceBlockingStub getStubWithMetadata() {
+<span class="nc" id="L29">        String docenteId = authService.getAuthenticatedTeacher().getIdPersona().toString();</span>
+        
+<span class="nc" id="L31">        io.grpc.Metadata metadata = new io.grpc.Metadata();</span>
+<span class="nc" id="L32">        metadata.put(io.grpc.Metadata.Key.of(&quot;docente_id&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), docenteId);</span>
+<span class="nc" id="L33">        metadata.put(io.grpc.Metadata.Key.of(&quot;internal_token&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), &quot;***REMOVED***&quot;);</span>
+<span class="nc" id="L34">        return stub.withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(metadata));</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; obtenerCalificaciones(Long idMatricula, Integer trimestre) {
+        try {
+<span class="nc" id="L39">            ObtenerCalificacionesRequest request = ObtenerCalificacionesRequest.newBuilder()</span>
+<span class="nc" id="L40">                    .setIdMatricula(idMatricula)</span>
+<span class="nc" id="L41">                    .setTrimestre(trimestre)</span>
+<span class="nc" id="L42">                    .build();</span>
+
+<span class="nc" id="L44">            ObtenerCalificacionesResponse response = getStubWithMetadata().obtenerCalificaciones(request);</span>
+
+<span class="nc" id="L46">            return response.getCalificacionesList().stream()</span>
+<span class="nc" id="L47">                    .map(c -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="nc" id="L48">                            &quot;idCalificacion&quot;, c.getIdCalificacion(),</span>
+<span class="nc" id="L49">                            &quot;idActividad&quot;, c.getIdActividad(),</span>
+<span class="nc" id="L50">                            &quot;idMatricula&quot;, c.getIdMatricula(),</span>
+<span class="nc" id="L51">                            &quot;nota&quot;, c.getNota(),</span>
+<span class="nc" id="L52">                            &quot;notaCualitativa&quot;, c.getNotaCualitativa(),</span>
+<span class="nc" id="L53">                            &quot;registradoPor&quot;, c.getRegistradoPor()</span>
+                    ))
+<span class="nc" id="L55">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L56">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L57">            System.err.println(&quot;Error gRPC obtenerCalificaciones: &quot; + e.getMessage());</span>
+<span class="nc" id="L58">            return List.of();</span>
+        }
+    }
+
+    public Double calcularPromedioFormativo(Long idMatricula, Integer trimestre) {
+        try {
+<span class="nc" id="L64">            PromedioRequest request = PromedioRequest.newBuilder()</span>
+<span class="nc" id="L65">                    .setIdMatricula(idMatricula)</span>
+<span class="nc" id="L66">                    .setTrimestre(trimestre)</span>
+<span class="nc" id="L67">                    .build();</span>
+<span class="nc" id="L68">            return getStubWithMetadata().calcularPromedioFormativo(request).getPromedio();</span>
+<span class="nc" id="L69">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L70">            System.err.println(&quot;Error gRPC calcularPromedioFormativo: &quot; + e.getMessage());</span>
+<span class="nc" id="L71">            return 0.0;</span>
+        }
+    }
+
+    public Double calcularPromedioFinal(Long idMatricula, Integer trimestre) {
+        try {
+<span class="nc" id="L77">            PromedioRequest request = PromedioRequest.newBuilder()</span>
+<span class="nc" id="L78">                    .setIdMatricula(idMatricula)</span>
+<span class="nc" id="L79">                    .setTrimestre(trimestre)</span>
+<span class="nc" id="L80">                    .build();</span>
+<span class="nc" id="L81">            return getStubWithMetadata().calcularPromedioFinal(request).getPromedio();</span>
+<span class="nc" id="L82">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L83">            System.err.println(&quot;Error gRPC calcularPromedioFinal: &quot; + e.getMessage());</span>
+<span class="nc" id="L84">            return 0.0;</span>
+        }
+    }
+
+    public Map&lt;String, Object&gt; registrarCalificacion(Long idMatricula, Long idActividad,
+                                                      Double nota, Integer trimestre) {
+        try {
+<span class="nc" id="L91">            RegistrarCalificacionRequest request = RegistrarCalificacionRequest.newBuilder()</span>
+<span class="nc" id="L92">                    .setIdMatricula(idMatricula)</span>
+<span class="nc" id="L93">                    .setIdActividad(idActividad)</span>
+<span class="nc" id="L94">                    .setNota(nota)</span>
+<span class="nc" id="L95">                    .setTrimestre(trimestre)</span>
+<span class="nc" id="L96">                    .build();</span>
+
+<span class="nc" id="L98">            RegistrarCalificacionResponse response = getStubWithMetadata().registrarCalificacion(request);</span>
+
+<span class="nc" id="L100">            return Map.of(</span>
+<span class="nc" id="L101">                    &quot;exitoso&quot;, response.getExitoso(),</span>
+<span class="nc" id="L102">                    &quot;mensaje&quot;, response.getMensaje(),</span>
+<span class="nc" id="L103">                    &quot;idCalificacion&quot;, response.getIdCalificacion()</span>
+            );
+<span class="nc" id="L105">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L106">            System.err.println(&quot;Error gRPC registrarCalificacion: &quot; + e.getMessage());</span>
+<span class="nc" id="L107">            return Map.of(&quot;exitoso&quot;, false, &quot;mensaje&quot;, e.getMessage(), &quot;idCalificacion&quot;, 0L);</span>
+        }
+    }
+
+    public String convertirACualitativa(Double nota) {
+        try {
+<span class="nc" id="L113">            ConvertirACualitativaRequest request = ConvertirACualitativaRequest.newBuilder()</span>
+<span class="nc" id="L114">                    .setNota(nota)</span>
+<span class="nc" id="L115">                    .build();</span>
+<span class="nc" id="L116">            return getStubWithMetadata().convertirACualitativa(request).getCualitativa();</span>
+<span class="nc" id="L117">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L118">            System.err.println(&quot;Error gRPC convertirACualitativa: &quot; + e.getMessage());</span>
+<span class="nc" id="L119">            return &quot;—&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GradoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">GradoService.java</span></div><h1>GradoService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.grado.*;
+import ec.edu.uteq.sga.domain.entity.Grado;
+import ec.edu.uteq.sga.domain.entity.NivelEducativo;
+import ec.edu.uteq.sga.domain.entity.Paralelo;
+import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.GradoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.MatriculaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.NivelEducativoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.ParaleloRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class GradoService {
+
+    private final GradoRepository gradoRepo;
+    private final NivelEducativoRepository nivelRepo;
+    private final ParaleloRepository paraleloRepo;
+    private final MatriculaRepository matriculaRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+
+    @Transactional(readOnly = true)
+    public List&lt;GradoResponseDTO&gt; listarTodos() {
+<span class="nc" id="L33">        Long idAnoActivo = obtenerIdAnoLectivoActivo();</span>
+<span class="nc" id="L34">        return gradoRepo.findAllByOrderByOrden().stream().map(g -&gt; toDTO(g, idAnoActivo)).collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;GradoResponseDTO&gt; listarActivos() {
+<span class="nc" id="L39">        Long idAnoActivo = obtenerIdAnoLectivoActivo();</span>
+<span class="nc" id="L40">        return gradoRepo.findByActivoTrueOrderByOrden().stream().map(g -&gt; toDTO(g, idAnoActivo)).collect(Collectors.toList());</span>
+    }
+
+    private Long obtenerIdAnoLectivoActivo() {
+<span class="nc" id="L44">        return anoLectivoRepo.findByEsActualTrue().map(a -&gt; a.getIdAnoLectivo()).orElse(null);</span>
+    }
+
+    public GradoResponseDTO obtenerPorId(Long id) {
+<span class="nc" id="L48">        Long idAnoActivo = obtenerIdAnoLectivoActivo();</span>
+<span class="nc" id="L49">        return toDTO(buscarPorId(id), idAnoActivo);</span>
+    }
+
+    @Transactional
+    public GradoResponseDTO crear(GradoRequestDTO dto) {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (gradoRepo.existsByNombre(dto.getNombre()))</span>
+<span class="nc" id="L55">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe ese grado&quot;);</span>
+
+<span class="nc" id="L57">        NivelEducativo nivel = null;</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (dto.getIdNivel() != null)</span>
+<span class="nc" id="L59">            nivel = nivelRepo.findById(dto.getIdNivel())</span>
+<span class="nc" id="L60">                    .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nivel educativo no encontrado&quot;));</span>
+
+<span class="nc" id="L62">        Grado grado = Grado.builder()</span>
+<span class="nc" id="L63">                .nombre(dto.getNombre())</span>
+<span class="nc" id="L64">                .orden(dto.getOrden())</span>
+<span class="nc" id="L65">                .capacidadMax(dto.getCapacidadMax())</span>
+<span class="nc" id="L66">                .activo(true)</span>
+<span class="nc" id="L67">                .nivelEducativo(nivel)</span>
+<span class="nc" id="L68">                .build();</span>
+
+<span class="nc" id="L70">        Long idAnoActivo = obtenerIdAnoLectivoActivo();</span>
+<span class="nc" id="L71">        return toDTO(gradoRepo.save(grado), idAnoActivo);</span>
+    }
+
+    @Transactional
+    public GradoResponseDTO actualizar(Long id, GradoRequestDTO dto) {
+<span class="nc" id="L76">        Grado grado = buscarPorId(id);</span>
+<span class="nc" id="L77">        grado.setNombre(dto.getNombre());</span>
+<span class="nc" id="L78">        grado.setOrden(dto.getOrden());</span>
+<span class="nc" id="L79">        grado.setCapacidadMax(dto.getCapacidadMax());</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (dto.getIdNivel() != null) {</span>
+<span class="nc" id="L81">            NivelEducativo nivel = nivelRepo.findById(dto.getIdNivel())</span>
+<span class="nc" id="L82">                    .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nivel educativo no encontrado&quot;));</span>
+<span class="nc" id="L83">            grado.setNivelEducativo(nivel);</span>
+        }
+<span class="nc" id="L85">        Long idAnoActivo = obtenerIdAnoLectivoActivo();</span>
+<span class="nc" id="L86">        return toDTO(gradoRepo.save(grado), idAnoActivo);</span>
+    }
+
+    @Transactional
+    public void cambiarEstado(Long id, boolean activo) {
+<span class="nc" id="L91">        Grado grado = buscarPorId(id);</span>
+<span class="nc" id="L92">        grado.setActivo(activo);</span>
+<span class="nc" id="L93">        gradoRepo.save(grado);</span>
+<span class="nc" id="L94">    }</span>
+
+    @Transactional
+    public ParaleloDTO crearParalelo(Long idGrado, String letra) {
+<span class="nc" id="L98">        Grado grado = buscarPorId(idGrado);</span>
+<span class="nc" id="L99">        letra = letra.toUpperCase().trim();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (paraleloRepo.existsByGradoIdGradoAndLetra(idGrado, letra))</span>
+<span class="nc" id="L101">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe el paralelo &quot; + letra + &quot; en ese grado&quot;);</span>
+
+<span class="nc" id="L103">        Paralelo paralelo = Paralelo.builder()</span>
+<span class="nc" id="L104">                .grado(grado)</span>
+<span class="nc" id="L105">                .letra(letra)</span>
+<span class="nc" id="L106">                .activo(true)</span>
+<span class="nc" id="L107">                .build();</span>
+<span class="nc" id="L108">        return toParaleloDTO(paraleloRepo.save(paralelo), null);</span>
+    }
+
+    @Transactional
+    public void cambiarEstadoParalelo(Long idParalelo, boolean activo) {
+<span class="nc" id="L113">        Paralelo p = paraleloRepo.findById(idParalelo)</span>
+<span class="nc" id="L114">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Paralelo no encontrado&quot;));</span>
+<span class="nc" id="L115">        p.setActivo(activo);</span>
+<span class="nc" id="L116">        paraleloRepo.save(p);</span>
+<span class="nc" id="L117">    }</span>
+
+    private Grado buscarPorId(Long id) {
+<span class="nc" id="L120">        return gradoRepo.findById(id)</span>
+<span class="nc" id="L121">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Grado no encontrado&quot;));</span>
+    }
+
+    private GradoResponseDTO toDTO(Grado g, Long idAnoActivo) {
+<span class="nc" id="L125">        List&lt;ParaleloDTO&gt; paralelos = paraleloRepo.findByGradoIdGradoAndActivoTrueOrderByLetra(g.getIdGrado())</span>
+<span class="nc" id="L126">                .stream().map(p -&gt; toParaleloDTO(p, idAnoActivo)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L128">        return GradoResponseDTO.builder()</span>
+<span class="nc" id="L129">                .idGrado(g.getIdGrado())</span>
+<span class="nc" id="L130">                .nombre(g.getNombre())</span>
+<span class="nc" id="L131">                .orden(g.getOrden())</span>
+<span class="nc" id="L132">                .capacidadMax(g.getCapacidadMax())</span>
+<span class="nc" id="L133">                .activo(g.isActivo())</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                .nivelEducativo(g.getNivelEducativo() != null ? g.getNivelEducativo().getNombre() : null)</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                .idNivel(g.getNivelEducativo() != null ? g.getNivelEducativo().getIdNivel() : null)</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                .tipoEscala(g.getNivelEducativo() != null ? g.getNivelEducativo().getTipoEscala() : null)</span>
+<span class="nc" id="L137">                .paralelos(paralelos)</span>
+<span class="nc" id="L138">                .build();</span>
+    }
+
+    private ParaleloDTO toParaleloDTO(Paralelo p, Long idAnoActivo) {
+<span class="nc" id="L142">        long total = 0;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (idAnoActivo != null) {</span>
+<span class="nc" id="L144">            total = matriculaRepo.countByGradoParaleloAnoLectivo(p.getGrado().getIdGrado(), p.getIdParalelo(), idAnoActivo);</span>
+        }
+<span class="nc" id="L146">        return ParaleloDTO.builder()</span>
+<span class="nc" id="L147">                .idParalelo(p.getIdParalelo())</span>
+<span class="nc" id="L148">                .letra(p.getLetra())</span>
+<span class="nc" id="L149">                .activo(p.isActivo())</span>
+<span class="nc" id="L150">                .idGrado(p.getGrado().getIdGrado())</span>
+<span class="nc" id="L151">                .nombreGrado(p.getGrado().getNombre())</span>
+<span class="nc" id="L152">                .totalEstudiantes(total)</span>
+<span class="nc" id="L153">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

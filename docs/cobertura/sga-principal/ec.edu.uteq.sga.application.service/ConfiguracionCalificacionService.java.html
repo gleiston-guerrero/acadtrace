@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfiguracionCalificacionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">ConfiguracionCalificacionService.java</span></div><h1>ConfiguracionCalificacionService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.configuracion.*;
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Configuración de CÓMO se califica: trimestres, ponderación formativa/sumativa,
+ * tipos de aporte y escala cualitativa.
+ *
+ * Importante: aquí sólo vive la CONFIGURACIÓN. Las notas de los estudiantes las
+ * registra y almacena el microservicio docente en su propio esquema (sga_docente);
+ * ese microservicio consulta esta configuración para calcular los promedios.
+ */
+@Service
+@RequiredArgsConstructor
+public class ConfiguracionCalificacionService {
+
+<span class="nc" id="L28">    private static final Set&lt;String&gt; TIPOS_EVALUACION = Set.of(&quot;FORMATIVA&quot;, &quot;SUMATIVA&quot;);</span>
+
+    private final EsquemaCalificacionRepository esquemaRepo;
+    private final TipoAporteRepository tipoAporteRepo;
+    private final EscalaCalificacionesRepository escalaRepo;
+    private final PeriodoEvaluacionRepository periodoRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final NivelEducativoRepository nivelRepo;
+
+    private AnoLectivo anoActual() {
+<span class="nc" id="L38">        return anoLectivoRepo.findByEsActualTrue()</span>
+<span class="nc" id="L39">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.CONFLICT,</span>
+                        &quot;No hay un año lectivo activo configurado&quot;));
+    }
+
+    // ---------------------------------------------------------------- esquema
+
+    @Transactional(readOnly = true)
+    public EsquemaCalificacionDTO obtenerEsquema() {
+<span class="nc" id="L47">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L48">        return esquemaRepo.findByAnoLectivo_IdAnoLectivo(ano.getIdAnoLectivo())</span>
+<span class="nc" id="L49">                .map(e -&gt; EsquemaCalificacionDTO.builder()</span>
+<span class="nc" id="L50">                        .idEsquema(e.getIdEsquema())</span>
+<span class="nc" id="L51">                        .pesoFormativa(e.getPesoFormativa())</span>
+<span class="nc" id="L52">                        .pesoSumativa(e.getPesoSumativa())</span>
+<span class="nc" id="L53">                        .build())</span>
+                // Si aún no se ha configurado, se devuelve el estándar 70/30.
+<span class="nc" id="L55">                .orElseGet(() -&gt; EsquemaCalificacionDTO.builder()</span>
+<span class="nc" id="L56">                        .pesoFormativa(new BigDecimal(&quot;70.00&quot;))</span>
+<span class="nc" id="L57">                        .pesoSumativa(new BigDecimal(&quot;30.00&quot;))</span>
+<span class="nc" id="L58">                        .build());</span>
+    }
+
+    @Transactional
+    public EsquemaCalificacionDTO guardarEsquema(EsquemaCalificacionDTO dto) {
+<span class="nc" id="L63">        BigDecimal suma = dto.getPesoFormativa().add(dto.getPesoSumativa());</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (suma.compareTo(new BigDecimal(&quot;100&quot;)) != 0) {</span>
+<span class="nc" id="L65">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;Los pesos deben sumar 100 (actual: &quot; + suma + &quot;)&quot;);
+        }
+
+<span class="nc" id="L69">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L70">        EsquemaCalificacion esquema = esquemaRepo.findByAnoLectivo_IdAnoLectivo(ano.getIdAnoLectivo())</span>
+<span class="nc" id="L71">                .orElseGet(() -&gt; EsquemaCalificacion.builder().anoLectivo(ano).build());</span>
+<span class="nc" id="L72">        esquema.setPesoFormativa(dto.getPesoFormativa());</span>
+<span class="nc" id="L73">        esquema.setPesoSumativa(dto.getPesoSumativa());</span>
+<span class="nc" id="L74">        esquemaRepo.save(esquema);</span>
+
+<span class="nc" id="L76">        return obtenerEsquema();</span>
+    }
+
+    // ---------------------------------------------------------- tipos aporte
+
+    @Transactional(readOnly = true)
+    public List&lt;TipoAporteDTO&gt; listarTiposAporte() {
+<span class="nc" id="L83">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L84">        return tipoAporteRepo.findByAnoLectivo_IdAnoLectivoOrderByTipoEvaluacionAscOrdenAsc(ano.getIdAnoLectivo())</span>
+<span class="nc" id="L85">                .stream().map(this::aDto).toList();</span>
+    }
+
+    @Transactional
+    public TipoAporteDTO crearTipoAporte(TipoAporteDTO dto) {
+<span class="nc" id="L90">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L91">        validarTipoEvaluacion(dto.getTipoEvaluacion());</span>
+
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (tipoAporteRepo.existsByAnoLectivo_IdAnoLectivoAndNombreIgnoreCase(</span>
+<span class="nc" id="L94">                ano.getIdAnoLectivo(), dto.getNombre())) {</span>
+<span class="nc" id="L95">            throw new ResponseStatusException(HttpStatus.CONFLICT,</span>
+                    &quot;Ya existe un aporte con ese nombre en el año lectivo&quot;);
+        }
+
+<span class="nc" id="L99">        TipoAporte aporte = TipoAporte.builder()</span>
+<span class="nc" id="L100">                .anoLectivo(ano)</span>
+<span class="nc" id="L101">                .nombre(dto.getNombre())</span>
+<span class="nc" id="L102">                .tipoEvaluacion(dto.getTipoEvaluacion().toUpperCase())</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                .orden(dto.getOrden() == null ? 0 : dto.getOrden())</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">                .activo(dto.getActivo() == null || dto.getActivo())</span>
+<span class="nc" id="L105">                .build();</span>
+<span class="nc" id="L106">        return aDto(tipoAporteRepo.save(aporte));</span>
+    }
+
+    @Transactional
+    public TipoAporteDTO actualizarTipoAporte(Long id, TipoAporteDTO dto) {
+<span class="nc" id="L111">        TipoAporte aporte = tipoAporteRepo.findById(id)</span>
+<span class="nc" id="L112">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Tipo de aporte no encontrado&quot;));</span>
+<span class="nc" id="L113">        validarTipoEvaluacion(dto.getTipoEvaluacion());</span>
+
+<span class="nc" id="L115">        aporte.setNombre(dto.getNombre());</span>
+<span class="nc" id="L116">        aporte.setTipoEvaluacion(dto.getTipoEvaluacion().toUpperCase());</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (dto.getOrden() != null) aporte.setOrden(dto.getOrden());</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (dto.getActivo() != null) aporte.setActivo(dto.getActivo());</span>
+<span class="nc" id="L119">        return aDto(tipoAporteRepo.save(aporte));</span>
+    }
+
+    @Transactional
+    public void eliminarTipoAporte(Long id) {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (!tipoAporteRepo.existsById(id)) {</span>
+<span class="nc" id="L125">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Tipo de aporte no encontrado&quot;);</span>
+        }
+<span class="nc" id="L127">        tipoAporteRepo.deleteById(id);</span>
+<span class="nc" id="L128">    }</span>
+
+    // ----------------------------------------------------------------- escala
+
+    @Transactional(readOnly = true)
+    public List&lt;EscalaCalificacionDTO&gt; listarEscala(Long idNivel) {
+<span class="nc" id="L134">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L135">        return escalaRepo.findByAnoLectivo_IdAnoLectivo(ano.getIdAnoLectivo()).stream()</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">                .filter(e -&gt; idNivel == null || e.getNivel().getIdNivel().equals(idNivel))</span>
+<span class="nc" id="L137">                .sorted((a, b) -&gt; b.getNotaMinima().compareTo(a.getNotaMinima()))</span>
+<span class="nc" id="L138">                .map(this::aDto)</span>
+<span class="nc" id="L139">                .toList();</span>
+    }
+
+    @Transactional
+    public EscalaCalificacionDTO crearRangoEscala(EscalaCalificacionDTO dto) {
+<span class="nc" id="L144">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L145">        validarRango(dto);</span>
+<span class="nc" id="L146">        NivelEducativo nivel = nivelRepo.findById(dto.getIdNivel())</span>
+<span class="nc" id="L147">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nivel educativo no encontrado&quot;));</span>
+
+<span class="nc" id="L149">        EscalaCalificaciones escala = EscalaCalificaciones.builder()</span>
+<span class="nc" id="L150">                .anoLectivo(ano)</span>
+<span class="nc" id="L151">                .nivel(nivel)</span>
+<span class="nc" id="L152">                .notaMinima(dto.getNotaMinima())</span>
+<span class="nc" id="L153">                .notaMaxima(dto.getNotaMaxima())</span>
+<span class="nc" id="L154">                .equivalenteCualitativo(dto.getEquivalenteCualitativo())</span>
+<span class="nc" id="L155">                .descripcion(dto.getDescripcion())</span>
+<span class="nc" id="L156">                .build();</span>
+<span class="nc" id="L157">        return aDto(escalaRepo.save(escala));</span>
+    }
+
+    @Transactional
+    public EscalaCalificacionDTO actualizarRangoEscala(Long id, EscalaCalificacionDTO dto) {
+<span class="nc" id="L162">        EscalaCalificaciones escala = escalaRepo.findById(id)</span>
+<span class="nc" id="L163">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Rango de escala no encontrado&quot;));</span>
+<span class="nc" id="L164">        validarRango(dto);</span>
+
+<span class="nc" id="L166">        escala.setNotaMinima(dto.getNotaMinima());</span>
+<span class="nc" id="L167">        escala.setNotaMaxima(dto.getNotaMaxima());</span>
+<span class="nc" id="L168">        escala.setEquivalenteCualitativo(dto.getEquivalenteCualitativo());</span>
+<span class="nc" id="L169">        escala.setDescripcion(dto.getDescripcion());</span>
+<span class="nc" id="L170">        return aDto(escalaRepo.save(escala));</span>
+    }
+
+    @Transactional
+    public void eliminarRangoEscala(Long id) {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (!escalaRepo.existsById(id)) {</span>
+<span class="nc" id="L176">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Rango de escala no encontrado&quot;);</span>
+        }
+<span class="nc" id="L178">        escalaRepo.deleteById(id);</span>
+<span class="nc" id="L179">    }</span>
+
+    /**
+     * Convierte una nota cuantitativa en su equivalente cualitativo según la
+     * escala del nivel. Es la misma conversión que consumirá el docente.
+     */
+    @Transactional(readOnly = true)
+    public EscalaCalificacionDTO convertirACualitativa(Long idNivel, BigDecimal nota) {
+<span class="nc" id="L187">        return listarEscala(idNivel).stream()</span>
+<span class="nc bnc" id="L188" title="All 4 branches missed.">                .filter(e -&gt; nota.compareTo(e.getNotaMinima()) &gt;= 0 &amp;&amp; nota.compareTo(e.getNotaMaxima()) &lt;= 0)</span>
+<span class="nc" id="L189">                .findFirst()</span>
+<span class="nc" id="L190">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND,</span>
+                        &quot;La nota &quot; + nota + &quot; no cae en ningún rango de la escala&quot;));
+    }
+
+    // -------------------------------------------------------------- periodos
+
+    @Transactional(readOnly = true)
+    public List&lt;PeriodoEvaluacionDTO&gt; listarPeriodos() {
+<span class="nc" id="L198">        AnoLectivo ano = anoActual();</span>
+<span class="nc" id="L199">        return periodoRepo.findByAnoLectivo_IdAnoLectivo(ano.getIdAnoLectivo()).stream()</span>
+<span class="nc" id="L200">                .sorted((a, b) -&gt; a.getFechaInicio().compareTo(b.getFechaInicio()))</span>
+<span class="nc" id="L201">                .map(this::aDto)</span>
+<span class="nc" id="L202">                .toList();</span>
+    }
+
+    @Transactional
+    public PeriodoEvaluacionDTO actualizarPeriodo(Long id, PeriodoEvaluacionDTO dto) {
+<span class="nc" id="L207">        PeriodoEvaluacion periodo = periodoRepo.findById(id)</span>
+<span class="nc" id="L208">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Periodo no encontrado&quot;));</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (dto.getFechaFin().isBefore(dto.getFechaInicio())) {</span>
+<span class="nc" id="L210">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;La fecha de fin no puede ser anterior a la de inicio&quot;);
+        }
+<span class="nc" id="L213">        periodo.setNombre(dto.getNombre());</span>
+<span class="nc" id="L214">        periodo.setFechaInicio(dto.getFechaInicio());</span>
+<span class="nc" id="L215">        periodo.setFechaFin(dto.getFechaFin());</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (dto.getActivo() != null) periodo.setActivo(dto.getActivo());</span>
+<span class="nc" id="L217">        return aDto(periodoRepo.save(periodo));</span>
+    }
+
+    // -------------------------------------------------------------- helpers
+
+    private void validarTipoEvaluacion(String tipo) {
+<span class="nc bnc" id="L223" title="All 4 branches missed.">        if (tipo == null || !TIPOS_EVALUACION.contains(tipo.toUpperCase())) {</span>
+<span class="nc" id="L224">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;El tipo de evaluación debe ser FORMATIVA o SUMATIVA&quot;);
+        }
+<span class="nc" id="L227">    }</span>
+
+    private void validarRango(EscalaCalificacionDTO dto) {
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (dto.getNotaMinima().compareTo(dto.getNotaMaxima()) &gt; 0) {</span>
+<span class="nc" id="L231">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;La nota mínima no puede ser mayor que la máxima&quot;);
+        }
+<span class="nc" id="L234">    }</span>
+
+    private TipoAporteDTO aDto(TipoAporte a) {
+<span class="nc" id="L237">        return TipoAporteDTO.builder()</span>
+<span class="nc" id="L238">                .idTipoAporte(a.getIdTipoAporte())</span>
+<span class="nc" id="L239">                .nombre(a.getNombre())</span>
+<span class="nc" id="L240">                .tipoEvaluacion(a.getTipoEvaluacion())</span>
+<span class="nc" id="L241">                .orden(a.getOrden())</span>
+<span class="nc" id="L242">                .activo(a.isActivo())</span>
+<span class="nc" id="L243">                .build();</span>
+    }
+
+    private EscalaCalificacionDTO aDto(EscalaCalificaciones e) {
+<span class="nc" id="L247">        return EscalaCalificacionDTO.builder()</span>
+<span class="nc" id="L248">                .idEscala(e.getIdEscala())</span>
+<span class="nc" id="L249">                .idNivel(e.getNivel().getIdNivel())</span>
+<span class="nc" id="L250">                .nivel(e.getNivel().getNombre())</span>
+<span class="nc" id="L251">                .notaMinima(e.getNotaMinima())</span>
+<span class="nc" id="L252">                .notaMaxima(e.getNotaMaxima())</span>
+<span class="nc" id="L253">                .equivalenteCualitativo(e.getEquivalenteCualitativo())</span>
+<span class="nc" id="L254">                .descripcion(e.getDescripcion())</span>
+<span class="nc" id="L255">                .build();</span>
+    }
+
+    private PeriodoEvaluacionDTO aDto(PeriodoEvaluacion p) {
+<span class="nc" id="L259">        return PeriodoEvaluacionDTO.builder()</span>
+<span class="nc" id="L260">                .idPeriodo(p.getIdPeriodo())</span>
+<span class="nc" id="L261">                .tipo(p.getTipo())</span>
+<span class="nc" id="L262">                .nombre(p.getNombre())</span>
+<span class="nc" id="L263">                .fechaInicio(p.getFechaInicio())</span>
+<span class="nc" id="L264">                .fechaFin(p.getFechaFin())</span>
+<span class="nc" id="L265">                .activo(p.isActivo())</span>
+<span class="nc" id="L266">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

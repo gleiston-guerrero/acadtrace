@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnoLectivoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">AnoLectivoService.java</span></div><h1>AnoLectivoService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.anolectivo.*;
+import ec.edu.uteq.sga.domain.entity.AnoLectivo;
+import ec.edu.uteq.sga.infrastructure.repository.AnoLectivoRepository;
+import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AnoLectivoService {
+
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final UsuarioRepository usuarioRepo;
+    @Transactional(readOnly = true)
+    public List&lt;AnoLectivoResponseDTO&gt; listarTodos()  {
+<span class="nc" id="L24">        return anoLectivoRepo.findAll()</span>
+<span class="nc" id="L25">                .stream()</span>
+<span class="nc" id="L26">                .map(this::toDTO)</span>
+<span class="nc" id="L27">                .collect(Collectors.toList());</span>
+    }
+
+    public AnoLectivoResponseDTO obtenerPorId(Long id) {
+<span class="nc" id="L31">        return toDTO(buscarPorId(id));</span>
+    }
+
+    @Transactional
+    public AnoLectivoResponseDTO crear(AnoLectivoRequestDTO dto, String username) {
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (anoLectivoRepo.existsByNombre(dto.getNombre()))</span>
+<span class="nc" id="L37">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe un año lectivo con ese nombre&quot;);</span>
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (dto.getFechaFin().isBefore(dto.getFechaInicio()))</span>
+<span class="nc" id="L40">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;La fecha fin no puede ser anterior a la fecha inicio&quot;);</span>
+
+<span class="nc" id="L42">        var creador = usuarioRepo.findByUsername(username)</span>
+<span class="nc" id="L43">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Usuario no encontrado&quot;));</span>
+
+<span class="nc" id="L45">        AnoLectivo ano = AnoLectivo.builder()</span>
+<span class="nc" id="L46">                .nombre(dto.getNombre())</span>
+<span class="nc" id="L47">                .fechaInicio(dto.getFechaInicio())</span>
+<span class="nc" id="L48">                .fechaFin(dto.getFechaFin())</span>
+<span class="nc" id="L49">                .esActual(false)</span>
+<span class="nc" id="L50">                .creadoPor(creador)</span>
+<span class="nc" id="L51">                .build();</span>
+
+<span class="nc" id="L53">        return toDTO(anoLectivoRepo.save(ano));</span>
+    }
+
+    @Transactional
+    public AnoLectivoResponseDTO actualizar(Long id, AnoLectivoRequestDTO dto) {
+<span class="nc" id="L58">        AnoLectivo ano = buscarPorId(id);</span>
+
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (dto.getFechaFin().isBefore(dto.getFechaInicio()))</span>
+<span class="nc" id="L61">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;La fecha fin no puede ser anterior a la fecha inicio&quot;);</span>
+
+<span class="nc" id="L63">        ano.setNombre(dto.getNombre());</span>
+<span class="nc" id="L64">        ano.setFechaInicio(dto.getFechaInicio());</span>
+<span class="nc" id="L65">        ano.setFechaFin(dto.getFechaFin());</span>
+
+<span class="nc" id="L67">        return toDTO(anoLectivoRepo.save(ano));</span>
+    }
+
+    @Transactional
+    public void establecerActual(Long id) {
+        // Desactivar todos
+<span class="nc" id="L73">        anoLectivoRepo.findAll().forEach(a -&gt; {</span>
+<span class="nc" id="L74">            a.setEsActual(false);</span>
+<span class="nc" id="L75">            anoLectivoRepo.save(a);</span>
+<span class="nc" id="L76">        });</span>
+
+        // Activar el seleccionado
+<span class="nc" id="L79">        AnoLectivo ano = buscarPorId(id);</span>
+<span class="nc" id="L80">        ano.setEsActual(true);</span>
+<span class="nc" id="L81">        anoLectivoRepo.save(ano);</span>
+<span class="nc" id="L82">    }</span>
+    @Transactional(readOnly = true)
+    public AnoLectivoResponseDTO obtenerActual() {
+<span class="nc" id="L85">        return anoLectivoRepo.findByEsActualTrue()</span>
+<span class="nc" id="L86">                .map(this::toDTO)</span>
+<span class="nc" id="L87">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;No hay año lectivo activo&quot;));</span>
+    }
+
+    // Helpers
+    private AnoLectivo buscarPorId(Long id) {
+<span class="nc" id="L92">        return anoLectivoRepo.findById(id)</span>
+<span class="nc" id="L93">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Año lectivo no encontrado&quot;));</span>
+    }
+
+    private AnoLectivoResponseDTO toDTO(AnoLectivo a) {
+<span class="nc" id="L97">        return AnoLectivoResponseDTO.builder()</span>
+<span class="nc" id="L98">                .idAnoLectivo(a.getIdAnoLectivo())</span>
+<span class="nc" id="L99">                .nombre(a.getNombre())</span>
+<span class="nc" id="L100">                .fechaInicio(a.getFechaInicio())</span>
+<span class="nc" id="L101">                .fechaFin(a.getFechaFin())</span>
+<span class="nc" id="L102">                .esActual(a.isEsActual())</span>
+<span class="nc" id="L103">                .fechaCreacion(a.getFechaCreacion())</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                .creadoPor(a.getCreadoPor() != null ? a.getCreadoPor().getUsername() : null)</span>
+<span class="nc" id="L105">                .build();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">UsuarioController.java</span></div><h1>UsuarioController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.dto.usuario.*;
+import ec.edu.uteq.sga.application.service.UsuarioService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/usuarios&quot;)
+@RequiredArgsConstructor
+public class UsuarioController {
+
+    private final UsuarioService usuarioService;
+
+    @GetMapping
+    public ResponseEntity&lt;List&lt;UsuarioResponseDTO&gt;&gt; listar() {
+<span class="nc" id="L23">        return ResponseEntity.ok(usuarioService.listarTodos());</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;UsuarioResponseDTO&gt; obtener(@PathVariable Long id) {
+<span class="nc" id="L28">        return ResponseEntity.ok(usuarioService.obtenerPorId(id));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;UsuarioCreacionResponseDTO&gt; crear(@Valid @RequestBody UsuarioRequestDTO dto) {
+<span class="nc" id="L33">        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crear(dto));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;UsuarioResponseDTO&gt; actualizar(@PathVariable Long id,
+                                                         @Valid @RequestBody UsuarioUpdateDTO dto) {
+<span class="nc" id="L39">        return ResponseEntity.ok(usuarioService.actualizar(id, dto));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/estado&quot;)
+    public ResponseEntity&lt;Void&gt; cambiarEstado(@PathVariable Long id,
+                                              @RequestParam String estado) {
+<span class="nc" id="L45">        usuarioService.cambiarEstado(id, estado);</span>
+<span class="nc" id="L46">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PatchMapping(&quot;/{id}/reset-password&quot;)
+    public ResponseEntity&lt;Void&gt; resetearPassword(@PathVariable Long id) {
+<span class="nc" id="L51">        usuarioService.resetearPassword(id);</span>
+<span class="nc" id="L52">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PatchMapping(&quot;/cambiar-password&quot;)
+    public ResponseEntity&lt;Void&gt; cambiarPassword(Authentication auth,
+                                                @Valid @RequestBody CambioPasswordDTO dto) {
+<span class="nc" id="L58">        usuarioService.cambiarPassword(auth.getName(), dto);</span>
+<span class="nc" id="L59">        return ResponseEntity.noContent().build();</span>
+    }
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; eliminar(@PathVariable Long id) {
+<span class="nc" id="L63">        usuarioService.eliminar(id);</span>
+<span class="nc" id="L64">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

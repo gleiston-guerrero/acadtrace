@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsignaturaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">AsignaturaService.java</span></div><h1>AsignaturaService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.asignatura.*;
+import ec.edu.uteq.sga.domain.entity.Asignatura;
+import ec.edu.uteq.sga.infrastructure.repository.AsignaturaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AsignaturaService {
+
+    private final AsignaturaRepository asignaturaRepo;
+
+    public List&lt;AsignaturaResponseDTO&gt; listarTodos() {
+<span class="nc" id="L22">        return asignaturaRepo.findAll().stream().map(this::toDTO).collect(Collectors.toList());</span>
+    }
+
+    public List&lt;AsignaturaResponseDTO&gt; listarActivos() {
+<span class="nc" id="L26">        return asignaturaRepo.findByActivaTrue().stream().map(this::toDTO).collect(Collectors.toList());</span>
+    }
+
+    public AsignaturaResponseDTO obtenerPorId(Long id) {
+<span class="nc" id="L30">        return toDTO(buscarPorId(id));</span>
+    }
+
+    @Transactional
+    public AsignaturaResponseDTO crear(AsignaturaRequestDTO dto) {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (asignaturaRepo.existsByNombre(dto.getNombre()))</span>
+<span class="nc" id="L36">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe una asignatura con ese nombre&quot;);</span>
+
+<span class="nc bnc" id="L38" title="All 4 branches missed.">        if (dto.getCodigo() != null &amp;&amp; asignaturaRepo.existsByCodigo(dto.getCodigo()))</span>
+<span class="nc" id="L39">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Ya existe una asignatura con ese código&quot;);</span>
+
+<span class="nc" id="L41">        Asignatura asignatura = Asignatura.builder()</span>
+<span class="nc" id="L42">                .nombre(dto.getNombre())</span>
+<span class="nc" id="L43">                .codigo(dto.getCodigo())</span>
+<span class="nc" id="L44">                .descripcion(dto.getDescripcion())</span>
+<span class="nc" id="L45">                .horasSemanales(dto.getHorasSemanales())</span>
+<span class="nc" id="L46">                .activa(true)</span>
+<span class="nc" id="L47">                .build();</span>
+
+<span class="nc" id="L49">        return toDTO(asignaturaRepo.save(asignatura));</span>
+    }
+
+    @Transactional
+    public AsignaturaResponseDTO actualizar(Long id, AsignaturaRequestDTO dto) {
+<span class="nc" id="L54">        Asignatura asignatura = buscarPorId(id);</span>
+
+<span class="nc" id="L56">        asignatura.setNombre(dto.getNombre());</span>
+<span class="nc" id="L57">        asignatura.setCodigo(dto.getCodigo());</span>
+<span class="nc" id="L58">        asignatura.setDescripcion(dto.getDescripcion());</span>
+<span class="nc" id="L59">        asignatura.setHorasSemanales(dto.getHorasSemanales());</span>
+
+<span class="nc" id="L61">        return toDTO(asignaturaRepo.save(asignatura));</span>
+    }
+
+    @Transactional
+    public void cambiarEstado(Long id, boolean activo) {
+<span class="nc" id="L66">        Asignatura asignatura = buscarPorId(id);</span>
+<span class="nc" id="L67">        asignatura.setActiva(activo);</span>
+<span class="nc" id="L68">        asignaturaRepo.save(asignatura);</span>
+<span class="nc" id="L69">    }</span>
+
+    private Asignatura buscarPorId(Long id) {
+<span class="nc" id="L72">        return asignaturaRepo.findById(id)</span>
+<span class="nc" id="L73">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignatura no encontrada&quot;));</span>
+    }
+
+    private AsignaturaResponseDTO toDTO(Asignatura a) {
+<span class="nc" id="L77">        return AsignaturaResponseDTO.builder()</span>
+<span class="nc" id="L78">                .idAsignatura(a.getIdAsignatura())</span>
+<span class="nc" id="L79">                .nombre(a.getNombre())</span>
+<span class="nc" id="L80">                .codigo(a.getCodigo())</span>
+<span class="nc" id="L81">                .descripcion(a.getDescripcion())</span>
+<span class="nc" id="L82">                .horasSemanales(a.getHorasSemanales())</span>
+<span class="nc" id="L83">                .activo(a.isActiva())</span>
+<span class="nc" id="L84">                .fechaCreacion(a.getFechaCreacion())</span>
+<span class="nc" id="L85">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificacionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">NotificacionController.java</span></div><h1>NotificacionController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.dto.notificacion.NotificacionMasivoRequestDTO;
+import ec.edu.uteq.sga.domain.dto.notificacion.NotificacionMiasResponseDTO;
+import ec.edu.uteq.sga.application.service.NotificacionService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/api/notificaciones&quot;)
+@RequiredArgsConstructor
+public class NotificacionController {
+
+    private final NotificacionService notificacionService;
+
+    @GetMapping(&quot;/mias&quot;)
+    public ResponseEntity&lt;NotificacionMiasResponseDTO&gt; mias(Authentication auth) {
+<span class="nc" id="L22">        return ResponseEntity.ok(notificacionService.mias(auth));</span>
+    }
+
+    @PostMapping(&quot;/marcar-leida/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; marcarLeida(Authentication auth, @PathVariable Long id) {
+<span class="nc" id="L27">        notificacionService.marcarLeida(auth, id);</span>
+<span class="nc" id="L28">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PostMapping(&quot;/marcar-todas-leidas&quot;)
+    public ResponseEntity&lt;Void&gt; marcarTodasLeidas(Authentication auth) {
+<span class="nc" id="L33">        notificacionService.marcarTodasLeidas(auth);</span>
+<span class="nc" id="L34">        return ResponseEntity.noContent().build();</span>
+    }
+
+    /**
+     * Interno: llamado por otros microservicios (secretaria/docente/soporte) para crear
+     * notificaciones masivas. Sin JWT de usuario final (permitAll en SecurityConfig) —
+     * pensado solo para llamadas intra-red, igual que /api/rpc/** ya funciona hoy.
+     */
+    @PostMapping(&quot;/masivo&quot;)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void masivo(@Valid @RequestBody NotificacionMasivoRequestDTO dto) {
+<span class="nc" id="L45">        notificacionService.enviarMasivo(dto);</span>
+<span class="nc" id="L46">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

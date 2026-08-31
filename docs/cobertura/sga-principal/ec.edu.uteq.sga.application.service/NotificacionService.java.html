@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificacionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">NotificacionService.java</span></div><h1>NotificacionService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.notificacion.NotificacionMasivoRequestDTO;
+import ec.edu.uteq.sga.domain.dto.notificacion.NotificacionMiasResponseDTO;
+import ec.edu.uteq.sga.domain.dto.notificacion.NotificacionResponseDTO;
+import ec.edu.uteq.sga.domain.entity.Notificacion;
+import ec.edu.uteq.sga.domain.entity.Usuario;
+import ec.edu.uteq.sga.infrastructure.repository.NotificacionRepository;
+import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class NotificacionService {
+
+    private static final int LIMITE_MIAS = 10;
+
+    private final NotificacionRepository notificacionRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    public NotificacionMiasResponseDTO mias(Authentication auth) {
+<span class="nc" id="L31">        Usuario usuario = resolverUsuario(auth);</span>
+<span class="nc" id="L32">        List&lt;NotificacionResponseDTO&gt; notificaciones = notificacionRepository</span>
+<span class="nc" id="L33">                .findByUsuario_IdUsuarioOrderByFechaDesc(usuario.getIdUsuario(), PageRequest.of(0, LIMITE_MIAS, Sort.by(&quot;fecha&quot;).descending()))</span>
+<span class="nc" id="L34">                .map(this::toDTO)</span>
+<span class="nc" id="L35">                .toList();</span>
+<span class="nc" id="L36">        long noLeidas = notificacionRepository.countByUsuario_IdUsuarioAndLeidaFalse(usuario.getIdUsuario());</span>
+<span class="nc" id="L37">        return NotificacionMiasResponseDTO.builder().notificaciones(notificaciones).noLeidas(noLeidas).build();</span>
+    }
+
+    @Transactional
+    public void marcarLeida(Authentication auth, Long idNotificacion) {
+<span class="nc" id="L42">        Usuario usuario = resolverUsuario(auth);</span>
+<span class="nc" id="L43">        Notificacion notificacion = notificacionRepository.findById(idNotificacion)</span>
+<span class="nc" id="L44">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Notificación no encontrada&quot;));</span>
+<span class="nc bnc" id="L45" title="All 4 branches missed.">        if (notificacion.getUsuario() == null || !notificacion.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {</span>
+<span class="nc" id="L46">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;La notificación no pertenece al usuario autenticado&quot;);</span>
+        }
+<span class="nc" id="L48">        notificacion.setLeida(true);</span>
+<span class="nc" id="L49">        notificacionRepository.save(notificacion);</span>
+<span class="nc" id="L50">    }</span>
+
+    @Transactional
+    public void marcarTodasLeidas(Authentication auth) {
+<span class="nc" id="L54">        Usuario usuario = resolverUsuario(auth);</span>
+<span class="nc" id="L55">        notificacionRepository.marcarTodasLeidas(usuario.getIdUsuario());</span>
+<span class="nc" id="L56">    }</span>
+
+    /** Llamado por otros microservicios (secretaria/docente/soporte) para notificar a varios usuarios. */
+    @Transactional
+    public void enviarMasivo(NotificacionMasivoRequestDTO dto) {
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        for (Long idUsuario : dto.getIdsUsuarios()) {</span>
+<span class="nc" id="L62">            Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (usuario == null) continue;</span>
+<span class="nc" id="L64">            Notificacion notificacion = Notificacion.builder()</span>
+<span class="nc" id="L65">                    .usuario(usuario)</span>
+<span class="nc" id="L66">                    .tipo(dto.getTipo())</span>
+<span class="nc" id="L67">                    .titulo(dto.getTitulo())</span>
+<span class="nc" id="L68">                    .mensaje(dto.getMensaje())</span>
+<span class="nc" id="L69">                    .urlDestino(dto.getUrlDestino())</span>
+<span class="nc" id="L70">                    .build();</span>
+<span class="nc" id="L71">            notificacionRepository.save(notificacion);</span>
+<span class="nc" id="L72">        }</span>
+<span class="nc" id="L73">    }</span>
+
+    private Usuario resolverUsuario(Authentication auth) {
+<span class="nc bnc" id="L76" title="All 4 branches missed.">        if (auth == null || !auth.isAuthenticated()) {</span>
+<span class="nc" id="L77">            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, &quot;No hay usuario autenticado en el contexto&quot;);</span>
+        }
+<span class="nc" id="L79">        return usuarioRepository.findByUsername(auth.getName())</span>
+<span class="nc" id="L80">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Usuario no encontrado&quot;));</span>
+    }
+
+    private NotificacionResponseDTO toDTO(Notificacion n) {
+<span class="nc" id="L84">        return NotificacionResponseDTO.builder()</span>
+<span class="nc" id="L85">                .idNotificacion(n.getIdNotificacion())</span>
+<span class="nc" id="L86">                .tipo(n.getTipo())</span>
+<span class="nc" id="L87">                .titulo(n.getTitulo())</span>
+<span class="nc" id="L88">                .mensaje(n.getMensaje())</span>
+<span class="nc" id="L89">                .urlDestino(n.getUrlDestino())</span>
+<span class="nc" id="L90">                .leida(n.isLeida())</span>
+<span class="nc" id="L91">                .fecha(n.getFecha())</span>
+<span class="nc" id="L92">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

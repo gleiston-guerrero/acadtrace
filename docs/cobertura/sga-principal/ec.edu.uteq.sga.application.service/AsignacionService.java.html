@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsignacionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">AsignacionService.java</span></div><h1>AsignacionService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.asignacion.*;
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AsignacionService {
+
+    private final AsignacionRepository asignacionRepo;
+    private final PersonaRepository personaRepo;
+    private final AsignaturaRepository asignaturaRepo;
+    private final GradoRepository gradoRepo;
+    private final ParaleloRepository paraleloRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final UsuarioRepository usuarioRepo;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Transactional(readOnly = true)
+    public List&lt;Map&lt;String, Object&gt;&gt; listarDocentes() {
+<span class="nc" id="L32">        return usuarioRepo.findAll().stream()</span>
+<span class="nc" id="L33">                .filter(u -&gt; u.getRoles().stream()</span>
+<span class="nc" id="L34">                        .anyMatch(r -&gt; r.getNombre().equalsIgnoreCase(&quot;DOCENTE&quot;)))</span>
+<span class="nc" id="L35">                .map(u -&gt; {</span>
+<span class="nc" id="L36">                    Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L37">                    map.put(&quot;idDocente&quot;, u.getIdUsuario());</span>
+<span class="nc" id="L38">                    String nombre = personaRepo.findByUsuario_IdUsuario(u.getIdUsuario())</span>
+<span class="nc" id="L39">                            .map(p -&gt; p.getNombres() + &quot; &quot; + p.getApellidos())</span>
+<span class="nc" id="L40">                            .orElse(u.getUsername());</span>
+<span class="nc" id="L41">                    map.put(&quot;nombre&quot;, nombre);</span>
+<span class="nc" id="L42">                    return map;</span>
+<span class="nc" id="L43">                }).collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;Map&lt;String, Object&gt;&gt; listarParalelosPorGrado(Long idGrado) {
+<span class="nc" id="L48">        return paraleloRepo.findByGradoIdGradoAndActivoTrueOrderByLetra(idGrado).stream()</span>
+<span class="nc" id="L49">                .map(p -&gt; {</span>
+<span class="nc" id="L50">                    Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L51">                    map.put(&quot;idParalelo&quot;, p.getIdParalelo());</span>
+<span class="nc" id="L52">                    map.put(&quot;letra&quot;, p.getLetra());</span>
+<span class="nc" id="L53">                    return map;</span>
+<span class="nc" id="L54">                }).collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;AsignacionResponseDTO&gt; listarTodos() {
+<span class="nc" id="L59">        return asignacionRepo.findAll().stream().map(this::toDTO).collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;AsignacionResponseDTO&gt; listarPorAnoLectivo(Long idAnoLectivo) {
+<span class="nc" id="L64">        return asignacionRepo.findByAnoLectivo_IdAnoLectivo(idAnoLectivo)</span>
+<span class="nc" id="L65">                .stream().map(this::toDTO).collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;AsignacionResponseDTO&gt; listarPorDocente(Long idDocente) {
+<span class="nc" id="L70">        return asignacionRepo.findByDocente_IdPersona(idDocente)</span>
+<span class="nc" id="L71">                .stream().map(this::toDTO).collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public AsignacionResponseDTO crear(AsignacionRequestDTO dto, String username) {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (asignacionRepo.existsByAsignatura_IdAsignaturaAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivo(</span>
+<span class="nc" id="L77">                dto.getIdAsignatura(), dto.getIdParalelo(), dto.getIdAnoLectivo())) {</span>
+<span class="nc" id="L78">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Esta asignatura ya fue asignada a este curso y paralelo en el año lectivo seleccionado.&quot;);</span>
+        }
+
+<span class="nc" id="L81">        Persona docente = personaRepo.findById(dto.getIdDocente())</span>
+<span class="nc" id="L82">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Docente no encontrado&quot;));</span>
+
+<span class="nc" id="L84">        Asignatura asignatura = asignaturaRepo.findById(dto.getIdAsignatura())</span>
+<span class="nc" id="L85">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Asignatura no encontrada&quot;));</span>
+
+<span class="nc" id="L87">        Grado grado = gradoRepo.findById(dto.getIdGrado())</span>
+<span class="nc" id="L88">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Grado no encontrado&quot;));</span>
+
+<span class="nc" id="L90">        Paralelo paralelo = paraleloRepo.findById(dto.getIdParalelo())</span>
+<span class="nc" id="L91">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Paralelo no encontrado&quot;));</span>
+
+<span class="nc" id="L93">        AnoLectivo anoLectivo = anoLectivoRepo.findById(dto.getIdAnoLectivo())</span>
+<span class="nc" id="L94">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Año lectivo no encontrado&quot;));</span>
+
+<span class="nc" id="L96">        Usuario asignadoPor = usuarioRepo.findByUsername(username)</span>
+<span class="nc" id="L97">                .or(() -&gt; usuarioRepo.findAll().stream().filter(u -&gt; u.getUsername().equalsIgnoreCase(username)).findFirst())</span>
+<span class="nc" id="L98">                .orElse(null);</span>
+
+<span class="nc bnc" id="L100" title="All 4 branches missed.">        int horasNuevas = dto.getHorasSemanales() != null &amp;&amp; dto.getHorasSemanales() &gt; 0 ? dto.getHorasSemanales() : 4;</span>
+<span class="nc" id="L101">        int horasActualesGrado = asignacionRepo.findAll().stream()</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                .filter(a -&gt; a.getGrado().getIdGrado().equals(dto.getIdGrado())</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                        &amp;&amp; a.getAnoLectivo().getIdAnoLectivo().equals(dto.getIdAnoLectivo())</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                        &amp;&amp; a.isActivo())</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                .mapToInt(a -&gt; a.getHorasSemanales() != null ? a.getHorasSemanales() : 4)</span>
+<span class="nc" id="L106">                .sum();</span>
+
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (horasActualesGrado + horasNuevas &gt; 30) {</span>
+<span class="nc" id="L109">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
+                    &quot;Exceso de carga horaria: El curso ya suma &quot; + horasActualesGrado + &quot;h. Asignar &quot; + horasNuevas + &quot;h superaría el límite máximo de 30 horas semanales.&quot;);
+        }
+
+<span class="nc" id="L113">        Asignacion asignacion = Asignacion.builder()</span>
+<span class="nc" id="L114">                .docente(docente)</span>
+<span class="nc" id="L115">                .asignatura(asignatura)</span>
+<span class="nc" id="L116">                .grado(grado)</span>
+<span class="nc" id="L117">                .paralelo(paralelo)</span>
+<span class="nc" id="L118">                .anoLectivo(anoLectivo)</span>
+<span class="nc" id="L119">                .esTutor(dto.isEsTutor())</span>
+<span class="nc" id="L120">                .activo(true)</span>
+<span class="nc bnc" id="L121" title="All 4 branches missed.">                .horasSemanales(dto.getHorasSemanales() != null &amp;&amp; dto.getHorasSemanales() &gt; 0 ? dto.getHorasSemanales() : 4)</span>
+<span class="nc" id="L122">                .fechaAsignacion(java.time.Instant.now())</span>
+<span class="nc" id="L123">                .asignadoPor(asignadoPor)</span>
+<span class="nc" id="L124">                .build();</span>
+
+        try {
+<span class="nc" id="L127">            return toDTO(asignacionRepo.save(asignacion));</span>
+<span class="nc" id="L128">        } catch (org.springframework.dao.DataIntegrityViolationException ex) {</span>
+<span class="nc" id="L129">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;No se puede guardar: la asignatura o tutoría ya está asignada para este curso.&quot;);</span>
+        }
+    }
+
+    @Transactional
+    public void cambiarEstado(Long id, boolean activo) {
+<span class="nc" id="L135">        Asignacion asignacion = asignacionRepo.findById(id)</span>
+<span class="nc" id="L136">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
+<span class="nc" id="L137">        asignacion.setActivo(activo);</span>
+<span class="nc" id="L138">        asignacionRepo.save(asignacion);</span>
+<span class="nc" id="L139">    }</span>
+
+    @Transactional
+    public void eliminar(Long id) {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (!asignacionRepo.existsById(id)) {</span>
+<span class="nc" id="L144">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;);</span>
+        }
+        try {
+<span class="nc" id="L147">            jdbcTemplate.update(&quot;DELETE FROM sga_docente.promedios_anuales WHERE id_asignacion = ?&quot;, id);</span>
+<span class="nc" id="L148">            jdbcTemplate.update(&quot;DELETE FROM sga_docente.promedios_trimestrales WHERE id_asignacion = ?&quot;, id);</span>
+<span class="nc" id="L149">            jdbcTemplate.update(&quot;DELETE FROM sga_docente.resumen_asistencia WHERE id_asignacion = ?&quot;, id);</span>
+<span class="nc" id="L150">            jdbcTemplate.update(&quot;DELETE FROM sga_docente.asistencias WHERE id_asignacion = ?&quot;, id);</span>
+<span class="nc" id="L151">            jdbcTemplate.update(&quot;DELETE FROM sga_docente.actividades WHERE id_asignacion = ?&quot;, id);</span>
+<span class="nc" id="L152">            jdbcTemplate.update(&quot;DELETE FROM sga_principal.horarios WHERE id_asignacion = ?&quot;, id);</span>
+<span class="nc" id="L153">            asignacionRepo.deleteById(id);</span>
+<span class="nc" id="L154">        } catch (Exception ex) {</span>
+<span class="nc" id="L155">            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,</span>
+<span class="nc" id="L156">                    &quot;No se pudo eliminar la asignación: &quot; + ex.getMessage());</span>
+<span class="nc" id="L157">        }</span>
+<span class="nc" id="L158">    }</span>
+
+    @Transactional
+    public AsignacionResponseDTO actualizar(Long id, AsignacionRequestDTO dto) {
+<span class="nc" id="L162">        Asignacion asignacion = asignacionRepo.findById(id)</span>
+<span class="nc" id="L163">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
+
+<span class="nc" id="L165">        Persona docente = personaRepo.findById(dto.getIdDocente())</span>
+<span class="nc" id="L166">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Docente no encontrado&quot;));</span>
+<span class="nc" id="L167">        Asignatura asignatura = asignaturaRepo.findById(dto.getIdAsignatura())</span>
+<span class="nc" id="L168">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Asignatura no encontrada&quot;));</span>
+<span class="nc" id="L169">        Grado grado = gradoRepo.findById(dto.getIdGrado())</span>
+<span class="nc" id="L170">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Grado no encontrado&quot;));</span>
+<span class="nc" id="L171">        Paralelo paralelo = paraleloRepo.findById(dto.getIdParalelo())</span>
+<span class="nc" id="L172">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Paralelo no encontrado&quot;));</span>
+<span class="nc" id="L173">        AnoLectivo anoLectivo = anoLectivoRepo.findById(dto.getIdAnoLectivo())</span>
+<span class="nc" id="L174">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Año lectivo no encontrado&quot;));</span>
+
+<span class="nc" id="L176">        asignacion.setDocente(docente);</span>
+<span class="nc" id="L177">        asignacion.setAsignatura(asignatura);</span>
+<span class="nc" id="L178">        asignacion.setGrado(grado);</span>
+<span class="nc" id="L179">        asignacion.setParalelo(paralelo);</span>
+<span class="nc" id="L180">        asignacion.setAnoLectivo(anoLectivo);</span>
+<span class="nc" id="L181">        asignacion.setEsTutor(dto.isEsTutor());</span>
+<span class="nc bnc" id="L182" title="All 4 branches missed.">        if (dto.getHorasSemanales() != null &amp;&amp; dto.getHorasSemanales() &gt; 0) {</span>
+<span class="nc" id="L183">            asignacion.setHorasSemanales(dto.getHorasSemanales());</span>
+        }
+
+        try {
+<span class="nc" id="L187">            return toDTO(asignacionRepo.save(asignacion));</span>
+<span class="nc" id="L188">        } catch (org.springframework.dao.DataIntegrityViolationException ex) {</span>
+<span class="nc" id="L189">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;No se pudo actualizar: la asignatura o tutoría entra en conflicto con otra asignación existente.&quot;);</span>
+        }
+    }
+
+    private AsignacionResponseDTO toDTO(Asignacion a) {
+<span class="nc" id="L194">        return AsignacionResponseDTO.builder()</span>
+<span class="nc" id="L195">                .idAsignacion(a.getIdAsignacion())</span>
+<span class="nc" id="L196">                .docente(a.getDocente().getNombres() + &quot; &quot; + a.getDocente().getApellidos())</span>
+<span class="nc" id="L197">                .asignatura(a.getAsignatura().getNombre())</span>
+<span class="nc" id="L198">                .grado(a.getGrado().getNombre())</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">                .paralelo(a.getParalelo() != null ? a.getParalelo().getLetra() : null)</span>
+<span class="nc" id="L200">                .anoLectivo(a.getAnoLectivo().getNombre())</span>
+<span class="nc" id="L201">                .esTutor(a.isEsTutor())</span>
+<span class="nc" id="L202">                .activo(a.isActivo())</span>
+<span class="nc" id="L203">                .fechaAsignacion(a.getFechaAsignacion())</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                .asignadoPor(a.getAsignadoPor() != null ? a.getAsignadoPor().getUsername() : null)</span>
+<span class="nc" id="L205">                .idDocente(a.getDocente().getIdPersona())</span>
+<span class="nc" id="L206">                .idAsignatura(a.getAsignatura().getIdAsignatura())</span>
+<span class="nc" id="L207">                .idGrado(a.getGrado().getIdGrado())</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                .idParalelo(a.getParalelo() != null ? a.getParalelo().getIdParalelo() : null)</span>
+<span class="nc" id="L209">                .idAnoLectivo(a.getAnoLectivo().getIdAnoLectivo())</span>
+<span class="nc" id="L210">                .cedulaDocente(a.getDocente().getCedula())</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                .correoDocente(a.getDocente().getUsuario() != null ? a.getDocente().getUsuario().getCorreo() : null)</span>
+<span class="nc" id="L212">                .tituloDocente(a.getDocente().getTituloAcademico())</span>
+<span class="nc" id="L213">                .fotoDocente(a.getDocente().getFotoUrl())</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                .horasSemanales(a.getHorasSemanales() != null ? a.getHorasSemanales() : 4)</span>
+<span class="nc" id="L215">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

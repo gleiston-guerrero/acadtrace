@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstudianteConsultaController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">EstudianteConsultaController.java</span></div><h1>EstudianteConsultaController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.entity.Matricula;
+import ec.edu.uteq.sga.infrastructure.repository.MatriculaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Consulta de solo lectura de estudiantes matriculados por grado/paralelo.
+ * La escritura de estudiantes vive en Secretaría; aquí solo se lee de la BD
+ * compartida para el Director (módulos Grados y vista de cursos).
+ */
+@RestController
+@RequestMapping(&quot;/api/estudiantes&quot;)
+@RequiredArgsConstructor
+public class EstudianteConsultaController {
+
+    private final MatriculaRepository matriculaRepository;
+
+    @GetMapping(&quot;/por-grado&quot;)
+    @Transactional(readOnly = true)
+    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; porGrado(
+            @RequestParam Long idGrado,
+            @RequestParam Long idAnoLectivo,
+            @RequestParam(required = false) Long idParalelo) {
+
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        List&lt;Matricula&gt; matriculas = (idParalelo != null)</span>
+<span class="nc" id="L34">                ? matriculaRepository.findByGradoParaleloAndAnoLectivoWithEstudiante(idGrado, idParalelo, idAnoLectivo)</span>
+<span class="nc" id="L35">                : matriculaRepository.findByGradoAndAnoLectivoWithEstudiante(idGrado, idAnoLectivo);</span>
+
+<span class="nc" id="L37">        List&lt;Map&lt;String, Object&gt;&gt; resp = matriculas.stream().map(m -&gt; {</span>
+<span class="nc" id="L38">            var e = m.getEstudiante();</span>
+<span class="nc" id="L39">            var r = e.getRepresentante();</span>
+<span class="nc" id="L40">            Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L41">            map.put(&quot;idMatricula&quot;, m.getIdMatricula());</span>
+<span class="nc" id="L42">            map.put(&quot;idEstudiante&quot;, e.getIdEstudiante());</span>
+<span class="nc" id="L43">            map.put(&quot;cedula&quot;, e.getCedula());</span>
+<span class="nc" id="L44">            map.put(&quot;codigoEstudiante&quot;, e.getCodigoEstudiante());</span>
+<span class="nc" id="L45">            map.put(&quot;nombres&quot;, e.getNombres());</span>
+<span class="nc" id="L46">            map.put(&quot;apellidos&quot;, e.getApellidos());</span>
+<span class="nc" id="L47">            map.put(&quot;genero&quot;, e.getGenero());</span>
+<span class="nc" id="L48">            map.put(&quot;telefono&quot;, e.getTelefono());</span>
+<span class="nc" id="L49">            map.put(&quot;telefonoAlt&quot;, e.getTelefonoAlt());</span>
+<span class="nc" id="L50">            map.put(&quot;correo&quot;, e.getCorreo());</span>
+<span class="nc" id="L51">            map.put(&quot;direccion&quot;, e.getDireccion());</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            map.put(&quot;fechaNacimiento&quot;, e.getFechaNacimiento() != null ? e.getFechaNacimiento().toString() : null);</span>
+<span class="nc" id="L53">            map.put(&quot;nacionalidad&quot;, e.getNacionalidad());</span>
+<span class="nc" id="L54">            map.put(&quot;etnia&quot;, e.getEtnia());</span>
+<span class="nc" id="L55">            map.put(&quot;lugarNacimiento&quot;, e.getLugarNacimiento());</span>
+<span class="nc" id="L56">            map.put(&quot;viveCon&quot;, e.getViveCon());</span>
+<span class="nc" id="L57">            map.put(&quot;numerosHermanos&quot;, e.getNumerosHermanos());</span>
+<span class="nc" id="L58">            map.put(&quot;beneficioSocial&quot;, e.isBeneficioSocial());</span>
+<span class="nc" id="L59">            map.put(&quot;discapacidad&quot;, e.isDiscapacidad());</span>
+<span class="nc" id="L60">            map.put(&quot;tipoDiscapacidad&quot;, e.getTipoDiscapacidad());</span>
+<span class="nc" id="L61">            map.put(&quot;porcentajeDisc&quot;, e.getPorcentajeDisc());</span>
+<span class="nc" id="L62">            map.put(&quot;carnetConadis&quot;, e.getCarnetConadis());</span>
+<span class="nc" id="L63">            map.put(&quot;estado&quot;, m.getEstado());</span>
+<span class="nc" id="L64">            map.put(&quot;numeroOrden&quot;, m.getNumeroOrden());</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (r != null) {</span>
+<span class="nc" id="L66">                map.put(&quot;representante&quot;, (r.getNombres() + &quot; &quot; + r.getApellidos()).trim());</span>
+<span class="nc" id="L67">                Map&lt;String, Object&gt; repMap = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L68">                repMap.put(&quot;idRepresentante&quot;, r.getIdRepresentante());</span>
+<span class="nc" id="L69">                repMap.put(&quot;cedula&quot;, r.getCedula());</span>
+<span class="nc" id="L70">                repMap.put(&quot;nombres&quot;, r.getNombres());</span>
+<span class="nc" id="L71">                repMap.put(&quot;apellidos&quot;, r.getApellidos());</span>
+<span class="nc" id="L72">                repMap.put(&quot;parentesco&quot;, r.getParentesco());</span>
+<span class="nc" id="L73">                repMap.put(&quot;telefonoPrincipal&quot;, r.getTelefonoPrincipal());</span>
+<span class="nc" id="L74">                repMap.put(&quot;telefonoAlt&quot;, r.getTelefonoAlt());</span>
+<span class="nc" id="L75">                repMap.put(&quot;correo&quot;, r.getCorreo());</span>
+<span class="nc" id="L76">                repMap.put(&quot;direccion&quot;, r.getDireccion());</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                repMap.put(&quot;fechaNacimiento&quot;, r.getFechaNacimiento() != null ? r.getFechaNacimiento().toString() : null);</span>
+<span class="nc" id="L78">                repMap.put(&quot;genero&quot;, r.getGenero());</span>
+<span class="nc" id="L79">                repMap.put(&quot;estadoCivil&quot;, r.getEstadoCivil());</span>
+<span class="nc" id="L80">                repMap.put(&quot;nacionalidad&quot;, r.getNacionalidad());</span>
+<span class="nc" id="L81">                repMap.put(&quot;ocupacion&quot;, r.getOcupacion());</span>
+<span class="nc" id="L82">                repMap.put(&quot;lugarTrabajo&quot;, r.getLugarTrabajo());</span>
+<span class="nc" id="L83">                repMap.put(&quot;telefonoTrabajo&quot;, r.getTelefonoTrabajo());</span>
+<span class="nc" id="L84">                repMap.put(&quot;cargo&quot;, r.getCargo());</span>
+<span class="nc" id="L85">                repMap.put(&quot;nivelInstruccion&quot;, r.getNivelInstruccion());</span>
+<span class="nc" id="L86">                repMap.put(&quot;ingresoMensual&quot;, r.getIngresoMensual());</span>
+<span class="nc" id="L87">                repMap.put(&quot;conviveConEstudiante&quot;, r.getConviveConEstudiante());</span>
+<span class="nc" id="L88">                repMap.put(&quot;contactoEmergenciaNombre&quot;, r.getContactoEmergenciaNombre());</span>
+<span class="nc" id="L89">                repMap.put(&quot;contactoEmergenciaTelefono&quot;, r.getContactoEmergenciaTelefono());</span>
+<span class="nc" id="L90">                repMap.put(&quot;observaciones&quot;, r.getObservaciones());</span>
+<span class="nc" id="L91">                map.put(&quot;representanteDetalle&quot;, repMap);</span>
+<span class="nc" id="L92">            } else {</span>
+<span class="nc" id="L93">                map.put(&quot;representante&quot;, null);</span>
+<span class="nc" id="L94">                map.put(&quot;representanteDetalle&quot;, null);</span>
+            }
+<span class="nc" id="L96">            return map;</span>
+<span class="nc" id="L97">        }).collect(Collectors.toList());</span>
+
+<span class="nc" id="L99">        return ResponseEntity.ok(resp);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
