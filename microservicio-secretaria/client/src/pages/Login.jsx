@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import api, { apiPrincipal } from "../utils/api";
 import logo from "../assets/logo.png";
 
 export default function Login() {
@@ -9,6 +9,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,7 +23,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await api.post("/auth/login", form);
+      const res = await apiPrincipal.post("/auth/login", form);
       const data = res.data;
       const rawRoles = data.roles || [];
       const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
@@ -221,12 +223,22 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Acceso Rápido con 4 Roles para desarrollo */}
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+          {/* Acceso Rápido y Enlace al Portal Central */}
+          <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col items-center gap-2.5 text-center">
+            <a
+              href={`http://${host}:5173/login`}
+              className="text-xs font-bold text-[#243A76] hover:text-blue-700 transition flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl border border-blue-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Ir al Portal Central SSO (Puerto 5173)</span>
+            </a>
+
             <button
               type="button"
               onClick={handleDevBypass}
-              className="text-[11px] font-semibold text-[#243A76] hover:text-blue-900 transition cursor-pointer underline underline-offset-2"
+              className="text-[11px] font-semibold text-slate-500 hover:text-[#243A76] transition cursor-pointer underline underline-offset-2"
             >
               Ingresar con los 4 Roles (Ver Selector de Portales)
             </button>

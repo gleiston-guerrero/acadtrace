@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepresentanteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">RepresentanteService.java</span></div><h1>RepresentanteService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.secretaria.domain.dto.RepresentanteRequest;
+import ec.uteq.sga.secretaria.infrastructure.security.CryptoService;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * CRUD de representantes sobre sga_secretaria.representantes (mismo esquema
+ * propio que Estudiante/Matricula: la FK sga_secretaria.estudiantes.id_representante
+ * apunta a esta tabla, no a sga_principal.representantes). direccion/telefono_principal
+ * se cifran igual que en EstudianteService, ya que son datos de contacto de
+ * familiares de menores de edad.
+ */
+@Service
+public class RepresentanteService {
+
+<span class="nc" id="L25">    private static final List&lt;String&gt; CAMPOS_CIFRADOS = List.of(&quot;direccion&quot;, &quot;telefono_principal&quot;);</span>
+
+    private final NamedParameterJdbcTemplate jdbc;
+    private final CryptoService crypto;
+    private final AuditoriaService auditoriaService;
+
+<span class="nc" id="L31">    public RepresentanteService(NamedParameterJdbcTemplate jdbc, CryptoService crypto, AuditoriaService auditoriaService) {</span>
+<span class="nc" id="L32">        this.jdbc = jdbc;</span>
+<span class="nc" id="L33">        this.crypto = crypto;</span>
+<span class="nc" id="L34">        this.auditoriaService = auditoriaService;</span>
+<span class="nc" id="L35">    }</span>
+
+    private Map&lt;String, Object&gt; descifrarFila(Map&lt;String, Object&gt; row) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        for (String campo : CAMPOS_CIFRADOS) {</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">            if (row.containsKey(campo)) {</span>
+<span class="nc" id="L40">                String valor = (String) row.get(campo);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">                if (valor != null) {</span>
+                    try {
+<span class="nc" id="L43">                        row.put(campo, crypto.decrypt(valor));</span>
+<span class="nc" id="L44">                    } catch (RuntimeException ignored) {</span>
+                        // dato en texto plano previo al cifrado: se devuelve tal cual
+<span class="nc" id="L46">                    }</span>
+                }
+            }
+<span class="nc" id="L49">        }</span>
+<span class="nc" id="L50">        return row;</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarTodos(String search) {
+<span class="nc" id="L54">        MapSqlParameterSource params = new MapSqlParameterSource();</span>
+<span class="nc" id="L55">        String whereExtra = &quot;&quot;;</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">        if (search != null &amp;&amp; !search.isBlank()) {</span>
+<span class="nc" id="L57">            params.addValue(&quot;like&quot;, &quot;%&quot; + search + &quot;%&quot;);</span>
+<span class="nc" id="L58">            whereExtra = &quot;WHERE nombres ILIKE :like OR apellidos ILIKE :like OR cedula ILIKE :like&quot;;</span>
+        }
+<span class="nc" id="L60">        String sql = &quot;&quot;&quot;</span>
+                SELECT id_representante, cedula, nombres, apellidos, parentesco,
+                       telefono_principal, telefono_alt, correo, direccion
+                FROM sga_secretaria.representantes
+                %s
+                ORDER BY apellidos, nombres
+<span class="nc" id="L66">                &quot;&quot;&quot;.formatted(whereExtra);</span>
+<span class="nc" id="L67">        List&lt;Map&lt;String, Object&gt;&gt; data = jdbc.query(sql, params, GenericRowMapper.INSTANCE);</span>
+<span class="nc" id="L68">        data.forEach(this::descifrarFila);</span>
+<span class="nc" id="L69">        return data;</span>
+    }
+
+    public Map&lt;String, Object&gt; obtenerPorId(long id) {
+<span class="nc" id="L73">        List&lt;Map&lt;String, Object&gt;&gt; rows = jdbc.query(</span>
+                &quot;SELECT * FROM sga_secretaria.representantes WHERE id_representante = :id&quot;,
+<span class="nc" id="L75">                new MapSqlParameterSource(&quot;id&quot;, id), GenericRowMapper.INSTANCE);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (rows.isEmpty()) throw ApiException.notFound(&quot;Representante no encontrado&quot;);</span>
+<span class="nc" id="L77">        return descifrarFila(rows.get(0));</span>
+    }
+
+    public Map&lt;String, Object&gt; crear(RepresentanteRequest dto) {
+<span class="nc" id="L81">        String cedula = blankToNull(dto.cedula());</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (cedula != null) {</span>
+<span class="nc" id="L83">            List&lt;Long&gt; dup = jdbc.query(</span>
+                    &quot;SELECT id_representante FROM sga_secretaria.representantes WHERE cedula = :cedula&quot;,
+<span class="nc" id="L85">                    new MapSqlParameterSource(&quot;cedula&quot;, cedula), (rs, n) -&gt; rs.getLong(&quot;id_representante&quot;));</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!dup.isEmpty()) throw ApiException.conflict(&quot;Ya existe un representante con esa cédula&quot;);</span>
+        }
+
+<span class="nc" id="L89">        MapSqlParameterSource params = camposExtendidos(dto)</span>
+<span class="nc" id="L90">                .addValue(&quot;cedula&quot;, cedula)</span>
+<span class="nc" id="L91">                .addValue(&quot;nombres&quot;, dto.nombres())</span>
+<span class="nc" id="L92">                .addValue(&quot;apellidos&quot;, dto.apellidos())</span>
+<span class="nc" id="L93">                .addValue(&quot;parentesco&quot;, blankToNull(dto.parentesco()))</span>
+<span class="nc" id="L94">                .addValue(&quot;telefonoPrincipal&quot;, crypto.encrypt(dto.telefono_principal()))</span>
+<span class="nc" id="L95">                .addValue(&quot;telefonoAlt&quot;, blankToNull(dto.telefono_alt()))</span>
+<span class="nc" id="L96">                .addValue(&quot;correo&quot;, blankToNull(dto.correo()))</span>
+<span class="nc" id="L97">                .addValue(&quot;direccion&quot;, crypto.encrypt(blankToNull(dto.direccion())));</span>
+
+<span class="nc" id="L99">        String sql = &quot;&quot;&quot;</span>
+                INSERT INTO sga_secretaria.representantes
+                  (cedula, nombres, apellidos, parentesco, telefono_principal, telefono_alt, correo, direccion,
+                   fecha_nacimiento, genero, estado_civil, nacionalidad, ocupacion, lugar_trabajo, telefono_trabajo,
+                   cargo, nivel_instruccion, ingreso_mensual, convive_con_estudiante,
+                   contacto_emergencia_nombre, contacto_emergencia_telefono, observaciones)
+                VALUES (:cedula, :nombres, :apellidos, :parentesco, :telefonoPrincipal, :telefonoAlt, :correo, :direccion,
+                   :fechaNacimiento, :genero, :estadoCivil, :nacionalidad, :ocupacion, :lugarTrabajo, :telefonoTrabajo,
+                   :cargo, :nivelInstruccion, :ingresoMensual, :conviveConEstudiante,
+                   :contactoEmergenciaNombre, :contactoEmergenciaTelefono, :observaciones)
+                RETURNING *
+                &quot;&quot;&quot;;
+<span class="nc" id="L111">        Map&lt;String, Object&gt; creado = descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));</span>
+<span class="nc" id="L112">        Long idCreado = ((Number) creado.get(&quot;id_representante&quot;)).longValue();</span>
+<span class="nc" id="L113">        auditoriaService.registrarCrud(&quot;CREAR&quot;, &quot;representante&quot;, idCreado,</span>
+<span class="nc" id="L114">                &quot;Representante creado: &quot; + dto.nombres() + &quot; &quot; + dto.apellidos());</span>
+<span class="nc" id="L115">        return creado;</span>
+    }
+
+    public Map&lt;String, Object&gt; actualizar(long id, RepresentanteRequest dto) {
+<span class="nc" id="L119">        obtenerPorId(id);</span>
+
+<span class="nc" id="L121">        MapSqlParameterSource params = camposExtendidos(dto)</span>
+<span class="nc" id="L122">                .addValue(&quot;cedula&quot;, blankToNull(dto.cedula()))</span>
+<span class="nc" id="L123">                .addValue(&quot;nombres&quot;, blankToNull(dto.nombres()))</span>
+<span class="nc" id="L124">                .addValue(&quot;apellidos&quot;, blankToNull(dto.apellidos()))</span>
+<span class="nc" id="L125">                .addValue(&quot;parentesco&quot;, blankToNull(dto.parentesco()))</span>
+<span class="nc" id="L126">                .addValue(&quot;telefonoPrincipal&quot;, crypto.encrypt(blankToNull(dto.telefono_principal())))</span>
+<span class="nc" id="L127">                .addValue(&quot;telefonoAlt&quot;, blankToNull(dto.telefono_alt()))</span>
+<span class="nc" id="L128">                .addValue(&quot;correo&quot;, blankToNull(dto.correo()))</span>
+<span class="nc" id="L129">                .addValue(&quot;direccion&quot;, crypto.encrypt(blankToNull(dto.direccion())))</span>
+<span class="nc" id="L130">                .addValue(&quot;id&quot;, id);</span>
+
+<span class="nc" id="L132">        String sql = &quot;&quot;&quot;</span>
+                UPDATE sga_secretaria.representantes SET
+                  cedula                        = COALESCE(:cedula, cedula),
+                  nombres                       = COALESCE(:nombres, nombres),
+                  apellidos                     = COALESCE(:apellidos, apellidos),
+                  parentesco                    = COALESCE(:parentesco, parentesco),
+                  telefono_principal            = COALESCE(:telefonoPrincipal, telefono_principal),
+                  telefono_alt                  = COALESCE(:telefonoAlt, telefono_alt),
+                  correo                        = COALESCE(:correo, correo),
+                  direccion                     = COALESCE(:direccion, direccion),
+                  fecha_nacimiento              = :fechaNacimiento,
+                  genero                        = :genero,
+                  estado_civil                  = :estadoCivil,
+                  nacionalidad                  = :nacionalidad,
+                  ocupacion                     = :ocupacion,
+                  lugar_trabajo                 = :lugarTrabajo,
+                  telefono_trabajo              = :telefonoTrabajo,
+                  cargo                         = :cargo,
+                  nivel_instruccion             = :nivelInstruccion,
+                  ingreso_mensual               = :ingresoMensual,
+                  convive_con_estudiante        = :conviveConEstudiante,
+                  contacto_emergencia_nombre    = :contactoEmergenciaNombre,
+                  contacto_emergencia_telefono  = :contactoEmergenciaTelefono,
+                  observaciones                 = :observaciones
+                WHERE id_representante = :id
+                RETURNING *
+                &quot;&quot;&quot;;
+<span class="nc" id="L159">        Map&lt;String, Object&gt; actualizado = descifrarFila(jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0));</span>
+<span class="nc" id="L160">        auditoriaService.registrarCrud(&quot;EDITAR&quot;, &quot;representante&quot;, id,</span>
+<span class="nc" id="L161">                &quot;Representante actualizado: &quot; + actualizado.get(&quot;nombres&quot;) + &quot; &quot; + actualizado.get(&quot;apellidos&quot;));</span>
+<span class="nc" id="L162">        return actualizado;</span>
+    }
+
+    private MapSqlParameterSource camposExtendidos(RepresentanteRequest dto) {
+<span class="nc" id="L166">        return new MapSqlParameterSource()</span>
+<span class="nc" id="L167">                .addValue(&quot;fechaNacimiento&quot;, parseFecha(dto.fecha_nacimiento()))</span>
+<span class="nc" id="L168">                .addValue(&quot;genero&quot;, blankToNull(dto.genero()))</span>
+<span class="nc" id="L169">                .addValue(&quot;estadoCivil&quot;, blankToNull(dto.estado_civil()))</span>
+<span class="nc" id="L170">                .addValue(&quot;nacionalidad&quot;, blankToNull(dto.nacionalidad()))</span>
+<span class="nc" id="L171">                .addValue(&quot;ocupacion&quot;, blankToNull(dto.ocupacion()))</span>
+<span class="nc" id="L172">                .addValue(&quot;lugarTrabajo&quot;, blankToNull(dto.lugar_trabajo()))</span>
+<span class="nc" id="L173">                .addValue(&quot;telefonoTrabajo&quot;, blankToNull(dto.telefono_trabajo()))</span>
+<span class="nc" id="L174">                .addValue(&quot;cargo&quot;, blankToNull(dto.cargo()))</span>
+<span class="nc" id="L175">                .addValue(&quot;nivelInstruccion&quot;, blankToNull(dto.nivel_instruccion()))</span>
+<span class="nc" id="L176">                .addValue(&quot;ingresoMensual&quot;, dto.ingreso_mensual())</span>
+<span class="nc" id="L177">                .addValue(&quot;conviveConEstudiante&quot;, dto.convive_con_estudiante())</span>
+<span class="nc" id="L178">                .addValue(&quot;contactoEmergenciaNombre&quot;, blankToNull(dto.contacto_emergencia_nombre()))</span>
+<span class="nc" id="L179">                .addValue(&quot;contactoEmergenciaTelefono&quot;, blankToNull(dto.contacto_emergencia_telefono()))</span>
+<span class="nc" id="L180">                .addValue(&quot;observaciones&quot;, blankToNull(dto.observaciones()));</span>
+    }
+
+    /** Estudiantes a cargo de este representante (FK sga_secretaria.estudiantes.id_representante). */
+    public List&lt;Map&lt;String, Object&gt;&gt; listarEstudiantes(long idRepresentante) {
+<span class="nc" id="L185">        obtenerPorId(idRepresentante);</span>
+<span class="nc" id="L186">        String sql = &quot;&quot;&quot;</span>
+                SELECT id_estudiante, cedula, codigo_estudiante, nombres, apellidos,
+                       estado, foto_url
+                FROM sga_secretaria.estudiantes
+                WHERE id_representante = :id
+                ORDER BY apellidos, nombres
+                &quot;&quot;&quot;;
+<span class="nc" id="L193">        return jdbc.query(sql, new MapSqlParameterSource(&quot;id&quot;, idRepresentante), GenericRowMapper.INSTANCE);</span>
+    }
+
+    private static String blankToNull(String value) {
+<span class="nc bnc" id="L197" title="All 4 branches missed.">        return (value == null || value.isBlank()) ? null : value;</span>
+    }
+
+    private static LocalDate parseFecha(String value) {
+<span class="nc" id="L201">        String v = blankToNull(value);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (v == null) return null;</span>
+        try {
+<span class="nc" id="L204">            return LocalDate.parse(v);</span>
+<span class="nc" id="L205">        } catch (java.time.format.DateTimeParseException e) {</span>
+<span class="nc" id="L206">            throw ApiException.badRequest(&quot;Fecha de nacimiento inválida, formato esperado AAAA-MM-DD&quot;);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

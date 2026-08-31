@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GradoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">GradoService.java</span></div><h1>GradoService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.edu.uteq.sga.grpc.principal.GradoProto;
+import ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest;
+import ec.edu.uteq.sga.grpc.principal.ParaleloProto;
+import ec.uteq.sga.secretaria.domain.dto.GradoRequest;
+import ec.uteq.sga.secretaria.infrastructure.grpc.PrincipalGrpcClient;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Gestion de Grado/Paralelo desde Secretaria, via gRPC hacia sga-principal.
+ * Grado/Paralelo siguen siendo catalogo institucional propiedad de
+ * sga-principal (a diferencia de Estudiante, que se movio a sga_secretaria):
+ * este servicio no tiene su propia copia de los datos, solo expone el CRUD
+ * ya existente en sga-principal (GradoService) a traves de gRPC, para que
+ * Secretaria pueda gestionarlo desde su propio frontend. CatalogoService
+ * sigue siendo el punto de lectura de solo-catalogo para el resto de la app
+ * (Matriculas, Reportes, Historial); este servicio es el de gestion.
+ */
+@Service
+public class GradoService {
+
+    private final PrincipalGrpcClient client;
+
+<span class="nc" id="L31">    public GradoService(PrincipalGrpcClient client) {</span>
+<span class="nc" id="L32">        this.client = client;</span>
+<span class="nc" id="L33">    }</span>
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarTodos() {
+<span class="nc" id="L36">        List&lt;ParaleloProto&gt; paralelos = client.listarParalelos(null);</span>
+<span class="nc" id="L37">        Map&lt;Long, List&lt;Map&lt;String, Object&gt;&gt;&gt; paralelosPorGrado = paralelos.stream()</span>
+<span class="nc" id="L38">                .map(this::fromProto)</span>
+<span class="nc" id="L39">                .collect(Collectors.groupingBy(p -&gt; (Long) p.get(&quot;id_grado&quot;), LinkedHashMap::new, Collectors.toList()));</span>
+
+<span class="nc" id="L41">        return client.listarGrados().stream()</span>
+<span class="nc" id="L42">                .map(g -&gt; {</span>
+<span class="nc" id="L43">                    Map&lt;String, Object&gt; row = fromProto(g);</span>
+<span class="nc" id="L44">                    row.put(&quot;paralelos&quot;, paralelosPorGrado.getOrDefault(g.getIdGrado(), new ArrayList&lt;&gt;()));</span>
+<span class="nc" id="L45">                    return row;</span>
+                })
+<span class="nc" id="L47">                .toList();</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarParalelos(Long idGrado) {
+<span class="nc" id="L51">        return client.listarParalelos(idGrado).stream().map(this::fromProto).toList();</span>
+    }
+
+    public Map&lt;String, Object&gt; crear(GradoRequest dto) {
+<span class="nc" id="L55">        return fromProto(client.crearGrado(toGuardarRequest(0, dto)));</span>
+    }
+
+    public Map&lt;String, Object&gt; actualizar(long idGrado, GradoRequest dto) {
+<span class="nc" id="L59">        return fromProto(client.actualizarGrado(toGuardarRequest(idGrado, dto)));</span>
+    }
+
+    public void cambiarEstado(long idGrado, boolean activo) {
+<span class="nc" id="L63">        client.cambiarEstadoGrado(idGrado, activo);</span>
+<span class="nc" id="L64">    }</span>
+
+    public Map&lt;String, Object&gt; crearParalelo(long idGrado, String letra) {
+<span class="nc" id="L67">        return fromProto(client.crearParalelo(idGrado, letra));</span>
+    }
+
+    public void cambiarEstadoParalelo(long idParalelo, boolean activo) {
+<span class="nc" id="L71">        client.cambiarEstadoParalelo(idParalelo, activo);</span>
+<span class="nc" id="L72">    }</span>
+
+    private GuardarGradoRequest toGuardarRequest(long idGrado, GradoRequest dto) {
+<span class="nc" id="L75">        return GuardarGradoRequest.newBuilder()</span>
+<span class="nc" id="L76">                .setIdGrado(idGrado)</span>
+<span class="nc" id="L77">                .setNombre(dto.nombre())</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                .setOrden(dto.orden() != null ? dto.orden() : 0)</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                .setCapacidadMax(dto.capacidad_max() != null ? dto.capacidad_max() : 0)</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                .setIdNivel(dto.id_nivel() != null ? dto.id_nivel() : 0)</span>
+<span class="nc" id="L81">                .build();</span>
+    }
+
+    private Map&lt;String, Object&gt; fromProto(GradoProto g) {
+<span class="nc" id="L85">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L86">        row.put(&quot;id_grado&quot;, g.getIdGrado());</span>
+<span class="nc" id="L87">        row.put(&quot;nombre&quot;, g.getNombre());</span>
+<span class="nc" id="L88">        row.put(&quot;orden&quot;, g.getOrden());</span>
+<span class="nc" id="L89">        row.put(&quot;activo&quot;, g.getActivo());</span>
+<span class="nc" id="L90">        row.put(&quot;capacidad_max&quot;, g.getCapacidadMax());</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        row.put(&quot;id_nivel&quot;, g.getIdNivel() &gt; 0 ? g.getIdNivel() : null);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        row.put(&quot;nivel_educativo&quot;, g.getNivelEducativo().isBlank() ? null : g.getNivelEducativo());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        row.put(&quot;tipo_escala&quot;, g.getTipoEscala().isBlank() ? null : g.getTipoEscala());</span>
+<span class="nc" id="L94">        return row;</span>
+    }
+
+    private Map&lt;String, Object&gt; fromProto(ParaleloProto p) {
+<span class="nc" id="L98">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L99">        row.put(&quot;id_paralelo&quot;, p.getIdParalelo());</span>
+<span class="nc" id="L100">        row.put(&quot;id_grado&quot;, p.getIdGrado());</span>
+<span class="nc" id="L101">        row.put(&quot;letra&quot;, p.getLetra());</span>
+<span class="nc" id="L102">        row.put(&quot;activo&quot;, p.getActivo());</span>
+<span class="nc" id="L103">        row.put(&quot;total_estudiantes&quot;, p.getTotalEstudiantes());</span>
+<span class="nc" id="L104">        return row;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

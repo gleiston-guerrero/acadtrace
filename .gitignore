@@ -34,5 +34,11 @@
 .vscode/
 .DS_Store
 Thumbs.db
-. c l a u d e /  
- . c l a u d e /
+
+# LaTeX temp files
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.synctex.gz

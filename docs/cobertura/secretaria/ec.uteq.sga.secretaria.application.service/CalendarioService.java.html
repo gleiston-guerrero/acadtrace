@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CalendarioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">CalendarioService.java</span></div><h1>CalendarioService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.infrastructure.common.FeriadosEcuador;
+import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.secretaria.domain.dto.EventoAcademicoRequest;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Agrega en una sola respuesta las distintas fuentes de &quot;cosas que pasan este mes&quot;:
+ * eventos_academicos propios (sga_principal, CRUD de este controller), periodos de
+ * evaluación y fechas de entrega de actividades (sga_docente, SQL directo igual que
+ * las notas/asistencias de ReportesService), feriados de Ecuador (calculados, no hay
+ * tabla para esto en ningún repo) y el año lectivo actual como referencia.
+ */
+@Service
+public class CalendarioService {
+
+    private final NamedParameterJdbcTemplate jdbc;
+    private final CatalogoService catalogo;
+
+<span class="nc" id="L32">    public CalendarioService(NamedParameterJdbcTemplate jdbc, CatalogoService catalogo) {</span>
+<span class="nc" id="L33">        this.jdbc = jdbc;</span>
+<span class="nc" id="L34">        this.catalogo = catalogo;</span>
+<span class="nc" id="L35">    }</span>
+
+    public List&lt;Map&lt;String, Object&gt;&gt; calendario(String mes) {
+        YearMonth ym;
+        try {
+<span class="nc" id="L40">            ym = YearMonth.parse(mes);</span>
+<span class="nc" id="L41">        } catch (DateTimeParseException e) {</span>
+<span class="nc" id="L42">            throw ApiException.badRequest(&quot;El parámetro 'mes' debe tener formato YYYY-MM&quot;);</span>
+<span class="nc" id="L43">        }</span>
+<span class="nc" id="L44">        LocalDate inicio = ym.atDay(1);</span>
+<span class="nc" id="L45">        LocalDate fin = ym.atEndOfMonth();</span>
+<span class="nc" id="L46">        MapSqlParameterSource params = new MapSqlParameterSource().addValue(&quot;inicio&quot;, inicio).addValue(&quot;fin&quot;, fin);</span>
+
+<span class="nc" id="L48">        List&lt;Map&lt;String, Object&gt;&gt; eventos = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L50">        eventos.addAll(jdbc.query(&quot;&quot;&quot;</span>
+                SELECT id_evento, titulo, descripcion, fecha_inicio, fecha_fin, tipo
+                FROM sga_principal.eventos_academicos
+                WHERE fecha_inicio &lt;= :fin AND COALESCE(fecha_fin, fecha_inicio) &gt;= :inicio
+                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE));
+
+<span class="nc" id="L56">        eventos.addAll(jdbc.query(&quot;&quot;&quot;</span>
+                SELECT id_periodo, nombre AS titulo, fecha_inicio, fecha_fin, 'PERIODO_EVALUACION' AS tipo
+                FROM sga_docente.periodos_evaluacion
+                WHERE fecha_inicio &lt;= :fin AND fecha_fin &gt;= :inicio
+                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE));
+
+<span class="nc" id="L62">        eventos.addAll(jdbc.query(&quot;&quot;&quot;</span>
+                SELECT a.id_actividad, a.nombre AS titulo, a.fecha_entrega AS fecha_inicio,
+                       NULL::date AS fecha_fin, 'ACTIVIDAD' AS tipo, asig.nombre AS materia
+                FROM sga_docente.actividades a
+                LEFT JOIN sga_principal.asignaciones asgn ON asgn.id_asignacion = a.id_asignacion
+                LEFT JOIN sga_principal.asignaturas asig ON asig.id_asignatura = asgn.id_asignatura
+                WHERE a.fecha_entrega BETWEEN :inicio AND :fin
+                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE));
+
+<span class="nc" id="L71">        FeriadosEcuador.delAno(inicio.getYear()).stream()</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">                .filter(f -&gt; !((LocalDate) f.get(&quot;fecha_inicio&quot;)).isBefore(inicio) &amp;&amp; !((LocalDate) f.get(&quot;fecha_inicio&quot;)).isAfter(fin))</span>
+<span class="nc" id="L73">                .forEach(eventos::add);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (fin.getYear() != inicio.getYear()) {</span>
+<span class="nc" id="L75">            FeriadosEcuador.delAno(fin.getYear()).stream()</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">                    .filter(f -&gt; !((LocalDate) f.get(&quot;fecha_inicio&quot;)).isBefore(inicio) &amp;&amp; !((LocalDate) f.get(&quot;fecha_inicio&quot;)).isAfter(fin))</span>
+<span class="nc" id="L77">                    .forEach(eventos::add);</span>
+        }
+
+<span class="nc" id="L80">        catalogo.anosLectivos().stream()</span>
+<span class="nc" id="L81">                .filter(CatalogoService.AnoLectivo::esActual)</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">                .filter(a -&gt; !a.fechaInicio().isAfter(fin) &amp;&amp; !a.fechaFin().isBefore(inicio))</span>
+<span class="nc" id="L83">                .findFirst()</span>
+<span class="nc" id="L84">                .ifPresent(a -&gt; eventos.add(Map.of(</span>
+<span class="nc" id="L85">                        &quot;titulo&quot;, &quot;Año lectivo &quot; + a.nombre(),</span>
+<span class="nc" id="L86">                        &quot;fecha_inicio&quot;, a.fechaInicio(),</span>
+<span class="nc" id="L87">                        &quot;fecha_fin&quot;, a.fechaFin(),</span>
+                        &quot;tipo&quot;, &quot;ANO_LECTIVO&quot;)));
+
+<span class="nc" id="L90">        eventos.sort(Comparator.comparing(e -&gt; (LocalDate) e.get(&quot;fecha_inicio&quot;)));</span>
+<span class="nc" id="L91">        return eventos;</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarEventos() {
+<span class="nc" id="L95">        return jdbc.query(&quot;&quot;&quot;</span>
+                SELECT id_evento, titulo, descripcion, fecha_inicio, fecha_fin, tipo, id_grado
+                FROM sga_principal.eventos_academicos
+                ORDER BY fecha_inicio DESC
+                &quot;&quot;&quot;, GenericRowMapper.INSTANCE);
+    }
+
+    public Map&lt;String, Object&gt; crearEvento(EventoAcademicoRequest dto, String username) {
+<span class="nc" id="L103">        Long idUsuario = resolverIdUsuario(username);</span>
+<span class="nc" id="L104">        MapSqlParameterSource params = new MapSqlParameterSource()</span>
+<span class="nc" id="L105">                .addValue(&quot;titulo&quot;, dto.titulo())</span>
+<span class="nc" id="L106">                .addValue(&quot;descripcion&quot;, dto.descripcion())</span>
+<span class="nc" id="L107">                .addValue(&quot;fechaInicio&quot;, dto.fecha_inicio())</span>
+<span class="nc" id="L108">                .addValue(&quot;fechaFin&quot;, dto.fecha_fin())</span>
+<span class="nc" id="L109">                .addValue(&quot;tipo&quot;, dto.tipo())</span>
+<span class="nc" id="L110">                .addValue(&quot;idGrado&quot;, dto.id_grado())</span>
+<span class="nc" id="L111">                .addValue(&quot;creadoPor&quot;, idUsuario);</span>
+<span class="nc" id="L112">        String sql = &quot;&quot;&quot;</span>
+                INSERT INTO sga_principal.eventos_academicos
+                  (titulo, descripcion, fecha_inicio, fecha_fin, tipo, id_grado, creado_por)
+                VALUES (:titulo, :descripcion, :fechaInicio, :fechaFin, :tipo, :idGrado, :creadoPor)
+                RETURNING *
+                &quot;&quot;&quot;;
+<span class="nc" id="L118">        return jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0);</span>
+    }
+
+    public Map&lt;String, Object&gt; actualizarEvento(long id, EventoAcademicoRequest dto) {
+<span class="nc" id="L122">        obtenerEvento(id);</span>
+<span class="nc" id="L123">        MapSqlParameterSource params = new MapSqlParameterSource()</span>
+<span class="nc" id="L124">                .addValue(&quot;titulo&quot;, dto.titulo())</span>
+<span class="nc" id="L125">                .addValue(&quot;descripcion&quot;, dto.descripcion())</span>
+<span class="nc" id="L126">                .addValue(&quot;fechaInicio&quot;, dto.fecha_inicio())</span>
+<span class="nc" id="L127">                .addValue(&quot;fechaFin&quot;, dto.fecha_fin())</span>
+<span class="nc" id="L128">                .addValue(&quot;tipo&quot;, dto.tipo())</span>
+<span class="nc" id="L129">                .addValue(&quot;idGrado&quot;, dto.id_grado())</span>
+<span class="nc" id="L130">                .addValue(&quot;id&quot;, id);</span>
+<span class="nc" id="L131">        String sql = &quot;&quot;&quot;</span>
+                UPDATE sga_principal.eventos_academicos SET
+                  titulo = :titulo, descripcion = :descripcion, fecha_inicio = :fechaInicio,
+                  fecha_fin = :fechaFin, tipo = :tipo, id_grado = :idGrado
+                WHERE id_evento = :id
+                RETURNING *
+                &quot;&quot;&quot;;
+<span class="nc" id="L138">        return jdbc.query(sql, params, GenericRowMapper.INSTANCE).get(0);</span>
+    }
+
+    public void eliminarEvento(long id) {
+<span class="nc" id="L142">        obtenerEvento(id);</span>
+<span class="nc" id="L143">        jdbc.update(&quot;DELETE FROM sga_principal.eventos_academicos WHERE id_evento = :id&quot;,</span>
+<span class="nc" id="L144">                new MapSqlParameterSource(&quot;id&quot;, id));</span>
+<span class="nc" id="L145">    }</span>
+
+    private Long resolverIdUsuario(String username) {
+<span class="nc" id="L148">        List&lt;Long&gt; ids = jdbc.query(</span>
+                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,
+<span class="nc" id="L150">                new MapSqlParameterSource(&quot;username&quot;, username), (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        return ids.isEmpty() ? null : ids.get(0);</span>
+    }
+
+    private Map&lt;String, Object&gt; obtenerEvento(long id) {
+<span class="nc" id="L155">        List&lt;Map&lt;String, Object&gt;&gt; rows = jdbc.query(</span>
+                &quot;SELECT * FROM sga_principal.eventos_academicos WHERE id_evento = :id&quot;,
+<span class="nc" id="L157">                new MapSqlParameterSource(&quot;id&quot;, id), GenericRowMapper.INSTANCE);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (rows.isEmpty()) throw ApiException.notFound(&quot;Evento académico no encontrado&quot;);</span>
+<span class="nc" id="L159">        return rows.get(0);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

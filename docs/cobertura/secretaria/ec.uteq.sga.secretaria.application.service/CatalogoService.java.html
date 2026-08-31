@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">CatalogoService.java</span></div><h1>CatalogoService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.grpc.PrincipalGrpcClient;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Envuelve PrincipalGrpcClient y traduce los proto (AnoLectivoProto, GradoProto,
+ * ParaleloProto, AsignaturaProto) a records simples, para que EstudianteService/
+ * MatriculaService/HistorialService/ReportesService no dependan directamente de
+ * las clases generadas por protobuf. Reemplaza los antiguos
+ * &quot;JOIN sga_principal.grados/paralelos/anos_lectivos&quot;: estas tablas son
+ * catalogo institucional, no dominio de Secretaria, y se leen por gRPC.
+ */
+@Service
+public class CatalogoService {
+
+    private final PrincipalGrpcClient client;
+
+<span class="nc" id="L22">    public CatalogoService(PrincipalGrpcClient client) {</span>
+<span class="nc" id="L23">        this.client = client;</span>
+<span class="nc" id="L24">    }</span>
+
+<span class="nc" id="L26">    public record Grado(long id, String nombre, int orden, boolean activo) {}</span>
+
+<span class="nc" id="L28">    public record Paralelo(long id, long idGrado, String letra, boolean activo) {}</span>
+
+<span class="nc" id="L30">    public record AnoLectivo(long id, String nombre, LocalDate fechaInicio, LocalDate fechaFin, boolean esActual) {}</span>
+
+<span class="nc" id="L32">    public record Asignatura(long id, String nombre, String codigo, boolean activa) {}</span>
+
+    public List&lt;Grado&gt; grados() {
+<span class="nc" id="L35">        return client.listarGrados().stream()</span>
+<span class="nc" id="L36">                .map(g -&gt; new Grado(g.getIdGrado(), g.getNombre(), g.getOrden(), g.getActivo()))</span>
+<span class="nc" id="L37">                .toList();</span>
+    }
+
+    public List&lt;Paralelo&gt; paralelos(Long idGrado) {
+<span class="nc" id="L41">        return client.listarParalelos(idGrado).stream()</span>
+<span class="nc" id="L42">                .map(p -&gt; new Paralelo(p.getIdParalelo(), p.getIdGrado(), p.getLetra(), p.getActivo()))</span>
+<span class="nc" id="L43">                .toList();</span>
+    }
+
+    public List&lt;AnoLectivo&gt; anosLectivos() {
+<span class="nc" id="L47">        return client.listarAnosLectivos().stream()</span>
+<span class="nc" id="L48">                .map(a -&gt; new AnoLectivo(a.getIdAnoLectivo(), a.getNombre(),</span>
+<span class="nc" id="L49">                        parseFecha(a.getFechaInicio()), parseFecha(a.getFechaFin()), a.getEsActual()))</span>
+<span class="nc" id="L50">                .toList();</span>
+    }
+
+    public List&lt;Asignatura&gt; asignaturas() {
+<span class="nc" id="L54">        return client.listarAsignaturas().stream()</span>
+<span class="nc" id="L55">                .map(a -&gt; new Asignatura(a.getIdAsignatura(), a.getNombre(), a.getCodigo(), a.getActiva()))</span>
+<span class="nc" id="L56">                .toList();</span>
+    }
+
+    private static LocalDate parseFecha(String value) {
+<span class="nc bnc" id="L60" title="All 4 branches missed.">        return (value == null || value.isBlank()) ? null : LocalDate.parse(value);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

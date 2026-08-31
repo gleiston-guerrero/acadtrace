@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuditoriaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">AuditoriaService.java</span></div><h1>AuditoriaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.common.TraceContext;
+import ec.uteq.sga.secretaria.infrastructure.security.AuthenticatedUser;
+import ec.uteq.sga.secretaria.infrastructure.security.HmacService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
+
+/**
+ * Escribe en sga_principal.auditoria (tabla centralizada, ver
+ * ec.edu.uteq.sga.service.AuditoriaService en sga-principal) via SQL
+ * cruzado: secretaria ya consulta sga_principal.usuarios directamente
+ * (EstudianteService), asi que insertar aqui con el mismo
+ * NamedParameterJdbcTemplate no agrega ningun salto de red nuevo.
+ *
+ * Firma cada fila con el mismo HMAC-SHA256 (mismo secreto, mismo orden de
+ * campos) que usa sga-principal, para que sea verificable sin importar
+ * quien la escribio. Nunca deja que un fallo al auditar tumbe la
+ * operacion de negocio que lo disparo.
+ */
+@Service
+public class AuditoriaService {
+
+<span class="fc" id="L34">    private static final Logger log = LoggerFactory.getLogger(AuditoriaService.class);</span>
+    private static final String SCHEMA_ORIGEN = &quot;SECRETARIA&quot;;
+
+    private final NamedParameterJdbcTemplate jdbc;
+    private final HmacService hmacService;
+
+<span class="nc" id="L40">    public AuditoriaService(NamedParameterJdbcTemplate jdbc, HmacService hmacService) {</span>
+<span class="nc" id="L41">        this.jdbc = jdbc;</span>
+<span class="nc" id="L42">        this.hmacService = hmacService;</span>
+<span class="nc" id="L43">    }</span>
+
+    public void registrarCrud(String accion, String tablaAfectada, Long registroId, String descripcion) {
+<span class="nc" id="L46">        guardar(accion, tablaAfectada, registroId, descripcion, &quot;EXITO&quot;);</span>
+<span class="nc" id="L47">    }</span>
+
+    public void registrarFallo(String accion, String tablaAfectada, Long registroId, String descripcion) {
+<span class="nc" id="L50">        guardar(accion, tablaAfectada, registroId, descripcion, &quot;FALLO&quot;);</span>
+<span class="nc" id="L51">    }</span>
+
+    private void guardar(String accion, String tablaAfectada, Long registroId, String descripcion, String resultado) {
+        try {
+<span class="nc" id="L55">            String username = usernameActual();</span>
+<span class="nc" id="L56">            String traceId = TraceContext.current();</span>
+<span class="nc" id="L57">            Instant fecha = Instant.now().truncatedTo(ChronoUnit.MILLIS);</span>
+<span class="nc" id="L58">            UUID traceUuid = parseOrNew(traceId);</span>
+
+<span class="nc" id="L60">            String hmac = hmacService.firmar(</span>
+                    SCHEMA_ORIGEN,
+<span class="nc" id="L62">                    String.valueOf(traceUuid),</span>
+<span class="nc" id="L63">                    nvl(username),</span>
+                    accion,
+<span class="nc" id="L65">                    nvl(tablaAfectada),</span>
+<span class="nc" id="L66">                    String.valueOf(registroId),</span>
+<span class="nc" id="L67">                    nvl(descripcion),</span>
+                    resultado,
+<span class="nc" id="L69">                    String.valueOf(fecha.toEpochMilli())</span>
+            );
+
+<span class="nc" id="L72">            MapSqlParameterSource params = new MapSqlParameterSource()</span>
+<span class="nc" id="L73">                    .addValue(&quot;username&quot;, username)</span>
+<span class="nc" id="L74">                    .addValue(&quot;accion&quot;, accion)</span>
+<span class="nc" id="L75">                    .addValue(&quot;tablaAfectada&quot;, tablaAfectada)</span>
+<span class="nc" id="L76">                    .addValue(&quot;registroId&quot;, registroId)</span>
+<span class="nc" id="L77">                    .addValue(&quot;descripcion&quot;, descripcion)</span>
+<span class="nc" id="L78">                    .addValue(&quot;ip&quot;, ipActual())</span>
+<span class="nc" id="L79">                    .addValue(&quot;traceId&quot;, traceUuid.toString())</span>
+<span class="nc" id="L80">                    .addValue(&quot;resultado&quot;, resultado)</span>
+<span class="nc" id="L81">                    .addValue(&quot;hmac&quot;, hmac)</span>
+                    // pgjdbc no infiere el tipo SQL para java.time.Instant via setObject;
+                    // OffsetDateTime si tiene soporte nativo para timestamptz.
+<span class="nc" id="L84">                    .addValue(&quot;fecha&quot;, fecha.atOffset(java.time.ZoneOffset.UTC));</span>
+
+<span class="nc" id="L86">            jdbc.update(&quot;&quot;&quot;</span>
+                    INSERT INTO sga_principal.auditoria
+                        (schema_origen, username, accion, tabla_afectada, registro_id, descripcion,
+                         ip_address, trace_id, resultado, hmac, fecha)
+                    VALUES
+                        ('SECRETARIA', :username, CAST(:accion AS sga_principal.accion_auditoria_t), :tablaAfectada,
+                         :registroId, :descripcion, :ip, CAST(:traceId AS uuid), :resultado, :hmac, :fecha)
+                    &quot;&quot;&quot;, params);
+<span class="nc" id="L94">        } catch (Exception e) {</span>
+<span class="nc" id="L95">            log.error(&quot;No se pudo registrar evento de auditoria ({} / {}): {}&quot;, accion, tablaAfectada, e.getMessage(), e);</span>
+<span class="nc" id="L96">        }</span>
+<span class="nc" id="L97">    }</span>
+
+    private static String usernameActual() {
+        try {
+<span class="nc" id="L101">            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();</span>
+<span class="nc" id="L102">            HttpServletRequest request = attrs.getRequest();</span>
+<span class="nc" id="L103">            AuthenticatedUser user = (AuthenticatedUser) request.getAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            return user != null ? user.username() : null;</span>
+<span class="nc" id="L105">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L106">            return null;</span>
+        }
+    }
+
+    private static String ipActual() {
+        try {
+<span class="nc" id="L112">            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();</span>
+<span class="nc" id="L113">            return attrs.getRequest().getRemoteAddr();</span>
+<span class="nc" id="L114">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L115">            return null;</span>
+        }
+    }
+
+    private static UUID parseOrNew(String value) {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (value == null) return UUID.randomUUID();</span>
+        try {
+<span class="nc" id="L122">            return UUID.fromString(value);</span>
+<span class="nc" id="L123">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L124">            return UUID.randomUUID();</span>
+        }
+    }
+
+    private static String nvl(String v) {
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        return v == null ? &quot;&quot; : v;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

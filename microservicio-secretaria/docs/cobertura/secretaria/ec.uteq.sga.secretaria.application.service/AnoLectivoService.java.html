@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnoLectivoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">AnoLectivoService.java</span></div><h1>AnoLectivoService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.secretaria.domain.dto.AnoLectivoRequest;
+import ec.uteq.sga.secretaria.domain.dto.PeriodoEvaluacionRequest;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class AnoLectivoService {
+
+    private final NamedParameterJdbcTemplate jdbc;
+
+<span class="nc" id="L20">    public AnoLectivoService(NamedParameterJdbcTemplate jdbc) {</span>
+<span class="nc" id="L21">        this.jdbc = jdbc;</span>
+<span class="nc" id="L22">    }</span>
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarTodos() {
+<span class="nc" id="L25">        String sql = &quot;&quot;&quot;</span>
+                SELECT a.id_ano_lectivo, a.nombre, a.fecha_inicio, a.fecha_fin, a.es_actual, a.fecha_creacion,
+                       COALESCE((
+                           SELECT COUNT(*) FROM sga_secretaria.matriculas m
+                           WHERE m.id_ano_lectivo = a.id_ano_lectivo AND m.estado = 'ACTIVA'
+                       ), 0) AS total_matriculados,
+                       COALESCE((
+                           SELECT COUNT(*) FROM sga_docente.periodos_evaluacion p
+                           WHERE p.id_ano_lectivo = a.id_ano_lectivo
+                       ), 0) AS total_periodos
+                FROM sga_principal.anos_lectivos a
+                ORDER BY a.fecha_inicio DESC
+                &quot;&quot;&quot;;
+<span class="nc" id="L38">        return jdbc.query(sql, GenericRowMapper.INSTANCE);</span>
+    }
+
+    public Map&lt;String, Object&gt; obtenerActual() {
+<span class="nc" id="L42">        String sql = &quot;&quot;&quot;</span>
+                SELECT a.id_ano_lectivo, a.nombre, a.fecha_inicio, a.fecha_fin, a.es_actual, a.fecha_creacion
+                FROM sga_principal.anos_lectivos a
+                WHERE a.es_actual = true
+                LIMIT 1
+                &quot;&quot;&quot;;
+<span class="nc" id="L48">        List&lt;Map&lt;String, Object&gt;&gt; rows = jdbc.query(sql, GenericRowMapper.INSTANCE);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (rows.isEmpty()) {</span>
+<span class="nc" id="L50">            throw ApiException.notFound(&quot;No hay un año lectivo marcado como actual&quot;);</span>
+        }
+<span class="nc" id="L52">        return rows.get(0);</span>
+    }
+
+    public Map&lt;String, Object&gt; obtenerPorId(long id) {
+<span class="nc" id="L56">        String sql = &quot;&quot;&quot;</span>
+                SELECT a.id_ano_lectivo, a.nombre, a.fecha_inicio, a.fecha_fin, a.es_actual, a.fecha_creacion
+                FROM sga_principal.anos_lectivos a
+                WHERE a.id_ano_lectivo = :id
+                &quot;&quot;&quot;;
+<span class="nc" id="L61">        List&lt;Map&lt;String, Object&gt;&gt; rows = jdbc.query(sql, new MapSqlParameterSource(&quot;id&quot;, id), GenericRowMapper.INSTANCE);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (rows.isEmpty()) {</span>
+<span class="nc" id="L63">            throw ApiException.notFound(&quot;Año lectivo no encontrado&quot;);</span>
+        }
+<span class="nc" id="L65">        return rows.get(0);</span>
+    }
+
+    @Transactional
+    public Map&lt;String, Object&gt; crear(AnoLectivoRequest dto) {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (dto.fechaFin().isBefore(dto.fechaInicio())) {</span>
+<span class="nc" id="L71">            throw ApiException.badRequest(&quot;La fecha de fin no puede ser anterior a la fecha de inicio&quot;);</span>
+        }
+
+<span class="nc" id="L74">        String sqlDup = &quot;SELECT COUNT(*) FROM sga_principal.anos_lectivos WHERE LOWER(nombre) = LOWER(:nombre)&quot;;</span>
+<span class="nc" id="L75">        Integer count = jdbc.queryForObject(sqlDup, new MapSqlParameterSource(&quot;nombre&quot;, dto.nombre().trim()), Integer.class);</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">        if (count != null &amp;&amp; count &gt; 0) {</span>
+<span class="nc" id="L77">            throw ApiException.conflict(&quot;Ya existe un año lectivo con ese nombre&quot;);</span>
+        }
+
+<span class="nc" id="L80">        String sqlInsert = &quot;&quot;&quot;</span>
+                INSERT INTO sga_principal.anos_lectivos (nombre, fecha_inicio, fecha_fin, es_actual, fecha_creacion)
+                VALUES (:nombre, :fechaInicio, :fechaFin, false, NOW())
+                RETURNING id_ano_lectivo
+                &quot;&quot;&quot;;
+<span class="nc" id="L85">        Long id = jdbc.queryForObject(sqlInsert,</span>
+                new MapSqlParameterSource()
+<span class="nc" id="L87">                        .addValue(&quot;nombre&quot;, dto.nombre().trim())</span>
+<span class="nc" id="L88">                        .addValue(&quot;fechaInicio&quot;, dto.fechaInicio())</span>
+<span class="nc" id="L89">                        .addValue(&quot;fechaFin&quot;, dto.fechaFin()),</span>
+                Long.class);
+
+        // Crear por defecto los 3 trimestres en sga_docente.periodos_evaluacion
+<span class="nc" id="L93">        crearPeriodosPorDefecto(id, dto);</span>
+
+<span class="nc" id="L95">        return obtenerPorId(id);</span>
+    }
+
+    private void crearPeriodosPorDefecto(long idAno, AnoLectivoRequest dto) {
+<span class="nc" id="L99">        long dias = java.time.temporal.ChronoUnit.DAYS.between(dto.fechaInicio(), dto.fechaFin());</span>
+<span class="nc" id="L100">        long tercio = dias / 3;</span>
+
+<span class="nc" id="L102">        java.time.LocalDate t1Fin = dto.fechaInicio().plusDays(tercio);</span>
+<span class="nc" id="L103">        java.time.LocalDate t2Inicio = t1Fin.plusDays(1);</span>
+<span class="nc" id="L104">        java.time.LocalDate t2Fin = t2Inicio.plusDays(tercio);</span>
+<span class="nc" id="L105">        java.time.LocalDate t3Inicio = t2Fin.plusDays(1);</span>
+
+<span class="nc" id="L107">        String insertPeriodo = &quot;&quot;&quot;</span>
+                INSERT INTO sga_docente.periodos_evaluacion (id_ano_lectivo, tipo_periodo, nombre, fecha_inicio, fecha_fin, activo, orden)
+                VALUES (:idAno, :tipo, :nombre, :fechaInicio, :fechaFin, true, :orden)
+                &quot;&quot;&quot;;
+
+<span class="nc" id="L112">        jdbc.update(insertPeriodo, new MapSqlParameterSource()</span>
+<span class="nc" id="L113">                .addValue(&quot;idAno&quot;, idAno).addValue(&quot;tipo&quot;, &quot;PRIMER_TRIMESTRE&quot;).addValue(&quot;nombre&quot;, &quot;Primer Trimestre&quot;)</span>
+<span class="nc" id="L114">                .addValue(&quot;fechaInicio&quot;, dto.fechaInicio()).addValue(&quot;fechaFin&quot;, t1Fin).addValue(&quot;orden&quot;, 1));</span>
+
+<span class="nc" id="L116">        jdbc.update(insertPeriodo, new MapSqlParameterSource()</span>
+<span class="nc" id="L117">                .addValue(&quot;idAno&quot;, idAno).addValue(&quot;tipo&quot;, &quot;SEGUNDO_TRIMESTRE&quot;).addValue(&quot;nombre&quot;, &quot;Segundo Trimestre&quot;)</span>
+<span class="nc" id="L118">                .addValue(&quot;fechaInicio&quot;, t2Inicio).addValue(&quot;fechaFin&quot;, t2Fin).addValue(&quot;orden&quot;, 2));</span>
+
+<span class="nc" id="L120">        jdbc.update(insertPeriodo, new MapSqlParameterSource()</span>
+<span class="nc" id="L121">                .addValue(&quot;idAno&quot;, idAno).addValue(&quot;tipo&quot;, &quot;TERCER_TRIMESTRE&quot;).addValue(&quot;nombre&quot;, &quot;Tercer Trimestre&quot;)</span>
+<span class="nc" id="L122">                .addValue(&quot;fechaInicio&quot;, t3Inicio).addValue(&quot;fechaFin&quot;, dto.fechaFin()).addValue(&quot;orden&quot;, 3));</span>
+<span class="nc" id="L123">    }</span>
+
+    @Transactional
+    public Map&lt;String, Object&gt; actualizar(long id, AnoLectivoRequest dto) {
+<span class="nc" id="L127">        obtenerPorId(id);</span>
+
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (dto.fechaFin().isBefore(dto.fechaInicio())) {</span>
+<span class="nc" id="L130">            throw ApiException.badRequest(&quot;La fecha de fin no puede ser anterior a la fecha de inicio&quot;);</span>
+        }
+
+<span class="nc" id="L133">        String sqlDup = &quot;SELECT COUNT(*) FROM sga_principal.anos_lectivos WHERE LOWER(nombre) = LOWER(:nombre) AND id_ano_lectivo != :id&quot;;</span>
+<span class="nc" id="L134">        Integer count = jdbc.queryForObject(sqlDup,</span>
+<span class="nc" id="L135">                new MapSqlParameterSource().addValue(&quot;nombre&quot;, dto.nombre().trim()).addValue(&quot;id&quot;, id), Integer.class);</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">        if (count != null &amp;&amp; count &gt; 0) {</span>
+<span class="nc" id="L137">            throw ApiException.conflict(&quot;Ya existe otro año lectivo con ese nombre&quot;);</span>
+        }
+
+<span class="nc" id="L140">        String sqlUpdate = &quot;&quot;&quot;</span>
+                UPDATE sga_principal.anos_lectivos
+                SET nombre = :nombre,
+                    fecha_inicio = :fechaInicio,
+                    fecha_fin = :fechaFin
+                WHERE id_ano_lectivo = :id
+                &quot;&quot;&quot;;
+<span class="nc" id="L147">        jdbc.update(sqlUpdate,</span>
+                new MapSqlParameterSource()
+<span class="nc" id="L149">                        .addValue(&quot;id&quot;, id)</span>
+<span class="nc" id="L150">                        .addValue(&quot;nombre&quot;, dto.nombre().trim())</span>
+<span class="nc" id="L151">                        .addValue(&quot;fechaInicio&quot;, dto.fechaInicio())</span>
+<span class="nc" id="L152">                        .addValue(&quot;fechaFin&quot;, dto.fechaFin()));</span>
+
+<span class="nc" id="L154">        return obtenerPorId(id);</span>
+    }
+
+    @Transactional
+    public void establecerActual(long id) {
+<span class="nc" id="L159">        obtenerPorId(id);</span>
+<span class="nc" id="L160">        jdbc.update(&quot;UPDATE sga_principal.anos_lectivos SET es_actual = false&quot;, new MapSqlParameterSource());</span>
+<span class="nc" id="L161">        jdbc.update(&quot;UPDATE sga_principal.anos_lectivos SET es_actual = true WHERE id_ano_lectivo = :id&quot;,</span>
+<span class="nc" id="L162">                new MapSqlParameterSource(&quot;id&quot;, id));</span>
+<span class="nc" id="L163">    }</span>
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarPeriodos(long idAno) {
+<span class="nc" id="L166">        String sql = &quot;&quot;&quot;</span>
+                SELECT id_periodo, id_ano_lectivo, tipo_periodo, nombre, fecha_inicio, fecha_fin, activo, orden
+                FROM sga_docente.periodos_evaluacion
+                WHERE id_ano_lectivo = :idAno
+                ORDER BY orden ASC, fecha_inicio ASC
+                &quot;&quot;&quot;;
+<span class="nc" id="L172">        return jdbc.query(sql, new MapSqlParameterSource(&quot;idAno&quot;, idAno), GenericRowMapper.INSTANCE);</span>
+    }
+
+    @Transactional
+    public Map&lt;String, Object&gt; crearPeriodo(long idAno, PeriodoEvaluacionRequest dto) {
+<span class="nc" id="L177">        obtenerPorId(idAno);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (dto.fechaFin().isBefore(dto.fechaInicio())) {</span>
+<span class="nc" id="L179">            throw ApiException.badRequest(&quot;La fecha fin del periodo no puede ser anterior a la fecha de inicio&quot;);</span>
+        }
+
+<span class="nc" id="L182">        String insert = &quot;&quot;&quot;</span>
+                INSERT INTO sga_docente.periodos_evaluacion (id_ano_lectivo, tipo_periodo, nombre, fecha_inicio, fecha_fin, activo, orden)
+                VALUES (:idAno, :tipo, :nombre, :fechaInicio, :fechaFin, true, :orden)
+                RETURNING id_periodo
+                &quot;&quot;&quot;;
+<span class="nc" id="L187">        Long idPeriodo = jdbc.queryForObject(insert,</span>
+                new MapSqlParameterSource()
+<span class="nc" id="L189">                        .addValue(&quot;idAno&quot;, idAno)</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                        .addValue(&quot;tipo&quot;, dto.tipo() != null ? dto.tipo() : &quot;TRIMESTRE&quot;)</span>
+<span class="nc" id="L191">                        .addValue(&quot;nombre&quot;, dto.nombre())</span>
+<span class="nc" id="L192">                        .addValue(&quot;fechaInicio&quot;, dto.fechaInicio())</span>
+<span class="nc" id="L193">                        .addValue(&quot;fechaFin&quot;, dto.fechaFin())</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                        .addValue(&quot;orden&quot;, dto.orden() != null ? dto.orden() : 1),</span>
+                Long.class);
+
+<span class="nc" id="L197">        return Map.of(&quot;id_periodo&quot;, idPeriodo, &quot;nombre&quot;, dto.nombre(), &quot;mensaje&quot;, &quot;Periodo creado exitosamente&quot;);</span>
+    }
+
+    @Transactional
+    public void actualizarPeriodo(long idPeriodo, PeriodoEvaluacionRequest dto) {
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (dto.fechaFin().isBefore(dto.fechaInicio())) {</span>
+<span class="nc" id="L203">            throw ApiException.badRequest(&quot;La fecha fin del periodo no puede ser anterior a la fecha de inicio&quot;);</span>
+        }
+
+<span class="nc" id="L206">        int updated = jdbc.update(&quot;&quot;&quot;</span>
+                UPDATE sga_docente.periodos_evaluacion
+                SET nombre = :nombre,
+                    fecha_inicio = :fechaInicio,
+                    fecha_fin = :fechaFin,
+                    orden = COALESCE(:orden, orden)
+                WHERE id_periodo = :id
+                &quot;&quot;&quot;,
+                new MapSqlParameterSource()
+<span class="nc" id="L215">                        .addValue(&quot;id&quot;, idPeriodo)</span>
+<span class="nc" id="L216">                        .addValue(&quot;nombre&quot;, dto.nombre())</span>
+<span class="nc" id="L217">                        .addValue(&quot;fechaInicio&quot;, dto.fechaInicio())</span>
+<span class="nc" id="L218">                        .addValue(&quot;fechaFin&quot;, dto.fechaFin())</span>
+<span class="nc" id="L219">                        .addValue(&quot;orden&quot;, dto.orden()));</span>
+
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (updated == 0) {</span>
+<span class="nc" id="L222">            throw ApiException.notFound(&quot;Periodo de evaluación no encontrado&quot;);</span>
+        }
+<span class="nc" id="L224">    }</span>
+
+    @Transactional
+    public void eliminarPeriodo(long idPeriodo) {
+<span class="nc" id="L228">        int deleted = jdbc.update(&quot;DELETE FROM sga_docente.periodos_evaluacion WHERE id_periodo = :id&quot;,</span>
+<span class="nc" id="L229">                new MapSqlParameterSource(&quot;id&quot;, idPeriodo));</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (deleted == 0) {</span>
+<span class="nc" id="L231">            throw ApiException.notFound(&quot;Periodo de evaluación no encontrado&quot;);</span>
+        }
+<span class="nc" id="L233">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MallaCurricularService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">MallaCurricularService.java</span></div><h1>MallaCurricularService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.secretaria.domain.dto.ActualizarHorasGradoRequest;
+import ec.uteq.sga.secretaria.domain.dto.MallaRequest;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+@Service
+public class MallaCurricularService {
+
+    private final NamedParameterJdbcTemplate jdbc;
+
+<span class="nc" id="L19">    public MallaCurricularService(NamedParameterJdbcTemplate jdbc) {</span>
+<span class="nc" id="L20">        this.jdbc = jdbc;</span>
+<span class="nc" id="L21">    }</span>
+
+    public Map&lt;String, Object&gt; porGrado(long idGrado, long idAnoLectivo) {
+<span class="nc" id="L24">        String sqlMalla = &quot;&quot;&quot;</span>
+                SELECT m.id_malla, m.id_asignatura, a.nombre AS asignatura, a.codigo,
+                       COALESCE(m.horas_semana, a.horas_semana, 4) AS horas_semana,
+                       m.dias_semana, m.duracion
+                FROM sga_principal.malla_curricular m
+                JOIN sga_principal.asignaturas a ON a.id_asignatura = m.id_asignatura
+                WHERE m.id_grado = :idGrado AND m.id_ano_lectivo = :idAnoLectivo
+                ORDER BY a.nombre ASC
+                &quot;&quot;&quot;;
+
+<span class="nc" id="L34">        MapSqlParameterSource params = new MapSqlParameterSource()</span>
+<span class="nc" id="L35">                .addValue(&quot;idGrado&quot;, idGrado)</span>
+<span class="nc" id="L36">                .addValue(&quot;idAnoLectivo&quot;, idAnoLectivo);</span>
+
+<span class="nc" id="L38">        List&lt;Map&lt;String, Object&gt;&gt; rowsMalla = jdbc.query(sqlMalla, params, GenericRowMapper.INSTANCE);</span>
+
+<span class="nc" id="L40">        String sqlAsignaciones = &quot;&quot;&quot;</span>
+                SELECT asig.id_asignatura, a.nombre AS asignatura, a.codigo,
+                       COALESCE(asig.horas_semanales, 4) AS horas_semanales,
+                       TRIM(CONCAT(COALESCE(p.nombres, ''), ' ', COALESCE(p.apellidos, ''))) AS docente_nombre
+                FROM sga_principal.asignaciones asig
+                JOIN sga_principal.asignaturas a ON a.id_asignatura = asig.id_asignatura
+                LEFT JOIN sga_principal.usuarios u ON u.id_usuario = asig.id_docente
+                LEFT JOIN sga_principal.personas p ON p.id_usuario = u.id_usuario
+                WHERE asig.id_grado = :idGrado AND asig.id_ano_lectivo = :idAnoLectivo AND asig.activo = true
+                &quot;&quot;&quot;;
+
+<span class="nc" id="L51">        List&lt;Map&lt;String, Object&gt;&gt; rowsAsig = jdbc.query(sqlAsignaciones, params, GenericRowMapper.INSTANCE);</span>
+
+<span class="nc" id="L53">        Map&lt;Long, Map&lt;String, Object&gt;&gt; mapaMaterias = new LinkedHashMap&lt;&gt;();</span>
+
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; m : rowsMalla) {</span>
+<span class="nc" id="L56">            Long idAsig = ((Number) m.get(&quot;id_asignatura&quot;)).longValue();</span>
+<span class="nc" id="L57">            Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L58">            item.put(&quot;idMalla&quot;, m.get(&quot;id_malla&quot;));</span>
+<span class="nc" id="L59">            item.put(&quot;idAsignatura&quot;, idAsig);</span>
+<span class="nc" id="L60">            item.put(&quot;asignatura&quot;, m.get(&quot;asignatura&quot;));</span>
+<span class="nc" id="L61">            item.put(&quot;codigo&quot;, m.get(&quot;codigo&quot;));</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            item.put(&quot;horasSemana&quot;, m.get(&quot;horas_semana&quot;) != null ? m.get(&quot;horas_semana&quot;) : 4);</span>
+<span class="nc" id="L63">            item.put(&quot;diasSemana&quot;, m.get(&quot;dias_semana&quot;));</span>
+<span class="nc" id="L64">            item.put(&quot;duracion&quot;, m.get(&quot;duracion&quot;));</span>
+<span class="nc" id="L65">            item.put(&quot;docentes&quot;, new ArrayList&lt;String&gt;());</span>
+<span class="nc" id="L66">            item.put(&quot;origen&quot;, &quot;MALLA&quot;);</span>
+<span class="nc" id="L67">            mapaMaterias.put(idAsig, item);</span>
+<span class="nc" id="L68">        }</span>
+
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; a : rowsAsig) {</span>
+<span class="nc" id="L71">            Long idAsig = ((Number) a.get(&quot;id_asignatura&quot;)).longValue();</span>
+<span class="nc" id="L72">            String nombreDoc = (String) a.get(&quot;docente_nombre&quot;);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            int horas = a.get(&quot;horas_semanales&quot;) != null ? ((Number) a.get(&quot;horas_semanales&quot;)).intValue() : 4;</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (mapaMaterias.containsKey(idAsig)) {</span>
+<span class="nc" id="L76">                Map&lt;String, Object&gt; item = mapaMaterias.get(idAsig);</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L78">                List&lt;String&gt; docs = (List&lt;String&gt;) item.get(&quot;docentes&quot;);</span>
+<span class="nc bnc" id="L79" title="All 6 branches missed.">                if (nombreDoc != null &amp;&amp; !nombreDoc.isBlank() &amp;&amp; !docs.contains(nombreDoc)) {</span>
+<span class="nc" id="L80">                    docs.add(nombreDoc);</span>
+                }
+<span class="nc" id="L82">                int hActual = Integer.parseInt(item.get(&quot;horasSemana&quot;).toString());</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                if (horas &gt; hActual) item.put(&quot;horasSemana&quot;, horas);</span>
+<span class="nc" id="L84">            } else {</span>
+<span class="nc" id="L85">                Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L86">                item.put(&quot;idMalla&quot;, null);</span>
+<span class="nc" id="L87">                item.put(&quot;idAsignatura&quot;, idAsig);</span>
+<span class="nc" id="L88">                item.put(&quot;asignatura&quot;, a.get(&quot;asignatura&quot;));</span>
+<span class="nc" id="L89">                item.put(&quot;codigo&quot;, a.get(&quot;codigo&quot;));</span>
+<span class="nc" id="L90">                item.put(&quot;horasSemana&quot;, horas);</span>
+<span class="nc" id="L91">                List&lt;String&gt; docs = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L92" title="All 4 branches missed.">                if (nombreDoc != null &amp;&amp; !nombreDoc.isBlank()) docs.add(nombreDoc);</span>
+<span class="nc" id="L93">                item.put(&quot;docentes&quot;, docs);</span>
+<span class="nc" id="L94">                item.put(&quot;origen&quot;, &quot;ASIGNACION&quot;);</span>
+<span class="nc" id="L95">                mapaMaterias.put(idAsig, item);</span>
+            }
+<span class="nc" id="L97">        }</span>
+
+<span class="nc" id="L99">        List&lt;Map&lt;String, Object&gt;&gt; items = new ArrayList&lt;&gt;(mapaMaterias.values());</span>
+<span class="nc" id="L100">        int total = items.stream().mapToInt(i -&gt; Integer.parseInt(i.get(&quot;horasSemana&quot;).toString())).sum();</span>
+
+<span class="nc" id="L102">        return Map.of(&quot;totalHoras&quot;, total, &quot;materias&quot;, items);</span>
+    }
+
+    public Map&lt;Long, Map&lt;String, Object&gt;&gt; resumenGrados(long idAnoLectivo) {
+<span class="nc" id="L106">        String sqlMallas = &quot;&quot;&quot;</span>
+                SELECT id_grado, id_asignatura, COALESCE(horas_semana, 4) AS horas
+                FROM sga_principal.malla_curricular
+                WHERE id_ano_lectivo = :idAnoLectivo
+                &quot;&quot;&quot;;
+<span class="nc" id="L111">        List&lt;Map&lt;String, Object&gt;&gt; mallas = jdbc.query(sqlMallas,</span>
+<span class="nc" id="L112">                new MapSqlParameterSource(&quot;idAnoLectivo&quot;, idAnoLectivo), GenericRowMapper.INSTANCE);</span>
+
+<span class="nc" id="L114">        String sqlAsigs = &quot;&quot;&quot;</span>
+                SELECT id_grado, id_asignatura, COALESCE(horas_semanales, 4) AS horas
+                FROM sga_principal.asignaciones
+                WHERE id_ano_lectivo = :idAnoLectivo AND activo = true
+                &quot;&quot;&quot;;
+<span class="nc" id="L119">        List&lt;Map&lt;String, Object&gt;&gt; asigs = jdbc.query(sqlAsigs,</span>
+<span class="nc" id="L120">                new MapSqlParameterSource(&quot;idAnoLectivo&quot;, idAnoLectivo), GenericRowMapper.INSTANCE);</span>
+
+<span class="nc" id="L122">        Map&lt;Long, Map&lt;Long, Integer&gt;&gt; mapaGrados = new HashMap&lt;&gt;();</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; m : mallas) {</span>
+<span class="nc" id="L125">            Long idG = ((Number) m.get(&quot;id_grado&quot;)).longValue();</span>
+<span class="nc" id="L126">            Long idA = ((Number) m.get(&quot;id_asignatura&quot;)).longValue();</span>
+<span class="nc" id="L127">            int h = ((Number) m.get(&quot;horas&quot;)).intValue();</span>
+<span class="nc" id="L128">            mapaGrados.computeIfAbsent(idG, k -&gt; new HashMap&lt;&gt;()).put(idA, h);</span>
+<span class="nc" id="L129">        }</span>
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; a : asigs) {</span>
+<span class="nc" id="L132">            Long idG = ((Number) a.get(&quot;id_grado&quot;)).longValue();</span>
+<span class="nc" id="L133">            Long idA = ((Number) a.get(&quot;id_asignatura&quot;)).longValue();</span>
+<span class="nc" id="L134">            int h = ((Number) a.get(&quot;horas&quot;)).intValue();</span>
+<span class="nc" id="L135">            mapaGrados.computeIfAbsent(idG, k -&gt; new HashMap&lt;&gt;());</span>
+<span class="nc" id="L136">            Map&lt;Long, Integer&gt; mapG = mapaGrados.get(idG);</span>
+<span class="nc" id="L137">            int hActual = mapG.getOrDefault(idA, 0);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (h &gt; hActual) mapG.put(idA, h);</span>
+<span class="nc" id="L139">        }</span>
+
+<span class="nc" id="L141">        Map&lt;Long, Map&lt;String, Object&gt;&gt; res = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        for (Map.Entry&lt;Long, Map&lt;Long, Integer&gt;&gt; entry : mapaGrados.entrySet()) {</span>
+<span class="nc" id="L143">            Long idG = entry.getKey();</span>
+<span class="nc" id="L144">            Map&lt;Long, Integer&gt; mapG = entry.getValue();</span>
+<span class="nc" id="L145">            int totalH = mapG.values().stream().mapToInt(Integer::intValue).sum();</span>
+<span class="nc" id="L146">            res.put(idG, Map.of(&quot;totalHoras&quot;, totalH, &quot;cantMaterias&quot;, mapG.size()));</span>
+<span class="nc" id="L147">        }</span>
+
+<span class="nc" id="L149">        return res;</span>
+    }
+
+    @Transactional
+    public void agregar(MallaRequest req) {
+<span class="nc" id="L154">        String checkSql = &quot;&quot;&quot;</span>
+                SELECT COUNT(*) FROM sga_principal.malla_curricular
+                WHERE id_grado = :idGrado AND id_asignatura = :idAsignatura AND id_ano_lectivo = :idAnoLectivo
+                &quot;&quot;&quot;;
+<span class="nc" id="L158">        Integer count = jdbc.queryForObject(checkSql,</span>
+                new MapSqlParameterSource()
+<span class="nc" id="L160">                        .addValue(&quot;idGrado&quot;, req.idGrado())</span>
+<span class="nc" id="L161">                        .addValue(&quot;idAsignatura&quot;, req.idAsignatura())</span>
+<span class="nc" id="L162">                        .addValue(&quot;idAnoLectivo&quot;, req.idAnoLectivo()),</span>
+                Integer.class);
+
+<span class="nc bnc" id="L165" title="All 4 branches missed.">        if (count != null &amp;&amp; count &gt; 0) {</span>
+<span class="nc" id="L166">            throw ApiException.conflict(&quot;Esa asignatura ya está registrada en la malla del grado&quot;);</span>
+        }
+
+<span class="nc" id="L169">        String insertSql = &quot;&quot;&quot;</span>
+                INSERT INTO sga_principal.malla_curricular (id_grado, id_asignatura, id_ano_lectivo, horas_semana, dias_semana, duracion, activo, fecha_creacion)
+                VALUES (:idGrado, :idAsignatura, :idAnoLectivo, :horasSemana, :diasSemana, :duracion, true, NOW())
+                &quot;&quot;&quot;;
+<span class="nc" id="L173">        jdbc.update(insertSql,</span>
+                new MapSqlParameterSource()
+<span class="nc" id="L175">                        .addValue(&quot;idGrado&quot;, req.idGrado())</span>
+<span class="nc" id="L176">                        .addValue(&quot;idAsignatura&quot;, req.idAsignatura())</span>
+<span class="nc" id="L177">                        .addValue(&quot;idAnoLectivo&quot;, req.idAnoLectivo())</span>
+<span class="nc" id="L178">                        .addValue(&quot;horasSemana&quot;, req.horasSemana())</span>
+<span class="nc" id="L179">                        .addValue(&quot;diasSemana&quot;, req.diasSemana())</span>
+<span class="nc" id="L180">                        .addValue(&quot;duracion&quot;, req.duracion()));</span>
+<span class="nc" id="L181">    }</span>
+
+    @Transactional
+    public void actualizarHoras(long idMalla, short horasSemana) {
+<span class="nc" id="L185">        int updated = jdbc.update(</span>
+                &quot;UPDATE sga_principal.malla_curricular SET horas_semana = :horas WHERE id_malla = :id&quot;,
+<span class="nc" id="L187">                new MapSqlParameterSource().addValue(&quot;id&quot;, idMalla).addValue(&quot;horas&quot;, horasSemana));</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (updated == 0) {</span>
+<span class="nc" id="L189">            throw ApiException.notFound(&quot;Registro de malla no encontrado&quot;);</span>
+        }
+<span class="nc" id="L191">    }</span>
+
+    @Transactional
+    public void actualizarHorasGrado(ActualizarHorasGradoRequest req) {
+<span class="nc bnc" id="L195" title="All 4 branches missed.">        if (req.cambios() == null || req.cambios().isEmpty()) return;</span>
+
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; cambio : req.cambios()) {</span>
+<span class="nc bnc" id="L198" title="All 4 branches missed.">            if (cambio.get(&quot;idAsignatura&quot;) == null || cambio.get(&quot;horasSemana&quot;) == null) continue;</span>
+<span class="nc" id="L199">            Long idAsig = Long.valueOf(cambio.get(&quot;idAsignatura&quot;).toString());</span>
+<span class="nc" id="L200">            int nuevasHoras = Integer.parseInt(cambio.get(&quot;horasSemana&quot;).toString());</span>
+
+<span class="nc" id="L202">            String findMalla = &quot;&quot;&quot;</span>
+                    SELECT id_malla FROM sga_principal.malla_curricular
+                    WHERE id_grado = :idGrado AND id_asignatura = :idAsig AND id_ano_lectivo = :idAno
+                    &quot;&quot;&quot;;
+<span class="nc" id="L206">            List&lt;Long&gt; mallas = jdbc.query(findMalla,</span>
+                    new MapSqlParameterSource()
+<span class="nc" id="L208">                            .addValue(&quot;idGrado&quot;, req.idGrado())</span>
+<span class="nc" id="L209">                            .addValue(&quot;idAsig&quot;, idAsig)</span>
+<span class="nc" id="L210">                            .addValue(&quot;idAno&quot;, req.idAnoLectivo()),</span>
+<span class="nc" id="L211">                    (rs, n) -&gt; rs.getLong(&quot;id_malla&quot;));</span>
+
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            if (!mallas.isEmpty()) {</span>
+<span class="nc" id="L214">                jdbc.update(&quot;UPDATE sga_principal.malla_curricular SET horas_semana = :horas WHERE id_malla = :id&quot;,</span>
+<span class="nc" id="L215">                        new MapSqlParameterSource().addValue(&quot;id&quot;, mallas.get(0)).addValue(&quot;horas&quot;, nuevasHoras));</span>
+            } else {
+<span class="nc" id="L217">                jdbc.update(&quot;&quot;&quot;</span>
+                        INSERT INTO sga_principal.malla_curricular (id_grado, id_asignatura, id_ano_lectivo, horas_semana, activo, fecha_creacion)
+                        VALUES (:idGrado, :idAsig, :idAno, :horas, true, NOW())
+                        &quot;&quot;&quot;,
+                        new MapSqlParameterSource()
+<span class="nc" id="L222">                                .addValue(&quot;idGrado&quot;, req.idGrado())</span>
+<span class="nc" id="L223">                                .addValue(&quot;idAsig&quot;, idAsig)</span>
+<span class="nc" id="L224">                                .addValue(&quot;idAno&quot;, req.idAnoLectivo())</span>
+<span class="nc" id="L225">                                .addValue(&quot;horas&quot;, nuevasHoras));</span>
+            }
+
+<span class="nc" id="L228">            jdbc.update(&quot;&quot;&quot;</span>
+                    UPDATE sga_principal.asignaciones
+                    SET horas_semanales = :horas
+                    WHERE id_grado = :idGrado AND id_asignatura = :idAsig AND id_ano_lectivo = :idAno
+                    &quot;&quot;&quot;,
+                    new MapSqlParameterSource()
+<span class="nc" id="L234">                            .addValue(&quot;idGrado&quot;, req.idGrado())</span>
+<span class="nc" id="L235">                            .addValue(&quot;idAsig&quot;, idAsig)</span>
+<span class="nc" id="L236">                            .addValue(&quot;idAno&quot;, req.idAnoLectivo())</span>
+<span class="nc" id="L237">                            .addValue(&quot;horas&quot;, nuevasHoras));</span>
+<span class="nc" id="L238">        }</span>
+<span class="nc" id="L239">    }</span>
+
+    @Transactional
+    public void eliminar(long idMalla) {
+<span class="nc" id="L243">        int deleted = jdbc.update(&quot;DELETE FROM sga_principal.malla_curricular WHERE id_malla = :id&quot;,</span>
+<span class="nc" id="L244">                new MapSqlParameterSource(&quot;id&quot;, idMalla));</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (deleted == 0) {</span>
+<span class="nc" id="L246">            throw ApiException.notFound(&quot;Registro de malla no encontrado&quot;);</span>
+        }
+<span class="nc" id="L248">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

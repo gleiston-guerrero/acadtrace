@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FichaEstudiantePdfBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">FichaEstudiantePdfBuilder.java</span></div><h1>FichaEstudiantePdfBuilder.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.pdf;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
+import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.formatFechaEc;
+import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.str;
+
+public final class FichaEstudiantePdfBuilder {
+
+    private FichaEstudiantePdfBuilder() {}
+
+    public static byte[] build(Map&lt;String, Object&gt; estudiante, PdfTheme theme) throws IOException {
+<span class="nc" id="L19">        try (PDDocument document = new PDDocument()) {</span>
+<span class="nc" id="L20">            PDPage page = new PDPage(PDRectangle.A4);</span>
+<span class="nc" id="L21">            document.addPage(page);</span>
+
+<span class="nc" id="L23">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
+<span class="nc" id="L24">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Ficha del Estudiante&quot;, &quot;&quot;) + 10;</span>
+
+<span class="nc" id="L26">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS PERSONALES&quot;, y);</span>
+<span class="nc" id="L27">                PdfLayout.drawField(canvas, &quot;Nombres&quot;, str(estudiante.get(&quot;nombres&quot;)), 40, y);</span>
+<span class="nc" id="L28">                PdfLayout.drawField(canvas, &quot;Apellidos&quot;, str(estudiante.get(&quot;apellidos&quot;)), 320, y);</span>
+<span class="nc" id="L29">                y += 18;</span>
+<span class="nc" id="L30">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(estudiante.get(&quot;cedula&quot;)), 40, y);</span>
+<span class="nc" id="L31">                PdfLayout.drawField(canvas, &quot;Código&quot;, str(estudiante.get(&quot;codigo_estudiante&quot;)), 320, y);</span>
+<span class="nc" id="L32">                y += 18;</span>
+<span class="nc" id="L33">                PdfLayout.drawField(canvas, &quot;Fecha nacimiento&quot;, formatFechaEc(estudiante.get(&quot;fecha_nacimiento&quot;)), 40, y);</span>
+<span class="nc" id="L34">                PdfLayout.drawField(canvas, &quot;Género&quot;, str(estudiante.get(&quot;genero&quot;)), 320, y);</span>
+<span class="nc" id="L35">                y += 18;</span>
+<span class="nc" id="L36">                PdfLayout.drawField(canvas, &quot;Teléfono&quot;, str(estudiante.get(&quot;telefono&quot;)), 40, y);</span>
+<span class="nc" id="L37">                PdfLayout.drawField(canvas, &quot;Correo&quot;, str(estudiante.get(&quot;correo&quot;)), 320, y);</span>
+<span class="nc" id="L38">                y += 18;</span>
+<span class="nc" id="L39">                PdfLayout.drawField(canvas, &quot;Dirección&quot;, str(estudiante.get(&quot;direccion&quot;)), 40, y, 100);</span>
+<span class="nc" id="L40">                y += 30;</span>
+
+<span class="nc" id="L42">                String repNombres = str(estudiante.get(&quot;rep_nombres&quot;));</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">                if (!repNombres.isBlank()) {</span>
+<span class="nc" id="L44">                    y = PdfLayout.drawSectionTitle(canvas, &quot;REPRESENTANTE LEGAL&quot;, y);</span>
+<span class="nc" id="L45">                    PdfLayout.drawField(canvas, &quot;Nombres&quot;, repNombres + &quot; &quot; + str(estudiante.get(&quot;rep_apellidos&quot;)), 40, y);</span>
+<span class="nc" id="L46">                    PdfLayout.drawField(canvas, &quot;Parentesco&quot;, str(estudiante.get(&quot;parentesco&quot;)), 320, y);</span>
+<span class="nc" id="L47">                    y += 18;</span>
+<span class="nc" id="L48">                    PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(estudiante.get(&quot;rep_cedula&quot;)), 40, y);</span>
+<span class="nc" id="L49">                    PdfLayout.drawField(canvas, &quot;Teléfono&quot;, str(estudiante.get(&quot;rep_telefono&quot;)), 320, y);</span>
+<span class="nc" id="L50">                    y += 18;</span>
+<span class="nc" id="L51">                    PdfLayout.drawField(canvas, &quot;Correo&quot;, str(estudiante.get(&quot;rep_correo&quot;)), 40, y);</span>
+<span class="nc" id="L52">                    y += 30;</span>
+                }
+
+<span class="nc" id="L55">                String tipoSangre = str(estudiante.get(&quot;tipo_sangre&quot;));</span>
+<span class="nc" id="L56">                String alergias = str(estudiante.get(&quot;alergias&quot;));</span>
+<span class="nc bnc" id="L57" title="All 4 branches missed.">                if (!tipoSangre.isBlank() || !alergias.isBlank()) {</span>
+<span class="nc" id="L58">                    y = PdfLayout.drawSectionTitle(canvas, &quot;INFORMACIÓN MÉDICA&quot;, y);</span>
+<span class="nc" id="L59">                    PdfLayout.drawField(canvas, &quot;Tipo de sangre&quot;, tipoSangre, 40, y);</span>
+<span class="nc" id="L60">                    PdfLayout.drawField(canvas, &quot;Alergias&quot;, alergias, 320, y);</span>
+<span class="nc" id="L61">                    y += 18;</span>
+<span class="nc" id="L62">                    PdfLayout.drawField(canvas, &quot;Medicación&quot;, str(estudiante.get(&quot;medicacion_permanente&quot;)), 40, y, 100);</span>
+<span class="nc" id="L63">                    y += 18;</span>
+<span class="nc" id="L64">                    PdfLayout.drawField(canvas, &quot;Contacto emergencia&quot;, str(estudiante.get(&quot;contacto_emergencia&quot;)), 40, y);</span>
+<span class="nc" id="L65">                    PdfLayout.drawField(canvas, &quot;Tel. emergencia&quot;, str(estudiante.get(&quot;telefono_emergencia&quot;)), 320, y);</span>
+<span class="nc" id="L66">                    y += 30;</span>
+                }
+
+<span class="nc" id="L69">                Object discapacidad = estudiante.get(&quot;discapacidad&quot;);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                if (Boolean.TRUE.equals(discapacidad)) {</span>
+<span class="nc" id="L71">                    y = PdfLayout.drawSectionTitle(canvas, &quot;DISCAPACIDAD&quot;, y);</span>
+<span class="nc" id="L72">                    PdfLayout.drawField(canvas, &quot;Tipo&quot;, str(estudiante.get(&quot;tipo_discapacidad&quot;)), 40, y);</span>
+<span class="nc" id="L73">                    Object porcentaje = estudiante.get(&quot;porcentaje_disc&quot;);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                    PdfLayout.drawField(canvas, &quot;Porcentaje&quot;, (porcentaje == null ? &quot;0&quot; : String.valueOf(porcentaje)) + &quot;%&quot;, 320, y);</span>
+<span class="nc" id="L75">                    y += 30;</span>
+                }
+
+<span class="nc" id="L78">                PdfLayout.drawFooter(canvas, theme);</span>
+            }
+
+<span class="nc" id="L81">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="nc" id="L82">            document.save(out);</span>
+<span class="nc" id="L83">            return out.toByteArray();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

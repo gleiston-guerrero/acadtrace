@@ -24,7 +24,7 @@ const PORTALES = {
         desc: "Matrículas, estudiantes y reportes",
         color: "bg-purple-50",
         iconColor: "text-purple-600",
-        tipo: "handoff",
+        tipo: "local",
         destino: "SECRETARIA",
         icon: (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

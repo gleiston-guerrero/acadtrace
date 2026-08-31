@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GradoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.presentation.controller</a> &gt; <span class="el_source">GradoController.java</span></div><h1>GradoController.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.presentation.controller;
+
+import ec.uteq.sga.secretaria.domain.dto.GradoRequest;
+import ec.uteq.sga.secretaria.application.service.GradoService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/secretario/grados&quot;)
+public class GradoController {
+
+    private final GradoService gradoService;
+
+<span class="nc" id="L18">    public GradoController(GradoService gradoService) {</span>
+<span class="nc" id="L19">        this.gradoService = gradoService;</span>
+<span class="nc" id="L20">    }</span>
+
+    @GetMapping
+    public List&lt;Map&lt;String, Object&gt;&gt; listar() {
+<span class="nc" id="L24">        return gradoService.listarTodos();</span>
+    }
+
+    @GetMapping(&quot;/{idGrado}/paralelos&quot;)
+    public List&lt;Map&lt;String, Object&gt;&gt; listarParalelos(@PathVariable Long idGrado) {
+<span class="nc" id="L29">        return gradoService.listarParalelos(idGrado);</span>
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map&lt;String, Object&gt; crear(@Valid @RequestBody GradoRequest dto) {
+<span class="nc" id="L35">        return gradoService.crear(dto);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public Map&lt;String, Object&gt; actualizar(@PathVariable long id, @Valid @RequestBody GradoRequest dto) {
+<span class="nc" id="L40">        return gradoService.actualizar(id, dto);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/estado&quot;)
+    public void cambiarEstado(@PathVariable long id, @RequestParam boolean activo) {
+<span class="nc" id="L45">        gradoService.cambiarEstado(id, activo);</span>
+<span class="nc" id="L46">    }</span>
+
+    @PostMapping(&quot;/{idGrado}/paralelos&quot;)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map&lt;String, Object&gt; crearParalelo(@PathVariable long idGrado, @RequestParam String letra) {
+<span class="nc" id="L51">        return gradoService.crearParalelo(idGrado, letra);</span>
+    }
+
+    @PatchMapping(&quot;/paralelos/{idParalelo}/estado&quot;)
+    public void cambiarEstadoParalelo(@PathVariable long idParalelo, @RequestParam boolean activo) {
+<span class="nc" id="L56">        gradoService.cambiarEstadoParalelo(idParalelo, activo);</span>
+<span class="nc" id="L57">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

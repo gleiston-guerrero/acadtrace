@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JsonStructuredLayout.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.logging</a> &gt; <span class="el_source">JsonStructuredLayout.java</span></div><h1>JsonStructuredLayout.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.logging;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
+import ch.qos.logback.core.LayoutBase;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Layout personalizado de Logback para estructurar los logs en formato JSON estándar.
+ * Facilita la ingesta en plataformas de observabilidad como Prometheus, Loki, ElasticSearch y Grafana.
+ */
+<span class="fc" id="L19">public class JsonStructuredLayout extends LayoutBase&lt;ILoggingEvent&gt; {</span>
+
+<span class="fc" id="L21">    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();</span>
+<span class="fc" id="L22">    private String serviceName = &quot;microservicio-secretaria&quot;;</span>
+
+    public void setServiceName(String serviceName) {
+<span class="fc" id="L25">        this.serviceName = serviceName;</span>
+<span class="fc" id="L26">    }</span>
+
+    public String getServiceName() {
+<span class="nc" id="L29">        return serviceName;</span>
+    }
+
+    @Override
+    public String doLayout(ILoggingEvent event) {
+<span class="fc" id="L34">        Map&lt;String, Object&gt; json = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L35">        json.put(&quot;timestamp&quot;, Instant.ofEpochMilli(event.getTimeStamp()).toString());</span>
+<span class="fc" id="L36">        json.put(&quot;level&quot;, event.getLevel().toString());</span>
+<span class="fc" id="L37">        json.put(&quot;service&quot;, serviceName);</span>
+
+        // Extraer traceId del MDC o de propiedades de contexto
+<span class="fc" id="L40">        Map&lt;String, String&gt; mdc = event.getMDCPropertyMap();</span>
+<span class="pc bpc" id="L41" title="1 of 4 branches missed.">        if (mdc != null &amp;&amp; mdc.containsKey(&quot;traceId&quot;)) {</span>
+<span class="fc" id="L42">            json.put(&quot;traceId&quot;, mdc.get(&quot;traceId&quot;));</span>
+        } else {
+<span class="fc" id="L44">            json.put(&quot;traceId&quot;, null);</span>
+        }
+
+<span class="fc" id="L47">        json.put(&quot;thread&quot;, event.getThreadName());</span>
+<span class="fc" id="L48">        json.put(&quot;logger&quot;, event.getLoggerName());</span>
+<span class="fc" id="L49">        json.put(&quot;message&quot;, event.getFormattedMessage());</span>
+
+<span class="pc bpc" id="L51" title="1 of 4 branches missed.">        if (mdc != null &amp;&amp; !mdc.isEmpty()) {</span>
+<span class="fc" id="L52">            Map&lt;String, String&gt; customMdc = new LinkedHashMap&lt;&gt;(mdc);</span>
+<span class="fc" id="L53">            customMdc.remove(&quot;traceId&quot;);</span>
+<span class="fc" id="L54">            customMdc.remove(&quot;service&quot;);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">            if (!customMdc.isEmpty()) {</span>
+<span class="fc" id="L56">                json.put(&quot;context&quot;, customMdc);</span>
+            }
+        }
+
+<span class="fc" id="L60">        IThrowableProxy throwableProxy = event.getThrowableProxy();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (throwableProxy != null) {</span>
+<span class="fc" id="L62">            Map&lt;String, Object&gt; errorInfo = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L63">            errorInfo.put(&quot;className&quot;, throwableProxy.getClassName());</span>
+<span class="fc" id="L64">            errorInfo.put(&quot;message&quot;, throwableProxy.getMessage());</span>
+
+<span class="fc" id="L66">            StackTraceElementProxy[] stackTraceElements = throwableProxy.getStackTraceElementProxyArray();</span>
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">            if (stackTraceElements != null &amp;&amp; stackTraceElements.length &gt; 0) {</span>
+<span class="fc" id="L68">                List&lt;String&gt; frames = new ArrayList&lt;&gt;(Math.min(stackTraceElements.length, 15));</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">                for (int i = 0; i &lt; Math.min(stackTraceElements.length, 15); i++) {</span>
+<span class="fc" id="L70">                    frames.add(stackTraceElements[i].getSTEAsString());</span>
+                }
+<span class="fc" id="L72">                errorInfo.put(&quot;stackTrace&quot;, frames);</span>
+            }
+<span class="fc" id="L74">            json.put(&quot;exception&quot;, errorInfo);</span>
+        }
+
+        try {
+<span class="fc" id="L78">            return OBJECT_MAPPER.writeValueAsString(json) + System.lineSeparator();</span>
+<span class="nc" id="L79">        } catch (Exception e) {</span>
+<span class="nc" id="L80">            return &quot;{\&quot;error\&quot;:\&quot;Error serializing log to JSON: &quot; + e.getMessage() + &quot;\&quot;}&quot; + System.lineSeparator();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

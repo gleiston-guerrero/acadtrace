@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrincipalGrpcClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.grpc</a> &gt; <span class="el_source">PrincipalGrpcClient.java</span></div><h1>PrincipalGrpcClient.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.grpc;
+
+import ec.edu.uteq.sga.grpc.principal.AnoLectivoProto;
+import ec.edu.uteq.sga.grpc.principal.AsignaturaProto;
+import ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest;
+import ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest;
+import ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest;
+import ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest;
+import ec.edu.uteq.sga.grpc.principal.Empty;
+import ec.edu.uteq.sga.grpc.principal.EstudianteProto;
+import ec.edu.uteq.sga.grpc.principal.FichaProto;
+import ec.edu.uteq.sga.grpc.principal.GradoProto;
+import ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest;
+import ec.edu.uteq.sga.grpc.principal.GuardarFichaRequest;
+import ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest;
+import ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest;
+import ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse;
+import ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse;
+import ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest;
+import ec.edu.uteq.sga.grpc.principal.MatriculaProto;
+import ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest;
+import ec.edu.uteq.sga.grpc.principal.ObtenerFichaRequest;
+import ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest;
+import ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest;
+import ec.edu.uteq.sga.grpc.principal.ParaleloProto;
+import ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc;
+import ec.edu.uteq.sga.grpc.principal.RepresentanteProto;
+import ec.edu.uteq.sga.grpc.principal.RepresentantesResponse;
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.infrastructure.common.TraceContext;
+import ec.uteq.sga.secretaria.infrastructure.security.AuthenticatedUser;
+import io.grpc.Metadata;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.grpc.stub.MetadataUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+/**
+ * Cliente gRPC hacia sga-principal: reemplaza el SQL directo a
+ * sga_principal.anos_lectivos/grados/paralelos/asignaturas (catalogo
+ * institucional). Mismo patron que AsistenciaGrpcClient/ActividadGrpcClient
+ * ya usan en sga-principal para hablar con MICRO-DOCENTE (stub bloqueante +
+ * un header de metadata adjuntado antes de cada llamada).
+ *
+ * Resiliencia: cada llamada tiene deadline de {@link #DEADLINE_SEGUNDOS}s y,
+ * si sga-principal esta caido o no responde (UNAVAILABLE/DEADLINE_EXCEEDED),
+ * se reintenta hasta {@link #MAX_REINTENTOS} veces con backoff exponencial.
+ * Los errores de negocio (NOT_FOUND, ALREADY_EXISTS, INVALID_ARGUMENT...) NO
+ * se reintentan, porque repetir la misma llamada no cambia el resultado.
+ * Agotados los reintentos: los listados (listar*) se degradan a un resultado
+ * vacio para que la pantalla no se caiga; las escrituras (crear/actualizar/
+ * cambiarEstado) y los &quot;obtener por id&quot; siguen lanzando error, porque fingir
+ * un exito o un registro que no existe seria peor que mostrar el fallo.
+ */
+@Component
+<span class="nc" id="L71">public class PrincipalGrpcClient {</span>
+
+<span class="fc" id="L73">    private static final Logger log = LoggerFactory.getLogger(PrincipalGrpcClient.class);</span>
+
+<span class="fc" id="L75">    private static final Metadata.Key&lt;String&gt; INTERNAL_TOKEN_KEY =</span>
+<span class="fc" id="L76">            Metadata.Key.of(&quot;internal_token&quot;, Metadata.ASCII_STRING_MARSHALLER);</span>
+<span class="fc" id="L77">    private static final Metadata.Key&lt;String&gt; TRACE_ID_KEY =</span>
+<span class="fc" id="L78">            Metadata.Key.of(&quot;trace_id&quot;, Metadata.ASCII_STRING_MARSHALLER);</span>
+<span class="fc" id="L79">    private static final Metadata.Key&lt;String&gt; ACTOR_KEY =</span>
+<span class="fc" id="L80">            Metadata.Key.of(&quot;actor_username&quot;, Metadata.ASCII_STRING_MARSHALLER);</span>
+
+    private static final long DEADLINE_SEGUNDOS = 3;
+    private static final int MAX_REINTENTOS = 2;
+<span class="fc" id="L84">    private static final long[] BACKOFF_MS = {500, 1000};</span>
+
+    @GrpcClient(&quot;principal-service&quot;)
+    private PrincipalServiceGrpc.PrincipalServiceBlockingStub stub;
+
+    @Value(&quot;${app.grpc.internal-token:***REMOVED***}&quot;)
+    private String internalToken;
+
+    /**
+     * Reenvia el trace_id del request HTTP actual (TraceContext, poblado por
+     * TraceIdFilter) y el username autenticado como metadata gRPC, para que
+     * sga-principal pueda auditar del otro lado correlacionado con el mismo
+     * trace_id y sabiendo quien origino la accion (ver InternalAuthInterceptor
+     * en sga-principal).
+     */
+    private PrincipalServiceGrpc.PrincipalServiceBlockingStub autenticado() {
+<span class="nc" id="L100">        Metadata metadata = new Metadata();</span>
+<span class="nc" id="L101">        metadata.put(INTERNAL_TOKEN_KEY, internalToken);</span>
+<span class="nc" id="L102">        String traceId = TraceContext.current();</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (traceId != null) metadata.put(TRACE_ID_KEY, traceId);</span>
+<span class="nc" id="L104">        String actor = usernameActual();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (actor != null) metadata.put(ACTOR_KEY, actor);</span>
+<span class="nc" id="L106">        return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))</span>
+<span class="nc" id="L107">                .withDeadlineAfter(DEADLINE_SEGUNDOS, TimeUnit.SECONDS);</span>
+    }
+
+    private static String usernameActual() {
+        try {
+<span class="nc" id="L112">            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();</span>
+<span class="nc" id="L113">            HttpServletRequest request = attrs.getRequest();</span>
+<span class="nc" id="L114">            AuthenticatedUser user = (AuthenticatedUser) request.getAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            return user != null ? user.username() : null;</span>
+<span class="nc" id="L116">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L117">            return null;</span>
+        }
+    }
+
+    /** Ejecuta una llamada gRPC reintentando ante caidas transitorias de sga-principal. */
+    private &lt;T&gt; T conReintentos(Supplier&lt;T&gt; llamada) {
+<span class="nc" id="L123">        for (int intento = 0; ; intento++) {</span>
+            try {
+<span class="nc" id="L125">                return llamada.get();</span>
+<span class="nc" id="L126">            } catch (StatusRuntimeException e) {</span>
+<span class="nc bnc" id="L127" title="All 4 branches missed.">                if (!esTransitorio(e) || intento == MAX_REINTENTOS) throw e;</span>
+<span class="nc" id="L128">                log.warn(&quot;sga-principal no respondio (intento {}/{}, {}); reintentando en {} ms&quot;,</span>
+<span class="nc" id="L129">                        intento + 1, MAX_REINTENTOS + 1, e.getStatus().getCode(), BACKOFF_MS[intento]);</span>
+<span class="nc" id="L130">                dormir(BACKOFF_MS[intento]);</span>
+            }
+        }
+    }
+
+    /** Como {@link #conReintentos}, pero si agota los reintentos por caida transitoria devuelve {@code valorDegradado} en vez de lanzar. */
+    private &lt;T&gt; T conDegradacion(Supplier&lt;T&gt; llamada, T valorDegradado, String descripcion) {
+        try {
+<span class="nc" id="L138">            return conReintentos(llamada);</span>
+<span class="nc" id="L139">        } catch (StatusRuntimeException e) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (!esTransitorio(e)) throw e;</span>
+<span class="nc" id="L141">            log.error(&quot;sga-principal no respondio tras {} intentos al {}; se degrada a resultado vacio&quot;,</span>
+<span class="nc" id="L142">                    MAX_REINTENTOS + 1, descripcion, e);</span>
+<span class="nc" id="L143">            return valorDegradado;</span>
+        }
+    }
+
+    private static boolean esTransitorio(StatusRuntimeException e) {
+<span class="nc" id="L148">        Status.Code code = e.getStatus().getCode();</span>
+<span class="nc bnc" id="L149" title="All 4 branches missed.">        return code == Status.Code.UNAVAILABLE || code == Status.Code.DEADLINE_EXCEEDED;</span>
+    }
+
+    private static void dormir(long ms) {
+        try {
+<span class="nc" id="L154">            Thread.sleep(ms);</span>
+<span class="nc" id="L155">        } catch (InterruptedException ie) {</span>
+<span class="nc" id="L156">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L157">        }</span>
+<span class="nc" id="L158">    }</span>
+
+    public List&lt;AnoLectivoProto&gt; listarAnosLectivos() {
+        try {
+<span class="nc" id="L162">            return conDegradacion(</span>
+<span class="nc" id="L163">                    () -&gt; autenticado().listarAnosLectivos(Empty.newBuilder().build()).getAnosLectivosList(),</span>
+<span class="nc" id="L164">                    List.of(), &quot;listar años lectivos&quot;);</span>
+<span class="nc" id="L165">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L166">            throw ApiException.badGateway(&quot;No se pudo consultar años lectivos en sga-principal: &quot; + e.getStatus());</span>
+        }
+    }
+
+    public List&lt;GradoProto&gt; listarGrados() {
+        try {
+<span class="nc" id="L172">            return conDegradacion(</span>
+<span class="nc" id="L173">                    () -&gt; autenticado().listarGrados(Empty.newBuilder().build()).getGradosList(),</span>
+<span class="nc" id="L174">                    List.of(), &quot;listar grados&quot;);</span>
+<span class="nc" id="L175">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L176">            throw ApiException.badGateway(&quot;No se pudo consultar grados en sga-principal: &quot; + e.getStatus());</span>
+        }
+    }
+
+    public List&lt;ParaleloProto&gt; listarParalelos(Long idGrado) {
+        try {
+<span class="nc" id="L182">            ListarParalelosRequest request = ListarParalelosRequest.newBuilder()</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                    .setIdGrado(idGrado != null ? idGrado : 0)</span>
+<span class="nc" id="L184">                    .build();</span>
+<span class="nc" id="L185">            return conDegradacion(</span>
+<span class="nc" id="L186">                    () -&gt; autenticado().listarParalelos(request).getParalelosList(),</span>
+<span class="nc" id="L187">                    List.of(), &quot;listar paralelos&quot;);</span>
+<span class="nc" id="L188">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L189">            throw ApiException.badGateway(&quot;No se pudo consultar paralelos en sga-principal: &quot; + e.getStatus());</span>
+        }
+    }
+
+    public List&lt;AsignaturaProto&gt; listarAsignaturas() {
+        try {
+<span class="nc" id="L195">            return conDegradacion(</span>
+<span class="nc" id="L196">                    () -&gt; autenticado().listarAsignaturas(Empty.newBuilder().build()).getAsignaturasList(),</span>
+<span class="nc" id="L197">                    List.of(), &quot;listar asignaturas&quot;);</span>
+<span class="nc" id="L198">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L199">            throw ApiException.badGateway(&quot;No se pudo consultar asignaturas en sga-principal: &quot; + e.getStatus());</span>
+        }
+    }
+
+    public EstudianteProto crearEstudiante(GuardarEstudianteRequest request) {
+        try {
+<span class="nc" id="L205">            return conReintentos(() -&gt; autenticado().crearEstudiante(request));</span>
+<span class="nc" id="L206">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L207">            throw mapearError(e, &quot;crear&quot;, &quot;el estudiante&quot;);</span>
+        }
+    }
+
+    public EstudianteProto actualizarEstudiante(GuardarEstudianteRequest request) {
+        try {
+<span class="nc" id="L213">            return conReintentos(() -&gt; autenticado().actualizarEstudiante(request));</span>
+<span class="nc" id="L214">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L215">            throw mapearError(e, &quot;actualizar&quot;, &quot;el estudiante&quot;);</span>
+        }
+    }
+
+    public ListarEstudiantesResponse listarEstudiantes(ListarEstudiantesRequest request) {
+        try {
+<span class="nc" id="L221">            return conDegradacion(</span>
+<span class="nc" id="L222">                    () -&gt; autenticado().listarEstudiantes(request),</span>
+<span class="nc" id="L223">                    ListarEstudiantesResponse.getDefaultInstance(), &quot;listar estudiantes&quot;);</span>
+<span class="nc" id="L224">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L225">            throw ApiException.badGateway(&quot;No se pudo listar estudiantes en sga-principal: &quot; + e.getStatus());</span>
+        }
+    }
+
+    public EstudianteProto obtenerEstudiante(long id) {
+        try {
+<span class="nc" id="L231">            return conReintentos(() -&gt;</span>
+<span class="nc" id="L232">                    autenticado().obtenerEstudiante(ObtenerEstudianteRequest.newBuilder().setIdEstudiante(id).build()));</span>
+<span class="nc" id="L233">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L234">            throw mapearError(e, &quot;obtener&quot;, &quot;el estudiante&quot;);</span>
+        }
+    }
+
+    public RepresentanteProto obtenerRepresentante(long idRepresentante) {
+        try {
+<span class="nc" id="L240">            return conReintentos(() -&gt; autenticado().obtenerRepresentante(ObtenerRepresentanteRequest.newBuilder()</span>
+<span class="nc" id="L241">                    .setIdRepresentante(idRepresentante).build()));</span>
+<span class="nc" id="L242">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L243">            throw mapearError(e, &quot;obtener&quot;, &quot;el representante&quot;);</span>
+        }
+    }
+
+    public RepresentantesResponse listarRepresentantesPorEstudiantes(List&lt;Long&gt; idsEstudiantes) {
+        try {
+<span class="nc" id="L249">            return conDegradacion(</span>
+<span class="nc" id="L250">                    () -&gt; autenticado().listarRepresentantesPorEstudiantes(</span>
+<span class="nc" id="L251">                            ListarRepresentantesPorEstudiantesRequest.newBuilder()</span>
+<span class="nc" id="L252">                                    .addAllIdEstudiante(idsEstudiantes).build()),</span>
+<span class="nc" id="L253">                    RepresentantesResponse.getDefaultInstance(), &quot;listar representantes por estudiantes&quot;);</span>
+<span class="nc" id="L254">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L255">            throw mapearError(e, &quot;listar&quot;, &quot;representantes por estudiantes&quot;);</span>
+        }
+    }
+
+    public void cambiarEstadoEstudiante(long id, boolean activo) {
+        try {
+<span class="nc" id="L261">            conReintentos(() -&gt; autenticado().cambiarEstadoEstudiante(CambiarEstadoEstudianteRequest.newBuilder()</span>
+<span class="nc" id="L262">                    .setIdEstudiante(id).setActivo(activo).build()));</span>
+<span class="nc" id="L263">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L264">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;el estudiante&quot;);</span>
+<span class="nc" id="L265">        }</span>
+<span class="nc" id="L266">    }</span>
+
+    public GradoProto crearGrado(GuardarGradoRequest request) {
+        try {
+<span class="nc" id="L270">            return conReintentos(() -&gt; autenticado().crearGrado(request));</span>
+<span class="nc" id="L271">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L272">            throw mapearError(e, &quot;crear&quot;, &quot;el grado&quot;);</span>
+        }
+    }
+
+    public GradoProto actualizarGrado(GuardarGradoRequest request) {
+        try {
+<span class="nc" id="L278">            return conReintentos(() -&gt; autenticado().actualizarGrado(request));</span>
+<span class="nc" id="L279">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L280">            throw mapearError(e, &quot;actualizar&quot;, &quot;el grado&quot;);</span>
+        }
+    }
+
+    public void cambiarEstadoGrado(long idGrado, boolean activo) {
+        try {
+<span class="nc" id="L286">            conReintentos(() -&gt; autenticado().cambiarEstadoGrado(CambiarEstadoGradoRequest.newBuilder()</span>
+<span class="nc" id="L287">                    .setIdGrado(idGrado).setActivo(activo).build()));</span>
+<span class="nc" id="L288">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L289">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;el grado&quot;);</span>
+<span class="nc" id="L290">        }</span>
+<span class="nc" id="L291">    }</span>
+
+    public ParaleloProto crearParalelo(long idGrado, String letra) {
+        try {
+<span class="nc" id="L295">            return conReintentos(() -&gt; autenticado().crearParalelo(GuardarParaleloRequest.newBuilder()</span>
+<span class="nc" id="L296">                    .setIdGrado(idGrado).setLetra(letra).build()));</span>
+<span class="nc" id="L297">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L298">            throw mapearError(e, &quot;crear&quot;, &quot;el paralelo&quot;);</span>
+        }
+    }
+
+    public void cambiarEstadoParalelo(long idParalelo, boolean activo) {
+        try {
+<span class="nc" id="L304">            conReintentos(() -&gt; autenticado().cambiarEstadoParalelo(CambiarEstadoParaleloRequest.newBuilder()</span>
+<span class="nc" id="L305">                    .setIdParalelo(idParalelo).setActivo(activo).build()));</span>
+<span class="nc" id="L306">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L307">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;el paralelo&quot;);</span>
+<span class="nc" id="L308">        }</span>
+<span class="nc" id="L309">    }</span>
+
+    public MatriculaProto crearMatricula(GuardarMatriculaRequest request) {
+        try {
+<span class="nc" id="L313">            return conReintentos(() -&gt; autenticado().crearMatricula(request));</span>
+<span class="nc" id="L314">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L315">            throw mapearError(e, &quot;crear&quot;, &quot;la matrícula&quot;);</span>
+        }
+    }
+
+    public MatriculaProto obtenerMatricula(long idMatricula) {
+        try {
+<span class="nc" id="L321">            return conReintentos(() -&gt;</span>
+<span class="nc" id="L322">                    autenticado().obtenerMatricula(ObtenerMatriculaRequest.newBuilder().setIdMatricula(idMatricula).build()));</span>
+<span class="nc" id="L323">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L324">            throw mapearError(e, &quot;obtener&quot;, &quot;la matrícula&quot;);</span>
+        }
+    }
+
+    public void cambiarEstadoMatricula(long idMatricula, String estado) {
+        try {
+<span class="nc" id="L330">            conReintentos(() -&gt; autenticado().cambiarEstadoMatricula(CambiarEstadoMatriculaRequest.newBuilder()</span>
+<span class="nc" id="L331">                    .setIdMatricula(idMatricula).setEstado(estado).build()));</span>
+<span class="nc" id="L332">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L333">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;la matrícula&quot;);</span>
+<span class="nc" id="L334">        }</span>
+<span class="nc" id="L335">    }</span>
+
+    public ListarMatriculasResponse listarMatriculas(ListarMatriculasRequest request) {
+        try {
+<span class="nc" id="L339">            return conDegradacion(</span>
+<span class="nc" id="L340">                    () -&gt; autenticado().listarMatriculas(request),</span>
+<span class="nc" id="L341">                    ListarMatriculasResponse.getDefaultInstance(), &quot;listar matrículas&quot;);</span>
+<span class="nc" id="L342">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L343">            throw ApiException.badGateway(&quot;No se pudo listar matrículas en sga-principal: &quot; + e.getStatus());</span>
+        }
+    }
+
+    public FichaProto obtenerFicha(long idEstudiante) {
+        try {
+<span class="nc" id="L349">            return conReintentos(() -&gt;</span>
+<span class="nc" id="L350">                    autenticado().obtenerFicha(ObtenerFichaRequest.newBuilder().setIdEstudiante(idEstudiante).build()));</span>
+<span class="nc" id="L351">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L352">            throw mapearError(e, &quot;obtener&quot;, &quot;la ficha&quot;);</span>
+        }
+    }
+
+    public FichaProto guardarFicha(GuardarFichaRequest request) {
+        try {
+<span class="nc" id="L358">            return conReintentos(() -&gt; autenticado().guardarFicha(request));</span>
+<span class="nc" id="L359">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L360">            throw mapearError(e, &quot;guardar&quot;, &quot;la ficha&quot;);</span>
+        }
+    }
+
+    /** Traduce el Status gRPC que devuelve sga-principal (ver PrincipalGrpcService.toGrpcStatus) al ApiException equivalente. */
+    private ApiException mapearError(StatusRuntimeException e, String accion, String entidad) {
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        String detalle = e.getStatus().getDescription() != null ? e.getStatus().getDescription() : e.getStatus().toString();</span>
+<span class="nc" id="L367">        Status.Code code = e.getStatus().getCode();</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">        if (code == Status.Code.ALREADY_EXISTS) return ApiException.conflict(detalle);</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">        if (code == Status.Code.NOT_FOUND) return ApiException.notFound(detalle);</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">        if (code == Status.Code.INVALID_ARGUMENT) return ApiException.badRequest(detalle);</span>
+<span class="nc" id="L371">        return ApiException.badGateway(&quot;No se pudo &quot; + accion + &quot; &quot; + entidad + &quot; en sga-principal: &quot; + detalle);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.security</a> &gt; <span class="el_source">CryptoService.java</span></div><h1>CryptoService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.security;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
+import java.util.Base64;
+
+/**
+ * Cifrado simetrico de campos sensibles (AES-256-GCM) para datos de
+ * estudiantes/representantes (menores de edad). El nonce (12 bytes) se
+ * genera por operacion y se antepone al texto cifrado antes de codificar en
+ * base64, asi no hace falta guardar ni transmitir el IV por separado.
+ *
+ * IMPORTANTE: solo debe aplicarse a columnas que Secretaria es la unica
+ * escritora; si sga-principal tambien escribe la misma columna en claro, el
+ * descifrado de esas filas fallara (ver historial_promocion / migracion
+ * pendiente hasta que el gRPC centralice las escrituras).
+ */
+@Component
+public class CryptoService {
+
+    private static final String ALGORITHM = &quot;AES/GCM/NoPadding&quot;;
+    private static final int GCM_IV_LENGTH = 12;
+    private static final int GCM_TAG_LENGTH_BITS = 128;
+
+    private final SecretKeySpec key;
+<span class="fc" id="L33">    private final SecureRandom random = new SecureRandom();</span>
+
+<span class="fc" id="L35">    public CryptoService(@Value(&quot;${app.crypto.secret-key:***REMOVED-AES-SECRET***=}&quot;) String base64Key) {</span>
+<span class="fc" id="L36">        byte[] keyBytes = Base64.getDecoder().decode(base64Key);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (keyBytes.length != 32) {</span>
+<span class="fc" id="L38">            throw new IllegalStateException(</span>
+                    &quot;app.crypto.secret-key debe ser una clave AES-256 (32 bytes) en base64; recibidos &quot;
+                            + keyBytes.length + &quot; bytes&quot;);
+        }
+<span class="fc" id="L42">        this.key = new SecretKeySpec(keyBytes, &quot;AES&quot;);</span>
+<span class="fc" id="L43">    }</span>
+
+    public String encrypt(String plaintext) {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (plaintext == null) return null;</span>
+        try {
+<span class="fc" id="L48">            byte[] iv = new byte[GCM_IV_LENGTH];</span>
+<span class="fc" id="L49">            random.nextBytes(iv);</span>
+<span class="fc" id="L50">            Cipher cipher = Cipher.getInstance(ALGORITHM);</span>
+<span class="fc" id="L51">            cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));</span>
+<span class="fc" id="L52">            byte[] ciphertext = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));</span>
+
+<span class="fc" id="L54">            byte[] output = new byte[iv.length + ciphertext.length];</span>
+<span class="fc" id="L55">            System.arraycopy(iv, 0, output, 0, iv.length);</span>
+<span class="fc" id="L56">            System.arraycopy(ciphertext, 0, output, iv.length, ciphertext.length);</span>
+<span class="fc" id="L57">            return Base64.getEncoder().encodeToString(output);</span>
+<span class="nc" id="L58">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L59">            throw new IllegalStateException(&quot;Error cifrando dato sensible&quot;, e);</span>
+        }
+    }
+
+    public String decrypt(String encoded) {
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (encoded == null) return null;</span>
+        try {
+<span class="fc" id="L66">            byte[] input = Base64.getDecoder().decode(encoded);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">            if (input.length &lt; GCM_IV_LENGTH) {</span>
+<span class="nc" id="L68">                throw new IllegalArgumentException(&quot;Valor cifrado invalido (demasiado corto)&quot;);</span>
+            }
+<span class="fc" id="L70">            byte[] iv = new byte[GCM_IV_LENGTH];</span>
+<span class="fc" id="L71">            System.arraycopy(input, 0, iv, 0, GCM_IV_LENGTH);</span>
+<span class="fc" id="L72">            byte[] ciphertext = new byte[input.length - GCM_IV_LENGTH];</span>
+<span class="fc" id="L73">            System.arraycopy(input, GCM_IV_LENGTH, ciphertext, 0, ciphertext.length);</span>
+
+<span class="fc" id="L75">            Cipher cipher = Cipher.getInstance(ALGORITHM);</span>
+<span class="fc" id="L76">            cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));</span>
+<span class="fc" id="L77">            byte[] plaintext = cipher.doFinal(ciphertext);</span>
+<span class="fc" id="L78">            return new String(plaintext, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L79">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L80">            throw new IllegalStateException(&quot;Error descifrando dato sensible&quot;, e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.common</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.common;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import org.postgresql.util.PSQLException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.sql.SQLException;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Replica exactamente los shapes de error de errorHandler.js (Node) para no romper el frontend.
+ */
+@RestControllerAdvice
+<span class="fc" id="L27">public class GlobalExceptionHandler {</span>
+
+<span class="fc" id="L29">    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);</span>
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleValidation(MethodArgumentNotValidException ex) {
+<span class="nc" id="L33">        List&lt;Map&lt;String, Object&gt;&gt; detalles = ex.getBindingResult().getFieldErrors().stream()</span>
+<span class="nc" id="L34">                .map(fe -&gt; fieldError(fe.getField(), fe.getDefaultMessage()))</span>
+<span class="nc" id="L35">                .toList();</span>
+<span class="nc" id="L36">        return ResponseEntity.status(422).body(validationBody(detalles));</span>
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleConstraintViolation(ConstraintViolationException ex) {
+<span class="nc" id="L41">        List&lt;Map&lt;String, Object&gt;&gt; detalles = ex.getConstraintViolations().stream()</span>
+<span class="nc" id="L42">                .map(cv -&gt; fieldError(lastNode(cv.getPropertyPath().toString()), cv.getMessage()))</span>
+<span class="nc" id="L43">                .toList();</span>
+<span class="nc" id="L44">        return ResponseEntity.status(422).body(validationBody(detalles));</span>
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+<span class="nc" id="L49">        return ResponseEntity.status(422).body(validationBody(List.of(fieldError(ex.getName(), &quot;Valor inválido&quot;))));</span>
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleUnreadable(HttpMessageNotReadableException ex) {
+<span class="nc" id="L54">        return ResponseEntity.status(422).body(validationBody(List.of(fieldError(&quot;body&quot;, &quot;JSON inválido&quot;))));</span>
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleDateParse(DateTimeParseException ex) {
+<span class="nc" id="L59">        return ResponseEntity.status(422).body(validationBody(List.of(fieldError(&quot;fecha&quot;, &quot;Fecha inválida&quot;))));</span>
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleApiException(ApiException ex) {
+<span class="nc" id="L64">        return ResponseEntity.status(ex.getStatus()).body(errorBody(ex.getMessage(), null));</span>
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleDataAccess(DataAccessException ex, HttpServletRequest req) {
+<span class="nc" id="L69">        log.error(&quot;[ERROR] {} {} -&gt; {}&quot;, req.getMethod(), req.getRequestURI(), ex.getMessage());</span>
+
+<span class="nc" id="L71">        SQLException sqlEx = extractSQLException(ex);</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">        if (sqlEx != null &amp;&amp; sqlEx.getSQLState() != null) {</span>
+<span class="nc bnc" id="L73" title="All 4 branches missed.">            String detalle = sqlEx instanceof PSQLException psqlEx &amp;&amp; psqlEx.getServerErrorMessage() != null</span>
+<span class="nc" id="L74">                    ? psqlEx.getServerErrorMessage().getDetail()</span>
+<span class="nc" id="L75">                    : null;</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">            switch (sqlEx.getSQLState()) {</span>
+                case &quot;23505&quot;:
+<span class="nc" id="L78">                    return ResponseEntity.status(409).body(errorBody(&quot;Registro duplicado&quot;, detalle));</span>
+                case &quot;23503&quot;:
+<span class="nc" id="L80">                    return ResponseEntity.status(400).body(errorBody(&quot;Referencia inválida&quot;, detalle));</span>
+                case &quot;22P02&quot;:
+<span class="nc" id="L82">                    return ResponseEntity.status(400).body(errorBody(&quot;Tipo de dato inválido&quot;, sqlEx.getMessage()));</span>
+                default:
+                    break;
+            }
+        }
+<span class="nc" id="L87">        return ResponseEntity.status(500).body(errorBody(&quot;Error interno del servidor&quot;, ex.getMessage()));</span>
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleGeneric(Exception ex, HttpServletRequest req) {
+<span class="nc" id="L92">        log.error(&quot;[ERROR] {} {} -&gt; {}&quot;, req.getMethod(), req.getRequestURI(), ex.getMessage(), ex);</span>
+<span class="nc" id="L93">        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L94">                .body(errorBody(&quot;Error interno del servidor&quot;, ex.getMessage()));</span>
+    }
+
+    private SQLException extractSQLException(DataAccessException ex) {
+<span class="nc" id="L98">        Throwable cause = ex.getMostSpecificCause();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        return cause instanceof SQLException sqlEx ? sqlEx : null;</span>
+    }
+
+    private String lastNode(String propertyPath) {
+<span class="nc" id="L103">        int idx = propertyPath.lastIndexOf('.');</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        return idx &gt;= 0 ? propertyPath.substring(idx + 1) : propertyPath;</span>
+    }
+
+    private Map&lt;String, Object&gt; fieldError(String campo, String mensaje) {
+<span class="nc" id="L108">        Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L109">        map.put(&quot;campo&quot;, campo);</span>
+<span class="nc" id="L110">        map.put(&quot;mensaje&quot;, mensaje);</span>
+<span class="nc" id="L111">        return map;</span>
+    }
+
+    private Map&lt;String, Object&gt; validationBody(List&lt;Map&lt;String, Object&gt;&gt; detalles) {
+<span class="nc" id="L115">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L116">        body.put(&quot;error&quot;, &quot;Datos inválidos&quot;);</span>
+<span class="nc" id="L117">        body.put(&quot;detalles&quot;, detalles);</span>
+<span class="nc" id="L118">        return body;</span>
+    }
+
+    private Map&lt;String, Object&gt; errorBody(String error, String detalle) {
+<span class="nc" id="L122">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L123">        body.put(&quot;error&quot;, error);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (detalle != null) body.put(&quot;detalle&quot;, detalle);</span>
+<span class="nc" id="L125">        return body;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

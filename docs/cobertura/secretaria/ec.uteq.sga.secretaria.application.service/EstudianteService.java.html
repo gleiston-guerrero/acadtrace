@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstudianteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">EstudianteService.java</span></div><h1>EstudianteService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.edu.uteq.sga.grpc.principal.EstudianteProto;
+import ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest;
+import ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse;
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.infrastructure.common.PageResult;
+import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
+import ec.uteq.sga.secretaria.domain.dto.EstudianteRequest;
+import ec.uteq.sga.secretaria.infrastructure.grpc.PrincipalGrpcClient;
+import ec.uteq.sga.secretaria.infrastructure.security.CryptoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class EstudianteService {
+
+<span class="fc" id="L27">    private static final Logger log = LoggerFactory.getLogger(EstudianteService.class);</span>
+
+    /**
+     * Columnas cifradas con AES-256-GCM (CryptoService): las propias de
+     * estudiantes (direccion/telefono/tipo_discapacidad) mas los alias de las
+     * columnas ya cifradas por RepresentanteService (rep_telefono) y
+     * FichaEstudianteService (detalle_enfermedad, medicacion_permanente,
+     * alergias) que este servicio solo lee por JOIN. cedula y correo quedan
+     * en claro porque se usan en busquedas/uniqueness (ILIKE, WHERE =).
+     */
+<span class="fc" id="L37">    private static final List&lt;String&gt; CAMPOS_CIFRADOS = List.of(</span>
+            &quot;direccion&quot;, &quot;telefono&quot;, &quot;tipo_discapacidad&quot;,
+            &quot;rep_telefono&quot;, &quot;detalle_enfermedad&quot;, &quot;medicacion_permanente&quot;, &quot;alergias&quot;);
+
+    private final NamedParameterJdbcTemplate jdbc;
+    private final CryptoService crypto;
+    private final PrincipalGrpcClient principalGrpcClient;
+    private final AuditoriaService auditoriaService;
+
+    public EstudianteService(NamedParameterJdbcTemplate jdbc, CryptoService crypto,
+<span class="fc" id="L47">                              PrincipalGrpcClient principalGrpcClient, AuditoriaService auditoriaService) {</span>
+<span class="fc" id="L48">        this.jdbc = jdbc;</span>
+<span class="fc" id="L49">        this.crypto = crypto;</span>
+<span class="fc" id="L50">        this.principalGrpcClient = principalGrpcClient;</span>
+<span class="fc" id="L51">        this.auditoriaService = auditoriaService;</span>
+<span class="fc" id="L52">    }</span>
+
+    /**
+     * Descifra los campos sensibles de una fila. Tolera valores en texto plano
+     * (estudiantes existentes de antes de activar el cifrado, o filas
+     * escritas por sga-principal, que hoy no cifra) devolviendolos tal cual en
+     * vez de fallar, para no romper la lectura de datos historicos.
+     */
+    private Map&lt;String, Object&gt; descifrarFila(Map&lt;String, Object&gt; row) {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        for (String campo : CAMPOS_CIFRADOS) {</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            if (row.containsKey(campo)) {</span>
+<span class="fc" id="L63">                String valor = (String) row.get(campo);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">                if (valor != null) {</span>
+                    try {
+<span class="fc" id="L66">                        row.put(campo, crypto.decrypt(valor));</span>
+<span class="fc" id="L67">                    } catch (RuntimeException e) {</span>
+<span class="fc" id="L68">                        log.warn(&quot;No se pudo descifrar '{}' (probable dato en texto plano previo al cifrado); &quot; +</span>
+                                &quot;se devuelve sin cambios&quot;, campo);
+<span class="fc" id="L70">                    }</span>
+                }
+            }
+<span class="fc" id="L73">        }</span>
+<span class="fc" id="L74">        return row;</span>
+    }
+
+    /**
+     * estudiantes.estado es varchar en la base ('ACTIVO'/'ACTIVA', con datos
+     * legados inconsistentes en genero), no boolean como asumia el codigo
+     * original. Se normaliza a boolean en la respuesta para no romper el
+     * contrato con el frontend (Usuarios.jsx y Estudiantes.jsx ya esperan
+     * estado true/false).
+     */
+    private Map&lt;String, Object&gt; normalizarEstado(Map&lt;String, Object&gt; row) {
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (row.containsKey(&quot;estado&quot;)) {</span>
+<span class="fc" id="L86">            row.put(&quot;estado&quot;, esActivo(row.get(&quot;estado&quot;)));</span>
+        }
+<span class="fc" id="L88">        return row;</span>
+    }
+
+    private static boolean esActivo(Object estado) {
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (estado instanceof Boolean b) return b;</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (estado == null) return false;</span>
+<span class="fc" id="L94">        String texto = estado.toString().trim().toUpperCase();</span>
+<span class="pc bpc" id="L95" title="1 of 4 branches missed.">        return texto.equals(&quot;ACTIVO&quot;) || texto.equals(&quot;ACTIVA&quot;);</span>
+    }
+
+    private Map&lt;String, Object&gt; posprocesar(Map&lt;String, Object&gt; row) {
+<span class="fc" id="L99">        return descifrarFila(normalizarEstado(row));</span>
+    }
+
+    public PageResult&lt;Map&lt;String, Object&gt;&gt; listarTodos(String search, int page, int limit) {
+<span class="fc" id="L103">        ListarEstudiantesRequest request = ListarEstudiantesRequest.newBuilder()</span>
+<span class="fc" id="L104">                .setQ(orEmpty(search))</span>
+<span class="fc" id="L105">                .setPage(page)</span>
+<span class="fc" id="L106">                .setLimit(limit)</span>
+<span class="fc" id="L107">                .build();</span>
+<span class="fc" id="L108">        ListarEstudiantesResponse response = principalGrpcClient.listarEstudiantes(request);</span>
+
+<span class="fc" id="L110">        List&lt;Map&lt;String, Object&gt;&gt; data = response.getEstudiantesList().stream()</span>
+<span class="fc" id="L111">                .map(this::fromProto)</span>
+<span class="fc" id="L112">                .map(this::posprocesar)</span>
+<span class="fc" id="L113">                .toList();</span>
+
+<span class="fc" id="L115">        return PageResult.of(data, response.getTotal(), page, limit);</span>
+    }
+
+    public Map&lt;String, Object&gt; obtenerPorId(long id) {
+<span class="fc" id="L119">        EstudianteProto proto = principalGrpcClient.obtenerEstudiante(id);</span>
+<span class="fc" id="L120">        Map&lt;String, Object&gt; row = posprocesar(fromProto(proto));</span>
+
+        // Ficha médica: FichaEstudiante todavía no migró a gRPC (fuera de alcance de esta migración),
+        // se conserva como enriquecimiento de solo lectura vía SQL directo.
+<span class="fc" id="L124">        List&lt;Map&lt;String, Object&gt;&gt; ficha = jdbc.query(</span>
+                &quot;&quot;&quot;
+                SELECT tipo_sangre, alergias, medicacion_permanente,
+                       enfermedad_catastrofica, detalle_enfermedad,
+                       contacto_emergencia, telefono_emergencia
+                FROM sga_secretaria.fichas_estudiante WHERE id_estudiante = :id
+                &quot;&quot;&quot;,
+<span class="fc" id="L131">                new MapSqlParameterSource(&quot;id&quot;, id), GenericRowMapper.INSTANCE);</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        if (!ficha.isEmpty()) row.putAll(descifrarFila(ficha.get(0)));</span>
+
+        // Ficha completa del representante via gRPC → sga-principal.PrincipalService.ObtenerRepresentante
+<span class="fc" id="L135">        Long idRep = (Long) row.get(&quot;id_representante&quot;);</span>
+<span class="pc bpc" id="L136" title="1 of 4 branches missed.">        if (idRep != null &amp;&amp; idRep &gt; 0) {</span>
+            try {
+<span class="fc" id="L138">                ec.edu.uteq.sga.grpc.principal.RepresentanteProto r = principalGrpcClient.obtenerRepresentante(idRep);</span>
+<span class="fc" id="L139">                row.put(&quot;rep_cedula&quot;,                       blankToNull(r.getCedula()));</span>
+<span class="fc" id="L140">                row.put(&quot;rep_direccion&quot;,                    blankToNull(r.getDireccion()));</span>
+<span class="fc" id="L141">                row.put(&quot;rep_correo&quot;,                       blankToNull(r.getCorreo()));</span>
+<span class="fc" id="L142">                row.put(&quot;rep_telefono_alt&quot;,                 blankToNull(r.getTelefonoAlt()));</span>
+<span class="fc" id="L143">                row.put(&quot;rep_fecha_nacimiento&quot;,             blankToNull(r.getFechaNacimiento()));</span>
+<span class="fc" id="L144">                row.put(&quot;rep_genero&quot;,                       blankToNull(r.getGenero()));</span>
+<span class="fc" id="L145">                row.put(&quot;rep_estado_civil&quot;,                 blankToNull(r.getEstadoCivil()));</span>
+<span class="fc" id="L146">                row.put(&quot;rep_nacionalidad&quot;,                 blankToNull(r.getNacionalidad()));</span>
+<span class="fc" id="L147">                row.put(&quot;rep_ocupacion&quot;,                    blankToNull(r.getOcupacion()));</span>
+<span class="fc" id="L148">                row.put(&quot;rep_lugar_trabajo&quot;,                blankToNull(r.getLugarTrabajo()));</span>
+<span class="fc" id="L149">                row.put(&quot;rep_telefono_trabajo&quot;,             blankToNull(r.getTelefonoTrabajo()));</span>
+<span class="fc" id="L150">                row.put(&quot;rep_cargo&quot;,                        blankToNull(r.getCargo()));</span>
+<span class="fc" id="L151">                row.put(&quot;rep_nivel_instruccion&quot;,            blankToNull(r.getNivelInstruccion()));</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">                row.put(&quot;rep_ingreso_mensual&quot;,              r.getIngresoMensual() &gt; 0 ? r.getIngresoMensual() : null);</span>
+<span class="fc" id="L153">                row.put(&quot;rep_convive_con_estudiante&quot;,       r.getConviveConEstudiante());</span>
+<span class="fc" id="L154">                row.put(&quot;rep_contacto_emergencia_nombre&quot;,   blankToNull(r.getContactoEmergenciaNombre()));</span>
+<span class="fc" id="L155">                row.put(&quot;rep_contacto_emergencia_telefono&quot;, blankToNull(r.getContactoEmergenciaTelefono()));</span>
+<span class="fc" id="L156">                row.put(&quot;rep_observaciones&quot;,                blankToNull(r.getObservaciones()));</span>
+<span class="nc" id="L157">            } catch (RuntimeException ignored) {</span>
+                // Si gRPC falla, dejamos los datos basicos que ya traia el estudianteProto
+<span class="fc" id="L159">            }</span>
+        }
+
+<span class="fc" id="L162">        return row;</span>
+    }
+
+    public Map&lt;String, Object&gt; crear(EstudianteRequest dto, String username) {
+<span class="fc" id="L166">        String cedula = blankToNull(dto.cedula());</span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        if (cedula != null) {</span>
+<span class="fc" id="L168">            List&lt;Map&lt;String, Object&gt;&gt; dup = jdbc.query(</span>
+                    &quot;SELECT id_estudiante FROM sga_secretaria.estudiantes WHERE cedula = :cedula&quot;,
+                    new MapSqlParameterSource(&quot;cedula&quot;, cedula), GenericRowMapper.INSTANCE);
+<span class="fc bfc" id="L171" title="All 2 branches covered.">            if (!dup.isEmpty()) throw ApiException.conflict(&quot;Ya existe un estudiante con esa cédula&quot;);</span>
+        }
+
+<span class="fc" id="L174">        Long creadoPor = resolverCreadoPor(username);</span>
+<span class="fc" id="L175">        String codigo = generarSiguienteCodigo();</span>
+
+<span class="fc" id="L177">        GuardarEstudianteRequest request = GuardarEstudianteRequest.newBuilder()</span>
+<span class="fc" id="L178">                .setCedula(orEmpty(cedula))</span>
+<span class="fc" id="L179">                .setNombres(orEmpty(dto.nombres()))</span>
+<span class="fc" id="L180">                .setApellidos(orEmpty(dto.apellidos()))</span>
+<span class="fc" id="L181">                .setFechaNacimiento(orEmpty(dto.fecha_nacimiento()))</span>
+<span class="fc" id="L182">                .setGenero(orEmpty(blankToNull(dto.genero())))</span>
+<span class="fc" id="L183">                .setCorreo(orEmpty(dto.correo()))</span>
+<span class="fc" id="L184">                .setDireccion(orEmpty(crypto.encrypt(blankToNull(dto.direccion()))))</span>
+<span class="fc" id="L185">                .setTelefono(orEmpty(crypto.encrypt(blankToNull(dto.telefono()))))</span>
+<span class="pc bpc" id="L186" title="1 of 4 branches missed.">                .setDiscapacidad(dto.discapacidad() != null &amp;&amp; dto.discapacidad())</span>
+<span class="fc" id="L187">                .setTipoDiscapacidad(orEmpty(crypto.encrypt(blankToNull(dto.tipo_discapacidad()))))</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">                .setPorcentajeDisc(dto.porcentaje_disc() != null ? dto.porcentaje_disc() : 0)</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">                .setIdRepresentante(dto.id_representante() != null ? dto.id_representante() : 0)</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">                .setIdUsuarioCreador(creadoPor != null ? creadoPor : 0)</span>
+<span class="fc" id="L191">                .setCodigoEstudiante(codigo)</span>
+<span class="fc" id="L192">                .setNacionalidad(orEmpty(dto.nacionalidad()))</span>
+<span class="fc" id="L193">                .setEtnia(orEmpty(dto.etnia()))</span>
+<span class="fc" id="L194">                .setLugarNacimiento(orEmpty(dto.lugar_nacimiento()))</span>
+<span class="fc" id="L195">                .setViveCon(orEmpty(dto.vive_con()))</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">                .setNumerosHermanos(dto.numeros_hermanos() != null ? dto.numeros_hermanos() : 0)</span>
+<span class="pc bpc" id="L197" title="1 of 4 branches missed.">                .setBeneficioSocial(dto.beneficio_social() != null &amp;&amp; dto.beneficio_social())</span>
+<span class="fc" id="L198">                .setCarnetConadis(orEmpty(dto.carnet_conadis()))</span>
+<span class="fc" id="L199">                .setFotoUrl(orEmpty(dto.foto_url()))</span>
+<span class="fc" id="L200">                .build();</span>
+
+<span class="fc" id="L202">        EstudianteProto creado = principalGrpcClient.crearEstudiante(request);</span>
+<span class="fc" id="L203">        auditoriaService.registrarCrud(&quot;CREAR&quot;, &quot;estudiante&quot;, creado.getIdEstudiante(),</span>
+<span class="fc" id="L204">                &quot;Estudiante creado: &quot; + dto.nombres() + &quot; &quot; + dto.apellidos() + &quot; (via gRPC a sga-principal)&quot;);</span>
+<span class="fc" id="L205">        return posprocesar(fromProto(creado));</span>
+    }
+
+    public Map&lt;String, Object&gt; actualizar(long id, EstudianteRequest dto) {
+<span class="fc" id="L209">        Map&lt;String, Object&gt; actual = obtenerPorId(id); // ya descifrado (posprocesar) — sirve de base para los campos no enviados</span>
+
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        String cedula = blankToNull(dto.cedula()) != null ? dto.cedula() : (String) actual.get(&quot;cedula&quot;);</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        String nombres = blankToNull(dto.nombres()) != null ? dto.nombres() : (String) actual.get(&quot;nombres&quot;);</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        String apellidos = blankToNull(dto.apellidos()) != null ? dto.apellidos() : (String) actual.get(&quot;apellidos&quot;);</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        String fechaNacimiento = blankToNull(dto.fecha_nacimiento()) != null</span>
+<span class="fc" id="L215">                ? dto.fecha_nacimiento()</span>
+<span class="pc bnc" id="L216" title="All 2 branches missed.">                : (actual.get(&quot;fecha_nacimiento&quot;) != null ? actual.get(&quot;fecha_nacimiento&quot;).toString() : null);</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        String genero = blankToNull(dto.genero()) != null ? dto.genero() : (String) actual.get(&quot;genero&quot;);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        String correo = blankToNull(dto.correo()) != null ? dto.correo() : (String) actual.get(&quot;correo&quot;);</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        String direccion = blankToNull(dto.direccion()) != null ? dto.direccion() : (String) actual.get(&quot;direccion&quot;);</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">        String telefono = blankToNull(dto.telefono()) != null ? dto.telefono() : (String) actual.get(&quot;telefono&quot;);</span>
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">        String tipoDiscapacidad = blankToNull(dto.tipo_discapacidad()) != null</span>
+<span class="pc" id="L222">                ? dto.tipo_discapacidad() : (String) actual.get(&quot;tipo_discapacidad&quot;);</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        boolean discapacidad = dto.discapacidad() != null ? dto.discapacidad() : Boolean.TRUE.equals(actual.get(&quot;discapacidad&quot;));</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">        Integer porcentajeDisc = dto.porcentaje_disc() != null</span>
+<span class="fc" id="L225">                ? dto.porcentaje_disc()</span>
+<span class="pc bnc" id="L226" title="All 2 branches missed.">                : (actual.get(&quot;porcentaje_disc&quot;) != null ? ((Number) actual.get(&quot;porcentaje_disc&quot;)).intValue() : null);</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        Long idRepresentante = dto.id_representante() != null</span>
+<span class="nc" id="L228">                ? dto.id_representante()</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">                : (actual.get(&quot;id_representante&quot;) != null ? ((Number) actual.get(&quot;id_representante&quot;)).longValue() : null);</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">        String nacionalidad = blankToNull(dto.nacionalidad()) != null ? dto.nacionalidad() : (String) actual.get(&quot;nacionalidad&quot;);</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">        String etnia = blankToNull(dto.etnia()) != null ? dto.etnia() : (String) actual.get(&quot;etnia&quot;);</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">        String lugarNacimiento = blankToNull(dto.lugar_nacimiento()) != null ? dto.lugar_nacimiento() : (String) actual.get(&quot;lugar_nacimiento&quot;);</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        String viveCon = blankToNull(dto.vive_con()) != null ? dto.vive_con() : (String) actual.get(&quot;vive_con&quot;);</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">        Integer numerosHermanos = dto.numeros_hermanos() != null</span>
+<span class="fc" id="L235">                ? dto.numeros_hermanos()</span>
+<span class="pc bnc" id="L236" title="All 2 branches missed.">                : (actual.get(&quot;numeros_hermanos&quot;) != null ? ((Number) actual.get(&quot;numeros_hermanos&quot;)).intValue() : null);</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        boolean beneficioSocial = dto.beneficio_social() != null ? dto.beneficio_social() : Boolean.TRUE.equals(actual.get(&quot;beneficio_social&quot;));</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">        String carnetConadis = blankToNull(dto.carnet_conadis()) != null ? dto.carnet_conadis() : (String) actual.get(&quot;carnet_conadis&quot;);</span>
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">        String fotoUrl = blankToNull(dto.foto_url()) != null ? dto.foto_url() : (String) actual.get(&quot;foto_url&quot;);</span>
+
+<span class="fc" id="L241">        GuardarEstudianteRequest request = GuardarEstudianteRequest.newBuilder()</span>
+<span class="fc" id="L242">                .setIdEstudiante(id)</span>
+<span class="fc" id="L243">                .setCedula(orEmpty(cedula))</span>
+<span class="fc" id="L244">                .setNombres(orEmpty(nombres))</span>
+<span class="fc" id="L245">                .setApellidos(orEmpty(apellidos))</span>
+<span class="fc" id="L246">                .setFechaNacimiento(orEmpty(fechaNacimiento))</span>
+<span class="fc" id="L247">                .setGenero(orEmpty(genero))</span>
+<span class="fc" id="L248">                .setCorreo(orEmpty(correo))</span>
+<span class="fc" id="L249">                .setDireccion(orEmpty(crypto.encrypt(direccion)))</span>
+<span class="fc" id="L250">                .setTelefono(orEmpty(crypto.encrypt(telefono)))</span>
+<span class="fc" id="L251">                .setDiscapacidad(discapacidad)</span>
+<span class="fc" id="L252">                .setTipoDiscapacidad(orEmpty(crypto.encrypt(tipoDiscapacidad)))</span>
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">                .setPorcentajeDisc(porcentajeDisc != null ? porcentajeDisc : 0)</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">                .setIdRepresentante(idRepresentante != null ? idRepresentante : 0)</span>
+<span class="fc" id="L255">                .setNacionalidad(orEmpty(nacionalidad))</span>
+<span class="fc" id="L256">                .setEtnia(orEmpty(etnia))</span>
+<span class="fc" id="L257">                .setLugarNacimiento(orEmpty(lugarNacimiento))</span>
+<span class="fc" id="L258">                .setViveCon(orEmpty(viveCon))</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">                .setNumerosHermanos(numerosHermanos != null ? numerosHermanos : 0)</span>
+<span class="fc" id="L260">                .setBeneficioSocial(beneficioSocial)</span>
+<span class="fc" id="L261">                .setCarnetConadis(orEmpty(carnetConadis))</span>
+<span class="fc" id="L262">                .setFotoUrl(orEmpty(fotoUrl))</span>
+                // codigo_estudiante e id_usuario_creador en blanco/0: ActualizarEstudiante no los toca (igual que el UPDATE original)
+<span class="fc" id="L264">                .build();</span>
+
+<span class="fc" id="L266">        EstudianteProto actualizado = principalGrpcClient.actualizarEstudiante(request);</span>
+<span class="fc" id="L267">        auditoriaService.registrarCrud(&quot;EDITAR&quot;, &quot;estudiante&quot;, id,</span>
+                &quot;Estudiante actualizado: &quot; + nombres + &quot; &quot; + apellidos + &quot; (via gRPC a sga-principal)&quot;);
+<span class="fc" id="L269">        return posprocesar(fromProto(actualizado));</span>
+    }
+
+    private Long resolverCreadoPor(String username) {
+<span class="fc" id="L273">        List&lt;Long&gt; creadorIds = jdbc.query(</span>
+                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,
+                new MapSqlParameterSource(&quot;username&quot;, username),
+<span class="nc" id="L276">                (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">        return creadorIds.isEmpty() ? null : creadorIds.get(0);</span>
+    }
+
+    private String generarSiguienteCodigo() {
+<span class="fc" id="L281">        List&lt;String&gt; ultimoCodigo = jdbc.query(</span>
+                &quot;SELECT codigo_estudiante FROM sga_secretaria.estudiantes &quot; +
+                        &quot;WHERE codigo_estudiante IS NOT NULL ORDER BY id_estudiante DESC LIMIT 1&quot;,
+<span class="nc" id="L284">                (rs, n) -&gt; rs.getString(&quot;codigo_estudiante&quot;));</span>
+<span class="fc" id="L285">        String codigo = &quot;EST-0001&quot;;</span>
+<span class="pc bpc" id="L286" title="3 of 4 branches missed.">        if (!ultimoCodigo.isEmpty() &amp;&amp; ultimoCodigo.get(0) != null) {</span>
+<span class="nc" id="L287">            String[] parts = ultimoCodigo.get(0).split(&quot;-&quot;);</span>
+<span class="nc" id="L288">            int num = 0;</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">            if (parts.length &gt; 1) {</span>
+                try {
+<span class="nc" id="L291">                    num = Integer.parseInt(parts[1]);</span>
+<span class="nc" id="L292">                } catch (NumberFormatException ignored) {</span>
+                    // deja num en 0, igual que parseInt(NaN) || 0 en Node
+<span class="nc" id="L294">                }</span>
+            }
+<span class="nc" id="L296">            codigo = &quot;EST-%04d&quot;.formatted(num + 1);</span>
+        }
+<span class="fc" id="L298">        return codigo;</span>
+    }
+
+    /** Convierte la respuesta de sga-principal (ya persistida) al mismo shape de Map que devolvía RETURNING *. */
+    private Map&lt;String, Object&gt; fromProto(EstudianteProto p) {
+<span class="fc" id="L303">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L304">        row.put(&quot;id_estudiante&quot;, p.getIdEstudiante());</span>
+<span class="fc" id="L305">        row.put(&quot;cedula&quot;, blankToNull(p.getCedula()));</span>
+<span class="fc" id="L306">        row.put(&quot;codigo_estudiante&quot;, blankToNull(p.getCodigoEstudiante()));</span>
+<span class="fc" id="L307">        row.put(&quot;nombres&quot;, p.getNombres());</span>
+<span class="fc" id="L308">        row.put(&quot;apellidos&quot;, p.getApellidos());</span>
+<span class="fc bfc" id="L309" title="All 2 branches covered.">        row.put(&quot;fecha_nacimiento&quot;, blankToNull(p.getFechaNacimiento()) != null ? LocalDate.parse(p.getFechaNacimiento()) : null);</span>
+<span class="fc" id="L310">        row.put(&quot;genero&quot;, blankToNull(p.getGenero()));</span>
+<span class="fc" id="L311">        row.put(&quot;direccion&quot;, blankToNull(p.getDireccion()));</span>
+<span class="fc" id="L312">        row.put(&quot;telefono&quot;, blankToNull(p.getTelefono()));</span>
+<span class="fc" id="L313">        row.put(&quot;correo&quot;, blankToNull(p.getCorreo()));</span>
+<span class="fc" id="L314">        row.put(&quot;discapacidad&quot;, p.getDiscapacidad());</span>
+<span class="fc" id="L315">        row.put(&quot;tipo_discapacidad&quot;, blankToNull(p.getTipoDiscapacidad()));</span>
+<span class="fc" id="L316">        row.put(&quot;porcentaje_disc&quot;, p.getPorcentajeDisc());</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">        row.put(&quot;id_representante&quot;, p.getIdRepresentante() &gt; 0 ? p.getIdRepresentante() : null);</span>
+<span class="fc" id="L318">        row.put(&quot;estado&quot;, p.getEstado());</span>
+<span class="fc" id="L319">        row.put(&quot;rep_nombres&quot;, blankToNull(p.getRepNombres()));</span>
+<span class="fc" id="L320">        row.put(&quot;rep_apellidos&quot;, blankToNull(p.getRepApellidos()));</span>
+<span class="fc" id="L321">        row.put(&quot;rep_telefono&quot;, blankToNull(p.getRepTelefono()));</span>
+<span class="fc" id="L322">        row.put(&quot;parentesco&quot;, blankToNull(p.getRepParentesco()));</span>
+<span class="fc" id="L323">        row.put(&quot;nacionalidad&quot;, blankToNull(p.getNacionalidad()));</span>
+<span class="fc" id="L324">        row.put(&quot;etnia&quot;, blankToNull(p.getEtnia()));</span>
+<span class="fc" id="L325">        row.put(&quot;lugar_nacimiento&quot;, blankToNull(p.getLugarNacimiento()));</span>
+<span class="fc" id="L326">        row.put(&quot;vive_con&quot;, blankToNull(p.getViveCon()));</span>
+<span class="fc" id="L327">        row.put(&quot;numeros_hermanos&quot;, p.getNumerosHermanos());</span>
+<span class="fc" id="L328">        row.put(&quot;beneficio_social&quot;, p.getBeneficioSocial());</span>
+<span class="fc" id="L329">        row.put(&quot;carnet_conadis&quot;, blankToNull(p.getCarnetConadis()));</span>
+<span class="fc" id="L330">        row.put(&quot;foto_url&quot;, blankToNull(p.getFotoUrl()));</span>
+<span class="fc" id="L331">        return row;</span>
+    }
+
+    private static String orEmpty(String value) {
+<span class="fc bfc" id="L335" title="All 2 branches covered.">        return value == null ? &quot;&quot; : value;</span>
+    }
+
+    public void cambiarEstado(long id, boolean estado) {
+<span class="fc" id="L339">        principalGrpcClient.cambiarEstadoEstudiante(id, estado);</span>
+<span class="fc" id="L340">    }</span>
+
+    private static String blankToNull(String value) {
+<span class="fc bfc" id="L343" title="All 4 branches covered.">        return (value == null || value.isBlank()) ? null : value;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
