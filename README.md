@@ -158,3 +158,36 @@ LIMIT 20;
 * **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
 * **Node.js:** v18.0.0 o superior (npm v9+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
+
+---
+
+## 🤖 Declaración de Uso de Inteligencia Artificial Generativa
+
+En cumplimiento con los lineamientos académicos e institucionales, se declara el uso ético y transparente de herramientas de Asistencia de Inteligencia Artificial (Google Antigravity / Gemini 2.5 Pro) durante el desarrollo de la Entrega 4 del proyecto **AcadTrace**:
+
+* **Propósito del uso:** Generación de estructuras base para pruebas unitarias (`Mockito`), depuración de configuraciones de pipelines CI/CD en YAML y asistencia en sintaxis LaTeX.
+* **Supervisión y Verificación Humana:** Todo el código generado, configuraciones de infraestructura en AWS EC2, reglas de negocio en Java/Python y redacción del informe técnico fueron rigurosamente revisados, ejecutados, medidos y validados por los 4 integrantes del equipo **BCEL** (Leonardo Castro, Keyla Bedon, Gregory Luna y Romina Emanuel).
+* **Autoría:** La lógica académica transaccional, el modelo de datos distribuido y los resultados experimentales son de autoría exclusiva del equipo de trabajo.
+
+---
+
+## 📄 Instrucciones de Compilación del Documento LaTeX Acumulativo
+
+El informe técnico final acumulativo de la Entrega 4 se encuentra en la carpeta `Informe-E4_BCEL/` y se compila de manera reproducible siguiendo estos pasos:
+
+### Prerrequisitos:
+Tener instalado una distribución completa de TeX Live (`pdflatex`, `bibtex`):
+```bash
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-lang-spanish
+```
+
+### Compilación limpia del informe maestro:
+```bash
+cd Informe-E4_BCEL
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+bibtex TA-PFC-E4_BCEL
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+```
+*(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
+
