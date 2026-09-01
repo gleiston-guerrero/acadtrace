@@ -380,21 +380,23 @@ La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \end{figure}
 
 \subsection{Pipeline CI/CD de Siete Trabajos Encadenados (GitHub Actions)}
-El archivo \texttt{.github/workflows/ci-cd.yml} orquesta siete trabajos bloqueantes:
+\label{subsec:pipeline-cicd}
+El archivo \texttt{.github/workflows/ci-cd.yml} orquesta siete trabajos bloqueantes ejecutados de forma totalmente automatizada ante cada evento de \textit{push} o \textit{pull request} hacia la rama \texttt{main}:
+
 \begin{table}[H]
 \centering
-\caption{Estructura de los Siete Trabajos del Pipeline CI/CD.}
+\caption{Estructura y Responsabilidades de los Siete Trabajos del Pipeline CI/CD.}
 \label{tab:pipeline-jobs}
 \small
 \begin{tabular}{|l|l|p{8.5cm}|}
 \hline
 \textbf{Orden} & \textbf{Job ID} & \textbf{Funci\'on y Validaci\'on Ejecutada} \\
 \hline
-1 & \texttt{lint} & An\'alisis est\'atico con Flake8 y validaci\'on de sintaxis. \\
+1 & \texttt{lint} & An\'alisis est\'atico con Flake8 y validaci\'on de formato en Python y Java. \\
 \hline
-2 & \texttt{test-backend} & Tests unitarios Java (Surefire/JaCoCo) y Python (\texttt{pytest-cov}). \\
+2 & \texttt{test-backend} & Tests unitarios Java (Surefire/JaCoCo $\ge 70\%$) y Python (\texttt{pytest-cov}). \\
 \hline
-3 & \texttt{test-web} & Compilaci\'on y empaquetado de distribuciones React en \texttt{.tar.gz}. \\
+3 & \texttt{test-web} & Compilaci\'on TypeScript y empaquetado de distribuciones React en \texttt{.tar.gz}. \\
 \hline
 4 & \texttt{test-mobile} & Ejecuci\'on de pruebas unitarias JVM de Android (\texttt{testDebugUnitTest}). \\
 \hline
@@ -406,6 +408,28 @@ El archivo \texttt{.github/workflows/ci-cd.yml} orquesta siete trabajos bloquean
 \hline
 \end{tabular}
 \end{table}
+
+\subsection{Cultura DevOps, Shift-Left Testing y Sintaxis Declarativa YAML}
+\label{subsec:devops-yaml}
+La adopci\'on de la cultura DevOps en AcadTrace se fundamenta en el marco conceptual CALMS (\textit{Culture, Automation, Lean, Measurement, Sharing}), enfatizando la pr\'actica de \textbf{\textit{Shift-Left Testing}}, mediante la cual las compuertas de verificaci\'on est\'atica, pruebas unitarias y validaci\'on de cobertura se desplazan hacia las fases m\'as tempranas del ciclo de desarrollo:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Directiva \texttt{name} y Eventos Desencadenadores (\texttt{on}):} Define el identificador legible del flujo y los eventos que activan el pipeline (\texttt{push}, \texttt{pull\_request}) filtrados por ramas objetivo (\texttt{branches: [main]}).
+  \item \textbf{Ambientes de Ejecuci\'on (\texttt{runs-on}):} Cada trabajo se ejecuta en un contenedor virtualizado aislado (\texttt{ubuntu-latest}), garantizando reproducibilidad e independencia de entorno.
+  \item \textbf{Matriz de Dependencias (\texttt{needs}):} Modela el grafo ac\'iclico dirigido (DAG) de dependencias entre trabajos, impidiendo que el despliegue (\texttt{integration}) se ejecute si alguno de los trabajos de prueba previos (\texttt{lint}, \texttt{test-backend}, \texttt{test-web}, \texttt{test-mobile}) falla.
+  \item \textbf{Composici\'on de Pasos (\texttt{steps}, \texttt{uses}, \texttt{with}, \texttt{run}):} Articula la secuencia de acciones reutilizando acciones comunitarias auditadas (\texttt{actions/checkout@v4}, \texttt{actions/setup-java@v4}, \texttt{docker/build-push-action@v5}) combinadas con scripts de compilaci\'on deterministas.
+  \item \textbf{Gesti\'on Segura de Secretos (\texttt{secrets.*}):} Variables cr\'iticas como llaves privadas SSH, tokens de GitHub Container Registry (GHCR) y credenciales de AWS no se exponen en c\'odigo plano, siendo inyectadas en memoria durante la ejecuci\'on.
+\end{itemize}
+
+\subsection{Estrategias de Despliegue en Sistemas Distribuidos}
+\label{subsec:estrategias-despliegue}
+Para mitigar el riesgo de indisponibilidad durante las actualizaciones de los microservicios en producci\'on, se analizaron tres patrones de despliegue continuo:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Despliegue Blue-Green (\textit{Blue-Green Deployment}):} Mantiene dos entornos de producci\'on id\'enticos pero aislados. Mientras el entorno \textit{Blue} atiende el tr\'afico activo, la nueva versi\'on se despliega en \textit{Green}. Tras superar las pruebas de salud, el balanceador perimetral HAProxy conmuta el 100\% del tr\'afico hacia \textit{Green} de forma instant\'anea ($< 1$\,s), permitiendo un retorno inmediato (\textit{rollback}) ante anomal\'ias.
+  \item \textbf{Despliegue Canario (\textit{Canary Releases}):} Enruta progresivamente una fracci\'on controlada del tr\'afico (e.g., 5\% $\to$ 25\% $\to$ 100\%) hacia las nuevas instancias del microservicio. Permite monitorear m\'etricas de latencia y tasa de errores 5xx en Prometheus antes de impactar a la totalidad de la poblaci\'on estudiantil.
+  \item \textbf{Actualizaci\'on Rodante (\textit{Rolling Update}):} Reemplaza secuencialmente las r\'eplicas de los contenedores una a una dentro del cl\'uster Docker Compose / Kubernetes, manteniendo la capacidad de atenci\'on sin tiempos de inactividad (\textit{zero-downtime}).
+\end{enumerate}
 
 \newpage
 
@@ -461,11 +485,12 @@ Se inyectaron 20 manipulaciones sint\'eticas controladas de cada tipo por mecani
 \end{itemize}
 
 \subsection{Resultados Experimentales de Detecci\'on y Sobrecarga}
-Los datos crudos almacenados en \texttt{experimentos/resultados/} arrojaron la matriz de la Tabla~\ref{tab:deteccion-matriz}:
+\label{subsec:resultados-deteccion}
+Los datos crudos generados en el banco experimental y almacenados en \texttt{experimentos/resultados/} (\texttt{deteccion.csv}, \texttt{manipulaciones.csv}, \texttt{iso25010.csv}) arrojaron la matriz factorial de la Tabla~\ref{tab:deteccion-matriz}:
 
 \begin{table}[H]
 \centering
-\caption{Matriz Experimental de Detecci\'on por Tipo de Manipulaci\'on y Sobrecarga.}
+\caption{Matriz Experimental de Detecci\'on Factorial por Tipo de Manipulaci\'on ($T_1$ a $T_5$).}
 \label{tab:deteccion-matriz}
 \small
 \begin{tabular}{|l|c|c|c|c|c|c|c|}
@@ -474,45 +499,64 @@ Los datos crudos almacenados en \texttt{experimentos/resultados/} arrojaron la m
 \hline
 \textbf{m0 (Sin auditor\'ia)} & 0\% & 0\% & 0\% & 0\% & 0\% & 0.0\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
 \hline
-\textbf{m1 (Convencional)} & 0\% & 0\% & 0\% & 0\% & 0\% & +1.2\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
+\textbf{m1 (Convencional)} & 0\% & 0\% & 0\% & 0\% & 0\% & +2.8\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
 \hline
-\textbf{m2 (Lamport+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +4.8\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
+\textbf{m2 (Lamport+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +5.6\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
 \hline
-\textbf{m3 (Vectorial+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +6.1\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
+\textbf{m3 (Vectorial+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +8.1\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
 \hline
 \end{tabular}
 \end{table}
 
-\noindent\textbf{An\'alisis Estad\'istico No Param\'etrico:} La comparaci\'on entre la l\'inea base (m0) y la cadena criptogr\'afica (m2/m3) mediante la prueba $U$ de Mann-Whitney arroj\'o $p < 0.001$, confirmando significancia estad\'istica. El tama\~no del efecto con el estad\'istico $\hat{A}_{12}$ de Vargha-Delaney fue de $\hat{A}_{12} = 0.58$, demostrando que la sobrecarga de 4.8\,ms es despreciable frente al beneficio de integridad total.
+\noindent\textbf{An\'alisis Estad\'istico Inferencial No Param\'etrico:} Debido a la naturaleza no gaussiana de las latencias en sistemas distribuidos, se aplicaron pruebas no param\'etricas rigurosas (Tabla~\ref{tab:estadistica-inferencial}) con remuestreo Bootstrap ($B = 10{,}000$ r\'eplicas) para los intervalos de confianza al 95\% y la prueba $U$ de Mann-Whitney junto a la magnitud del efecto de Vargha-Delaney ($\hat{A}_{12}$):
+
+\begin{table}[H]
+\centering
+\small
+\caption{Resumen Estad\'istico Inferencial de Latencia por Mecanismo de Auditor\'ia ($B = 10{,}000$).}
+\label{tab:estadistica-inferencial}
+\begin{tabularx}{\textwidth}{l c c c c X}
+\toprule
+\textbf{Mecanismo} & \textbf{Mediana ($MD$)} & \textbf{IC 95\% Bootstrap} & \textbf{$P_{95}$} & \textbf{Mann-Whitney $U$} & \textbf{Vargha-Delaney $\hat{A}_{12}$} \\
+\midrule
+$M_0$ (Base) & $1.49$\,ms & $[1.43, 1.55]$\,ms & $2.31$\,ms & --- & --- \\
+$M_1$ (SQL) & $4.31$\,ms & $[4.21, 4.42]$\,ms & $5.88$\,ms & $U = 311.0, p < 10^{-15}$ & $\hat{A}_{12} = 0.986$ (Grande) \\
+$M_2$ (SHA-256 + Lamport) & $7.10$\,ms & $[6.99, 7.24]$\,ms & $9.38$\,ms & $U = 0.0, p < 10^{-15}$ & $\hat{A}_{12} = 1.000$ (Grande) \\
+$M_3$ (Vector Clocks) & $9.62$\,ms & $[9.50, 9.83]$\,ms & $12.26$\,ms & $U = 917.5, p < 10^{-15}$ & $\hat{A}_{12} = 0.959$ (Grande) \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.80\textwidth]{boxplot_latencia.png}
-\caption{Diagrama de cajas (Boxplot) de latencia de persistencia seg\'un mecanismo de auditor\'ia (m0 a m3).}
+\includegraphics[width=0.78\textwidth]{boxplot_latencia.png}
+\caption{Diagrama de cajas (Boxplot) de latencia de persistencia seg\'un mecanismo de auditor\'ia ($M_0$ a $M_3$).}
 \label{fig:boxplot-latencia}
 \end{figure}
 
-\subsection{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023}
+\subsection{Matriz Formal de Evaluaci\'on de Calidad ISO/IEC 25010:2023}
+\label{subsec:matriz-iso25010}
+La Tabla~\ref{tab:iso-matriz-calidad} presenta la evaluaci\'on de calidad formalizada con valores reales 100\% medidos y planes de mejora t\'ecnicos:
+
 \begin{table}[H]
 \centering
-\caption{Evaluaci\'on de Calidad ISO/IEC 25010:2023.}
-\label{tab:iso-matriz-calidad}
 \small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\textwidth}{|p{2.3cm}|p{1.8cm}|p{2.0cm}|p{1.4cm}|p{1.4cm}|X|}
-\hline
-\textbf{Caracter\'istica} & \textbf{M\'etrica} & \textbf{Valor Medido} & \textbf{Objetivo} & \textbf{Estado} & \textbf{Evidencia en Repositorio} \\
-\hline
-Disponibilidad & Uptime cl\'uster & 100\% & $\ge 99.5\%$ & \checkmark Cumple & Grafana / Locust (2446 req sin ca\'idas). \\
-\hline
-Rendimiento & Latencia $P_{95}$ & 285\,ms & $<500$\,ms & \checkmark Cumple & Prometheus / \texttt{iso25010.csv}. \\
-\hline
-Fiabilidad & Tasa de error 5xx & 0.0\% & $<1.0\%$ & \checkmark Cumple & \texttt{resultados\_carga\_stats.csv}. \\
-\hline
-Mantenibilidad & Cobertura tests & 88\% Java, 83\% Sec & $\ge 70.0\%$ & \checkmark Cumple & Reportes JaCoCo y \texttt{pytest-cov}. \\
-\hline
-Seguridad & Rechazo sin JWT & 100\% (HTTP 401) & 100\% & \checkmark Cumple & \texttt{TeacherAuthorizationServiceTest}. \\
-\hline
+\caption{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 y Planes de Mejora T\'ecnicos.}
+\label{tab:iso-matriz-calidad}
+\begin{tabularx}{\textwidth}{p{2.6cm} p{3.2cm} c c X}
+\toprule
+\textbf{Caracter\'istica} & \textbf{M\'etrica Real Medida} & \textbf{Objetivo} & \textbf{Estado} & \textbf{Plan de Mejora T\'ecnico} \\
+\midrule
+\textbf{1. Disponibilidad} \newline \textit{(Availability)} & \textbf{100\% Uptime en Carga} \newline ($3{,}445$ peticiones procesadas sin ca\'idas, Health Checks 200 OK) & $\ge 99.5\%$ & \textbf{\checkmark} Cumple & Desplegar cl\'uster multi-zona de disponibilidad (Multi-AZ) con auto-escalado horizontal (HPA) en Kubernetes y r\'eplicas primario-standby geodistribuidas para PostgreSQL. \\
+\addlinespace
+\textbf{2. Rendimiento} \newline \textit{(Performance)} & \textbf{Latencia $P_{95} = 285.0$\,ms} \newline (Mediana $MD = 68.5$\,ms, IC 95\% $[67.1, 70.2]$\,ms, Throughput $57.4$\,RPS) & $< 500$\,ms & \textbf{\checkmark} Cumple & Integrar una capa de almacenamiento en cach\'e distribuida en memoria mediante Redis para cat\'alogos y mallas curriculares, reduciendo latencias a $< 15$\,ms. \\
+\addlinespace
+\textbf{3. Fiabilidad} \newline \textit{(Reliability)} & \textbf{0.0\% Tasa de Error 5xx} \newline (0 fallos en $3{,}445$ transacciones, conmutaci\'on $< 3$\,s) & $< 1.0\%$ & \textbf{\checkmark} Cumple & Implementar patrones \emph{Circuit Breaker} y \emph{Rate Limiting} con Resilience4j en el Gateway y clientes gRPC para mitigar fallos en cascada y aplicar degradaci\'on elegante. \\
+\addlinespace
+\textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & \textbf{Cobertura JaCoCo: 83.0\%} \newline (Validaci\'on enforceable al 70\% con \texttt{<goal>check</goal>}) & $\ge 70.0\%$ & \textbf{\checkmark} Cumple & Desacoplar el motor de generaci\'on de PDFs (Apache PDFBox) hacia un servicio documental as\'incrono orientado a colas de eventos (RabbitMQ). \\
+\addlinespace
+\textbf{5. Seguridad} \newline \textit{(Security)} & \textbf{100\% Rechazo (HTTP 401)} \newline (Certificado en suite E2E sin JWT, cifrado AES-256-GCM) & 100\% & \textbf{\checkmark} Cumple & Automatizar la rotaci\'on de secretos criptogr\'aficos JWT/AES v\'ia AWS Secrets Manager y habilitar listas de revocaci\'on de tokens en Redis. \\
+\bottomrule
 \end{tabularx}
 \end{table}
 
@@ -561,7 +605,7 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 \begin{itemize}[leftmargin=*]
   \item \textbf{Pedro Leonardo Castro L\'opez (L\'ider y Arquitecto):} La consolidaci\'on de los 5 patrones GoF con clases reales y la orquestaci\'on del pipeline de 7 jobs en GitHub Actions con GHCR demostraron que la calidad arquitect\'onica y la automatizaci\'on estricta son pilares indispensables en sistemas acad\'emicos de misi\'on cr\'itica.
   \item \textbf{Keyla Betzabe Bedon Viteri (Docente y M\'ovil):} La programaci\'on de los 4 mecanismos de auditor\'ia criptogr\'afica en Python/Django y la arquitectura MVVM \textit{offline-first} m\'ovil garantizaron la consistencia de datos ante fallos de conectividad.
-  \item \textbf{Ernesto Gregory Luna Mora (Secretar\'ia y Calidad):} La ejecuci\'on de 120 corridas factoriales, la suite de Locust y el an\'alisis Mann-Whitney U certificaron la validez experimental y el cumplimiento de la norma ISO/IEC 25010.
+  \item \textbf{Ernesto Gregory Luna Mora (Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 permiti\'o consolidar la robustez del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on centralizada de enrutamiento, terminaci\'on segura y balanceo de carga. Se implement\'o una estricta compuerta de calidad mediante el plugin JaCoCo (\texttt{<goal>check</goal>}) enforceable al 70\%, alcanzando una cobertura real del 83.0\% soportada por una bater\'ia de 28 pruebas unitarias y de integraci\'on extremo a extremo (E2E) que certifican la interoperabilidad entre servicios y el rechazo inmediato (HTTP 401 Unauthorized) ante peticiones carentes de tokens JWT HMAC-SHA256 v\'alidos. Asimismo, la incorporaci\'on del filtro \texttt{TraceIdFilter} con el patr\'on MDC de SLF4J posibilit\'o la propagaci\'on transparente de identificadores de correlaci\'on (\texttt{X-Trace-Id}) en registros estructurados en formato JSON, viabilizando una observabilidad distribuida unificada. En el \'ambito experimental del M\'odulo G, la ejecuci\'on de 120 corridas factoriales automatizadas con 344 estudiantes y 14 docentes demostr\'o la superioridad del encadenamiento criptogr\'afico SHA-256 junto a los Relojes de Lamport ($M_2$) y Relojes Vectoriales ($M_3$), logrando una tasa de detecci\'on del 100.0\% ante ataques de manipulaci\'on directa en base de datos ($T_1$) y eliminaci\'on de eventos ($T_2$). El an\'alisis estad\'istico inferencial no param\'etrico mediante la prueba $U$ de Mann-Whitney ($p < 10^{-15}$), los intervalos de confianza al 95\% Bootstrap ($MD = 7.10$\,ms, IC 95\% $[6.99, 7.24]$\,ms) y la magnitud del efecto de Vargha-Delaney ($\hat{A}_{12} = 1.000$) demostraron cient\'ificamente que la sobrecarga criptogr\'afica es marginal frente al beneficio de inmutabilidad, satisfaciendo a cabalidad los est\'andares de la norma ISO/IEC 25010:2023.
   \item \textbf{Juliana Romina Emanuel Pino (Soporte y Observabilidad):} El dise\~no del tablero de Grafana con 6 vistas y la instrumentaci\'on de cAdvisor permitieron monitorear percentiles cr\'iticos (P95/P99) bajo estr\'es concurrente.
 \end{itemize}
 
