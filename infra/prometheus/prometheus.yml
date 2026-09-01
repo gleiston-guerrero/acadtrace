@@ -55,3 +55,7 @@ scrape_configs:
       - targets: ["microservicio-docente:8000"]
         labels:
           application: sga-docente
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["sga-cadvisor:8080"]
