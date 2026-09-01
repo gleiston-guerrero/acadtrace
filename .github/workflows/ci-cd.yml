@@ -99,23 +99,29 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Compilar Frontend SGA Principal
         run: |
           cd sga-principal/sga-frontend
-          npm install
+          npm install --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Docente
         run: |
           cd microservicio-docente/frontend
-          npm install
+          npm install --no-audit --legacy-peer-deps
+          npm run build
+
+      - name: Compilar Frontend Soporte
+        run: |
+          cd microservicio-soporte
+          npm install --no-audit --legacy-peer-deps
           npm run build
 
       - name: Empaquetar distribución web como artefacto (.tar.gz)
         run: |
-          tar -czf release-web.tar.gz sga-principal/sga-frontend/dist microservicio-docente/frontend/dist
+          tar -czf release-web.tar.gz sga-principal/sga-frontend/dist microservicio-docente/frontend/dist microservicio-soporte/dist
 
       - name: Subir artefacto web versionado
         uses: actions/upload-artifact@v4
@@ -140,9 +146,11 @@ jobs:
           distribution: "temurin"
 
       - name: Configurar Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Ejecutar Pruebas Unitarias JVM de Android
+        env:
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd app-movil-docente
           chmod +x gradlew || true
@@ -197,9 +205,11 @@ jobs:
           distribution: "temurin"
 
       - name: Configurar Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Compilar APK en modo Debug
+        env:
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd app-movil-docente
           chmod +x gradlew || true
@@ -232,7 +242,8 @@ jobs:
           script: |
             cd ~/acadtrace || cd ~/sga-sistema-distribuido || git clone https://github.com/LEO23as/acadtrace.git ~/acadtrace
             cd ~/acadtrace || cd ~/sga-sistema-distribuido
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             docker compose down --remove-orphans || true
             docker compose up -d --build
             docker image prune -f

@@ -82,10 +82,10 @@ export default function Dashboard() {
     const cargarTickets = () => {
         setLoadingData(true);
         axios.get(`http://${host}:8083/api/soporte/tickets`, { headers })
-            .then(r => setTickets(r.data))
+            .then(r => setTickets(Array.isArray(r.data) ? r.data : (Array.isArray(r.data?.content) ? r.data.content : [])))
             .catch(() => {
                 axios.get("/api/soporte/tickets", { headers })
-                    .then(r => setTickets(r.data))
+                    .then(r => setTickets(Array.isArray(r.data) ? r.data : (Array.isArray(r.data?.content) ? r.data.content : [])))
                     .catch(() => setTickets([]))
                     .finally(() => setLoadingData(false));
             })
@@ -121,9 +121,9 @@ export default function Dashboard() {
     // ── Log de auditoría ──────────────────────────────────────
     const cargarAuditoria = () => {
         setLoadingAudit(true);
-        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-        axios.get(`http://${host}:8080/api/auditoria`, { headers })
-            .then(r => setAuditoria(r.data))
+        const currentHost = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        axios.get(`http://${currentHost}:8080/api/auditoria`, { headers })
+            .then(r => setAuditoria(Array.isArray(r.data) ? r.data : (Array.isArray(r.data?.content) ? r.data.content : [])))
             .catch(() => setAuditoria([]))
             .finally(() => setLoadingAudit(false));
     };
@@ -138,7 +138,7 @@ export default function Dashboard() {
         }
         setLoadingLogs(true);
         axios.get(f.url, { headers })
-            .then(r => setLogs(r.data))
+            .then(r => setLogs(Array.isArray(r.data) ? r.data : (Array.isArray(r.data?.content) ? r.data.content : [])))
             .catch(() => setLogs([]))
             .finally(() => setLoadingLogs(false));
     };
@@ -158,13 +158,16 @@ export default function Dashboard() {
         cargarLogs(val);
     };
 
-    // Métricas calculadas
-    const totalTickets     = tickets.length;
-    const abiertos         = tickets.filter(t => t.estado === "ABIERTO").length;
-    const enProceso        = tickets.filter(t => t.estado === "EN_PROCESO").length;
-    const resueltos        = tickets.filter(t => t.estado === "RESUELTO" || t.estado === "CERRADO").length;
+    // Métricas calculadas defensivas
+    const listaTickets     = Array.isArray(tickets) ? tickets : (Array.isArray(tickets?.content) ? tickets.content : []);
+    const totalTickets     = listaTickets.length;
+    const abiertos         = listaTickets.filter(t => t && t.estado === "ABIERTO").length;
+    const enProceso        = listaTickets.filter(t => t && t.estado === "EN_PROCESO").length;
+    const resueltos        = listaTickets.filter(t => t && (t.estado === "RESUELTO" || t.estado === "CERRADO")).length;
 
-    const ultimosAudit     = auditoria.slice(0, 10);
+    const listaAuditoria   = Array.isArray(auditoria) ? auditoria : (Array.isArray(auditoria?.content) ? auditoria.content : []);
+    const ultimosAudit     = listaAuditoria.slice(0, 10);
+    const listaLogs        = Array.isArray(logs) ? logs : (Array.isArray(logs?.content) ? logs.content : []);
     const fuentesLogs      = getFuentesLogs();
     const fuenteActualObj  = fuentesLogs.find(x => x.nombre === fuenteLogsSel);
 
@@ -308,14 +311,14 @@ export default function Dashboard() {
                                     </div>
                                 ) : loadingLogs ? (
                                     <div className="py-12 text-center text-xs text-slate-400">Cargando eventos de log...</div>
-                                ) : logs.length === 0 ? (
+                                ) : listaLogs.length === 0 ? (
                                     <div className="py-12 text-center text-xs text-slate-400 bg-emerald-50/30 rounded-lg border border-emerald-100">
                                         <p className="font-semibold text-emerald-700">Sin errores recientes</p>
                                         <p className="mt-0.5 text-[11px] text-emerald-600">No se han registrado excepciones en este microservicio.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                                        {logs.map((l, i) => (
+                                        {listaLogs.map((l, i) => (
                                             <div key={l.id || i} className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs flex flex-col gap-1">
                                                 <div className="flex items-center justify-between">
                                                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${nivelBadge(l.nivel)}`}>
