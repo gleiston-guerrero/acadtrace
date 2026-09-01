@@ -149,6 +149,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Ejecutar Pruebas Unitarias JVM de Android
+        env:
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd app-movil-docente
           chmod +x gradlew
@@ -206,6 +208,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Compilar APK en modo Debug
+        env:
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd app-movil-docente
           chmod +x gradlew
