@@ -1,6 +1,7 @@
 import grpc
 from django.db import transaction, connection
 from django.db.models import Count
+from micro_docente.middleware import registrar_asistencias_exitosas
 from django.core.exceptions import ObjectDoesNotExist
 from docentes.models import Asistencia, ResumenAsistencia, PeriodoEvaluacion, EstadoAsistencia
 from . import asistencia_pb2
@@ -216,12 +217,13 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 )
                 for a in nuevas
             ]
-
-            return asistencia_pb2.AsistenciaListResponse(
+            response = asistencia_pb2.AsistenciaListResponse(
                 success=True,
                 message=f"Se registraron {len(asistencias_creadas)} asistencias correctamente.",
                 asistencias=asistencias_creadas
             )
+            registrar_asistencias_exitosas(len(asistencias_creadas))
+            return response
             
         except grpc.RpcError:
             raise
