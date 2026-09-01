@@ -1,4 +1,5 @@
 from decimal import Decimal
+from contextlib import nullcontext
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -91,7 +92,8 @@ def test_autorizacion_actividad_valida(mock_validate):
 @patch.object(ActividadServiceServicer, "_validate_auth")
 @patch("docentes.grpc_services.actividades_service.Actividad.objects.create")
 @patch("docentes.grpc_services.actividades_service.PeriodoEvaluacion.objects.get")
-def test_crear_actividad_retorna_dto(mock_periodo, mock_create, mock_auth, mock_ponderacion):
+@patch("docentes.grpc_services.actividades_service.transaction.atomic", return_value=nullcontext())
+def test_crear_actividad_retorna_dto(mock_atomic, mock_periodo, mock_create, mock_auth, mock_ponderacion):
     periodo = SimpleNamespace()
     mock_periodo.return_value = periodo
     mock_create.return_value = SimpleNamespace(id_actividad=9, id_asignacion=50, id_periodo_id=3,
@@ -104,6 +106,7 @@ def test_crear_actividad_retorna_dto(mock_periodo, mock_create, mock_auth, mock_
     assert response.mensaje == "Actividad creada exitosamente"
     mock_create.assert_called_once()
     assert mock_ponderacion.call_args.args[:3] == (50, 3, False)
+    assert mock_atomic.call_count == 1
 
 
 @patch.object(ActividadServiceServicer, "_validate_auth")

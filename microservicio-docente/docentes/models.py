@@ -301,3 +301,34 @@ class Material(models.Model):
         db_table = 'sga_docente"."materiales'
         managed = False
         ordering = ["-fecha"]
+
+
+class EventoAuditoria(models.Model):
+    id_evento = models.BigAutoField(primary_key=True)
+    tipo_evento = models.CharField(max_length=80)
+    entidad = models.CharField(max_length=80)
+    entidad_id = models.CharField(max_length=100)
+    operacion = models.CharField(max_length=30)
+    actor_id = models.IntegerField(blank=True, null=True)
+    timestamp = models.DateTimeField()
+    payload_canonico = models.TextField()
+    modo = models.CharField(max_length=2)
+    hash_anterior = models.CharField(max_length=64, blank=True, null=True)
+    hash_actual = models.CharField(max_length=64, blank=True, null=True)
+    reloj_lamport = models.BigIntegerField(blank=True, null=True)
+    reloj_vectorial = models.JSONField(blank=True, null=True)
+    estado_reconciliacion = models.CharField(max_length=20, default="NO_APLICA")
+
+    class Meta:
+        db_table = "eventos_auditoria"
+        ordering = ["id_evento"]
+
+
+class EstadoCadenaAuditoria(models.Model):
+    id_estado = models.PositiveSmallIntegerField(primary_key=True, default=1)
+    ultimo_hash = models.CharField(max_length=64, blank=True, null=True)
+    ultimo_lamport = models.BigIntegerField(default=0)
+    reloj_vectorial = models.JSONField(default=dict)
+
+    class Meta:
+        db_table = "estado_cadena_auditoria"

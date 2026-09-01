@@ -2,6 +2,8 @@ import grpc
 from django.db import transaction, connection
 from django.db.models import Count
 from micro_docente.middleware import registrar_asistencias_exitosas
+from docentes.auditoria import auditar_evento
+from docentes.auditoria.payloads import payload_instancia
 from django.core.exceptions import ObjectDoesNotExist
 from docentes.models import Asistencia, ResumenAsistencia, PeriodoEvaluacion, EstadoAsistencia
 from . import asistencia_pb2
@@ -204,6 +206,13 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
 
                 # Resumen del periodo recalculado con UNA sola consulta agregada.
                 self._recalcular_resumen_bulk(request.id_asignacion, periodo, matriculas)
+                for asistencia in nuevas:
+                    auditar_evento(
+                        tipo_evento="ASISTENCIA_REGISTRADA", entidad="Asistencia",
+                        entidad_id=asistencia.id_asistencia, operacion="CREAR",
+                        actor_id=usuario_registra, payload=payload_instancia(asistencia),
+                        nodo=f"docente-{id_docente}",
+                    )
 
             asistencias_creadas = [
                 asistencia_pb2.AsistenciaDTO(
@@ -248,6 +257,12 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 asistencia.save()
                 
                 self._actualizar_resumen(asistencia.id_matricula, asistencia.id_asignacion, asistencia.id_periodo)
+                auditar_evento(
+                    tipo_evento="ASISTENCIA_ACTUALIZADA", entidad="Asistencia",
+                    entidad_id=asistencia.id_asistencia, operacion="ACTUALIZAR",
+                    actor_id=asistencia.registrado_por,
+                    payload=payload_instancia(asistencia),
+                )
                 
             dto = asistencia_pb2.AsistenciaDTO(
                 id_asistencia=asistencia.id_asistencia,
