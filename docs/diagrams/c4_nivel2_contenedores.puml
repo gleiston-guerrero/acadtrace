@@ -1,0 +1,67 @@
+@startuml C4_Nivel2_Contenedores
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama C4 - Nivel 2: Contenedores del SGA Distribuido
+
+Person(usuario_docente, "Docente", "Personal docente con App Móvil o Web")
+Person(usuario_admin, "Secretaría / Soporte", "Personal administrativo y de soporte")
+
+System_Boundary(c1, "Sistema SGA Distribuido") {
+    Container(app_movil, "App Móvil Docente", "Android / Kotlin / Jetpack Compose", "App nativa con sincronización offline Room SQLite.")
+    Container(spa_web, "Portales Web", "Vue.js / Tailwind CSS / HTML5", "Interfaces web para secretaría, soporte y administración.")
+    
+    Container(haproxy, "HAProxy Load Balancer & Gateway", "HAProxy 2.9 (Alpine)", "Balanceo de carga Round Robin, enrutamiento perimetral, CORS y métricas en :8404.")
+    
+    Container(sga_principal, "sga-principal (2 Réplicas)", "Java 21 / Spring Boot", "Módulo central, autenticación JWT, catálogo maestro y servidor gRPC :9092.")
+    Container(ms_secretaria, "microservicio-secretaria", "Java 21 / Spring Boot", "Gestión de matrículas, event sourcing (Lamport clocks), auditoría y reportes PDF.")
+    Container(ms_docente, "microservicio-docente", "Python 3.12 / Django REST", "Gestión de asistencia y calificaciones, cliente gRPC :9092.")
+    Container(ms_soporte, "microservicio-soporte", "Java 21 / Spring Boot", "Helpdesk, RBAC anti-IDOR, servidor gRPC :9094 y tareas programadas con líder etcd.")
+    Container(ms_ia, "microservicio-ia", "Python 3.12 / FastAPI", "Generación de resúmenes asistidos con Google Gemini 1.5 Flash.")
+    
+    ContainerDb(db_postgres, "Base de Datos PostgreSQL", "PostgreSQL 16 (AWS EC2)", "Persistencia relacional con particionamiento lógico de esquemas (public, secretaria, docente, soporte).")
+    ContainerDb(etcd_cluster, "Clúster etcd (Raft)", "etcd v3.5", "Consenso Raft para elección de líder entre réplicas y coordinación distribuida.")
+    
+    Container(prometheus, "Servidor Prometheus", "Prometheus v2.51", "Scraping periódico (15s) de microservicios, HAProxy, etcd y cAdvisor.")
+    Container(cadvisor, "cAdvisor", "Google cAdvisor v0.49", "Extracción de métricas de CPU, RAM e I/O de contenedores Docker.")
+    Container(grafana, "Grafana Dashboard", "Grafana v10.4", "Visualización en tiempo real de las 6 vistas operativas.")
+}
+
+System_Ext(gemini_api, "Google Gemini API", "LLM en la nube")
+
+Rel(usuario_docente, app_movil, "Usa interfaz móvil", "Touch")
+Rel(usuario_docente, spa_web, "Usa portal web", "HTTPS")
+Rel(usuario_admin, spa_web, "Usa portal web", "HTTPS")
+
+Rel(app_movil, haproxy, "Sincronización y peticiones REST", "HTTPS :8081 / :8080")
+Rel(spa_web, haproxy, "Peticiones HTTP REST", "HTTPS :8080, :8081, :8082, :8084")
+
+Rel(haproxy, sga_principal, "Balancea tráfico REST y gRPC", "HTTP :8080, TCP :9092")
+Rel(haproxy, ms_secretaria, "Enruta tráfico de matrículas", "HTTP :5176")
+Rel(haproxy, ms_docente, "Enruta tráfico docente", "HTTP :8000")
+Rel(haproxy, ms_soporte, "Enruta tráfico de tickets", "HTTP :5178")
+Rel(haproxy, ms_ia, "Enruta consultas IA", "HTTP :8084")
+
+Rel(ms_docente, sga_principal, "Consulta de materias y auth", "gRPC :9092")
+Rel(sga_principal, ms_soporte, "Reporte de incidencias automáticas", "gRPC :9094")
+Rel(ms_secretaria, ms_ia, "Solicita resúmenes de actas", "HTTP :8084")
+Rel(ms_ia, gemini_api, "Genera inferencia IA", "HTTPS")
+
+Rel(sga_principal, db_postgres, "Lectura/Escritura schema public", "JDBC / SQL")
+Rel(ms_secretaria, db_postgres, "Lectura/Escritura schema secretaria", "JDBC / SQL")
+Rel(ms_docente, db_postgres, "Lectura/Escritura schema docente", "Django ORM / SQL")
+Rel(ms_soporte, db_postgres, "Lectura/Escritura schema soporte", "JdbcTemplate / SQL")
+
+Rel(ms_soporte, etcd_cluster, "Elección de líder (/sga/leader)", "gRPC / Raft :2379")
+
+Rel(prometheus, sga_principal, "Scrape /actuator/prometheus", "HTTP")
+Rel(prometheus, ms_secretaria, "Scrape /actuator/prometheus", "HTTP")
+Rel(prometheus, ms_soporte, "Scrape /actuator/prometheus", "HTTP")
+Rel(prometheus, ms_docente, "Scrape /metrics", "HTTP")
+Rel(prometheus, haproxy, "Scrape /metrics", "HTTP :8404")
+Rel(prometheus, etcd_cluster, "Scrape /metrics", "HTTP :2379")
+Rel(prometheus, cadvisor, "Scrape métricas de contenedor", "HTTP :8080")
+Rel(grafana, prometheus, "Consulta series temporales (PromQL)", "HTTP :9090")
+
+@enduml

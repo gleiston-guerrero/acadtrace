@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: sans-serif; font-size: 18px; font-weight: bold; fill: #1e293b; }
+      .person { fill: #08427b; stroke: #052e56; stroke-width: 2; rx: 8; }
+      .system { fill: #1168bd; stroke: #0b4884; stroke-width: 2; rx: 8; }
+      .system-ext { fill: #6b7280; stroke: #374151; stroke-width: 2; rx: 8; }
+      .label-white { font-family: sans-serif; font-size: 13px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .desc-white { font-family: sans-serif; font-size: 10px; fill: #e0f2fe; text-anchor: middle; }
+      .rel-text { font-family: sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+      .arrow { stroke: #64748b; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b" />
+    </marker>
+  </defs>
+
+  <text x="450" y="30" class="title" text-anchor="middle">Diagrama C4 - Nivel 1: Contexto del Sistema (SGA Distribuido)</text>
+
+  <!-- Actores Izquierda -->
+  <rect x="50" y="70" width="180" height="70" class="person"/>
+  <text x="140" y="95" class="label-white">Docente</text>
+  <text x="140" y="112" class="desc-white">[Persona] Web y Móvil</text>
+  <text x="140" y="125" class="desc-white">Asistencia y Notas</text>
+
+  <rect x="50" y="170" width="180" height="70" class="person"/>
+  <text x="140" y="195" class="label-white">Personal Secretaría</text>
+  <text x="140" y="212" class="desc-white">[Persona] Matrículas</text>
+  <text x="140" y="225" class="desc-white">y Expedientes</text>
+
+  <rect x="50" y="270" width="180" height="70" class="person"/>
+  <text x="140" y="295" class="label-white">Personal Soporte</text>
+  <text x="140" y="312" class="desc-white">[Persona] Helpdesk</text>
+  <text x="140" y="325" class="desc-white">Gestión de Tickets</text>
+
+  <rect x="50" y="370" width="180" height="70" class="person"/>
+  <text x="140" y="395" class="label-white">Estudiante / Tutor</text>
+  <text x="140" y="412" class="desc-white">[Persona] Consulta</text>
+  <text x="140" y="425" class="desc-white">Calificaciones y Ficha</text>
+
+  <!-- Sistema Central -->
+  <rect x="340" y="170" width="220" height="160" class="system"/>
+  <text x="450" y="215" class="label-white">Sistema de Gestión</text>
+  <text x="450" y="235" class="label-white">Académica (SGA)</text>
+  <text x="450" y="260" class="desc-white">[Sistema Distribuido]</text>
+  <text x="450" y="280" class="desc-white">Escuela Provincias Unidas</text>
+  <text x="450" y="300" class="desc-white">Microservicios + gRPC + REST</text>
+
+  <!-- Sistemas Externos Derecha -->
+  <rect x="670" y="90" width="180" height="75" class="system-ext"/>
+  <text x="760" y="115" class="label-white">Google Gemini 1.5</text>
+  <text x="760" y="132" class="desc-white">[Sistema Externo IA]</text>
+  <text x="760" y="148" class="desc-white">Resúmenes e Inferencia</text>
+
+  <rect x="670" y="215" width="180" height="75" class="system-ext"/>
+  <text x="760" y="240" class="label-white">Grafana Cloud</text>
+  <text x="760" y="257" class="desc-white">[Sistema Externo]</text>
+  <text x="760" y="273" class="desc-white">Métricas Remote Write</text>
+
+  <rect x="670" y="340" width="180" height="75" class="system-ext"/>
+  <text x="760" y="365" class="label-white">Servidor SMTP</text>
+  <text x="760" y="382" class="desc-white">[Sistema Externo]</text>
+  <text x="760" y="398" class="desc-white">Correos y Notificaciones</text>
+
+  <!-- Flechas y Relaciones -->
+  <path d="M 230 105 L 340 210" class="arrow"/>
+  <path d="M 230 205 L 340 235" class="arrow"/>
+  <path d="M 230 305 L 340 265" class="arrow"/>
+  <path d="M 230 405 L 340 290" class="arrow"/>
+
+  <path d="M 560 210 L 670 128" class="arrow"/>
+  <path d="M 560 250 L 670 250" class="arrow"/>
+  <path d="M 560 290 L 670 378" class="arrow"/>
+</svg>
