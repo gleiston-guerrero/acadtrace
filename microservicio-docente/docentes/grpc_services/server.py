@@ -5,6 +5,7 @@ from . import docente_pb2
 from . import docente_pb2_grpc
 from .client import validate_teacher_assignment
 from docentes.models import Actividad, Calificacion
+from micro_docente.middleware import registrar_calificacion_exitosa
 
 
 def _usuario_de_persona(id_persona):
@@ -72,9 +73,10 @@ class DocenteServiceServicer(docente_pb2_grpc.DocenteServiceServicer):
                 "registrado_por": _usuario_de_persona(int(id_docente)),
             },
         )
-
-        return docente_pb2.RegistrarCalificacionResponse(
+        response = docente_pb2.RegistrarCalificacionResponse(
             exitoso=True,
             mensaje="Calificación guardada" if creada else "Calificación actualizada",
             id_calificacion=calificacion.id_calificacion
         )
+        registrar_calificacion_exitosa()
+        return response
