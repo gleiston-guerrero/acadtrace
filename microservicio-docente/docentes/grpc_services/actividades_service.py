@@ -6,6 +6,8 @@ from docentes.models import Actividad, PeriodoEvaluacion
 from . import actividades_pb2
 from . import actividades_pb2_grpc
 from .client import validate_teacher_assignment
+from docentes.auditoria import auditar_evento
+from docentes.auditoria.payloads import payload_instancia
 
 class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
     def _validar_ponderacion(self, id_asignacion, id_periodo, es_sumativa, ponderacion, excluir_id=None):
@@ -48,17 +50,23 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             periodo = PeriodoEvaluacion.objects.get(id_periodo=request.id_periodo)
             self._validar_ponderacion(request.id_asignacion, request.id_periodo, request.es_sumativa, request.ponderacion)
             
-            actividad = Actividad.objects.create(
-                id_asignacion=request.id_asignacion,
-                id_periodo=periodo,
-                tipo=request.tipo,
-                nombre=request.nombre,
-                descripcion=request.descripcion,
-                fecha_entrega=request.fecha_entrega,
-                ponderacion=request.ponderacion,
-                nota_maxima=request.nota_maxima,
-                es_sumativa=request.es_sumativa
-            )
+            with transaction.atomic():
+                actividad = Actividad.objects.create(
+                    id_asignacion=request.id_asignacion,
+                    id_periodo=periodo,
+                    tipo=request.tipo,
+                    nombre=request.nombre,
+                    descripcion=request.descripcion,
+                    fecha_entrega=request.fecha_entrega,
+                    ponderacion=request.ponderacion,
+                    nota_maxima=request.nota_maxima,
+                    es_sumativa=request.es_sumativa
+                )
+                auditar_evento(
+                    tipo_evento="ACTIVIDAD_CREADA", entidad="Actividad",
+                    entidad_id=actividad.id_actividad, operacion="CREAR", actor_id=None,
+                    payload=payload_instancia(actividad),
+                )
             
             dto = actividades_pb2.ActividadDto(
                 id_actividad=actividad.id_actividad,
@@ -96,14 +104,20 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                 request.es_sumativa, request.ponderacion, actividad.id_actividad,
             )
             
-            actividad.tipo = request.tipo
-            actividad.nombre = request.nombre
-            actividad.descripcion = request.descripcion
-            actividad.fecha_entrega = request.fecha_entrega
-            actividad.ponderacion = request.ponderacion
-            actividad.nota_maxima = request.nota_maxima
-            actividad.es_sumativa = request.es_sumativa
-            actividad.save()
+            with transaction.atomic():
+                actividad.tipo = request.tipo
+                actividad.nombre = request.nombre
+                actividad.descripcion = request.descripcion
+                actividad.fecha_entrega = request.fecha_entrega
+                actividad.ponderacion = request.ponderacion
+                actividad.nota_maxima = request.nota_maxima
+                actividad.es_sumativa = request.es_sumativa
+                actividad.save()
+                auditar_evento(
+                    tipo_evento="ACTIVIDAD_ACTUALIZADA", entidad="Actividad",
+                    entidad_id=actividad.id_actividad, operacion="ACTUALIZAR", actor_id=None,
+                    payload=payload_instancia(actividad),
+                )
             
             dto = actividades_pb2.ActividadDto(
                 id_actividad=actividad.id_actividad,
@@ -201,7 +215,15 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             actividad = Actividad.objects.get(id_actividad=request.id_actividad)
             self._validate_auth(context, actividad.id_asignacion)
             
-            actividad.delete()
+            with transaction.atomic():
+                entidad_id = actividad.id_actividad
+                payload = payload_instancia(actividad)
+                actividad.delete()
+                auditar_evento(
+                    tipo_evento="ACTIVIDAD_ELIMINADA", entidad="Actividad",
+                    entidad_id=entidad_id, operacion="ELIMINAR", actor_id=None,
+                    payload=payload,
+                )
             
             return actividades_pb2.EliminarActividadResponse(
                 exitoso=True,

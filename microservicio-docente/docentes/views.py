@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
-from django.db import DatabaseError, connection
+from django.db import DatabaseError, connection, transaction
 from django.db.models import Avg, Count, Q
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -166,6 +166,8 @@ from .services import (
     calcular_resumen_asistencia,
     convertir_nota_cualitativa,
 )
+from .auditoria import auditar_evento
+from .auditoria.payloads import payload_instancia
 
 
 def requeridos(data, campos):
@@ -199,6 +201,17 @@ class ActividadViewSet(viewsets.ModelViewSet):
         if es_sumativa is not None:
             queryset = queryset.filter(es_sumativa=es_sumativa.lower() == "true")
         return queryset
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            entidad_id = instance.pk
+            payload = payload_instancia(instance)
+            instance.delete()
+            auditar_evento(
+                tipo_evento="ACTIVIDAD_ELIMINADA", entidad="Actividad",
+                entidad_id=entidad_id, operacion="ELIMINAR", actor_id=None,
+                payload=payload,
+            )
 
 
 class CalificacionViewSet(viewsets.ModelViewSet):

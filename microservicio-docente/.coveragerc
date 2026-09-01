@@ -8,5 +8,13 @@ omit =
     */management/commands/*
 
 [report]
+fail_under = 70
+show_missing = True
+skip_covered = True
+
+# Equivalente requerido por herramientas que usan la nomenclatura de
+# setup.cfg. Coverage.py lee la seccion [report] de este archivo .coveragerc.
+[coverage:report]
+fail_under = 70
 show_missing = True
 skip_covered = True

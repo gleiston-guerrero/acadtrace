@@ -12,7 +12,10 @@ from docentes import services
     [("8.125", Decimal("8.13")), (None, Decimal("0.00")), ("4.004", Decimal("4.00"))],
 )
 def test_quantize_score_usa_round_half_up(value, expected):
-    assert services.quantize_score(value) == expected
+    resultado = services.quantize_score(value)
+    assert resultado == expected
+    assert isinstance(resultado, Decimal)
+    assert resultado.as_tuple().exponent == -2
 
 
 @pytest.mark.parametrize(
@@ -21,7 +24,10 @@ def test_quantize_score_usa_round_half_up(value, expected):
      ("9", "INICIAL", "A_MAS"), ("7", "PREPARATORIA", "B_MAS"), ("4.01", "INICIAL", "C_MAS"), ("4", None, "D")],
 )
 def test_conversion_cualitativa(nota, nivel, expected):
-    assert services.convertir_nota_cualitativa(nota, nivel) == expected
+    resultado = services.convertir_nota_cualitativa(nota, nivel)
+    assert resultado == expected
+    assert isinstance(resultado, str)
+    assert resultado in {"A_MAS", "B_MAS", "C_MAS", "D"}
 
 
 @patch("docentes.services.Calificacion.objects.filter")
@@ -49,15 +55,18 @@ def test_promedio_trimestral_real_70_30_y_persistencia(mock_form, mock_sum, mock
         "promedio_trimestral": Decimal("8.62"),
         "nota_cualitativa": "B_MAS",
     }
+    assert mock_upsert.call_count == 1
 
 
 @patch("docentes.services.PromedioTrimestral.objects.update_or_create")
 @patch("docentes.services.calcular_nota_sumativa", return_value=Decimal("0.00"))
 @patch("docentes.services.calcular_promedio_formativo", return_value=Decimal("0.00"))
 def test_promedio_trimestral_sin_calificaciones(mock_form, mock_sum, mock_upsert):
-    mock_upsert.return_value = (SimpleNamespace(), False)
-    services.calcular_promedio_trimestral(1, 2, 3)
+    persisted = SimpleNamespace()
+    mock_upsert.return_value = (persisted, False)
+    assert services.calcular_promedio_trimestral(1, 2, 3) is persisted
     assert mock_upsert.call_args.kwargs["defaults"]["promedio_trimestral"] == Decimal("0.00")
+    assert mock_form.call_count == mock_sum.call_count == 1
 
 
 @patch("docentes.services.ResumenAsistencia.objects.update_or_create")
@@ -73,6 +82,7 @@ def test_calcular_resumen_asistencia_persiste_todos_los_estados(mock_filter, moc
         "total_presentes": 2, "total_ausentes": 1,
         "total_justificados": 1, "total_atrasos": 3,
     }
+    assert mock_filter.call_count == 1
 
 
 @patch("docentes.services.PromedioAnualDetalle.objects.bulk_create")
