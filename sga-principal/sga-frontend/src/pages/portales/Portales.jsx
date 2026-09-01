@@ -6,12 +6,27 @@ import { redirigirAMicroservicio } from "../../utils/handoff";
 // Portales disponibles según el rol del usuario. DIRECTOR permanece en este mismo
 // origen (SGA Principal); el resto se entrega a su microservicio por SSO.
 const PORTALES = {
+    ADMINISTRADOR: {
+        label: "Administración",
+        desc: "Panel principal y configuración",
+        color: "bg-blue-50",
+        iconColor: "text-blue-600",
+        tipo: "local",
+        destino: "ADMINISTRADOR",
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        ),
+    },
     DIRECTOR: {
         label: "Administración",
         desc: "Panel principal y configuración",
         color: "bg-blue-50",
         iconColor: "text-blue-600",
         tipo: "local",
+        destino: "DIRECTOR",
         icon: (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -61,7 +76,7 @@ const PORTALES = {
 };
 
 // Orden de aparición cuando el usuario tiene varios roles.
-const ORDEN = ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"];
+const ORDEN = ["DIRECTOR", "ADMINISTRADOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"];
 
 export default function Portales() {
     const navigate = useNavigate();
@@ -76,7 +91,11 @@ export default function Portales() {
 
     if (!sesion?.token) return null;
 
-    const disponibles = ORDEN.filter((rol) => sesion.roles?.includes(rol));
+    const rolesLimpios = (sesion.roles || []).map((r) => r.replace(/^ROLE_/, ""));
+    let disponibles = ORDEN.filter((rol) => rolesLimpios.includes(rol));
+    if (disponibles.includes("DIRECTOR") && disponibles.includes("ADMINISTRADOR")) {
+        disponibles = disponibles.filter((r) => r !== "ADMINISTRADOR");
+    }
 
     const irAlPortal = async (rol) => {
         const portal = PORTALES[rol];

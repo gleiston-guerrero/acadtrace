@@ -48,9 +48,12 @@ export default function Login() {
                 return;
             }
 
+            // Normalizar roles para quitar 'ROLE_' si existe
+            const rolesLimpios = roles.map((r) => r.replace(/^ROLE_/, ""));
+
             // Portales a los que el usuario puede entrar según sus roles.
-            const portales = ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"]
-                .filter((rol) => roles.includes(rol));
+            const portales = ["DIRECTOR", "ADMINISTRADOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"]
+                .filter((rol) => rolesLimpios.includes(rol));
 
             if (portales.length === 0) {
                 setError("Tu usuario no tiene un rol con acceso asignado.");
@@ -65,10 +68,10 @@ export default function Login() {
             }
 
             // Un solo portal: se entra directo.
-            // DIRECTOR permanece en el SGA Principal (este mismo origen); el resto
+            // DIRECTOR o ADMINISTRADOR permanece en el SGA Principal (este mismo origen); el resto
             // se entrega a su microservicio por SSO sin guardar token aquí.
             const destino = portales[0];
-            if (destino === "DIRECTOR") {
+            if (destino === "DIRECTOR" || destino === "ADMINISTRADOR") {
                 localStorage.setItem("token", sesion.token);
                 localStorage.setItem("username", sesion.username);
                 localStorage.setItem("roles", JSON.stringify(roles));
