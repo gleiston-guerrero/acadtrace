@@ -55,3 +55,17 @@ scrape_configs:
       - targets: ["microservicio-docente:8000"]
         labels:
           application: sga-docente
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["sga-cadvisor:8080"]
+
+  - job_name: "etcd"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["etcd:2379"]
+
+  - job_name: "haproxy"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["sga-haproxy:8404"]

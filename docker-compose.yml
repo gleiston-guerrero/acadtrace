@@ -238,6 +238,22 @@ services:
       - sga-distribuido-net
     restart: unless-stopped
 
+  # ─── 7. CADVISOR (métricas de CPU/RAM por contenedor) ───
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: sga-cadvisor
+    ports:
+      - "8085:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - sga-distribuido-net
+    restart: unless-stopped
+
 networks:
   sga-distribuido-net:
     driver: bridge

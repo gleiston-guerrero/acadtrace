@@ -52,7 +52,7 @@ sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,AnoLectivoServ
 sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,CalificacionConsultaService,159,0,14,0,33,0,11,0,4,0
 sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,MallaCurricularService,724,0,50,0,134,0,36,0,11,0
 sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,RepresentanteService,427,0,22,0,89,0,23,0,12,0
-sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,EstudianteService,168,1041,44,72,11,193,41,35,2,16
+sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,EstudianteService,181,1028,51,65,13,191,48,28,2,16
 sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,LamportClock,0,39,0,0,0,6,0,7,0,7
 sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,AsignaturaService,237,0,14,0,48,0,17,0,10,0
 sga-secretaria-backend,ec.uteq.sga.secretaria.application.service,CatalogoService.AnoLectivo,18,0,0,0,1,0,1,0,1,0

@@ -1,0 +1,28 @@
+@startuml C4_Nivel1_Contexto
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama C4 - Nivel 1: Contexto del Sistema (SGA Distribuido)
+
+Person(docente, "Docente", "Registra asistencia, calificaciones y gestiona materias desde Web y App Móvil.")
+Person(secretaria, "Personal de Secretaría", "Gestiona matrículas, expedientes estudiantiles, asignaturas y actas.")
+Person(soporte, "Personal de Soporte", "Atiende incidencias técnicas, asigna y escala tickets de soporte.")
+Person(estudiante, "Estudiante / Representante", "Consulta calificaciones, asistencia y horarios.")
+
+System(sga, "Sistema de Gestión Académica (SGA)", "Sistema distribuido para la administración académica, matriculación, control docente y soporte técnico de la Escuela Provincias Unidas.")
+
+System_Ext(gemini, "Google Gemini 1.5 Flash API", "Servicio externo de inteligencia artificial para generación automatizada de informes y análisis.")
+System_Ext(grafana_cloud, "Grafana Cloud / Prometheus Remote", "Plataforma externa de observabilidad para almacenamiento a largo plazo de métricas y alertas.")
+System_Ext(smtp, "Servidor de Correo SMTP", "Servicio de notificaciones por correo institucional.")
+
+Rel(docente, sga, "Gestiona clases, asistencia y notas", "HTTPS / REST / App Móvil")
+Rel(secretaria, sga, "Administra matrículas y expedientes", "HTTPS / REST")
+Rel(soporte, sga, "Gestiona y resuelve tickets", "HTTPS / REST")
+Rel(estudiante, sga, "Consulta notas y reportes", "HTTPS / REST")
+
+Rel(sga, gemini, "Solicita resúmenes y análisis inteligente", "HTTPS / JSON API")
+Rel(sga, grafana_cloud, "Envía series temporales de métricas (remote_write)", "HTTPS / Snappy")
+Rel(sga, smtp, "Envía notificaciones de tickets y alertas", "SMTP / TLS")
+
+@enduml
