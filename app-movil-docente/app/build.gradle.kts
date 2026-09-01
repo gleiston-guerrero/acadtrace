@@ -1,15 +1,36 @@
+import java.util.Properties
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
 }
 
+val localSigningProperties = Properties()
+
+val propertiesFile = rootProject.file("keystore.properties")
+if (propertiesFile.isFile) {
+    propertiesFile.inputStream().use { input ->
+        localSigningProperties.load(input)
+    }
+}
+fun signingValue(environmentName: String, propertyName: String): String? =
+    providers.environmentVariable(environmentName).orNull ?: localSigningProperties.getProperty(propertyName)
+
+val releaseStoreFile = signingValue("SGA_RELEASE_STORE_FILE", "storeFile")
+val releaseStorePassword = signingValue("SGA_RELEASE_STORE_PASSWORD", "storePassword")
+val releaseKeyAlias = signingValue("SGA_RELEASE_KEY_ALIAS", "keyAlias")
+val releaseKeyPassword = signingValue("SGA_RELEASE_KEY_PASSWORD", "keyPassword")
+val releaseSigningReady = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+    .all { !it.isNullOrBlank() } && releaseStoreFile?.let { file(it).isFile } == true
+
 android {
-    namespace = "ec.edu.uteq.sga.docente"
+    namespace = "ec.edu.uteq.sga.representante"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "ec.edu.uteq.sga.docente"
+        applicationId = "ec.edu.uteq.sga.representante"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -21,9 +42,22 @@ android {
         }
     }
 
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseStoreFile))
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -47,6 +81,15 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val requestsReleaseApk = allTasks.any { it.path == ":app:assembleRelease" }
+    if (requestsReleaseApk && !releaseSigningReady) {
+        throw GradleException(
+            "Firma release no configurada. Define las variables SGA_RELEASE_* o crea keystore.properties local ignorado."
+        )
     }
 }
 
@@ -83,6 +126,7 @@ dependencies {
 
     // Security EncryptedSharedPreferences
     implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.biometric)
 
     // Testing
     testImplementation(libs.junit)
