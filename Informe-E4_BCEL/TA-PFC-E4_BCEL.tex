@@ -449,6 +449,15 @@ La observabilidad se articula mediante la recolecci\'on de m\'etricas de Prometh
   \item \textbf{Vista 6 (Latencia E2E Cliente M\'ovil):} Tiempos de respuesta de extremo a extremo desde el dispositivo m\'ovil.
 \end{enumerate}
 
+\subsection{M\'etricas de Negocio de Aplicaci\'on (Equipo BCEL)}
+En cumplimiento de la secci\'on 4.6 de la gu\'ia rectora para el Equipo BCEL, la instrumentaci\'on de Prometheus incluye cuatro contadores obligatorios de eventos cr\'iticos de dominio:
+\begin{enumerate}
+  \item \textbf{Notas registradas (\texttt{sga\_notas\_registradas\_total}):} Total acumulado de calificaciones formativas y sumativas ingresadas por los docentes.
+  \item \textbf{Notas modificadas (\texttt{sga\_notas\_modificadas\_total}):} Total de rectificaciones de calificaciones, disparando el siguiente eslab\'on criptogr\'afico de auditor\'ia.
+  \item \textbf{Matr\'iculas confirmadas (\texttt{sga\_matriculas\_confirmadas\_total}):} Registro acumulado de legalizaci\'on de matr\'iculas para la poblaci\'on de 344 estudiantes.
+  \item \textbf{Notificaciones enviadas a representantes (\texttt{sga\_notificaciones\_representantes\_total}):} Total de alertas y avisos emitidos hacia la aplicaci\'on m\'ovil.
+\end{enumerate}
+Estos contadores alimentan las vistas del tablero en Grafana y constituyen la base emp\'irica para evaluar el comportamiento transaccional del sistema.
 
 \subsection{Registro Estructurado JSON y Propagaci\'on de Contexto MDC}
 Para garantizar la correlaci\'on de eventos transaccionales a lo largo de m\'ultiples saltos de red, se implement\'o un filtro de trazabilidad (\texttt{TraceIdFilter}) y un contenedor de contexto (\texttt{TraceContext}) en los microservicios Java y Python. Cada petici\'on entrante recibe o genera un identificador \'unico de correlaci\'on (\texttt{trace\_id}) que es inyectado en el \textit{Mapped Diagnostic Context} (MDC) de SLF4J / Logback y en los encabezados binarios de las llamadas gRPC.
