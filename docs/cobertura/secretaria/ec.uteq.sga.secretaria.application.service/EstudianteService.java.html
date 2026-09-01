@@ -64,8 +64,8 @@ public class EstudianteService {
 <span class="fc bfc" id="L64" title="All 2 branches covered.">                if (valor != null) {</span>
                     try {
 <span class="fc" id="L66">                        row.put(campo, crypto.decrypt(valor));</span>
-<span class="fc" id="L67">                    } catch (RuntimeException e) {</span>
-<span class="fc" id="L68">                        log.warn(&quot;No se pudo descifrar '{}' (probable dato en texto plano previo al cifrado); &quot; +</span>
+<span class="nc" id="L67">                    } catch (RuntimeException e) {</span>
+<span class="nc" id="L68">                        log.warn(&quot;No se pudo descifrar '{}' (probable dato en texto plano previo al cifrado); &quot; +</span>
                                 &quot;se devuelve sin cambios&quot;, campo);
 <span class="fc" id="L70">                    }</span>
                 }
@@ -183,18 +183,18 @@ public class EstudianteService {
 <span class="fc" id="L183">                .setCorreo(orEmpty(dto.correo()))</span>
 <span class="fc" id="L184">                .setDireccion(orEmpty(crypto.encrypt(blankToNull(dto.direccion()))))</span>
 <span class="fc" id="L185">                .setTelefono(orEmpty(crypto.encrypt(blankToNull(dto.telefono()))))</span>
-<span class="pc bpc" id="L186" title="1 of 4 branches missed.">                .setDiscapacidad(dto.discapacidad() != null &amp;&amp; dto.discapacidad())</span>
+<span class="pc bpc" id="L186" title="2 of 4 branches missed.">                .setDiscapacidad(dto.discapacidad() != null &amp;&amp; dto.discapacidad())</span>
 <span class="fc" id="L187">                .setTipoDiscapacidad(orEmpty(crypto.encrypt(blankToNull(dto.tipo_discapacidad()))))</span>
-<span class="fc bfc" id="L188" title="All 2 branches covered.">                .setPorcentajeDisc(dto.porcentaje_disc() != null ? dto.porcentaje_disc() : 0)</span>
-<span class="fc bfc" id="L189" title="All 2 branches covered.">                .setIdRepresentante(dto.id_representante() != null ? dto.id_representante() : 0)</span>
-<span class="fc bfc" id="L190" title="All 2 branches covered.">                .setIdUsuarioCreador(creadoPor != null ? creadoPor : 0)</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">                .setPorcentajeDisc(dto.porcentaje_disc() != null ? dto.porcentaje_disc() : 0)</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">                .setIdRepresentante(dto.id_representante() != null ? dto.id_representante() : 0)</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">                .setIdUsuarioCreador(creadoPor != null ? creadoPor : 0)</span>
 <span class="fc" id="L191">                .setCodigoEstudiante(codigo)</span>
 <span class="fc" id="L192">                .setNacionalidad(orEmpty(dto.nacionalidad()))</span>
 <span class="fc" id="L193">                .setEtnia(orEmpty(dto.etnia()))</span>
 <span class="fc" id="L194">                .setLugarNacimiento(orEmpty(dto.lugar_nacimiento()))</span>
 <span class="fc" id="L195">                .setViveCon(orEmpty(dto.vive_con()))</span>
-<span class="fc bfc" id="L196" title="All 2 branches covered.">                .setNumerosHermanos(dto.numeros_hermanos() != null ? dto.numeros_hermanos() : 0)</span>
-<span class="pc bpc" id="L197" title="1 of 4 branches missed.">                .setBeneficioSocial(dto.beneficio_social() != null &amp;&amp; dto.beneficio_social())</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">                .setNumerosHermanos(dto.numeros_hermanos() != null ? dto.numeros_hermanos() : 0)</span>
+<span class="pc bpc" id="L197" title="2 of 4 branches missed.">                .setBeneficioSocial(dto.beneficio_social() != null &amp;&amp; dto.beneficio_social())</span>
 <span class="fc" id="L198">                .setCarnetConadis(orEmpty(dto.carnet_conadis()))</span>
 <span class="fc" id="L199">                .setFotoUrl(orEmpty(dto.foto_url()))</span>
 <span class="fc" id="L200">                .build();</span>
@@ -274,7 +274,7 @@ public class EstudianteService {
                 &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,
                 new MapSqlParameterSource(&quot;username&quot;, username),
 <span class="nc" id="L276">                (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
-<span class="fc bfc" id="L277" title="All 2 branches covered.">        return creadorIds.isEmpty() ? null : creadorIds.get(0);</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">        return creadorIds.isEmpty() ? null : creadorIds.get(0);</span>
     }
 
     private String generarSiguienteCodigo() {
