@@ -1,0 +1,1772 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrincipalServiceGrpc.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.grpc.principal</a> &gt; <span class="el_source">PrincipalServiceGrpc.java</span></div><h1>PrincipalServiceGrpc.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.grpc.principal;
+
+import static io.grpc.MethodDescriptor.generateFullMethodName;
+
+/**
+ * &lt;pre&gt;
+ * Contrato expuesto por sga-principal para que otros microservicios
+ * (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+ * lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+ * directo. Estudiante y Matricula (crear/actualizar/listar/obtener/
+ * cambiarEstado) viven en tablas propias de sga_principal y se manejan
+ * aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+ * Representante (ficha completa)/FichaEstudiante siguen siendo SQL
+ * directo desde Secretaría por ahora (migración pendiente).
+ * &lt;/pre&gt;
+ */
+@javax.annotation.Generated(
+    value = &quot;by gRPC proto compiler (version 1.65.1)&quot;,
+    comments = &quot;Source: principal.proto&quot;)
+@io.grpc.stub.annotations.GrpcGenerated
+public final class PrincipalServiceGrpc {
+
+  private PrincipalServiceGrpc() {}
+
+  public static final java.lang.String SERVICE_NAME = &quot;sga.principal.PrincipalService&quot;;
+
+  // Static method descriptors that strictly reflect the proto.
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty,
+      ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt; getListarAnosLectivosMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarAnosLectivos&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty,
+      ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt; getListarAnosLectivosMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty, ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt; getListarAnosLectivosMethod;
+    if ((getListarAnosLectivosMethod = PrincipalServiceGrpc.getListarAnosLectivosMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarAnosLectivosMethod = PrincipalServiceGrpc.getListarAnosLectivosMethod) == null) {
+          PrincipalServiceGrpc.getListarAnosLectivosMethod = getListarAnosLectivosMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.Empty, ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarAnosLectivos&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarAnosLectivos&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarAnosLectivosMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty,
+      ec.edu.uteq.sga.grpc.principal.GradosResponse&gt; getListarGradosMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarGrados&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.GradosResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty,
+      ec.edu.uteq.sga.grpc.principal.GradosResponse&gt; getListarGradosMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty, ec.edu.uteq.sga.grpc.principal.GradosResponse&gt; getListarGradosMethod;
+    if ((getListarGradosMethod = PrincipalServiceGrpc.getListarGradosMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarGradosMethod = PrincipalServiceGrpc.getListarGradosMethod) == null) {
+          PrincipalServiceGrpc.getListarGradosMethod = getListarGradosMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.Empty, ec.edu.uteq.sga.grpc.principal.GradosResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarGrados&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GradosResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarGrados&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarGradosMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest,
+      ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt; getListarParalelosMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarParalelos&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.ParalelosResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest,
+      ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt; getListarParalelosMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest, ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt; getListarParalelosMethod;
+    if ((getListarParalelosMethod = PrincipalServiceGrpc.getListarParalelosMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarParalelosMethod = PrincipalServiceGrpc.getListarParalelosMethod) == null) {
+          PrincipalServiceGrpc.getListarParalelosMethod = getListarParalelosMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest, ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarParalelos&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ParalelosResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarParalelos&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarParalelosMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest,
+      ec.edu.uteq.sga.grpc.principal.GradoProto&gt; getCrearGradoMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CrearGrado&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.GradoProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest,
+      ec.edu.uteq.sga.grpc.principal.GradoProto&gt; getCrearGradoMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest, ec.edu.uteq.sga.grpc.principal.GradoProto&gt; getCrearGradoMethod;
+    if ((getCrearGradoMethod = PrincipalServiceGrpc.getCrearGradoMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCrearGradoMethod = PrincipalServiceGrpc.getCrearGradoMethod) == null) {
+          PrincipalServiceGrpc.getCrearGradoMethod = getCrearGradoMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest, ec.edu.uteq.sga.grpc.principal.GradoProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CrearGrado&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GradoProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CrearGrado&quot;))
+              .build();
+        }
+      }
+    }
+    return getCrearGradoMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest,
+      ec.edu.uteq.sga.grpc.principal.GradoProto&gt; getActualizarGradoMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ActualizarGrado&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.GradoProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest,
+      ec.edu.uteq.sga.grpc.principal.GradoProto&gt; getActualizarGradoMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest, ec.edu.uteq.sga.grpc.principal.GradoProto&gt; getActualizarGradoMethod;
+    if ((getActualizarGradoMethod = PrincipalServiceGrpc.getActualizarGradoMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getActualizarGradoMethod = PrincipalServiceGrpc.getActualizarGradoMethod) == null) {
+          PrincipalServiceGrpc.getActualizarGradoMethod = getActualizarGradoMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest, ec.edu.uteq.sga.grpc.principal.GradoProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ActualizarGrado&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GradoProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ActualizarGrado&quot;))
+              .build();
+        }
+      }
+    }
+    return getActualizarGradoMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoGradoMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CambiarEstadoGrado&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoGradoMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoGradoMethod;
+    if ((getCambiarEstadoGradoMethod = PrincipalServiceGrpc.getCambiarEstadoGradoMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCambiarEstadoGradoMethod = PrincipalServiceGrpc.getCambiarEstadoGradoMethod) == null) {
+          PrincipalServiceGrpc.getCambiarEstadoGradoMethod = getCambiarEstadoGradoMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CambiarEstadoGrado&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CambiarEstadoGrado&quot;))
+              .build();
+        }
+      }
+    }
+    return getCambiarEstadoGradoMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest,
+      ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt; getCrearParaleloMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CrearParalelo&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.ParaleloProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest,
+      ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt; getCrearParaleloMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest, ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt; getCrearParaleloMethod;
+    if ((getCrearParaleloMethod = PrincipalServiceGrpc.getCrearParaleloMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCrearParaleloMethod = PrincipalServiceGrpc.getCrearParaleloMethod) == null) {
+          PrincipalServiceGrpc.getCrearParaleloMethod = getCrearParaleloMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest, ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CrearParalelo&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ParaleloProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CrearParalelo&quot;))
+              .build();
+        }
+      }
+    }
+    return getCrearParaleloMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoParaleloMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CambiarEstadoParalelo&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoParaleloMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoParaleloMethod;
+    if ((getCambiarEstadoParaleloMethod = PrincipalServiceGrpc.getCambiarEstadoParaleloMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCambiarEstadoParaleloMethod = PrincipalServiceGrpc.getCambiarEstadoParaleloMethod) == null) {
+          PrincipalServiceGrpc.getCambiarEstadoParaleloMethod = getCambiarEstadoParaleloMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CambiarEstadoParalelo&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CambiarEstadoParalelo&quot;))
+              .build();
+        }
+      }
+    }
+    return getCambiarEstadoParaleloMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty,
+      ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt; getListarAsignaturasMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarAsignaturas&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.AsignaturasResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty,
+      ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt; getListarAsignaturasMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.Empty, ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt; getListarAsignaturasMethod;
+    if ((getListarAsignaturasMethod = PrincipalServiceGrpc.getListarAsignaturasMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarAsignaturasMethod = PrincipalServiceGrpc.getListarAsignaturasMethod) == null) {
+          PrincipalServiceGrpc.getListarAsignaturasMethod = getListarAsignaturasMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.Empty, ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarAsignaturas&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.AsignaturasResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarAsignaturas&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarAsignaturasMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getCrearEstudianteMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CrearEstudiante&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.EstudianteProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getCrearEstudianteMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest, ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getCrearEstudianteMethod;
+    if ((getCrearEstudianteMethod = PrincipalServiceGrpc.getCrearEstudianteMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCrearEstudianteMethod = PrincipalServiceGrpc.getCrearEstudianteMethod) == null) {
+          PrincipalServiceGrpc.getCrearEstudianteMethod = getCrearEstudianteMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest, ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CrearEstudiante&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.EstudianteProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CrearEstudiante&quot;))
+              .build();
+        }
+      }
+    }
+    return getCrearEstudianteMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getActualizarEstudianteMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ActualizarEstudiante&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.EstudianteProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getActualizarEstudianteMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest, ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getActualizarEstudianteMethod;
+    if ((getActualizarEstudianteMethod = PrincipalServiceGrpc.getActualizarEstudianteMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getActualizarEstudianteMethod = PrincipalServiceGrpc.getActualizarEstudianteMethod) == null) {
+          PrincipalServiceGrpc.getActualizarEstudianteMethod = getActualizarEstudianteMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest, ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ActualizarEstudiante&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.EstudianteProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ActualizarEstudiante&quot;))
+              .build();
+        }
+      }
+    }
+    return getActualizarEstudianteMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest,
+      ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt; getListarEstudiantesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarEstudiantes&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest,
+      ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt; getListarEstudiantesMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest, ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt; getListarEstudiantesMethod;
+    if ((getListarEstudiantesMethod = PrincipalServiceGrpc.getListarEstudiantesMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarEstudiantesMethod = PrincipalServiceGrpc.getListarEstudiantesMethod) == null) {
+          PrincipalServiceGrpc.getListarEstudiantesMethod = getListarEstudiantesMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest, ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarEstudiantes&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarEstudiantes&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarEstudiantesMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getObtenerEstudianteMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ObtenerEstudiante&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.EstudianteProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getObtenerEstudianteMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest, ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; getObtenerEstudianteMethod;
+    if ((getObtenerEstudianteMethod = PrincipalServiceGrpc.getObtenerEstudianteMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getObtenerEstudianteMethod = PrincipalServiceGrpc.getObtenerEstudianteMethod) == null) {
+          PrincipalServiceGrpc.getObtenerEstudianteMethod = getObtenerEstudianteMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest, ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ObtenerEstudiante&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.EstudianteProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ObtenerEstudiante&quot;))
+              .build();
+        }
+      }
+    }
+    return getObtenerEstudianteMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoEstudianteMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CambiarEstadoEstudiante&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoEstudianteMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoEstudianteMethod;
+    if ((getCambiarEstadoEstudianteMethod = PrincipalServiceGrpc.getCambiarEstadoEstudianteMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCambiarEstadoEstudianteMethod = PrincipalServiceGrpc.getCambiarEstadoEstudianteMethod) == null) {
+          PrincipalServiceGrpc.getCambiarEstadoEstudianteMethod = getCambiarEstadoEstudianteMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CambiarEstadoEstudiante&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CambiarEstadoEstudiante&quot;))
+              .build();
+        }
+      }
+    }
+    return getCambiarEstadoEstudianteMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest,
+      ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; getCrearMatriculaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CrearMatricula&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.MatriculaProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest,
+      ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; getCrearMatriculaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest, ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; getCrearMatriculaMethod;
+    if ((getCrearMatriculaMethod = PrincipalServiceGrpc.getCrearMatriculaMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCrearMatriculaMethod = PrincipalServiceGrpc.getCrearMatriculaMethod) == null) {
+          PrincipalServiceGrpc.getCrearMatriculaMethod = getCrearMatriculaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest, ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CrearMatricula&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.MatriculaProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CrearMatricula&quot;))
+              .build();
+        }
+      }
+    }
+    return getCrearMatriculaMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest,
+      ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; getObtenerMatriculaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ObtenerMatricula&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.MatriculaProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest,
+      ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; getObtenerMatriculaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest, ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; getObtenerMatriculaMethod;
+    if ((getObtenerMatriculaMethod = PrincipalServiceGrpc.getObtenerMatriculaMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getObtenerMatriculaMethod = PrincipalServiceGrpc.getObtenerMatriculaMethod) == null) {
+          PrincipalServiceGrpc.getObtenerMatriculaMethod = getObtenerMatriculaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest, ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ObtenerMatricula&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.MatriculaProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ObtenerMatricula&quot;))
+              .build();
+        }
+      }
+    }
+    return getObtenerMatriculaMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoMatriculaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CambiarEstadoMatricula&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest,
+      ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoMatriculaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt; getCambiarEstadoMatriculaMethod;
+    if ((getCambiarEstadoMatriculaMethod = PrincipalServiceGrpc.getCambiarEstadoMatriculaMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getCambiarEstadoMatriculaMethod = PrincipalServiceGrpc.getCambiarEstadoMatriculaMethod) == null) {
+          PrincipalServiceGrpc.getCambiarEstadoMatriculaMethod = getCambiarEstadoMatriculaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest, ec.edu.uteq.sga.grpc.principal.Empty&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CambiarEstadoMatricula&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.Empty.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;CambiarEstadoMatricula&quot;))
+              .build();
+        }
+      }
+    }
+    return getCambiarEstadoMatriculaMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest,
+      ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt; getListarMatriculasMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarMatriculas&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest,
+      ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt; getListarMatriculasMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest, ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt; getListarMatriculasMethod;
+    if ((getListarMatriculasMethod = PrincipalServiceGrpc.getListarMatriculasMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarMatriculasMethod = PrincipalServiceGrpc.getListarMatriculasMethod) == null) {
+          PrincipalServiceGrpc.getListarMatriculasMethod = getListarMatriculasMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest, ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarMatriculas&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarMatriculas&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarMatriculasMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest,
+      ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt; getObtenerRepresentanteMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ObtenerRepresentante&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.RepresentanteProto.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest,
+      ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt; getObtenerRepresentanteMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest, ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt; getObtenerRepresentanteMethod;
+    if ((getObtenerRepresentanteMethod = PrincipalServiceGrpc.getObtenerRepresentanteMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getObtenerRepresentanteMethod = PrincipalServiceGrpc.getObtenerRepresentanteMethod) == null) {
+          PrincipalServiceGrpc.getObtenerRepresentanteMethod = getObtenerRepresentanteMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest, ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ObtenerRepresentante&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.RepresentanteProto.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ObtenerRepresentante&quot;))
+              .build();
+        }
+      }
+    }
+    return getObtenerRepresentanteMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest,
+      ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt; getListarRepresentantesPorEstudiantesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ListarRepresentantesPorEstudiantes&quot;,
+      requestType = ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.principal.RepresentantesResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest,
+      ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt; getListarRepresentantesPorEstudiantesMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest, ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt; getListarRepresentantesPorEstudiantesMethod;
+    if ((getListarRepresentantesPorEstudiantesMethod = PrincipalServiceGrpc.getListarRepresentantesPorEstudiantesMethod) == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        if ((getListarRepresentantesPorEstudiantesMethod = PrincipalServiceGrpc.getListarRepresentantesPorEstudiantesMethod) == null) {
+          PrincipalServiceGrpc.getListarRepresentantesPorEstudiantesMethod = getListarRepresentantesPorEstudiantesMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest, ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ListarRepresentantesPorEstudiantes&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.principal.RepresentantesResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PrincipalServiceMethodDescriptorSupplier(&quot;ListarRepresentantesPorEstudiantes&quot;))
+              .build();
+        }
+      }
+    }
+    return getListarRepresentantesPorEstudiantesMethod;
+  }
+
+  /**
+   * Creates a new async stub that supports all call types for the service
+   */
+  public static PrincipalServiceStub newStub(io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;PrincipalServiceStub&gt; factory =
+<span class="nc" id="L653">      new io.grpc.stub.AbstractStub.StubFactory&lt;PrincipalServiceStub&gt;() {</span>
+        @java.lang.Override
+        public PrincipalServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L656">          return new PrincipalServiceStub(channel, callOptions);</span>
+        }
+      };
+    return PrincipalServiceStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new blocking-style stub that supports unary and streaming output calls on the service
+   */
+  public static PrincipalServiceBlockingStub newBlockingStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;PrincipalServiceBlockingStub&gt; factory =
+<span class="nc" id="L668">      new io.grpc.stub.AbstractStub.StubFactory&lt;PrincipalServiceBlockingStub&gt;() {</span>
+        @java.lang.Override
+        public PrincipalServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L671">          return new PrincipalServiceBlockingStub(channel, callOptions);</span>
+        }
+      };
+    return PrincipalServiceBlockingStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new ListenableFuture-style stub that supports unary calls on the service
+   */
+  public static PrincipalServiceFutureStub newFutureStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;PrincipalServiceFutureStub&gt; factory =
+<span class="nc" id="L683">      new io.grpc.stub.AbstractStub.StubFactory&lt;PrincipalServiceFutureStub&gt;() {</span>
+        @java.lang.Override
+        public PrincipalServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L686">          return new PrincipalServiceFutureStub(channel, callOptions);</span>
+        }
+      };
+    return PrincipalServiceFutureStub.newStub(factory, channel);
+  }
+
+  /**
+   * &lt;pre&gt;
+   * Contrato expuesto por sga-principal para que otros microservicios
+   * (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+   * lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+   * directo. Estudiante y Matricula (crear/actualizar/listar/obtener/
+   * cambiarEstado) viven en tablas propias de sga_principal y se manejan
+   * aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+   * Representante (ficha completa)/FichaEstudiante siguen siendo SQL
+   * directo desde Secretaría por ahora (migración pendiente).
+   * &lt;/pre&gt;
+   */
+  public interface AsyncService {
+
+    /**
+     */
+    default void listarAnosLectivos(ec.edu.uteq.sga.grpc.principal.Empty request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt; responseObserver) {
+<span class="nc" id="L710">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarAnosLectivosMethod(), responseObserver);</span>
+<span class="nc" id="L711">    }</span>
+
+    /**
+     */
+    default void listarGrados(ec.edu.uteq.sga.grpc.principal.Empty request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradosResponse&gt; responseObserver) {
+<span class="nc" id="L717">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarGradosMethod(), responseObserver);</span>
+<span class="nc" id="L718">    }</span>
+
+    /**
+     */
+    default void listarParalelos(ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt; responseObserver) {
+<span class="nc" id="L724">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarParalelosMethod(), responseObserver);</span>
+<span class="nc" id="L725">    }</span>
+
+    /**
+     */
+    default void crearGrado(ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt; responseObserver) {
+<span class="nc" id="L731">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCrearGradoMethod(), responseObserver);</span>
+<span class="nc" id="L732">    }</span>
+
+    /**
+     */
+    default void actualizarGrado(ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt; responseObserver) {
+<span class="nc" id="L738">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getActualizarGradoMethod(), responseObserver);</span>
+<span class="nc" id="L739">    }</span>
+
+    /**
+     */
+    default void cambiarEstadoGrado(ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L745">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCambiarEstadoGradoMethod(), responseObserver);</span>
+<span class="nc" id="L746">    }</span>
+
+    /**
+     */
+    default void crearParalelo(ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt; responseObserver) {
+<span class="nc" id="L752">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCrearParaleloMethod(), responseObserver);</span>
+<span class="nc" id="L753">    }</span>
+
+    /**
+     */
+    default void cambiarEstadoParalelo(ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L759">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCambiarEstadoParaleloMethod(), responseObserver);</span>
+<span class="nc" id="L760">    }</span>
+
+    /**
+     */
+    default void listarAsignaturas(ec.edu.uteq.sga.grpc.principal.Empty request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt; responseObserver) {
+<span class="nc" id="L766">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarAsignaturasMethod(), responseObserver);</span>
+<span class="nc" id="L767">    }</span>
+
+    /**
+     */
+    default void crearEstudiante(ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; responseObserver) {
+<span class="nc" id="L773">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCrearEstudianteMethod(), responseObserver);</span>
+<span class="nc" id="L774">    }</span>
+
+    /**
+     */
+    default void actualizarEstudiante(ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; responseObserver) {
+<span class="nc" id="L780">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getActualizarEstudianteMethod(), responseObserver);</span>
+<span class="nc" id="L781">    }</span>
+
+    /**
+     */
+    default void listarEstudiantes(ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt; responseObserver) {
+<span class="nc" id="L787">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarEstudiantesMethod(), responseObserver);</span>
+<span class="nc" id="L788">    }</span>
+
+    /**
+     */
+    default void obtenerEstudiante(ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; responseObserver) {
+<span class="nc" id="L794">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getObtenerEstudianteMethod(), responseObserver);</span>
+<span class="nc" id="L795">    }</span>
+
+    /**
+     */
+    default void cambiarEstadoEstudiante(ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L801">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCambiarEstadoEstudianteMethod(), responseObserver);</span>
+<span class="nc" id="L802">    }</span>
+
+    /**
+     */
+    default void crearMatricula(ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; responseObserver) {
+<span class="nc" id="L808">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCrearMatriculaMethod(), responseObserver);</span>
+<span class="nc" id="L809">    }</span>
+
+    /**
+     */
+    default void obtenerMatricula(ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; responseObserver) {
+<span class="nc" id="L815">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getObtenerMatriculaMethod(), responseObserver);</span>
+<span class="nc" id="L816">    }</span>
+
+    /**
+     */
+    default void cambiarEstadoMatricula(ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L822">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCambiarEstadoMatriculaMethod(), responseObserver);</span>
+<span class="nc" id="L823">    }</span>
+
+    /**
+     */
+    default void listarMatriculas(ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt; responseObserver) {
+<span class="nc" id="L829">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarMatriculasMethod(), responseObserver);</span>
+<span class="nc" id="L830">    }</span>
+
+    /**
+     * &lt;pre&gt;
+     * Representantes (mirror en sga_principal.representantes)
+     * &lt;/pre&gt;
+     */
+    default void obtenerRepresentante(ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt; responseObserver) {
+<span class="nc" id="L839">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getObtenerRepresentanteMethod(), responseObserver);</span>
+<span class="nc" id="L840">    }</span>
+
+    /**
+     */
+    default void listarRepresentantesPorEstudiantes(ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt; responseObserver) {
+<span class="nc" id="L846">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListarRepresentantesPorEstudiantesMethod(), responseObserver);</span>
+<span class="nc" id="L847">    }</span>
+  }
+
+  /**
+   * Base class for the server implementation of the service PrincipalService.
+   * &lt;pre&gt;
+   * Contrato expuesto por sga-principal para que otros microservicios
+   * (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+   * lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+   * directo. Estudiante y Matricula (crear/actualizar/listar/obtener/
+   * cambiarEstado) viven en tablas propias de sga_principal y se manejan
+   * aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+   * Representante (ficha completa)/FichaEstudiante siguen siendo SQL
+   * directo desde Secretaría por ahora (migración pendiente).
+   * &lt;/pre&gt;
+   */
+<span class="nc" id="L863">  public static abstract class PrincipalServiceImplBase</span>
+      implements io.grpc.BindableService, AsyncService {
+
+    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+<span class="nc" id="L867">      return PrincipalServiceGrpc.bindService(this);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do asynchronous rpc calls to service PrincipalService.
+   * &lt;pre&gt;
+   * Contrato expuesto por sga-principal para que otros microservicios
+   * (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+   * lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+   * directo. Estudiante y Matricula (crear/actualizar/listar/obtener/
+   * cambiarEstado) viven en tablas propias de sga_principal y se manejan
+   * aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+   * Representante (ficha completa)/FichaEstudiante siguen siendo SQL
+   * directo desde Secretaría por ahora (migración pendiente).
+   * &lt;/pre&gt;
+   */
+  public static final class PrincipalServiceStub
+      extends io.grpc.stub.AbstractAsyncStub&lt;PrincipalServiceStub&gt; {
+    private PrincipalServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L888">      super(channel, callOptions);</span>
+<span class="nc" id="L889">    }</span>
+
+    @java.lang.Override
+    protected PrincipalServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L894">      return new PrincipalServiceStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public void listarAnosLectivos(ec.edu.uteq.sga.grpc.principal.Empty request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt; responseObserver) {
+<span class="nc" id="L901">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L902">          getChannel().newCall(getListarAnosLectivosMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L903">    }</span>
+
+    /**
+     */
+    public void listarGrados(ec.edu.uteq.sga.grpc.principal.Empty request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradosResponse&gt; responseObserver) {
+<span class="nc" id="L909">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L910">          getChannel().newCall(getListarGradosMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L911">    }</span>
+
+    /**
+     */
+    public void listarParalelos(ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt; responseObserver) {
+<span class="nc" id="L917">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L918">          getChannel().newCall(getListarParalelosMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L919">    }</span>
+
+    /**
+     */
+    public void crearGrado(ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt; responseObserver) {
+<span class="nc" id="L925">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L926">          getChannel().newCall(getCrearGradoMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L927">    }</span>
+
+    /**
+     */
+    public void actualizarGrado(ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt; responseObserver) {
+<span class="nc" id="L933">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L934">          getChannel().newCall(getActualizarGradoMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L935">    }</span>
+
+    /**
+     */
+    public void cambiarEstadoGrado(ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L941">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L942">          getChannel().newCall(getCambiarEstadoGradoMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L943">    }</span>
+
+    /**
+     */
+    public void crearParalelo(ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt; responseObserver) {
+<span class="nc" id="L949">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L950">          getChannel().newCall(getCrearParaleloMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L951">    }</span>
+
+    /**
+     */
+    public void cambiarEstadoParalelo(ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L957">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L958">          getChannel().newCall(getCambiarEstadoParaleloMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L959">    }</span>
+
+    /**
+     */
+    public void listarAsignaturas(ec.edu.uteq.sga.grpc.principal.Empty request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt; responseObserver) {
+<span class="nc" id="L965">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L966">          getChannel().newCall(getListarAsignaturasMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L967">    }</span>
+
+    /**
+     */
+    public void crearEstudiante(ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; responseObserver) {
+<span class="nc" id="L973">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L974">          getChannel().newCall(getCrearEstudianteMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L975">    }</span>
+
+    /**
+     */
+    public void actualizarEstudiante(ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; responseObserver) {
+<span class="nc" id="L981">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L982">          getChannel().newCall(getActualizarEstudianteMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L983">    }</span>
+
+    /**
+     */
+    public void listarEstudiantes(ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt; responseObserver) {
+<span class="nc" id="L989">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L990">          getChannel().newCall(getListarEstudiantesMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L991">    }</span>
+
+    /**
+     */
+    public void obtenerEstudiante(ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; responseObserver) {
+<span class="nc" id="L997">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L998">          getChannel().newCall(getObtenerEstudianteMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L999">    }</span>
+
+    /**
+     */
+    public void cambiarEstadoEstudiante(ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L1005">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1006">          getChannel().newCall(getCambiarEstadoEstudianteMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1007">    }</span>
+
+    /**
+     */
+    public void crearMatricula(ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; responseObserver) {
+<span class="nc" id="L1013">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1014">          getChannel().newCall(getCrearMatriculaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1015">    }</span>
+
+    /**
+     */
+    public void obtenerMatricula(ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; responseObserver) {
+<span class="nc" id="L1021">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1022">          getChannel().newCall(getObtenerMatriculaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1023">    }</span>
+
+    /**
+     */
+    public void cambiarEstadoMatricula(ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; responseObserver) {
+<span class="nc" id="L1029">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1030">          getChannel().newCall(getCambiarEstadoMatriculaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1031">    }</span>
+
+    /**
+     */
+    public void listarMatriculas(ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt; responseObserver) {
+<span class="nc" id="L1037">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1038">          getChannel().newCall(getListarMatriculasMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1039">    }</span>
+
+    /**
+     * &lt;pre&gt;
+     * Representantes (mirror en sga_principal.representantes)
+     * &lt;/pre&gt;
+     */
+    public void obtenerRepresentante(ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt; responseObserver) {
+<span class="nc" id="L1048">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1049">          getChannel().newCall(getObtenerRepresentanteMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1050">    }</span>
+
+    /**
+     */
+    public void listarRepresentantesPorEstudiantes(ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt; responseObserver) {
+<span class="nc" id="L1056">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L1057">          getChannel().newCall(getListarRepresentantesPorEstudiantesMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L1058">    }</span>
+  }
+
+  /**
+   * A stub to allow clients to do synchronous rpc calls to service PrincipalService.
+   * &lt;pre&gt;
+   * Contrato expuesto por sga-principal para que otros microservicios
+   * (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+   * lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+   * directo. Estudiante y Matricula (crear/actualizar/listar/obtener/
+   * cambiarEstado) viven en tablas propias de sga_principal y se manejan
+   * aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+   * Representante (ficha completa)/FichaEstudiante siguen siendo SQL
+   * directo desde Secretaría por ahora (migración pendiente).
+   * &lt;/pre&gt;
+   */
+  public static final class PrincipalServiceBlockingStub
+      extends io.grpc.stub.AbstractBlockingStub&lt;PrincipalServiceBlockingStub&gt; {
+    private PrincipalServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L1078">      super(channel, callOptions);</span>
+<span class="nc" id="L1079">    }</span>
+
+    @java.lang.Override
+    protected PrincipalServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L1084">      return new PrincipalServiceBlockingStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse listarAnosLectivos(ec.edu.uteq.sga.grpc.principal.Empty request) {
+<span class="nc" id="L1090">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1091">          getChannel(), getListarAnosLectivosMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.GradosResponse listarGrados(ec.edu.uteq.sga.grpc.principal.Empty request) {
+<span class="nc" id="L1097">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1098">          getChannel(), getListarGradosMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.ParalelosResponse listarParalelos(ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest request) {
+<span class="nc" id="L1104">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1105">          getChannel(), getListarParalelosMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.GradoProto crearGrado(ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request) {
+<span class="nc" id="L1111">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1112">          getChannel(), getCrearGradoMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.GradoProto actualizarGrado(ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request) {
+<span class="nc" id="L1118">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1119">          getChannel(), getActualizarGradoMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.Empty cambiarEstadoGrado(ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest request) {
+<span class="nc" id="L1125">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1126">          getChannel(), getCambiarEstadoGradoMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.ParaleloProto crearParalelo(ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest request) {
+<span class="nc" id="L1132">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1133">          getChannel(), getCrearParaleloMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.Empty cambiarEstadoParalelo(ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest request) {
+<span class="nc" id="L1139">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1140">          getChannel(), getCambiarEstadoParaleloMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.AsignaturasResponse listarAsignaturas(ec.edu.uteq.sga.grpc.principal.Empty request) {
+<span class="nc" id="L1146">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1147">          getChannel(), getListarAsignaturasMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.EstudianteProto crearEstudiante(ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request) {
+<span class="nc" id="L1153">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1154">          getChannel(), getCrearEstudianteMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.EstudianteProto actualizarEstudiante(ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request) {
+<span class="nc" id="L1160">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1161">          getChannel(), getActualizarEstudianteMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse listarEstudiantes(ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest request) {
+<span class="nc" id="L1167">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1168">          getChannel(), getListarEstudiantesMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.EstudianteProto obtenerEstudiante(ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest request) {
+<span class="nc" id="L1174">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1175">          getChannel(), getObtenerEstudianteMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.Empty cambiarEstadoEstudiante(ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest request) {
+<span class="nc" id="L1181">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1182">          getChannel(), getCambiarEstadoEstudianteMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.MatriculaProto crearMatricula(ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest request) {
+<span class="nc" id="L1188">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1189">          getChannel(), getCrearMatriculaMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.MatriculaProto obtenerMatricula(ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest request) {
+<span class="nc" id="L1195">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1196">          getChannel(), getObtenerMatriculaMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.Empty cambiarEstadoMatricula(ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest request) {
+<span class="nc" id="L1202">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1203">          getChannel(), getCambiarEstadoMatriculaMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse listarMatriculas(ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest request) {
+<span class="nc" id="L1209">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1210">          getChannel(), getListarMatriculasMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     * &lt;pre&gt;
+     * Representantes (mirror en sga_principal.representantes)
+     * &lt;/pre&gt;
+     */
+    public ec.edu.uteq.sga.grpc.principal.RepresentanteProto obtenerRepresentante(ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest request) {
+<span class="nc" id="L1219">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1220">          getChannel(), getObtenerRepresentanteMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.principal.RepresentantesResponse listarRepresentantesPorEstudiantes(ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest request) {
+<span class="nc" id="L1226">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L1227">          getChannel(), getListarRepresentantesPorEstudiantesMethod(), getCallOptions(), request);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do ListenableFuture-style rpc calls to service PrincipalService.
+   * &lt;pre&gt;
+   * Contrato expuesto por sga-principal para que otros microservicios
+   * (Secretaría, Soporte, etc.) lean el catálogo institucional (años
+   * lectivos/grados/paralelos/asignaturas) sin tocar su base de datos
+   * directo. Estudiante y Matricula (crear/actualizar/listar/obtener/
+   * cambiarEstado) viven en tablas propias de sga_principal y se manejan
+   * aquí por completo — Secretaría ya no hace SQL directo a esas tablas.
+   * Representante (ficha completa)/FichaEstudiante siguen siendo SQL
+   * directo desde Secretaría por ahora (migración pendiente).
+   * &lt;/pre&gt;
+   */
+  public static final class PrincipalServiceFutureStub
+      extends io.grpc.stub.AbstractFutureStub&lt;PrincipalServiceFutureStub&gt; {
+    private PrincipalServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L1248">      super(channel, callOptions);</span>
+<span class="nc" id="L1249">    }</span>
+
+    @java.lang.Override
+    protected PrincipalServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L1254">      return new PrincipalServiceFutureStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt; listarAnosLectivos(
+        ec.edu.uteq.sga.grpc.principal.Empty request) {
+<span class="nc" id="L1261">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1262">          getChannel().newCall(getListarAnosLectivosMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.GradosResponse&gt; listarGrados(
+        ec.edu.uteq.sga.grpc.principal.Empty request) {
+<span class="nc" id="L1269">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1270">          getChannel().newCall(getListarGradosMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt; listarParalelos(
+        ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest request) {
+<span class="nc" id="L1277">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1278">          getChannel().newCall(getListarParalelosMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt; crearGrado(
+        ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request) {
+<span class="nc" id="L1285">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1286">          getChannel().newCall(getCrearGradoMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt; actualizarGrado(
+        ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest request) {
+<span class="nc" id="L1293">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1294">          getChannel().newCall(getActualizarGradoMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; cambiarEstadoGrado(
+        ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest request) {
+<span class="nc" id="L1301">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1302">          getChannel().newCall(getCambiarEstadoGradoMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt; crearParalelo(
+        ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest request) {
+<span class="nc" id="L1309">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1310">          getChannel().newCall(getCrearParaleloMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; cambiarEstadoParalelo(
+        ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest request) {
+<span class="nc" id="L1317">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1318">          getChannel().newCall(getCambiarEstadoParaleloMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt; listarAsignaturas(
+        ec.edu.uteq.sga.grpc.principal.Empty request) {
+<span class="nc" id="L1325">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1326">          getChannel().newCall(getListarAsignaturasMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; crearEstudiante(
+        ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request) {
+<span class="nc" id="L1333">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1334">          getChannel().newCall(getCrearEstudianteMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; actualizarEstudiante(
+        ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest request) {
+<span class="nc" id="L1341">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1342">          getChannel().newCall(getActualizarEstudianteMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt; listarEstudiantes(
+        ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest request) {
+<span class="nc" id="L1349">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1350">          getChannel().newCall(getListarEstudiantesMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt; obtenerEstudiante(
+        ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest request) {
+<span class="nc" id="L1357">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1358">          getChannel().newCall(getObtenerEstudianteMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; cambiarEstadoEstudiante(
+        ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest request) {
+<span class="nc" id="L1365">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1366">          getChannel().newCall(getCambiarEstadoEstudianteMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; crearMatricula(
+        ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest request) {
+<span class="nc" id="L1373">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1374">          getChannel().newCall(getCrearMatriculaMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt; obtenerMatricula(
+        ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest request) {
+<span class="nc" id="L1381">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1382">          getChannel().newCall(getObtenerMatriculaMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt; cambiarEstadoMatricula(
+        ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest request) {
+<span class="nc" id="L1389">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1390">          getChannel().newCall(getCambiarEstadoMatriculaMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt; listarMatriculas(
+        ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest request) {
+<span class="nc" id="L1397">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1398">          getChannel().newCall(getListarMatriculasMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     * &lt;pre&gt;
+     * Representantes (mirror en sga_principal.representantes)
+     * &lt;/pre&gt;
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt; obtenerRepresentante(
+        ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest request) {
+<span class="nc" id="L1408">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1409">          getChannel().newCall(getObtenerRepresentanteMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt; listarRepresentantesPorEstudiantes(
+        ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest request) {
+<span class="nc" id="L1416">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L1417">          getChannel().newCall(getListarRepresentantesPorEstudiantesMethod(), getCallOptions()), request);</span>
+    }
+  }
+
+  private static final int METHODID_LISTAR_ANOS_LECTIVOS = 0;
+  private static final int METHODID_LISTAR_GRADOS = 1;
+  private static final int METHODID_LISTAR_PARALELOS = 2;
+  private static final int METHODID_CREAR_GRADO = 3;
+  private static final int METHODID_ACTUALIZAR_GRADO = 4;
+  private static final int METHODID_CAMBIAR_ESTADO_GRADO = 5;
+  private static final int METHODID_CREAR_PARALELO = 6;
+  private static final int METHODID_CAMBIAR_ESTADO_PARALELO = 7;
+  private static final int METHODID_LISTAR_ASIGNATURAS = 8;
+  private static final int METHODID_CREAR_ESTUDIANTE = 9;
+  private static final int METHODID_ACTUALIZAR_ESTUDIANTE = 10;
+  private static final int METHODID_LISTAR_ESTUDIANTES = 11;
+  private static final int METHODID_OBTENER_ESTUDIANTE = 12;
+  private static final int METHODID_CAMBIAR_ESTADO_ESTUDIANTE = 13;
+  private static final int METHODID_CREAR_MATRICULA = 14;
+  private static final int METHODID_OBTENER_MATRICULA = 15;
+  private static final int METHODID_CAMBIAR_ESTADO_MATRICULA = 16;
+  private static final int METHODID_LISTAR_MATRICULAS = 17;
+  private static final int METHODID_OBTENER_REPRESENTANTE = 18;
+  private static final int METHODID_LISTAR_REPRESENTANTES_POR_ESTUDIANTES = 19;
+
+  private static final class MethodHandlers&lt;Req, Resp&gt; implements
+      io.grpc.stub.ServerCalls.UnaryMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ServerStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ClientStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.BidiStreamingMethod&lt;Req, Resp&gt; {
+    private final AsyncService serviceImpl;
+    private final int methodId;
+
+<span class="nc" id="L1450">    MethodHandlers(AsyncService serviceImpl, int methodId) {</span>
+<span class="nc" id="L1451">      this.serviceImpl = serviceImpl;</span>
+<span class="nc" id="L1452">      this.methodId = methodId;</span>
+<span class="nc" id="L1453">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public void invoke(Req request, io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc bnc" id="L1458" title="All 21 branches missed.">      switch (methodId) {</span>
+        case METHODID_LISTAR_ANOS_LECTIVOS:
+<span class="nc" id="L1460">          serviceImpl.listarAnosLectivos((ec.edu.uteq.sga.grpc.principal.Empty) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt;) responseObserver);
+<span class="nc" id="L1462">          break;</span>
+        case METHODID_LISTAR_GRADOS:
+<span class="nc" id="L1464">          serviceImpl.listarGrados((ec.edu.uteq.sga.grpc.principal.Empty) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradosResponse&gt;) responseObserver);
+<span class="nc" id="L1466">          break;</span>
+        case METHODID_LISTAR_PARALELOS:
+<span class="nc" id="L1468">          serviceImpl.listarParalelos((ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt;) responseObserver);
+<span class="nc" id="L1470">          break;</span>
+        case METHODID_CREAR_GRADO:
+<span class="nc" id="L1472">          serviceImpl.crearGrado((ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt;) responseObserver);
+<span class="nc" id="L1474">          break;</span>
+        case METHODID_ACTUALIZAR_GRADO:
+<span class="nc" id="L1476">          serviceImpl.actualizarGrado((ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.GradoProto&gt;) responseObserver);
+<span class="nc" id="L1478">          break;</span>
+        case METHODID_CAMBIAR_ESTADO_GRADO:
+<span class="nc" id="L1480">          serviceImpl.cambiarEstadoGrado((ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt;) responseObserver);
+<span class="nc" id="L1482">          break;</span>
+        case METHODID_CREAR_PARALELO:
+<span class="nc" id="L1484">          serviceImpl.crearParalelo((ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt;) responseObserver);
+<span class="nc" id="L1486">          break;</span>
+        case METHODID_CAMBIAR_ESTADO_PARALELO:
+<span class="nc" id="L1488">          serviceImpl.cambiarEstadoParalelo((ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt;) responseObserver);
+<span class="nc" id="L1490">          break;</span>
+        case METHODID_LISTAR_ASIGNATURAS:
+<span class="nc" id="L1492">          serviceImpl.listarAsignaturas((ec.edu.uteq.sga.grpc.principal.Empty) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt;) responseObserver);
+<span class="nc" id="L1494">          break;</span>
+        case METHODID_CREAR_ESTUDIANTE:
+<span class="nc" id="L1496">          serviceImpl.crearEstudiante((ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;) responseObserver);
+<span class="nc" id="L1498">          break;</span>
+        case METHODID_ACTUALIZAR_ESTUDIANTE:
+<span class="nc" id="L1500">          serviceImpl.actualizarEstudiante((ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;) responseObserver);
+<span class="nc" id="L1502">          break;</span>
+        case METHODID_LISTAR_ESTUDIANTES:
+<span class="nc" id="L1504">          serviceImpl.listarEstudiantes((ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt;) responseObserver);
+<span class="nc" id="L1506">          break;</span>
+        case METHODID_OBTENER_ESTUDIANTE:
+<span class="nc" id="L1508">          serviceImpl.obtenerEstudiante((ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;) responseObserver);
+<span class="nc" id="L1510">          break;</span>
+        case METHODID_CAMBIAR_ESTADO_ESTUDIANTE:
+<span class="nc" id="L1512">          serviceImpl.cambiarEstadoEstudiante((ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt;) responseObserver);
+<span class="nc" id="L1514">          break;</span>
+        case METHODID_CREAR_MATRICULA:
+<span class="nc" id="L1516">          serviceImpl.crearMatricula((ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt;) responseObserver);
+<span class="nc" id="L1518">          break;</span>
+        case METHODID_OBTENER_MATRICULA:
+<span class="nc" id="L1520">          serviceImpl.obtenerMatricula((ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt;) responseObserver);
+<span class="nc" id="L1522">          break;</span>
+        case METHODID_CAMBIAR_ESTADO_MATRICULA:
+<span class="nc" id="L1524">          serviceImpl.cambiarEstadoMatricula((ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.Empty&gt;) responseObserver);
+<span class="nc" id="L1526">          break;</span>
+        case METHODID_LISTAR_MATRICULAS:
+<span class="nc" id="L1528">          serviceImpl.listarMatriculas((ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt;) responseObserver);
+<span class="nc" id="L1530">          break;</span>
+        case METHODID_OBTENER_REPRESENTANTE:
+<span class="nc" id="L1532">          serviceImpl.obtenerRepresentante((ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt;) responseObserver);
+<span class="nc" id="L1534">          break;</span>
+        case METHODID_LISTAR_REPRESENTANTES_POR_ESTUDIANTES:
+<span class="nc" id="L1536">          serviceImpl.listarRepresentantesPorEstudiantes((ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt;) responseObserver);
+<span class="nc" id="L1538">          break;</span>
+        default:
+<span class="nc" id="L1540">          throw new AssertionError();</span>
+      }
+<span class="nc" id="L1542">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public io.grpc.stub.StreamObserver&lt;Req&gt; invoke(
+        io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc" id="L1548">      switch (methodId) {</span>
+        default:
+<span class="nc" id="L1550">          throw new AssertionError();</span>
+      }
+    }
+  }
+
+  public static final io.grpc.ServerServiceDefinition bindService(AsyncService service) {
+    return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+        .addMethod(
+          getListarAnosLectivosMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.Empty,
+              ec.edu.uteq.sga.grpc.principal.AnosLectivosResponse&gt;(
+                service, METHODID_LISTAR_ANOS_LECTIVOS)))
+        .addMethod(
+          getListarGradosMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.Empty,
+              ec.edu.uteq.sga.grpc.principal.GradosResponse&gt;(
+                service, METHODID_LISTAR_GRADOS)))
+        .addMethod(
+          getListarParalelosMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ListarParalelosRequest,
+              ec.edu.uteq.sga.grpc.principal.ParalelosResponse&gt;(
+                service, METHODID_LISTAR_PARALELOS)))
+        .addMethod(
+          getCrearGradoMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest,
+              ec.edu.uteq.sga.grpc.principal.GradoProto&gt;(
+                service, METHODID_CREAR_GRADO)))
+        .addMethod(
+          getActualizarGradoMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest,
+              ec.edu.uteq.sga.grpc.principal.GradoProto&gt;(
+                service, METHODID_ACTUALIZAR_GRADO)))
+        .addMethod(
+          getCambiarEstadoGradoMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.CambiarEstadoGradoRequest,
+              ec.edu.uteq.sga.grpc.principal.Empty&gt;(
+                service, METHODID_CAMBIAR_ESTADO_GRADO)))
+        .addMethod(
+          getCrearParaleloMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.GuardarParaleloRequest,
+              ec.edu.uteq.sga.grpc.principal.ParaleloProto&gt;(
+                service, METHODID_CREAR_PARALELO)))
+        .addMethod(
+          getCambiarEstadoParaleloMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.CambiarEstadoParaleloRequest,
+              ec.edu.uteq.sga.grpc.principal.Empty&gt;(
+                service, METHODID_CAMBIAR_ESTADO_PARALELO)))
+        .addMethod(
+          getListarAsignaturasMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.Empty,
+              ec.edu.uteq.sga.grpc.principal.AsignaturasResponse&gt;(
+                service, METHODID_LISTAR_ASIGNATURAS)))
+        .addMethod(
+          getCrearEstudianteMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest,
+              ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;(
+                service, METHODID_CREAR_ESTUDIANTE)))
+        .addMethod(
+          getActualizarEstudianteMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.GuardarEstudianteRequest,
+              ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;(
+                service, METHODID_ACTUALIZAR_ESTUDIANTE)))
+        .addMethod(
+          getListarEstudiantesMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ListarEstudiantesRequest,
+              ec.edu.uteq.sga.grpc.principal.ListarEstudiantesResponse&gt;(
+                service, METHODID_LISTAR_ESTUDIANTES)))
+        .addMethod(
+          getObtenerEstudianteMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ObtenerEstudianteRequest,
+              ec.edu.uteq.sga.grpc.principal.EstudianteProto&gt;(
+                service, METHODID_OBTENER_ESTUDIANTE)))
+        .addMethod(
+          getCambiarEstadoEstudianteMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.CambiarEstadoEstudianteRequest,
+              ec.edu.uteq.sga.grpc.principal.Empty&gt;(
+                service, METHODID_CAMBIAR_ESTADO_ESTUDIANTE)))
+        .addMethod(
+          getCrearMatriculaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest,
+              ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt;(
+                service, METHODID_CREAR_MATRICULA)))
+        .addMethod(
+          getObtenerMatriculaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ObtenerMatriculaRequest,
+              ec.edu.uteq.sga.grpc.principal.MatriculaProto&gt;(
+                service, METHODID_OBTENER_MATRICULA)))
+        .addMethod(
+          getCambiarEstadoMatriculaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.CambiarEstadoMatriculaRequest,
+              ec.edu.uteq.sga.grpc.principal.Empty&gt;(
+                service, METHODID_CAMBIAR_ESTADO_MATRICULA)))
+        .addMethod(
+          getListarMatriculasMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest,
+              ec.edu.uteq.sga.grpc.principal.ListarMatriculasResponse&gt;(
+                service, METHODID_LISTAR_MATRICULAS)))
+        .addMethod(
+          getObtenerRepresentanteMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ObtenerRepresentanteRequest,
+              ec.edu.uteq.sga.grpc.principal.RepresentanteProto&gt;(
+                service, METHODID_OBTENER_REPRESENTANTE)))
+        .addMethod(
+          getListarRepresentantesPorEstudiantesMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.principal.ListarRepresentantesPorEstudiantesRequest,
+              ec.edu.uteq.sga.grpc.principal.RepresentantesResponse&gt;(
+                service, METHODID_LISTAR_REPRESENTANTES_POR_ESTUDIANTES)))
+        .build();
+  }
+
+  private static abstract class PrincipalServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
+<span class="nc" id="L1702">    PrincipalServiceBaseDescriptorSupplier() {}</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
+<span class="nc" id="L1706">      return ec.edu.uteq.sga.grpc.principal.Principal.getDescriptor();</span>
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
+<span class="nc" id="L1711">      return getFileDescriptor().findServiceByName(&quot;PrincipalService&quot;);</span>
+    }
+  }
+
+  private static final class PrincipalServiceFileDescriptorSupplier
+      extends PrincipalServiceBaseDescriptorSupplier {
+<span class="nc" id="L1717">    PrincipalServiceFileDescriptorSupplier() {}</span>
+  }
+
+  private static final class PrincipalServiceMethodDescriptorSupplier
+      extends PrincipalServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
+    private final java.lang.String methodName;
+
+<span class="nc" id="L1725">    PrincipalServiceMethodDescriptorSupplier(java.lang.String methodName) {</span>
+<span class="nc" id="L1726">      this.methodName = methodName;</span>
+<span class="nc" id="L1727">    }</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
+<span class="nc" id="L1731">      return getServiceDescriptor().findMethodByName(methodName);</span>
+    }
+  }
+
+  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
+
+  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
+    io.grpc.ServiceDescriptor result = serviceDescriptor;
+    if (result == null) {
+      synchronized (PrincipalServiceGrpc.class) {
+        result = serviceDescriptor;
+        if (result == null) {
+          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
+              .setSchemaDescriptor(new PrincipalServiceFileDescriptorSupplier())
+              .addMethod(getListarAnosLectivosMethod())
+              .addMethod(getListarGradosMethod())
+              .addMethod(getListarParalelosMethod())
+              .addMethod(getCrearGradoMethod())
+              .addMethod(getActualizarGradoMethod())
+              .addMethod(getCambiarEstadoGradoMethod())
+              .addMethod(getCrearParaleloMethod())
+              .addMethod(getCambiarEstadoParaleloMethod())
+              .addMethod(getListarAsignaturasMethod())
+              .addMethod(getCrearEstudianteMethod())
+              .addMethod(getActualizarEstudianteMethod())
+              .addMethod(getListarEstudiantesMethod())
+              .addMethod(getObtenerEstudianteMethod())
+              .addMethod(getCambiarEstadoEstudianteMethod())
+              .addMethod(getCrearMatriculaMethod())
+              .addMethod(getObtenerMatriculaMethod())
+              .addMethod(getCambiarEstadoMatriculaMethod())
+              .addMethod(getListarMatriculasMethod())
+              .addMethod(getObtenerRepresentanteMethod())
+              .addMethod(getListarRepresentantesPorEstudiantesMethod())
+              .build();
+        }
+      }
+    }
+    return result;
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

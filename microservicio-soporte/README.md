@@ -68,3 +68,17 @@ Base: `/api/soporte` (protegida por JWT, roles SOPORTE_TECNICO / DIRECTOR).
 | GET    | `/tickets/{id}/comentarios`   | Listar comentarios |
 | POST   | `/tickets/{id}/comentarios`   | Agregar comentario |
 | GET    | `/health`                     | Estado del servicio |
+
+## Pruebas de Carga (Locust)
+
+El microservicio cuenta con su script de pruebas de carga en `locustfile.py` y una guía en `INSTRUCCIONES_PRUEBA_CARGA.md`.
+
+Para ejecutar la prueba de 50 usuarios durante 60 segundos:
+```powershell
+.\ejecutar_prueba.ps1
+```
+O manualmente:
+```powershell
+locust -f locustfile.py --headless -u 50 -r 10 --run-time 60s --host http://localhost:8083 --html reporte_soporte.html --csv resultados_soporte
+```
+

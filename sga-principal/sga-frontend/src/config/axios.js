@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+
 const api = axios.create({
-  baseURL: `http://${window.location.hostname}:8080`,
+  baseURL: import.meta.env.VITE_API_URL || `http://${host}:8080`,
 });
 
 api.interceptors.request.use(
@@ -18,7 +20,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    const isLoginRequest = error.config?.url?.includes("/auth/login");
+    if (error.response && (error.response.status === 401 || error.response.status === 403) && !isLoginRequest) {
       // Clear localStorage and redirect to login if unauthorized
       localStorage.clear();
       window.location.href = "/login";
@@ -28,3 +31,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

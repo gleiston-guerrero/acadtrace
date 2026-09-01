@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsistenciaServiceGrpc.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.grpc.asistencia</a> &gt; <span class="el_source">AsistenciaServiceGrpc.java</span></div><h1>AsistenciaServiceGrpc.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.grpc.asistencia;
+
+import static io.grpc.MethodDescriptor.generateFullMethodName;
+
+/**
+ */
+@javax.annotation.Generated(
+    value = &quot;by gRPC proto compiler (version 1.65.1)&quot;,
+    comments = &quot;Source: asistencia.proto&quot;)
+@io.grpc.stub.annotations.GrpcGenerated
+public final class AsistenciaServiceGrpc {
+
+  private AsistenciaServiceGrpc() {}
+
+  public static final java.lang.String SERVICE_NAME = &quot;asistencia.AsistenciaService&quot;;
+
+  // Static method descriptors that strictly reflect the proto.
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest,
+      ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; getRegistrarAsistenciaGrupalMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;RegistrarAsistenciaGrupal&quot;,
+      requestType = ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest,
+      ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; getRegistrarAsistenciaGrupalMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest, ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; getRegistrarAsistenciaGrupalMethod;
+    if ((getRegistrarAsistenciaGrupalMethod = AsistenciaServiceGrpc.getRegistrarAsistenciaGrupalMethod) == null) {
+      synchronized (AsistenciaServiceGrpc.class) {
+        if ((getRegistrarAsistenciaGrupalMethod = AsistenciaServiceGrpc.getRegistrarAsistenciaGrupalMethod) == null) {
+          AsistenciaServiceGrpc.getRegistrarAsistenciaGrupalMethod = getRegistrarAsistenciaGrupalMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest, ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;RegistrarAsistenciaGrupal&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AsistenciaServiceMethodDescriptorSupplier(&quot;RegistrarAsistenciaGrupal&quot;))
+              .build();
+        }
+      }
+    }
+    return getRegistrarAsistenciaGrupalMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest,
+      ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt; getActualizarAsistenciaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ActualizarAsistencia&quot;,
+      requestType = ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest,
+      ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt; getActualizarAsistenciaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest, ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt; getActualizarAsistenciaMethod;
+    if ((getActualizarAsistenciaMethod = AsistenciaServiceGrpc.getActualizarAsistenciaMethod) == null) {
+      synchronized (AsistenciaServiceGrpc.class) {
+        if ((getActualizarAsistenciaMethod = AsistenciaServiceGrpc.getActualizarAsistenciaMethod) == null) {
+          AsistenciaServiceGrpc.getActualizarAsistenciaMethod = getActualizarAsistenciaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest, ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ActualizarAsistencia&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AsistenciaServiceMethodDescriptorSupplier(&quot;ActualizarAsistencia&quot;))
+              .build();
+        }
+      }
+    }
+    return getActualizarAsistenciaMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest,
+      ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; getConsultarAsistenciaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ConsultarAsistencia&quot;,
+      requestType = ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest,
+      ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; getConsultarAsistenciaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest, ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; getConsultarAsistenciaMethod;
+    if ((getConsultarAsistenciaMethod = AsistenciaServiceGrpc.getConsultarAsistenciaMethod) == null) {
+      synchronized (AsistenciaServiceGrpc.class) {
+        if ((getConsultarAsistenciaMethod = AsistenciaServiceGrpc.getConsultarAsistenciaMethod) == null) {
+          AsistenciaServiceGrpc.getConsultarAsistenciaMethod = getConsultarAsistenciaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest, ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ConsultarAsistencia&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AsistenciaServiceMethodDescriptorSupplier(&quot;ConsultarAsistencia&quot;))
+              .build();
+        }
+      }
+    }
+    return getConsultarAsistenciaMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest,
+      ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt; getConsultarResumenAsistenciaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ConsultarResumenAsistencia&quot;,
+      requestType = ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest,
+      ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt; getConsultarResumenAsistenciaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest, ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt; getConsultarResumenAsistenciaMethod;
+    if ((getConsultarResumenAsistenciaMethod = AsistenciaServiceGrpc.getConsultarResumenAsistenciaMethod) == null) {
+      synchronized (AsistenciaServiceGrpc.class) {
+        if ((getConsultarResumenAsistenciaMethod = AsistenciaServiceGrpc.getConsultarResumenAsistenciaMethod) == null) {
+          AsistenciaServiceGrpc.getConsultarResumenAsistenciaMethod = getConsultarResumenAsistenciaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest, ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ConsultarResumenAsistencia&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AsistenciaServiceMethodDescriptorSupplier(&quot;ConsultarResumenAsistencia&quot;))
+              .build();
+        }
+      }
+    }
+    return getConsultarResumenAsistenciaMethod;
+  }
+
+  /**
+   * Creates a new async stub that supports all call types for the service
+   */
+  public static AsistenciaServiceStub newStub(io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;AsistenciaServiceStub&gt; factory =
+<span class="nc" id="L147">      new io.grpc.stub.AbstractStub.StubFactory&lt;AsistenciaServiceStub&gt;() {</span>
+        @java.lang.Override
+        public AsistenciaServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L150">          return new AsistenciaServiceStub(channel, callOptions);</span>
+        }
+      };
+    return AsistenciaServiceStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new blocking-style stub that supports unary and streaming output calls on the service
+   */
+  public static AsistenciaServiceBlockingStub newBlockingStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;AsistenciaServiceBlockingStub&gt; factory =
+<span class="nc" id="L162">      new io.grpc.stub.AbstractStub.StubFactory&lt;AsistenciaServiceBlockingStub&gt;() {</span>
+        @java.lang.Override
+        public AsistenciaServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L165">          return new AsistenciaServiceBlockingStub(channel, callOptions);</span>
+        }
+      };
+    return AsistenciaServiceBlockingStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new ListenableFuture-style stub that supports unary calls on the service
+   */
+  public static AsistenciaServiceFutureStub newFutureStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;AsistenciaServiceFutureStub&gt; factory =
+<span class="nc" id="L177">      new io.grpc.stub.AbstractStub.StubFactory&lt;AsistenciaServiceFutureStub&gt;() {</span>
+        @java.lang.Override
+        public AsistenciaServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L180">          return new AsistenciaServiceFutureStub(channel, callOptions);</span>
+        }
+      };
+    return AsistenciaServiceFutureStub.newStub(factory, channel);
+  }
+
+  /**
+   */
+  public interface AsyncService {
+
+    /**
+     */
+    default void registrarAsistenciaGrupal(ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; responseObserver) {
+<span class="nc" id="L194">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getRegistrarAsistenciaGrupalMethod(), responseObserver);</span>
+<span class="nc" id="L195">    }</span>
+
+    /**
+     */
+    default void actualizarAsistencia(ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt; responseObserver) {
+<span class="nc" id="L201">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getActualizarAsistenciaMethod(), responseObserver);</span>
+<span class="nc" id="L202">    }</span>
+
+    /**
+     */
+    default void consultarAsistencia(ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; responseObserver) {
+<span class="nc" id="L208">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getConsultarAsistenciaMethod(), responseObserver);</span>
+<span class="nc" id="L209">    }</span>
+
+    /**
+     */
+    default void consultarResumenAsistencia(ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt; responseObserver) {
+<span class="nc" id="L215">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getConsultarResumenAsistenciaMethod(), responseObserver);</span>
+<span class="nc" id="L216">    }</span>
+  }
+
+  /**
+   * Base class for the server implementation of the service AsistenciaService.
+   */
+<span class="nc" id="L222">  public static abstract class AsistenciaServiceImplBase</span>
+      implements io.grpc.BindableService, AsyncService {
+
+    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+<span class="nc" id="L226">      return AsistenciaServiceGrpc.bindService(this);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do asynchronous rpc calls to service AsistenciaService.
+   */
+  public static final class AsistenciaServiceStub
+      extends io.grpc.stub.AbstractAsyncStub&lt;AsistenciaServiceStub&gt; {
+    private AsistenciaServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L237">      super(channel, callOptions);</span>
+<span class="nc" id="L238">    }</span>
+
+    @java.lang.Override
+    protected AsistenciaServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L243">      return new AsistenciaServiceStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public void registrarAsistenciaGrupal(ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; responseObserver) {
+<span class="nc" id="L250">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L251">          getChannel().newCall(getRegistrarAsistenciaGrupalMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L252">    }</span>
+
+    /**
+     */
+    public void actualizarAsistencia(ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt; responseObserver) {
+<span class="nc" id="L258">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L259">          getChannel().newCall(getActualizarAsistenciaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L260">    }</span>
+
+    /**
+     */
+    public void consultarAsistencia(ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; responseObserver) {
+<span class="nc" id="L266">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L267">          getChannel().newCall(getConsultarAsistenciaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L268">    }</span>
+
+    /**
+     */
+    public void consultarResumenAsistencia(ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt; responseObserver) {
+<span class="nc" id="L274">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L275">          getChannel().newCall(getConsultarResumenAsistenciaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L276">    }</span>
+  }
+
+  /**
+   * A stub to allow clients to do synchronous rpc calls to service AsistenciaService.
+   */
+  public static final class AsistenciaServiceBlockingStub
+      extends io.grpc.stub.AbstractBlockingStub&lt;AsistenciaServiceBlockingStub&gt; {
+    private AsistenciaServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L286">      super(channel, callOptions);</span>
+<span class="nc" id="L287">    }</span>
+
+    @java.lang.Override
+    protected AsistenciaServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L292">      return new AsistenciaServiceBlockingStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse registrarAsistenciaGrupal(ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest request) {
+<span class="nc" id="L298">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L299">          getChannel(), getRegistrarAsistenciaGrupalMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse actualizarAsistencia(ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest request) {
+<span class="nc" id="L305">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L306">          getChannel(), getActualizarAsistenciaMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse consultarAsistencia(ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest request) {
+<span class="nc" id="L312">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L313">          getChannel(), getConsultarAsistenciaMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse consultarResumenAsistencia(ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest request) {
+<span class="nc" id="L319">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L320">          getChannel(), getConsultarResumenAsistenciaMethod(), getCallOptions(), request);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do ListenableFuture-style rpc calls to service AsistenciaService.
+   */
+  public static final class AsistenciaServiceFutureStub
+      extends io.grpc.stub.AbstractFutureStub&lt;AsistenciaServiceFutureStub&gt; {
+    private AsistenciaServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L331">      super(channel, callOptions);</span>
+<span class="nc" id="L332">    }</span>
+
+    @java.lang.Override
+    protected AsistenciaServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L337">      return new AsistenciaServiceFutureStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; registrarAsistenciaGrupal(
+        ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest request) {
+<span class="nc" id="L344">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L345">          getChannel().newCall(getRegistrarAsistenciaGrupalMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt; actualizarAsistencia(
+        ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest request) {
+<span class="nc" id="L352">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L353">          getChannel().newCall(getActualizarAsistenciaMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt; consultarAsistencia(
+        ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest request) {
+<span class="nc" id="L360">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L361">          getChannel().newCall(getConsultarAsistenciaMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt; consultarResumenAsistencia(
+        ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest request) {
+<span class="nc" id="L368">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L369">          getChannel().newCall(getConsultarResumenAsistenciaMethod(), getCallOptions()), request);</span>
+    }
+  }
+
+  private static final int METHODID_REGISTRAR_ASISTENCIA_GRUPAL = 0;
+  private static final int METHODID_ACTUALIZAR_ASISTENCIA = 1;
+  private static final int METHODID_CONSULTAR_ASISTENCIA = 2;
+  private static final int METHODID_CONSULTAR_RESUMEN_ASISTENCIA = 3;
+
+  private static final class MethodHandlers&lt;Req, Resp&gt; implements
+      io.grpc.stub.ServerCalls.UnaryMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ServerStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ClientStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.BidiStreamingMethod&lt;Req, Resp&gt; {
+    private final AsyncService serviceImpl;
+    private final int methodId;
+
+<span class="nc" id="L386">    MethodHandlers(AsyncService serviceImpl, int methodId) {</span>
+<span class="nc" id="L387">      this.serviceImpl = serviceImpl;</span>
+<span class="nc" id="L388">      this.methodId = methodId;</span>
+<span class="nc" id="L389">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public void invoke(Req request, io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc bnc" id="L394" title="All 5 branches missed.">      switch (methodId) {</span>
+        case METHODID_REGISTRAR_ASISTENCIA_GRUPAL:
+<span class="nc" id="L396">          serviceImpl.registrarAsistenciaGrupal((ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt;) responseObserver);
+<span class="nc" id="L398">          break;</span>
+        case METHODID_ACTUALIZAR_ASISTENCIA:
+<span class="nc" id="L400">          serviceImpl.actualizarAsistencia((ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt;) responseObserver);
+<span class="nc" id="L402">          break;</span>
+        case METHODID_CONSULTAR_ASISTENCIA:
+<span class="nc" id="L404">          serviceImpl.consultarAsistencia((ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt;) responseObserver);
+<span class="nc" id="L406">          break;</span>
+        case METHODID_CONSULTAR_RESUMEN_ASISTENCIA:
+<span class="nc" id="L408">          serviceImpl.consultarResumenAsistencia((ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt;) responseObserver);
+<span class="nc" id="L410">          break;</span>
+        default:
+<span class="nc" id="L412">          throw new AssertionError();</span>
+      }
+<span class="nc" id="L414">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public io.grpc.stub.StreamObserver&lt;Req&gt; invoke(
+        io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc" id="L420">      switch (methodId) {</span>
+        default:
+<span class="nc" id="L422">          throw new AssertionError();</span>
+      }
+    }
+  }
+
+  public static final io.grpc.ServerServiceDefinition bindService(AsyncService service) {
+    return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+        .addMethod(
+          getRegistrarAsistenciaGrupalMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.asistencia.RegistrarAsistenciaGrupalRequest,
+              ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt;(
+                service, METHODID_REGISTRAR_ASISTENCIA_GRUPAL)))
+        .addMethod(
+          getActualizarAsistenciaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.asistencia.ActualizarAsistenciaRequest,
+              ec.edu.uteq.sga.grpc.asistencia.AsistenciaResponse&gt;(
+                service, METHODID_ACTUALIZAR_ASISTENCIA)))
+        .addMethod(
+          getConsultarAsistenciaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.asistencia.ConsultarAsistenciaRequest,
+              ec.edu.uteq.sga.grpc.asistencia.AsistenciaListResponse&gt;(
+                service, METHODID_CONSULTAR_ASISTENCIA)))
+        .addMethod(
+          getConsultarResumenAsistenciaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.asistencia.ConsultarResumenRequest,
+              ec.edu.uteq.sga.grpc.asistencia.ResumenAsistenciaListResponse&gt;(
+                service, METHODID_CONSULTAR_RESUMEN_ASISTENCIA)))
+        .build();
+  }
+
+  private static abstract class AsistenciaServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
+<span class="nc" id="L462">    AsistenciaServiceBaseDescriptorSupplier() {}</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
+<span class="nc" id="L466">      return ec.edu.uteq.sga.grpc.asistencia.Asistencia.getDescriptor();</span>
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
+<span class="nc" id="L471">      return getFileDescriptor().findServiceByName(&quot;AsistenciaService&quot;);</span>
+    }
+  }
+
+  private static final class AsistenciaServiceFileDescriptorSupplier
+      extends AsistenciaServiceBaseDescriptorSupplier {
+<span class="nc" id="L477">    AsistenciaServiceFileDescriptorSupplier() {}</span>
+  }
+
+  private static final class AsistenciaServiceMethodDescriptorSupplier
+      extends AsistenciaServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
+    private final java.lang.String methodName;
+
+<span class="nc" id="L485">    AsistenciaServiceMethodDescriptorSupplier(java.lang.String methodName) {</span>
+<span class="nc" id="L486">      this.methodName = methodName;</span>
+<span class="nc" id="L487">    }</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
+<span class="nc" id="L491">      return getServiceDescriptor().findMethodByName(methodName);</span>
+    }
+  }
+
+  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
+
+  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
+    io.grpc.ServiceDescriptor result = serviceDescriptor;
+    if (result == null) {
+      synchronized (AsistenciaServiceGrpc.class) {
+        result = serviceDescriptor;
+        if (result == null) {
+          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
+              .setSchemaDescriptor(new AsistenciaServiceFileDescriptorSupplier())
+              .addMethod(getRegistrarAsistenciaGrupalMethod())
+              .addMethod(getActualizarAsistenciaMethod())
+              .addMethod(getConsultarAsistenciaMethod())
+              .addMethod(getConsultarResumenAsistenciaMethod())
+              .build();
+        }
+      }
+    }
+    return result;
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

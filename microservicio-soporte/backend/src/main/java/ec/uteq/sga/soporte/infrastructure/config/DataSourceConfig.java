@@ -1,4 +1,4 @@
-package ec.uteq.sga.soporte.config;
+package ec.uteq.sga.soporte.infrastructure.config;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +46,7 @@ public class DataSourceConfig {
         ds.setMinimumIdle(2);
         ds.setConnectionTimeout(5000);
         ds.setIdleTimeout(30000);
+        ds.setInitializationFailTimeout(-1); // no tumba la app si la 1ra conexion falla; reintenta en background
         return ds;
     }
 

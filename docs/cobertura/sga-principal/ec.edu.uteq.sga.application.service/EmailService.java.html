@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">EmailService.java</span></div><h1>EmailService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
+
+@Service
+@RequiredArgsConstructor
+<span class="nc" id="L12">@Slf4j</span>
+public class EmailService {
+
+    private final JavaMailSender mailSender;
+
+    public void enviarCredenciales(String correo, String nombreCompleto,
+                                   String username, String password) {
+        try {
+<span class="nc" id="L20">            log.info(&quot;Iniciando envío de correo a: {}&quot;, correo);</span>
+<span class="nc" id="L21">            var message = mailSender.createMimeMessage();</span>
+<span class="nc" id="L22">            var helper = new MimeMessageHelper(message, true, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L24">            helper.setTo(correo);</span>
+<span class="nc" id="L25">            helper.setFrom(&quot;kbedonv@uteq.edu.ec&quot;);</span>
+<span class="nc" id="L26">            helper.setSubject(&quot;Bienvenido al SGA — Escuela Provincias Unidas&quot;);</span>
+<span class="nc" id="L27">            helper.setText(construirHtml(nombreCompleto, username, password), true);</span>
+
+<span class="nc" id="L29">            mailSender.send(message);</span>
+<span class="nc" id="L30">            log.info(&quot;✓ Correo de credenciales enviado exitosamente a: {}&quot;, correo);</span>
+<span class="nc" id="L31">        } catch (Exception e) {</span>
+<span class="nc" id="L32">            log.error(&quot;✗ Error crítico al enviar correo a {}: {}&quot;, correo, e.getMessage(), e);</span>
+<span class="nc" id="L33">            throw new RuntimeException(&quot;Error enviando correo: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L34">        }</span>
+<span class="nc" id="L35">    }</span>
+
+    private String construirHtml(String nombre, String username, String password) {
+<span class="nc" id="L38">        return &quot;&quot;&quot;</span>
+            &lt;div style=&quot;font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;&quot;&gt;
+                &lt;div style=&quot;background-color: #243A76; padding: 24px; text-align: center;&quot;&gt;
+                    &lt;h1 style=&quot;color: white; margin: 0; font-size: 20px;&quot;&gt;
+                        Escuela de Educación Básica
+                    &lt;/h1&gt;
+                    &lt;p style=&quot;color: #a8bce8; margin: 4px 0 0 0; font-size: 14px;&quot;&gt;
+                        Provincias Unidas — Rcto. San Basilio
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div style=&quot;padding: 32px; background: #f8fafc; border: 1px solid #e2e8f0;&quot;&gt;
+                    &lt;p style=&quot;color: #334155; font-size: 15px;&quot;&gt;Estimado/a &lt;strong&gt;%s&lt;/strong&gt;,&lt;/p&gt;
+                    &lt;p style=&quot;color: #334155; font-size: 14px;&quot;&gt;
+                        Se ha creado su cuenta en el Sistema de Gestión Académica (SGA).
+                        A continuación sus credenciales de acceso:
+                    &lt;/p&gt;
+                    &lt;div style=&quot;background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;&quot;&gt;
+                        &lt;table style=&quot;width: 100%%;&quot;&gt;
+                            &lt;tr&gt;
+                                &lt;td style=&quot;color: #64748b; font-size: 13px; padding: 6px 0;&quot;&gt;Usuario:&lt;/td&gt;
+                                &lt;td style=&quot;color: #243A76; font-weight: bold; font-size: 15px;&quot;&gt;%s&lt;/td&gt;
+                            &lt;/tr&gt;
+                            &lt;tr&gt;
+                                &lt;td style=&quot;color: #64748b; font-size: 13px; padding: 6px 0;&quot;&gt;Contraseña temporal:&lt;/td&gt;
+                                &lt;td style=&quot;color: #243A76; font-weight: bold; font-size: 15px;&quot;&gt;%s&lt;/td&gt;
+                            &lt;/tr&gt;
+                        &lt;/table&gt;
+                    &lt;/div&gt;
+                    &lt;p style=&quot;color: #ef4444; font-size: 13px; font-weight: bold;&quot;&gt;
+                        ⚠️ Por seguridad, deberá cambiar su contraseña en el primer ingreso.
+                    &lt;/p&gt;
+                    &lt;a href=&quot;http://localhost:5174/login&quot;
+                       style=&quot;display: inline-block; background-color: #243A76; color: white;
+                              padding: 12px 24px; border-radius: 8px; text-decoration: none;
+                              font-size: 14px; margin-top: 8px;&quot;&gt;
+                        Ingresar al sistema
+                    &lt;/a&gt;
+                &lt;/div&gt;
+                &lt;div style=&quot;padding: 16px; text-align: center; background: #243A76;&quot;&gt;
+                    &lt;p style=&quot;color: #a8bce8; font-size: 12px; margin: 0;&quot;&gt;
+                        Sistema de Gestión Académica © 2026
+                    &lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+<span class="nc" id="L82">            &quot;&quot;&quot;.formatted(nombre, username, password);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

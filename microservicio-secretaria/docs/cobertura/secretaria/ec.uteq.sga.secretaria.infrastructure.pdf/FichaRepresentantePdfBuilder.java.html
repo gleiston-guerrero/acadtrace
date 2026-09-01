@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FichaRepresentantePdfBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">FichaRepresentantePdfBuilder.java</span></div><h1>FichaRepresentantePdfBuilder.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.pdf;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
+import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.str;
+
+public final class FichaRepresentantePdfBuilder {
+
+    private FichaRepresentantePdfBuilder() {}
+
+    public static byte[] build(Map&lt;String, Object&gt; representante, PdfTheme theme) throws IOException {
+<span class="nc" id="L18">        try (PDDocument document = new PDDocument()) {</span>
+<span class="nc" id="L19">            PDPage page = new PDPage(PDRectangle.A4);</span>
+<span class="nc" id="L20">            document.addPage(page);</span>
+
+<span class="nc" id="L22">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
+<span class="nc" id="L23">                String nombreCompleto = (str(representante.get(&quot;nombres&quot;)) + &quot; &quot; + str(representante.get(&quot;apellidos&quot;))).trim();</span>
+<span class="nc" id="L24">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Ficha del Representante&quot;, nombreCompleto) + 10;</span>
+
+<span class="nc" id="L26">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS PERSONALES&quot;, y);</span>
+<span class="nc" id="L27">                PdfLayout.drawField(canvas, &quot;Nombres&quot;, str(representante.get(&quot;nombres&quot;)), 40, y);</span>
+<span class="nc" id="L28">                PdfLayout.drawField(canvas, &quot;Apellidos&quot;, str(representante.get(&quot;apellidos&quot;)), 320, y);</span>
+<span class="nc" id="L29">                y += 20;</span>
+<span class="nc" id="L30">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(representante.get(&quot;cedula&quot;)), 40, y);</span>
+<span class="nc" id="L31">                PdfLayout.drawField(canvas, &quot;Parentesco&quot;, str(representante.get(&quot;parentesco&quot;)), 320, y);</span>
+<span class="nc" id="L32">                y += 30;</span>
+
+<span class="nc" id="L34">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS DE CONTACTO&quot;, y);</span>
+<span class="nc" id="L35">                PdfLayout.drawField(canvas, &quot;Teléfono principal&quot;, str(representante.get(&quot;telefono_principal&quot;)), 40, y);</span>
+<span class="nc" id="L36">                PdfLayout.drawField(canvas, &quot;Teléfono alterno&quot;, str(representante.get(&quot;telefono_alt&quot;)), 320, y);</span>
+<span class="nc" id="L37">                y += 20;</span>
+<span class="nc" id="L38">                PdfLayout.drawField(canvas, &quot;Correo electrónico&quot;, str(representante.get(&quot;correo&quot;)), 40, y);</span>
+<span class="nc" id="L39">                y += 20;</span>
+<span class="nc" id="L40">                y = canvas.textWrapped(40, y, canvas.pageWidth() - 80,</span>
+<span class="nc" id="L41">                        &quot;Dirección: &quot; + str(representante.get(&quot;direccion&quot;)), Fonts.HELVETICA, 9, PdfTheme.DARK, 13f, PdfCanvas.Align.LEFT);</span>
+<span class="nc" id="L42">                y += 20;</span>
+
+<span class="nc" id="L44">                PdfLayout.drawFooter(canvas, theme);</span>
+            }
+
+<span class="nc" id="L47">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="nc" id="L48">            document.save(out);</span>
+<span class="nc" id="L49">            return out.toByteArray();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

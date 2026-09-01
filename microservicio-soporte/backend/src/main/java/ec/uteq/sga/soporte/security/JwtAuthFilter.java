@@ -11,18 +11,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Autentica + autoriza en un solo paso para /api/soporte/*.
+ * Autentica (no autoriza por rol) para /api/soporte/*.
  *
- * Los nombres de rol son los que emite sga-principal en el JWT (tabla
- * sga_principal.roles: DIRECTOR, SECRETARIA, DOCENTE, SOPORTE_TECNICO), sin
- * prefijo "ROLE_". Solo SOPORTE_TECNICO y DIRECTOR entran a este modulo.
+ * Cualquier usuario con un JWT valido emitido por sga-principal (DIRECTOR,
+ * SECRETARIA, DOCENTE, SOPORTE_TECNICO, ESTUDIANTE, etc.) puede entrar al
+ * modulo: todos pueden crear tickets, ver los suyos y conversar en ellos.
+ * Las acciones exclusivas de soporte (listar TODOS los tickets, asignar,
+ * escalar, cerrar, notas internas) se validan aparte, dentro de
+ * TicketService/TicketController con AuthenticatedUser.isTecnicoOrDirector().
  */
 public class JwtAuthFilter extends OncePerRequestFilter {
-
-    private static final Set<String> REQUIRED_ROLES = Set.of("SOPORTE_TECNICO", "DIRECTOR");
 
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
@@ -47,12 +47,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             user = jwtService.parse(token);
         } catch (JwtException | IllegalArgumentException e) {
             writeError(response, 401, "Token invalido o expirado");
-            return;
-        }
-
-        boolean authorized = user.roles() != null && user.roles().stream().anyMatch(REQUIRED_ROLES::contains);
-        if (!authorized) {
-            writeError(response, 403, "Acceso denegado");
             return;
         }
 

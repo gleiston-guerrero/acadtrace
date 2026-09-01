@@ -16,4 +16,16 @@ public record AuthenticatedUser(String username, List<String> roles) {
     public boolean isDirector() {
         return roles != null && roles.contains("DIRECTOR");
     }
+
+    /**
+     * True si el usuario es del equipo de soporte (SOPORTE_TECNICO,
+     * DIRECTOR o ADMINISTRADOR). Se usa para las acciones exclusivas del
+     * modulo: ver TODOS los tickets, asignar, escalar, cerrar y dejar notas
+     * internas. Cualquier otro usuario autenticado solo puede crear tickets
+     * y conversar en ellos (ver mis-tickets / comentarios).
+     */
+    public boolean isTecnicoOrDirector() {
+        return roles != null
+                && (roles.contains("SOPORTE_TECNICO") || roles.contains("DIRECTOR") || roles.contains("ADMINISTRADOR"));
+    }
 }

@@ -19,6 +19,12 @@ const MODULOS = [
     icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
   },
   {
+    id: 'asignaturas', label: 'Asignaturas y Malla', path: '/asignaturas',
+    desc: 'Catálogo de materias y malla curricular por grado',
+    color: 'bg-yellow-50', iconColor: 'text-yellow-600',
+    icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+  },
+  {
     id: 'matriculas', label: 'Matrículas', path: '/matriculas',
     desc: 'Registro y consulta de matrículas',
     color: 'bg-purple-50', iconColor: 'text-purple-500',
@@ -41,6 +47,12 @@ const MODULOS = [
     desc: 'Grilla de asistencia por materia y por estudiante',
     color: 'bg-emerald-50', iconColor: 'text-emerald-500',
     icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+  },
+  {
+    id: 'calificaciones', label: 'Calificaciones', path: '/calificaciones',
+    desc: 'Sábana oficial de notas por curso y trimestre',
+    color: 'bg-orange-50', iconColor: 'text-orange-500',
+    icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
   },
   {
     id: 'usuarios', label: 'Usuarios', path: '/usuarios',
@@ -85,6 +97,12 @@ const MODULOS = [
     icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   },
   {
+    id: 'anos-lectivos', label: 'Años Lectivos y Periodos', path: '/anos-lectivos',
+    desc: 'Gestión de períodos escolares, trimestres y fechas de corte',
+    color: 'bg-teal-50', iconColor: 'text-teal-600',
+    icon: <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+  },
+  {
     id: 'auditoria', label: 'Auditoría', path: '/auditoria',
     desc: 'CRUD sensible, accesos y llamadas entre microservicios',
     color: 'bg-red-50', iconColor: 'text-red-500', soloDirector: true,
@@ -95,15 +113,55 @@ const MODULOS = [
 export default function Dashboard() {
   const [anoActual, setAnoActual] = useState(null);
   const [busqueda, setBusqueda] = useState('');
+  const [banner1, setBanner1] = useState(localStorage.getItem("sga_banner_1") || null);
+  const [banner2, setBanner2] = useState(localStorage.getItem("sga_banner_2") || null);
+  const [modalImagen, setModalImagen] = useState(null);
   const navigate = useNavigate();
   const username = localStorage.getItem('username') || 'Secretario';
 
   useEffect(() => {
     apiPrincipal.get('/anos-lectivos/actual').then(r => setAnoActual(r.data)).catch(() => {});
+    
+    // Cargar banners institucionales compartidos desde backend central
+    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+    fetch(`http://${host}:8080/api/uploads/banners`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.banner1) {
+          setBanner1(data.banner1);
+          localStorage.setItem("sga_banner_1", data.banner1);
+        }
+        if (data?.banner2) {
+          setBanner2(data.banner2);
+          localStorage.setItem("sga_banner_2", data.banner2);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
   const esDirector = roles.includes('DIRECTOR');
+  const esAdmin = roles.length === 0 || roles.some(r => {
+    const ro = (r.nombre || r.name || r || "").toString().toUpperCase();
+    return ro.includes("ADMIN") || ro.includes("DIRECTOR") || ro.includes("SECRETAR") || ro.includes("RECTOR");
+  });
+
+  const handleUploadBanner = (num, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result;
+      if (num === 1) {
+        setBanner1(base64);
+        localStorage.setItem("sga_banner_1", base64);
+      } else {
+        setBanner2(base64);
+        localStorage.setItem("sga_banner_2", base64);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const modulosFiltrados = MODULOS
     .filter(m => !m.soloDirector || esDirector)
@@ -129,22 +187,132 @@ export default function Dashboard() {
     }>
       <div className="flex gap-4 items-start">
 
-        {/* PANEL IZQUIERDO — igual al de sga-principal */}
-        <aside className="w-64 flex-shrink-0 hidden lg:block space-y-3">
-          <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center h-48 text-slate-400 hover:border-opacity-60 transition cursor-pointer">
-            <svg className="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-xs">Imagen informativa</p>
-            <p className="text-xs text-slate-300 mt-1">Avisos y comunicados</p>
+        {/* PANEL IZQUIERDO — AFICHES Y BANNERS INFORMATIVOS */}
+        <aside className="w-80 flex-shrink-0 bg-white border border-slate-200 rounded-2xl overflow-hidden p-4 hidden lg:flex flex-col gap-4">
+          {/* Afiche 1: Avisos y Comunicados Oficiales */}
+          <div className="relative group rounded-2xl overflow-hidden shadow-xs border border-slate-200 bg-white transition hover:shadow-md cursor-pointer">
+            {banner1 ? (
+              <div className="relative w-full">
+                <img
+                  src={banner1}
+                  alt="Avisos y Comunicados"
+                  onClick={() => setModalImagen({ src: banner1, title: "Aviso Importante — Escuela Provincias Unidas" })}
+                  className="w-full h-auto object-contain block rounded-2xl"
+                />
+                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 backdrop-blur-xs rounded-2xl">
+                  <button
+                    onClick={() => setModalImagen({ src: banner1, title: "Aviso Importante — Escuela Provincias Unidas" })}
+                    className="px-3 py-1.5 bg-white text-slate-800 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-50 transition flex items-center gap-1">
+                    🔍 Ver
+                  </button>
+                  {esAdmin && (
+                    <>
+                      <label className="cursor-pointer px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-blue-700 transition flex items-center gap-1">
+                        📷 Cambiar
+                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(1, e)} />
+                      </label>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setBanner1(null); localStorage.removeItem("sga_banner_1"); }}
+                        className="px-2.5 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-rose-700 transition">
+                        ✕
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => !esAdmin && setModalImagen({ src: null, title: "Período Lectivo 2026-2027", desc: "Sistema de matrículas y calificaciones activo." })}
+                className="bg-gradient-to-br from-[#1a2d5f] via-[#243A76] to-[#1e3a8a] p-5 text-white flex flex-col justify-between min-h-[220px]"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-blue-100 backdrop-blur-xs">
+                      📢 AVISO OFICIAL
+                    </span>
+                    <span className="text-[10px] text-blue-200 font-bold">2026 - 2027</span>
+                  </div>
+                  <h4 className="font-bold text-base leading-snug text-white mt-1">
+                    Período Lectivo 2026-2027
+                  </h4>
+                  <p className="text-xs text-blue-100/90 mt-2 leading-relaxed font-sans">
+                    Sistema de matrículas y registro de calificaciones 70/30 activo en toda la institución.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-blue-200">
+                  <span className="font-medium text-[11px]">Escuela Provincias Unidas</span>
+                  {esAdmin && (
+                    <label className="cursor-pointer font-bold text-white bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-xs transition flex items-center gap-1">
+                      📷 Subir afiche
+                      <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(1, e)} />
+                    </label>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center h-48 text-slate-400 transition cursor-pointer">
-            <svg className="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-xs">Imagen informativa</p>
-            <p className="text-xs text-slate-300 mt-1">Eventos y noticias</p>
+          {/* Afiche 2: Calendario y Eventos Académicos */}
+          <div className="relative group rounded-2xl overflow-hidden shadow-xs border border-slate-200 bg-white transition hover:shadow-md cursor-pointer">
+            {banner2 ? (
+              <div className="relative w-full">
+                <img
+                  src={banner2}
+                  alt="Calendario y Eventos"
+                  onClick={() => setModalImagen({ src: banner2, title: "Calendario Académico — Escuela Provincias Unidas" })}
+                  className="w-full h-auto object-contain block rounded-2xl"
+                />
+                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 backdrop-blur-xs rounded-2xl">
+                  <button
+                    onClick={() => setModalImagen({ src: banner2, title: "Calendario Académico — Escuela Provincias Unidas" })}
+                    className="px-3 py-1.5 bg-white text-slate-800 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-50 transition flex items-center gap-1">
+                    🔍 Ver
+                  </button>
+                  {esAdmin && (
+                    <>
+                      <label className="cursor-pointer px-3 py-1.5 bg-teal-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-teal-700 transition flex items-center gap-1">
+                        📷 Cambiar
+                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(2, e)} />
+                      </label>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setBanner2(null); localStorage.removeItem("sga_banner_2"); }}
+                        className="px-2.5 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-rose-700 transition">
+                        ✕
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => !esAdmin && setModalImagen({ src: null, title: "Calendario Académico", desc: "Cronograma de exámenes y asentamiento de notas." })}
+                className="bg-gradient-to-br from-[#0f766e] via-[#115e59] to-[#134e4a] p-5 text-white flex flex-col justify-between min-h-[220px]"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-teal-100 backdrop-blur-xs">
+                      🗓️ CALENDARIO
+                    </span>
+                    <span className="text-[10px] text-teal-200 font-bold">Trimestre 1</span>
+                  </div>
+                  <h4 className="font-bold text-base leading-snug text-white mt-1">
+                    Asentamiento de Notas
+                  </h4>
+                  <p className="text-xs text-teal-100/90 mt-2 leading-relaxed font-sans">
+                    Registro de aportes formativos (70%) y examen sumativo (30%) por docentes titulares.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-teal-200">
+                  <span className="font-medium text-[11px]">Tutoría con IA Activa</span>
+                  {esAdmin && (
+                    <label className="cursor-pointer font-bold text-white bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-xs transition flex items-center gap-1">
+                      📷 Subir afiche
+                      <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadBanner(2, e)} />
+                    </label>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 
@@ -186,6 +354,35 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* MODAL VISOR LIGHTBOX DE AFICHE */}
+      {modalImagen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in" onClick={() => setModalImagen(null)}>
+          <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-slate-200" onClick={e => e.stopPropagation()}>
+            <div style={{ backgroundColor: PRIMARY }} className="px-5 py-3.5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-base">📢</span>
+                <h3 className="font-bold text-sm">{modalImagen.title}</h3>
+              </div>
+              <button onClick={() => setModalImagen(null)} className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 flex items-center justify-center bg-slate-50 overflow-y-auto max-h-[calc(90vh-60px)]">
+              {modalImagen.src ? (
+                <img src={modalImagen.src} alt={modalImagen.title} className="max-w-full h-auto rounded-2xl shadow-sm object-contain" />
+              ) : (
+                <div className="p-8 text-center text-slate-600">
+                  <p className="font-bold text-base">{modalImagen.title}</p>
+                  <p className="text-sm mt-2">{modalImagen.desc}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

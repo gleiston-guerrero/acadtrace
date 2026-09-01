@@ -1,0 +1,333 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+sga-principal,ec.edu.uteq.sga,SgaPrincipalApplication,18,0,0,0,5,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,InternalAuthInterceptor,76,0,4,0,18,0,4,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,PrincipalGrpcService,1398,0,80,0,306,0,82,0,41,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,AsistenciaGrpcClient,69,0,0,0,18,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,DocenteGrpcClient,213,0,0,0,60,0,8,0,8,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,InternalAuthInterceptor.new ServerCall.Listener() {...},6,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,ActividadGrpcClient,130,0,2,0,33,0,8,0,7,0
+sga-principal,ec.edu.uteq.sga.infrastructure.grpc,TeacherContextGrpcService,276,0,18,0,71,0,16,0,5,0
+sga-principal,ec.edu.uteq.sga.infrastructure.web,TraceIdFilter,27,0,4,0,9,0,4,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.web,TraceContext,34,0,2,0,10,0,6,0,5,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ObtenerCalificacionesResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,RegistrarCalificacionRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,Calificacion.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ObtenerCalificacionesResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,PromedioResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,PromedioResponse,291,0,22,0,80,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,RegistrarCalificacionResponse,423,0,38,0,115,0,55,0,36,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,RegistrarCalificacionResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,PromedioRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ConvertirACualitativaRequest,291,0,22,0,80,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceBlockingStub,56,0,0,0,13,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.AsyncService,20,0,0,0,10,0,5,0,5,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceFileDescriptorSupplier,3,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ObtenerCalificacionesRequest.Builder,281,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ConvertirACualitativaResponse,322,0,26,0,91,0,47,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ObtenerCalificacionesRequest,333,0,28,0,90,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ConvertirACualitativaResponse.Builder,300,0,29,0,94,0,42,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ConvertirACualitativaResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceImplBase,6,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceFutureStub,56,0,0,0,13,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,Calificacion.Builder,603,0,54,0,179,0,72,0,42,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceBaseDescriptorSupplier,10,0,0,0,3,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,RegistrarCalificacionRequest.Builder,403,0,36,0,120,0,53,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,PromedioRequest,333,0,28,0,90,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ConvertirACualitativaRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,RegistrarCalificacionResponse.Builder,420,0,39,0,128,0,54,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ConvertirACualitativaRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ObtenerCalificacionesRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceStub,61,0,0,0,18,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.MethodHandlers,59,0,6,0,19,0,8,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,ObtenerCalificacionesResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,Docente,220,0,0,0,26,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,Calificacion,586,0,56,0,151,0,67,0,39,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,RegistrarCalificacionRequest,444,0,40,0,115,0,56,0,36,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,PromedioRequest.Builder,281,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,PromedioResponse.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.docente,DocenteServiceGrpc.DocenteServiceMethodDescriptorSupplier,12,0,0,0,4,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ListarActividadesRequest,339,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceFileDescriptorSupplier,3,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EditarActividadRequest.Builder,950,0,88,0,282,0,102,0,54,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,CrearActividadRequest,859,0,86,0,225,0,88,0,45,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ObtenerActividadRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceBlockingStub,56,0,0,0,13,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ListarActividadesRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceBaseDescriptorSupplier,10,0,0,0,3,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceMethodDescriptorSupplier,12,0,0,0,4,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ListarActividadesResponse,456,0,40,0,119,0,60,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EliminarActividadRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.MethodHandlers,59,0,6,0,19,0,8,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,CrearActividadRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadResponse.Builder,621,0,75,0,182,0,79,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadDto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceFutureStub,56,0,0,0,13,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EliminarActividadResponse.Builder,359,0,34,0,111,0,48,0,30,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EliminarActividadRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,CrearActividadRequest.Builder,1011,0,93,0,299,0,108,0,57,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.AsyncService,20,0,0,0,10,0,5,0,5,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,Actividades,292,0,0,0,26,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ListarActividadesResponse.Builder,853,0,95,0,243,0,100,0,51,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceStub,61,0,0,0,18,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EditarActividadRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EditarActividadRequest,806,0,80,0,213,0,84,0,44,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadServiceGrpc.ActividadServiceImplBase,6,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadDto.Builder,1072,0,98,0,316,0,114,0,60,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EliminarActividadResponse,370,0,32,0,103,0,51,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ObtenerActividadRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EliminarActividadRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ListarActividadesRequest.Builder,283,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadResponse,452,0,50,0,118,0,63,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ListarActividadesResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,EliminarActividadResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ObtenerActividadRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.actividades,ActividadDto,912,0,92,0,237,0,92,0,46,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoMatriculaRequest.Builder,361,0,34,0,111,0,48,0,30,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,MatriculaProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AnoLectivoProto,601,0,58,0,163,0,69,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GradoProto,748,0,76,0,197,0,81,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarEstudiantesRequest.Builder,418,0,39,0,128,0,54,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarMatriculaRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarMatriculaRequest.Builder,741,0,67,0,219,0,84,0,47,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarMatriculaRequest,676,0,66,0,175,0,74,0,41,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GradosResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarGradoRequest.Builder,540,0,49,0,162,0,66,0,39,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarParalelosRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.MethodHandlers,164,0,21,0,49,0,23,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoParaleloRequest.Builder,281,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarEstudianteRequest,2006,0,218,0,533,0,180,0,71,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,EstudianteProto,2398,0,262,0,641,0,211,0,80,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentantesResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,Principal,1042,0,0,0,70,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GradosResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentanteEstudianteProto.Builder,487,0,62,0,142,0,67,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ParalelosResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AsignaturasResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarEstudiantesRequest,416,0,38,0,113,0,55,0,36,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AnosLectivosResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarEstudianteRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoMatriculaRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarMatriculasResponse,372,0,30,0,95,0,53,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AsignaturaProto,512,0,48,0,139,0,62,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarEstudiantesResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarParalelosRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.AsyncService,80,0,0,0,40,0,20,0,20,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarParaleloRequest.Builder,361,0,34,0,111,0,48,0,30,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerMatriculaRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoEstudianteRequest,334,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AnosLectivosResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AsignaturaProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarMatriculasResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AsignaturaProto.Builder,556,0,52,0,168,0,66,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,EstudianteProto.Builder,3378,0,319,0,996,0,318,0,145,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceFileDescriptorSupplier,3,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AnosLectivosResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarMatriculasRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarEstudiantesResponse.Builder,719,0,82,0,203,0,88,0,46,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AsignaturasResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,MatriculaProto.Builder,1616,0,150,0,476,0,162,0,80,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarEstudiantesResponse,372,0,30,0,95,0,53,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,Empty,233,0,16,0,67,0,40,0,32,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarParalelosRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerEstudianteRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoGradoRequest.Builder,281,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AnoLectivoProto.Builder,692,0,65,0,208,0,78,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ParaleloProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoGradoRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceMethodDescriptorSupplier,12,0,0,0,4,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerRepresentanteRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ParaleloProto.Builder,542,0,49,0,162,0,66,0,39,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarRepresentantesPorEstudiantesRequest,350,0,28,0,95,0,49,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentantesResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarRepresentantesPorEstudiantesRequest.Builder,343,0,28,0,105,0,45,0,30,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarMatriculasRequest.Builder,540,0,49,0,162,0,66,0,39,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerRepresentanteRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceImplBase,6,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ParalelosResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentanteProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentanteEstudianteProto,368,0,40,0,94,0,56,0,36,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceFutureStub,191,0,0,0,43,0,22,0,22,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ParaleloProto,529,0,50,0,139,0,63,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentanteEstudianteProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarEstudianteRequest.Builder,2759,0,259,0,813,0,264,0,123,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarGradoRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerMatriculaRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GradoProto.Builder,871,0,80,0,259,0,96,0,52,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoEstudianteRequest.Builder,281,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentanteProto.Builder,3065,0,291,0,905,0,288,0,131,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarGradoRequest,522,0,50,0,137,0,63,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoGradoRequest,334,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GradosResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoParaleloRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceBaseDescriptorSupplier,10,0,0,0,3,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GradoProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,EstudianteProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarMatriculasResponse.Builder,719,0,82,0,203,0,88,0,46,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerEstudianteRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,Empty.Builder,148,0,14,0,48,0,27,0,20,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarParaleloRequest,375,0,32,0,103,0,51,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentantesResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AsignaturasResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerEstudianteRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerMatriculaRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,GuardarParaleloRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,MatriculaProto,1257,0,132,0,330,0,120,0,54,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarRepresentantesPorEstudiantesRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarMatriculasRequest,522,0,50,0,137,0,63,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoEstudianteRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,RepresentanteProto,2172,0,234,0,584,0,192,0,75,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,AnoLectivoProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ParalelosResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoMatriculaRequest,375,0,32,0,103,0,51,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,CambiarEstadoParaleloRequest,334,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceStub,211,0,0,0,63,0,22,0,22,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ListarEstudiantesRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,Empty.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,PrincipalServiceGrpc.PrincipalServiceBlockingStub,191,0,0,0,43,0,22,0,22,0
+sga-principal,ec.edu.uteq.sga.grpc.principal,ObtenerRepresentanteRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceFileDescriptorSupplier,3,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateEnrollmentResponse.Builder,281,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceFutureStub,47,0,0,0,11,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.AsyncService,16,0,0,0,8,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentsByAssignmentRequest,286,0,22,0,79,0,44,0,33,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceBaseDescriptorSupplier,10,0,0,0,3,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateAssignmentResponse,541,0,52,0,139,0,64,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateAssignmentRequest.Builder,283,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,AcademicYearResponse.Builder,633,0,60,0,191,0,72,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateEnrollmentResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,EmptyRequest,233,0,16,0,67,0,40,0,32,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateEnrollmentResponse,334,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,AcademicYearResponse,553,0,52,0,151,0,65,0,39,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceMethodDescriptorSupplier,12,0,0,0,4,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,AcademicYearResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateAssignmentResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentProto.Builder,694,0,65,0,208,0,78,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceBlockingStub,47,0,0,0,11,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceStub,51,0,0,0,15,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentProto,606,0,58,0,163,0,69,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,EmptyRequest.Builder,148,0,14,0,48,0,27,0,20,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentProto.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateEnrollmentRequest,339,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentsByAssignmentResponse,319,0,24,0,83,0,49,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.MethodHandlers,52,0,5,0,17,0,7,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateEnrollmentRequest.Builder,283,0,26,0,86,0,41,0,27,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentsByAssignmentResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateAssignmentRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateAssignmentRequest,339,0,28,0,91,0,48,0,34,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,EmptyRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentsByAssignmentRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentsByAssignmentResponse.Builder,658,0,77,0,186,0,82,0,43,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateAssignmentResponse.Builder,523,0,46,0,154,0,65,0,39,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ValidateEnrollmentRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,StudentsByAssignmentRequest.Builder,222,0,21,0,69,0,35,0,24,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,ContextoDocente,228,0,0,0,26,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.contexto,TeacherContextServiceGrpc.TeacherContextServiceImplBase,6,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.application.service,GradoService,362,0,16,0,77,0,28,0,20,0
+sga-principal,ec.edu.uteq.sga.application.service,NotificacionService,188,0,12,0,44,0,14,0,8,0
+sga-principal,ec.edu.uteq.sga.application.service,EstudianteService,162,576,50,40,22,135,39,23,2,15
+sga-principal,ec.edu.uteq.sga.application.service,AsignaturaService,159,0,6,0,36,0,12,0,9,0
+sga-principal,ec.edu.uteq.sga.application.service,ImportacionExcelService,1071,0,137,0,232,0,85,0,15,0
+sga-principal,ec.edu.uteq.sga.application.service,AuditoriaService,328,0,20,0,73,0,26,0,16,0
+sga-principal,ec.edu.uteq.sga.application.service,EmailService,90,0,0,0,17,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.application.service,AnoLectivoService,203,0,8,0,48,0,16,0,12,0
+sga-principal,ec.edu.uteq.sga.application.service,PersonaService,344,0,28,0,76,0,26,0,12,0
+sga-principal,ec.edu.uteq.sga.application.service,MatriculaService.PaginaMatriculas,9,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.application.service,ConfiguracionCalificacionService,601,0,36,0,131,0,51,0,33,0
+sga-principal,ec.edu.uteq.sga.application.service,MatriculaService,1347,0,156,0,207,0,104,0,26,0
+sga-principal,ec.edu.uteq.sga.application.service,ImportacionCasService,736,0,84,0,151,0,50,0,8,0
+sga-principal,ec.edu.uteq.sga.application.service,EstudianteService.PaginaEstudiantes,0,9,0,0,0,1,0,1,0,1
+sga-principal,ec.edu.uteq.sga.application.service,AsignacionService,718,0,36,0,128,0,49,0,31,0
+sga-principal,ec.edu.uteq.sga.application.service,TeacherAuthorizationService,283,0,36,0,44,0,34,0,16,0
+sga-principal,ec.edu.uteq.sga.application.service,UsuarioService,537,0,22,0,117,0,29,0,18,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,ImportacionExcelController,12,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,EstudianteController,25,0,0,0,4,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,FotoUploadController,284,0,27,0,57,0,19,0,5,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,MallaCurricularController,873,0,76,0,144,0,55,0,17,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,DocenteAsistenciaController,419,0,28,0,92,0,21,0,7,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,HorarioController,379,0,18,0,73,0,20,0,11,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,TestFlowController,15,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,UsuarioController,57,0,0,0,12,0,8,0,8,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,ImportacionCasController,12,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,MatriculaController,70,0,0,0,11,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,AnoLectivoController,40,0,0,0,8,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,EmailTestController,31,0,0,0,8,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,AuthController,101,0,0,0,26,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,AsignacionController,60,0,0,0,12,0,9,0,9,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,GradoController,56,0,0,0,10,0,8,0,8,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,AuditoriaController,30,0,0,0,3,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,NotificacionController,26,0,0,0,7,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,AsignaturaController,39,0,0,0,7,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,DocenteActividadController,352,0,6,0,69,0,15,0,12,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,CalificacionRpcController,60,0,0,0,10,0,5,0,5,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,EstudianteConsultaController,366,0,8,0,64,0,6,0,2,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,PersonaController,39,0,0,0,7,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,DocenteContextController,288,0,10,0,65,0,12,0,7,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,ConfiguracionCalificacionController,85,0,0,0,15,0,13,0,13,0
+sga-principal,ec.edu.uteq.sga.presentation.controller,CalificacionesController,46,0,0,0,9,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaResponse.Builder,621,0,75,0,182,0,79,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaListResponse,456,0,40,0,119,0,60,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,RegistrarAsistenciaGrupalRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ConsultarAsistenciaRequest,463,0,44,0,124,0,59,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ConsultarAsistenciaRequest.Builder,477,0,44,0,145,0,60,0,36,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,RegistrarAsistenciaGrupalRequest.Builder,912,0,100,0,260,0,106,0,54,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaDTO,688,0,70,0,183,0,77,0,42,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceBaseDescriptorSupplier,10,0,0,0,3,0,3,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceFutureStub,47,0,0,0,11,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaItemRequest.Builder,495,0,47,0,151,0,60,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,Asistencia,317,0,0,0,28,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ActualizarAsistenciaRequest.Builder,495,0,47,0,151,0,60,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ResumenAsistenciaDTO,667,0,70,0,168,0,76,0,41,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ActualizarAsistenciaRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ResumenAsistenciaListResponse,456,0,40,0,119,0,60,0,40,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ConsultarResumenRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaListResponse.Builder,853,0,95,0,243,0,100,0,51,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsyncService,16,0,0,0,8,0,4,0,4,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ResumenAsistenciaDTO.Builder,694,0,61,0,205,0,83,0,48,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceBlockingStub,47,0,0,0,11,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaItemRequest,458,0,42,0,126,0,58,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.MethodHandlers,52,0,5,0,17,0,7,0,3,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaListResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaItemRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ActualizarAsistenciaRequest,458,0,42,0,126,0,58,0,37,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ResumenAsistenciaListResponse.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ResumenAsistenciaDTO.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaDTO.Builder,808,0,75,0,242,0,90,0,49,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ConsultarAsistenciaRequest.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceFileDescriptorSupplier,3,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ConsultarResumenRequest,374,0,34,0,100,0,52,0,35,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceStub,51,0,0,0,15,0,6,0,6,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.new AbstractStub.StubFactory() {...},9,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,RegistrarAsistenciaGrupalRequest,502,0,46,0,129,0,64,0,41,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaResponse,452,0,50,0,118,0,63,0,38,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ResumenAsistenciaListResponse.Builder,853,0,95,0,243,0,100,0,51,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceImplBase,6,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,ConsultarResumenRequest.Builder,338,0,31,0,103,0,47,0,30,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaDTO.new AbstractParser() {...},36,0,0,0,12,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.grpc.asistencia,AsistenciaServiceGrpc.AsistenciaServiceMethodDescriptorSupplier,12,0,0,0,4,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.security,UserDetailsServiceImpl,48,0,2,0,10,0,4,0,3,0
+sga-principal,ec.edu.uteq.sga.infrastructure.security,HmacService,75,0,2,0,12,0,3,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.security,JwtUtil,63,0,0,0,20,0,7,0,7,0
+sga-principal,ec.edu.uteq.sga.infrastructure.security,JwtFilter,64,0,8,0,13,0,6,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.repository,repository,3,0,0,0,1,0,1,0,1,0
+sga-principal,ec.edu.uteq.sga.infrastructure.config,DataSeedRunner,555,0,22,0,115,0,29,0,18,0
+sga-principal,ec.edu.uteq.sga.infrastructure.config,ProtobufConfig,7,0,0,0,2,0,2,0,2,0
+sga-principal,ec.edu.uteq.sga.infrastructure.config,SecurityConfig,544,0,0,0,55,0,11,0,11,0
+sga-principal,ec.edu.uteq.sga.infrastructure.config,GlobalExceptionHandler,279,0,20,0,46,0,17,0,7,0
+sga-principal,ec.edu.uteq.sga.infrastructure.config,WebConfig,36,0,2,0,6,0,3,0,2,0
+sga-principal,ec.edu.uteq.sga.domain.entity,EstadoUsuario,21,0,0,0,4,0,1,0,1,0

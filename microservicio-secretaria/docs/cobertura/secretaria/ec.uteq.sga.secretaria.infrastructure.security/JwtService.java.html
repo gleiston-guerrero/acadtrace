@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.security</a> &gt; <span class="el_source">JwtService.java</span></div><h1>JwtService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+/**
+ * Valida los JWT emitidos por sga-principal (mismo JWT_SECRET compartido, claims sub + roles).
+ */
+@Component
+public class JwtService {
+
+    private final SecretKey key;
+
+<span class="fc" id="L21">    public JwtService(@Value(&quot;${app.jwt.secret:***REMOVED***}&quot;) String secret) {</span>
+<span class="fc" id="L22">        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L23">    }</span>
+
+    public AuthenticatedUser parse(String token) {
+<span class="fc" id="L26">        Claims claims = Jwts.parser()</span>
+<span class="fc" id="L27">                .verifyWith(key)</span>
+<span class="fc" id="L28">                .build()</span>
+<span class="fc" id="L29">                .parseSignedClaims(token)</span>
+<span class="fc" id="L30">                .getPayload();</span>
+
+<span class="fc" id="L32">        String username = claims.getSubject();</span>
+<span class="fc" id="L33">        List&lt;?&gt; rawRoles = claims.get(&quot;roles&quot;, List.class);</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        List&lt;String&gt; roles = rawRoles == null</span>
+<span class="nc" id="L35">                ? List.of()</span>
+<span class="fc" id="L36">                : rawRoles.stream().map(String::valueOf).toList();</span>
+
+<span class="fc" id="L38">        return new AuthenticatedUser(username, roles);</span>
+    }
+
+    public String generateToken(String username, List&lt;String&gt; roles) {
+<span class="fc" id="L42">        long expirationMillis = 1000L * 60 * 60 * 24 * 7; // 7 días</span>
+<span class="fc" id="L43">        return Jwts.builder()</span>
+<span class="fc" id="L44">                .subject(username)</span>
+<span class="fc" id="L45">                .claim(&quot;roles&quot;, roles)</span>
+<span class="fc" id="L46">                .issuedAt(new java.util.Date())</span>
+<span class="fc" id="L47">                .expiration(new java.util.Date(System.currentTimeMillis() + expirationMillis))</span>
+<span class="fc" id="L48">                .signWith(key)</span>
+<span class="fc" id="L49">                .compact();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

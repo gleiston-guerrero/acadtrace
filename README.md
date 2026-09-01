@@ -1,8 +1,11 @@
-# SGA - Sistema de Gestion Academica Distribuido
+# AcadTrace
 
-Sistema distribuido desacoplado bajo arquitectura de Microservicios, disenado para la gestion academica, control docentes, asistencias, administracion de matricula y soporte tecnico. La arquitectura se comunica mediante Protocolos Hibridos (REST API y gRPC de alto rendimiento) con persistencia de datos distribuida en PostgreSQL sobre AWS EC2.
+> **Nota histórica:** Este proyecto se denominó anteriormente *SGA — Escuela Provincias Unidas*. A partir de la Entrega 4 adopta oficialmente la denominación **AcadTrace** (*Capa de auditoría verificable para expedientes académicos en sistemas escolares distribuidos*).
+
+Sistema distribuido desacoplado bajo arquitectura de Microservicios con capa de auditoría verificable y criptográfica (SHA-256 / Relojes de Lamport y Vectoriales) para la gestión académica, control docente, asistencias, administración de matrícula y soporte técnico. La arquitectura se comunica mediante Protocolos Híbridos (REST API y gRPC de alto rendimiento) con persistencia de datos distribuida en PostgreSQL sobre AWS EC2.
 
 ---
+
 
 ## Arquitectura General y Mapeo de Puertos
 
@@ -16,26 +19,12 @@ El sistema esta compuesto por un modulo principal y tres microservicios autonomo
 | **Microservicio Soporte** | Node.js / Express | 8083 | 9094 | 5176 | Tickets de Incidencias y Atencion Tecnica |
 
 ---
+## 🔐 Seguridad y Gestión de Variables de Entorno
 
-## Credenciales de Acceso para Evaluacion
-
-Para acceder a los distintos modulos del sistema utilizar las siguientes credenciales predeterminadas:
-
-| Rol | Usuario | Contrasena | Descripcion / Modulos |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | `pcastrol2` | `402/42745aA` | Acceso completo a SGA Principal, Grados, Matriculas y Administracion |
-| **Docente Titular** | `jsjimenezt` | `402/42745aA` | Acceso al portal docente, registro de notas y toma de asistencias |
-
----
-
-## Base de Datos Distribuida (AWS EC2)
-
-Todos los servicios convergen de forma distribuida en la base de datos alojada en la nube:
-
-* **Host:** 192.0.2.1
-* **Puerto PostgreSQL:** 5433
-* **Nombre de Base de Datos:** sga
-* **Esquemas:** sga_principal, sga_docente, public
+En cumplimiento con los estándares de seguridad y la norma **ISO/IEC 25010:2023**:
+* Las credenciales de acceso a bases de datos y llaves criptográficas JWT/AES se gestionan exclusivamente mediante **variables de entorno** (`.env`) y secretos de GitHub Actions (`secrets.EC2_SSH_KEY`).
+* Se provee la plantilla formal [`.env.example`](.env.example) con la estructura requerida para el despliegue del clúster distribuido en AWS.
+* Por higiene de seguridad en repositorios públicos, las contraseñas no se almacenan en texto plano.
 
 ---
 
@@ -155,3 +144,71 @@ LIMIT 20;
 * **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
 * **Node.js:** v18.0.0 o superior (npm v9+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
+
+---
+
+Juliana-Emanuel
+## Declaracion de Uso de Inteligencia Artificial
+
+En cumplimiento de la transparencia academica exigida por la catedra, se declara el uso de asistentes de IA (Claude, Antigravity/Gemini) durante el desarrollo de la Entrega 4 del PFC, con el siguiente alcance:
+
+| Integrante | Herramienta | Proposito del uso | Revision realizada |
+|---|---|---|---|
+| Emanuel Pino Juliana (microservicio-soporte, Observabilidad) | Claude, Antigravity | Generacion de locustfile.py (prueba de carga), configuracion de Prometheus/remote_write a Grafana Cloud, paneles adicionales del dashboard (P50/P99/errores 4xx-5xx), correccion de vulnerabilidad de secreto JWT hardcodeado, redaccion asistida de la Seccion 5.4, Reflexion Etica, Anexos y Conclusion Individual del informe LaTeX | Se ejecutaron localmente todas las pruebas de carga y se verificaron sus resultados reales (CSV/dashboard) antes de documentarlos; se corrigieron manualmente discrepancias entre corridas (ver Anexo A del informe); se verifico que ninguna clave o credencial real quedara expuesta en los archivos subidos al repositorio |
+
+*(Los demas integrantes deben completar su fila correspondiente segun el uso que hayan dado a estas u otras herramientas de IA en sus propios modulos.)*
+
+Ningun contenido generado por IA fue incorporado sin revision humana previa; los hallazgos tecnicos documentados (cuello de botella, tasas de error, latencias) provienen de ejecuciones reales de las herramientas (Locust, Prometheus, Grafana) sobre el sistema, no de datos simulados o inventados por el modelo de IA.
+
+---
+
+## Compilacion del Informe LaTeX
+
+Los informes individuales de cada integrante (carpeta `Informe-E4_BCEL/`) se compilan con `pdflatex` (TeX Live 2023 o superior). Desde la carpeta `Informe-E4_BCEL/`:
+
+```bash
+# 1ra pasada: genera el .aux con las referencias de citas pendientes
+pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
+
+# Resuelve las citas bibliograficas contra referencias.bib
+bibtex TA_PFC_E4_Soporte
+
+# 2da y 3ra pasada: incorpora la bibliografia resuelta y fija la numeracion
+# de figuras/secciones cruzadas (se corre dos veces por convencion de LaTeX)
+pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
+pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
+```
+
+El PDF resultante es `TA_PFC_E4_Soporte.pdf`, en la misma carpeta. El mismo procedimiento aplica para el resto de informes individuales del equipo (reemplazando el nombre del archivo `.tex`).
+
+## 🤖 Declaración de Uso de Inteligencia Artificial Generativa
+
+En cumplimiento con los lineamientos académicos e institucionales, se declara el uso ético y transparente de herramientas de Asistencia de Inteligencia Artificial (Google Antigravity / Gemini 2.5 Pro) durante el desarrollo de la Entrega 4 del proyecto **AcadTrace**:
+
+* **Propósito del uso:** Generación de estructuras base para pruebas unitarias (`Mockito`), depuración de configuraciones de pipelines CI/CD en YAML y asistencia en sintaxis LaTeX.
+* **Supervisión y Verificación Humana:** Todo el código generado, configuraciones de infraestructura en AWS EC2, reglas de negocio en Java/Python y redacción del informe técnico fueron rigurosamente revisados, ejecutados, medidos y validados por los 4 integrantes del equipo **BCEL** (Leonardo Castro, Keyla Bedon, Gregory Luna y Romina Emanuel).
+* **Autoría:** La lógica académica transaccional, el modelo de datos distribuido y los resultados experimentales son de autoría exclusiva del equipo de trabajo.
+
+---
+
+## 📄 Instrucciones de Compilación del Documento LaTeX Acumulativo
+
+El informe técnico final acumulativo de la Entrega 4 se encuentra en la carpeta `Informe-E4_BCEL/` y se compila de manera reproducible siguiendo estos pasos:
+
+### Prerrequisitos:
+Tener instalado una distribución completa de TeX Live (`pdflatex`, `bibtex`):
+```bash
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-lang-spanish
+```
+
+### Compilación limpia del informe maestro:
+```bash
+cd Informe-E4_BCEL
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+bibtex TA-PFC-E4_BCEL
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
+```
+*(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
+
+

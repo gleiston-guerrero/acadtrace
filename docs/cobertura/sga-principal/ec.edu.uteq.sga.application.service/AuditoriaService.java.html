@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuditoriaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">AuditoriaService.java</span></div><h1>AuditoriaService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.auditoria.AuditoriaResponseDTO;
+import ec.edu.uteq.sga.domain.entity.Auditoria;
+import ec.edu.uteq.sga.infrastructure.repository.AuditoriaRepository;
+import ec.edu.uteq.sga.infrastructure.security.HmacService;
+import ec.edu.uteq.sga.infrastructure.web.TraceContext;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * Unico punto de escritura de sga_principal.auditoria desde sga-principal
+ * (la tabla y el repositorio existian desde FIX-3, pero nada los llamaba).
+ * microservicio-secretaria tiene su propio AuditoriaService (JDBC) que
+ * escribe en la misma tabla via SQL cruzado, ya que ambos comparten la
+ * misma base de datos fisica; comparten tambien el mismo secreto HMAC
+ * (jwt.secret) para que las firmas sean verificables sin importar cual
+ * servicio escribio la fila.
+ *
+ * Nunca deja que un fallo al auditar tumbe la operacion de negocio que
+ * disparo el evento: se loguea el error y se continua.
+ */
+@Service
+@RequiredArgsConstructor
+public class AuditoriaService {
+
+<span class="nc" id="L37">    private static final Logger log = LoggerFactory.getLogger(AuditoriaService.class);</span>
+
+    private final AuditoriaRepository repo;
+    private final HmacService hmacService;
+
+    public void registrarCrud(String accion, String tablaAfectada, Long registroId, String descripcion) {
+<span class="nc" id="L43">        guardar(accion, tablaAfectada, registroId, descripcion, usernameActual(), null, &quot;EXITO&quot;, ipActual());</span>
+<span class="nc" id="L44">    }</span>
+
+    public void registrarConfig(String accion, String tablaAfectada, Long registroId, String descripcion) {
+<span class="nc" id="L47">        guardar(accion, tablaAfectada, registroId, descripcion, usernameActual(), null, &quot;EXITO&quot;, ipActual());</span>
+<span class="nc" id="L48">    }</span>
+
+    public void registrarAuth(String accion, String username, Long idUsuario, String resultado, String descripcion) {
+<span class="nc" id="L51">        guardar(accion, &quot;usuario&quot;, idUsuario, descripcion, username, null, resultado, ipActual());</span>
+<span class="nc" id="L52">    }</span>
+
+    /** Llamada gRPC recibida desde otro microservicio (ver InternalAuthInterceptor, que puebla TraceContext con el trace_id/actor que trae la metadata). */
+    public void registrarGrpcRecibida(String tablaAfectada, Long registroId, String descripcion, String resultado, String mensajeError) {
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        String desc = mensajeError != null ? descripcion + &quot; — &quot; + mensajeError : descripcion;</span>
+<span class="nc" id="L57">        guardar(&quot;LLAMADA_GRPC&quot;, tablaAfectada, registroId, desc, TraceContext.actor(), TraceContext.current(), resultado, null);</span>
+<span class="nc" id="L58">    }</span>
+
+    public void registrarFalloGrpcInterno(String descripcion) {
+<span class="nc" id="L61">        guardar(&quot;LLAMADA_GRPC&quot;, null, null, descripcion, null, TraceContext.current(), &quot;FALLO&quot;, null);</span>
+<span class="nc" id="L62">    }</span>
+
+    private void guardar(String accion, String tablaAfectada, Long registroId, String descripcion,
+                          String username, String traceIdOverride, String resultado, String ip) {
+        try {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            UUID traceId = parseOrNew(traceIdOverride != null ? traceIdOverride : TraceContext.current());</span>
+
+<span class="nc" id="L69">            Auditoria fila = Auditoria.builder()</span>
+<span class="nc" id="L70">                    .schemaOrigen(&quot;PRINCIPAL&quot;)</span>
+<span class="nc" id="L71">                    .traceId(traceId)</span>
+<span class="nc" id="L72">                    .username(username)</span>
+<span class="nc" id="L73">                    .accion(accion)</span>
+<span class="nc" id="L74">                    .tablaAfectada(tablaAfectada)</span>
+<span class="nc" id="L75">                    .registroId(registroId)</span>
+<span class="nc" id="L76">                    .descripcion(descripcion)</span>
+<span class="nc" id="L77">                    .ipAddress(ip)</span>
+<span class="nc" id="L78">                    .resultado(resultado)</span>
+<span class="nc" id="L79">                    .fecha(Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS))</span>
+<span class="nc" id="L80">                    .build();</span>
+
+<span class="nc" id="L82">            fila.setHmac(firmar(fila));</span>
+<span class="nc" id="L83">            repo.save(fila);</span>
+<span class="nc" id="L84">        } catch (Exception e) {</span>
+            // Un fallo al auditar no debe romper la operacion que lo disparo.
+<span class="nc" id="L86">            log.error(&quot;No se pudo registrar evento de auditoria ({} / {}): {}&quot;, accion, tablaAfectada, e.getMessage(), e);</span>
+<span class="nc" id="L87">        }</span>
+<span class="nc" id="L88">    }</span>
+
+    private String firmar(Auditoria a) {
+<span class="nc" id="L91">        return hmacService.firmar(</span>
+<span class="nc" id="L92">                a.getSchemaOrigen(),</span>
+<span class="nc" id="L93">                String.valueOf(a.getTraceId()),</span>
+<span class="nc" id="L94">                nvl(a.getUsername()),</span>
+<span class="nc" id="L95">                a.getAccion(),</span>
+<span class="nc" id="L96">                nvl(a.getTablaAfectada()),</span>
+<span class="nc" id="L97">                String.valueOf(a.getRegistroId()),</span>
+<span class="nc" id="L98">                nvl(a.getDescripcion()),</span>
+<span class="nc" id="L99">                a.getResultado(),</span>
+<span class="nc" id="L100">                String.valueOf(a.getFecha().toEpochMilli())</span>
+        );
+    }
+
+    private static String nvl(String v) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        return v == null ? &quot;&quot; : v;</span>
+    }
+
+    private static UUID parseOrNew(String value) {
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (value == null) return UUID.randomUUID();</span>
+        try {
+<span class="nc" id="L111">            return UUID.fromString(value);</span>
+<span class="nc" id="L112">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L113">            return UUID.randomUUID();</span>
+        }
+    }
+
+    private static String usernameActual() {
+<span class="nc" id="L118">        var auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        return auth != null ? auth.getName() : null;</span>
+    }
+
+    private static String ipActual() {
+        try {
+<span class="nc" id="L124">            var attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();</span>
+<span class="nc" id="L125">            return attrs.getRequest().getRemoteAddr();</span>
+<span class="nc" id="L126">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L127">            return null;</span>
+        }
+    }
+
+    // ---- Lectura (para AuditoriaController) ----
+
+    public Page&lt;AuditoriaResponseDTO&gt; buscar(String schemaOrigen, String accion, String categoria, String tablaAfectada,
+                                              String resultado, String username, Pageable pageable) {
+<span class="nc" id="L135">        return repo.buscar(blankToNull(schemaOrigen), blankToNull(accion), blankToNull(categoria), blankToNull(tablaAfectada),</span>
+<span class="nc" id="L136">                        blankToNull(resultado), blankToNull(username), pageable)</span>
+<span class="nc" id="L137">                .map(this::toDTO);</span>
+    }
+
+    public java.util.List&lt;AuditoriaResponseDTO&gt; porTrace(UUID traceId) {
+<span class="nc" id="L141">        return repo.findByTraceIdOrderByFechaAsc(traceId).stream().map(this::toDTO).toList();</span>
+    }
+
+    private AuditoriaResponseDTO toDTO(Auditoria a) {
+<span class="nc bnc" id="L145" title="All 4 branches missed.">        boolean hmacValido = a.getHmac() != null &amp;&amp; a.getHmac().equals(firmar(a));</span>
+<span class="nc" id="L146">        return AuditoriaResponseDTO.builder()</span>
+<span class="nc" id="L147">                .idAuditoria(a.getIdAuditoria())</span>
+<span class="nc" id="L148">                .traceId(a.getTraceId())</span>
+<span class="nc" id="L149">                .schemaOrigen(a.getSchemaOrigen())</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                .idUsuario(a.getUsuario() != null ? a.getUsuario().getIdUsuario() : null)</span>
+<span class="nc" id="L151">                .username(a.getUsername())</span>
+<span class="nc" id="L152">                .accion(a.getAccion())</span>
+<span class="nc" id="L153">                .tablaAfectada(a.getTablaAfectada())</span>
+<span class="nc" id="L154">                .registroId(a.getRegistroId())</span>
+<span class="nc" id="L155">                .descripcion(a.getDescripcion())</span>
+<span class="nc" id="L156">                .ipAddress(a.getIpAddress())</span>
+<span class="nc" id="L157">                .resultado(a.getResultado())</span>
+<span class="nc" id="L158">                .hmacValido(hmacValido)</span>
+<span class="nc" id="L159">                .fecha(a.getFecha())</span>
+<span class="nc" id="L160">                .build();</span>
+    }
+
+    private static String blankToNull(String v) {
+<span class="nc bnc" id="L164" title="All 4 branches missed.">        return (v == null || v.isBlank()) ? null : v;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

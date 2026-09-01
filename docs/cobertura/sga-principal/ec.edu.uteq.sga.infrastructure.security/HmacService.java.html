@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HmacService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.security</a> &gt; <span class="el_source">HmacService.java</span></div><h1>HmacService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.security;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
+
+/**
+ * Firma HMAC-SHA256 para la columna auditoria.hmac (existia en la tabla
+ * desde FIX-3 pero nunca se calculaba). Usa el mismo jwt.secret que ya
+ * comparten sga-principal, secretaria y soporte para JWT/token interno,
+ * asi que cualquier servicio puede firmar/verificar filas de auditoria
+ * sin necesitar un secreto nuevo. Sirve para detectar si una fila de
+ * auditoria fue alterada por fuera de la aplicacion (ej. UPDATE manual).
+ */
+@Component
+public class HmacService {
+
+    private final Mac mac;
+
+<span class="nc" id="L25">    public HmacService(@Value(&quot;${jwt.secret}&quot;) String secret) {</span>
+        try {
+<span class="nc" id="L27">            this.mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="nc" id="L28">            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;));</span>
+<span class="nc" id="L29">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
+<span class="nc" id="L30">            throw new IllegalStateException(&quot;No se pudo inicializar HmacSHA256&quot;, e);</span>
+<span class="nc" id="L31">        }</span>
+<span class="nc" id="L32">    }</span>
+
+    /** Firma la concatenacion de los campos clave de una fila de auditoria. Hex minuscula, 64 caracteres. */
+    public synchronized String firmar(String... campos) {
+<span class="nc" id="L36">        String canonical = String.join(&quot;|&quot;, campos);</span>
+<span class="nc" id="L37">        byte[] digest = mac.doFinal(canonical.getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L38">        StringBuilder hex = new StringBuilder(digest.length * 2);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        for (byte b : digest) hex.append(String.format(&quot;%02x&quot;, b));</span>
+<span class="nc" id="L40">        return hex.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

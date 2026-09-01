@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InternalAuthInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.grpc</a> &gt; <span class="el_source">InternalAuthInterceptor.java</span></div><h1>InternalAuthInterceptor.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.grpc;
+
+import ec.edu.uteq.sga.application.service.AuditoriaService;
+import ec.edu.uteq.sga.infrastructure.web.TraceContext;
+import io.grpc.Context;
+import io.grpc.Contexts;
+import io.grpc.Metadata;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
+import io.grpc.Status;
+import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
+
+/**
+ * Valida el internal_token de las llamadas gRPC entrantes (de secretaria,
+ * docente, etc.) y ademas: extrae el trace_id/actor de la metadata hacia
+ * TraceContext (para que el servicio de negocio pueda auditar correlacionado
+ * con el evento que lo origino en el otro microservicio) y audita los
+ * intentos con token invalido -- antes esto fallaba en silencio.
+ */
+@GrpcGlobalServerInterceptor
+public class InternalAuthInterceptor implements ServerInterceptor {
+
+    private static final String INTERNAL_TOKEN_KEY = &quot;internal_token&quot;;
+    private static final String TRACE_ID_KEY = &quot;trace_id&quot;;
+    private static final String ACTOR_KEY = &quot;actor_username&quot;;
+    // TODO: Usar variable de entorno para producción, hardcodeado por ahora como &quot;***REMOVED***&quot;
+    private static final String EXPECTED_TOKEN = &quot;***REMOVED***&quot;;
+
+    private final AuditoriaService auditoriaService;
+
+<span class="nc" id="L32">    public InternalAuthInterceptor(AuditoriaService auditoriaService) {</span>
+<span class="nc" id="L33">        this.auditoriaService = auditoriaService;</span>
+<span class="nc" id="L34">    }</span>
+
+    @Override
+    public &lt;ReqT, RespT&gt; ServerCall.Listener&lt;ReqT&gt; interceptCall(
+            ServerCall&lt;ReqT, RespT&gt; call,
+            Metadata headers,
+            ServerCallHandler&lt;ReqT, RespT&gt; next) {
+
+<span class="nc" id="L42">        String traceId = headers.get(Metadata.Key.of(TRACE_ID_KEY, Metadata.ASCII_STRING_MARSHALLER));</span>
+<span class="nc" id="L43">        String actor = headers.get(Metadata.Key.of(ACTOR_KEY, Metadata.ASCII_STRING_MARSHALLER));</span>
+<span class="nc" id="L44">        String token = headers.get(Metadata.Key.of(INTERNAL_TOKEN_KEY, Metadata.ASCII_STRING_MARSHALLER));</span>
+
+<span class="nc bnc" id="L46" title="All 4 branches missed.">        if (token == null || !token.equals(EXPECTED_TOKEN)) {</span>
+<span class="nc" id="L47">            Context ctxFallo = Context.current().withValue(TraceContext.GRPC_TRACE, traceId);</span>
+<span class="nc" id="L48">            Context previo = ctxFallo.attach();</span>
+            try {
+<span class="nc" id="L50">                auditoriaService.registrarFalloGrpcInterno(</span>
+<span class="nc" id="L51">                        &quot;Llamada gRPC rechazada: internal_token invalido o ausente (metodo &quot; + call.getMethodDescriptor().getFullMethodName() + &quot;)&quot;);</span>
+            } finally {
+<span class="nc" id="L53">                ctxFallo.detach(previo);</span>
+            }
+<span class="nc" id="L55">            call.close(Status.UNAUTHENTICATED.withDescription(&quot;Invalid or missing internal token&quot;), headers);</span>
+<span class="nc" id="L56">            return new ServerCall.Listener&lt;&gt;() {};</span>
+        }
+
+        // io.grpc.Context (no un ThreadLocal propio) es lo que grpc-java garantiza propagar
+        // correctamente hasta el metodo de servicio real, sin importar en que hilo/callback
+        // termine ejecutandose (Contexts.interceptCall lo adjunta/desadjunta por nosotros).
+<span class="nc" id="L62">        Context contextoConTrace = Context.current()</span>
+<span class="nc" id="L63">                .withValue(TraceContext.GRPC_TRACE, traceId)</span>
+<span class="nc" id="L64">                .withValue(TraceContext.GRPC_ACTOR, actor);</span>
+<span class="nc" id="L65">        return Contexts.interceptCall(contextoConTrace, call, headers, next);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

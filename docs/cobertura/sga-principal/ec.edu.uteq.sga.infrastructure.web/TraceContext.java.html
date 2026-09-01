@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TraceContext.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.web</a> &gt; <span class="el_source">TraceContext.java</span></div><h1>TraceContext.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.web;
+
+import io.grpc.Context;
+
+/**
+ * Correlation ID del request actual, disponible tanto en el flujo HTTP
+ * (TraceIdFilter puebla un ThreadLocal simple, correcto ahi porque el
+ * filtro y el controller corren en el mismo hilo) como en el flujo gRPC
+ * entrante (InternalAuthInterceptor usa io.grpc.Context en vez de un
+ * ThreadLocal propio: grpc-java no garantiza que el metodo de servicio se
+ * ejecute en el mismo hilo que interceptCall, pero si garantiza propagar
+ * io.grpc.Context correctamente entre ambos).
+ */
+public final class TraceContext {
+
+<span class="nc" id="L16">    public static final Context.Key&lt;String&gt; GRPC_TRACE = Context.key(&quot;trace_id&quot;);</span>
+<span class="nc" id="L17">    public static final Context.Key&lt;String&gt; GRPC_ACTOR = Context.key(&quot;actor_username&quot;);</span>
+
+<span class="nc" id="L19">    private static final ThreadLocal&lt;String&gt; HTTP_TRACE = new ThreadLocal&lt;&gt;();</span>
+
+    private TraceContext() {}
+
+    public static void set(String traceId) {
+<span class="nc" id="L24">        HTTP_TRACE.set(traceId);</span>
+<span class="nc" id="L25">    }</span>
+
+    /** Trace id del request actual: prioriza el de gRPC (io.grpc.Context) y cae al HTTP (ThreadLocal) si no aplica. */
+    public static String current() {
+<span class="nc" id="L29">        String grpcTrace = GRPC_TRACE.get();</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        return grpcTrace != null ? grpcTrace : HTTP_TRACE.get();</span>
+    }
+
+    /** Username que origino la llamada en el servicio de arrastre (ej. secretaria), solo presente en llamadas gRPC entrantes. */
+    public static String actor() {
+<span class="nc" id="L35">        return GRPC_ACTOR.get();</span>
+    }
+
+    public static void clear() {
+<span class="nc" id="L39">        HTTP_TRACE.remove();</span>
+<span class="nc" id="L40">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportacionEstudiantesService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">ImportacionEstudiantesService.java</span></div><h1>ImportacionEstudiantesService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+
+import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
+import ec.uteq.sga.secretaria.domain.dto.EstudianteRequest;
+import ec.uteq.sga.secretaria.domain.dto.ImportacionEstudianteRow;
+import ec.uteq.sga.secretaria.domain.dto.ImportacionResultado;
+import ec.uteq.sga.secretaria.domain.dto.MatriculaRequest;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Importación masiva de estudiantes (CSV/Excel/PDF listado CAS), calcada de
+ * ImportacionExcelService de sga-principal. Solo parsea y valida aquí; la
+ * escritura real de cada fila la hace EstudianteService.crear(...), que ya
+ * está migrado a gRPC (código, cifrado, y persistencia en sga-principal).
+ */
+@Service
+public class ImportacionEstudiantesService {
+
+<span class="nc" id="L41">    private static final Set&lt;String&gt; COLUMNAS_REQUERIDAS = Set.of(&quot;CEDULA&quot;, &quot;NOMBRES&quot;, &quot;APELLIDOS&quot;);</span>
+
+    private final NamedParameterJdbcTemplate jdbc;
+    private final EstudianteService estudianteService;
+    private final MatriculaService matriculaService;
+
+    public ImportacionEstudiantesService(NamedParameterJdbcTemplate jdbc, EstudianteService estudianteService,
+<span class="nc" id="L48">                                          MatriculaService matriculaService) {</span>
+<span class="nc" id="L49">        this.jdbc = jdbc;</span>
+<span class="nc" id="L50">        this.estudianteService = estudianteService;</span>
+<span class="nc" id="L51">        this.matriculaService = matriculaService;</span>
+<span class="nc" id="L52">    }</span>
+
+    public ImportacionResultado parsearArchivo(MultipartFile archivo) {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (archivo.isEmpty())</span>
+<span class="nc" id="L56">            throw ApiException.badRequest(&quot;El archivo está vacío&quot;);</span>
+
+<span class="nc" id="L58">        String nombreArchivo = Optional.ofNullable(archivo.getOriginalFilename()).orElse(&quot;&quot;).toLowerCase();</span>
+        List&lt;Map&lt;String, String&gt;&gt; filas;
+
+        try {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (nombreArchivo.endsWith(&quot;.csv&quot;)) {</span>
+<span class="nc" id="L63">                filas = leerCsv(archivo);</span>
+<span class="nc bnc" id="L64" title="All 4 branches missed.">            } else if (nombreArchivo.endsWith(&quot;.xlsx&quot;) || nombreArchivo.endsWith(&quot;.xls&quot;)) {</span>
+<span class="nc" id="L65">                filas = leerExcel(archivo);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            } else if (nombreArchivo.endsWith(&quot;.pdf&quot;)) {</span>
+<span class="nc" id="L67">                filas = leerPdf(archivo);</span>
+            } else {
+<span class="nc" id="L69">                throw ApiException.badRequest(&quot;Formato no soportado. Sube un archivo .csv, .xlsx, .xls o .pdf&quot;);</span>
+            }
+<span class="nc" id="L71">        } catch (IOException e) {</span>
+<span class="nc" id="L72">            throw ApiException.badRequest(&quot;No se pudo leer el archivo: &quot; + e.getMessage());</span>
+<span class="nc" id="L73">        }</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (filas.isEmpty())</span>
+<span class="nc" id="L76">            throw ApiException.badRequest(&quot;El archivo no contiene filas de datos&quot;);</span>
+
+<span class="nc" id="L78">        List&lt;ImportacionEstudianteRow&gt; estudiantes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L79">        Set&lt;String&gt; cedulasEnArchivo = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L80">        int fila = 1;</span>
+
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (Map&lt;String, String&gt; registro : filas) {</span>
+<span class="nc" id="L83">            fila++;</span>
+<span class="nc" id="L84">            String cedula = registro.getOrDefault(&quot;CEDULA&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L85">            String nombres = registro.getOrDefault(&quot;NOMBRES&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L86">            String apellidos = registro.getOrDefault(&quot;APELLIDOS&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L87">            String correo = registro.getOrDefault(&quot;CORREO&quot;, &quot;&quot;).trim();</span>
+
+<span class="nc bnc" id="L89" title="All 6 branches missed.">            if (cedula.isEmpty() &amp;&amp; nombres.isEmpty() &amp;&amp; apellidos.isEmpty()) continue;</span>
+
+<span class="nc" id="L91">            String error = null;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (!cedula.matches(&quot;\\d{10}&quot;)) {</span>
+<span class="nc" id="L93">                error = &quot;Cédula inválida (debe tener 10 dígitos)&quot;;</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">            } else if (nombres.isEmpty() || apellidos.isEmpty()) {</span>
+<span class="nc" id="L95">                error = &quot;Nombres o apellidos vacíos&quot;;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            } else if (!cedulasEnArchivo.add(cedula)) {</span>
+<span class="nc" id="L97">                error = &quot;Cédula duplicada en el archivo&quot;;</span>
+            }
+
+<span class="nc bnc" id="L100" title="All 4 branches missed.">            boolean yaExiste = error == null &amp;&amp; existeCedula(cedula);</span>
+
+<span class="nc" id="L102">            ImportacionEstudianteRow row = new ImportacionEstudianteRow();</span>
+<span class="nc" id="L103">            row.setFila(fila);</span>
+<span class="nc" id="L104">            row.setCedula(cedula);</span>
+<span class="nc" id="L105">            row.setNombres(nombres);</span>
+<span class="nc" id="L106">            row.setApellidos(apellidos);</span>
+<span class="nc" id="L107">            row.setCorreo(correo);</span>
+<span class="nc" id="L108">            row.setYaExiste(yaExiste);</span>
+<span class="nc" id="L109">            row.setError(error);</span>
+<span class="nc" id="L110">            estudiantes.add(row);</span>
+<span class="nc" id="L111">        }</span>
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (estudiantes.isEmpty())</span>
+<span class="nc" id="L114">            throw ApiException.badRequest(&quot;El archivo no contiene filas de datos&quot;);</span>
+
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        int conError = (int) estudiantes.stream().filter(e -&gt; e.getError() != null).count();</span>
+
+<span class="nc" id="L118">        return new ImportacionResultado(estudiantes, estudiantes.size(), estudiantes.size() - conError, conError);</span>
+    }
+
+    private boolean existeCedula(String cedula) {
+<span class="nc" id="L122">        List&lt;Long&gt; ids = jdbc.query(</span>
+                &quot;SELECT id_estudiante FROM sga_secretaria.estudiantes WHERE cedula = :cedula&quot;,
+                new MapSqlParameterSource(&quot;cedula&quot;, cedula),
+<span class="nc" id="L125">                (rs, n) -&gt; rs.getLong(&quot;id_estudiante&quot;));</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        return !ids.isEmpty();</span>
+    }
+
+    public Map&lt;String, Object&gt; confirmarImportacion(List&lt;ImportacionEstudianteRow&gt; filas, String username,
+                                                      Long idGrado, Long idParalelo, Long idAnoLectivo) {
+<span class="nc bnc" id="L131" title="All 6 branches missed.">        boolean matricular = idGrado != null &amp;&amp; idParalelo != null &amp;&amp; idAnoLectivo != null;</span>
+<span class="nc" id="L132">        int creados = 0, existentes = 0, omitidos = 0, matriculados = 0;</span>
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        for (ImportacionEstudianteRow fila : filas) {</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (fila.getError() != null) { omitidos++; continue; }</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (fila.isYaExiste()) { existentes++; continue; }</span>
+
+<span class="nc bnc" id="L138" title="All 4 branches missed.">            String correo = fila.getCorreo() == null || fila.getCorreo().isBlank() ? null : fila.getCorreo();</span>
+<span class="nc" id="L139">            EstudianteRequest dto = new EstudianteRequest(</span>
+<span class="nc" id="L140">                    fila.getCedula(),       // cedula</span>
+<span class="nc" id="L141">                    fila.getNombres(),      // nombres</span>
+<span class="nc" id="L142">                    fila.getApellidos(),    // apellidos</span>
+                    null,                   // fecha_nacimiento
+                    null,                   // genero
+                    correo,                 // correo
+                    null,                   // direccion
+                    null,                   // telefono
+                    null,                   // discapacidad
+                    null,                   // tipo_discapacidad
+                    null,                   // porcentaje_disc
+                    null,                   // id_representante
+                    null,                   // nacionalidad
+                    null,                   // etnia
+                    null,                   // lugar_nacimiento
+                    null,                   // vive_con
+                    null,                   // numeros_hermanos
+                    null,                   // beneficio_social
+                    null,                   // carnet_conadis
+                    null);                  // foto_url
+            try {
+<span class="nc" id="L161">                Map&lt;String, Object&gt; creado = estudianteService.crear(dto, username);</span>
+<span class="nc" id="L162">                creados++;</span>
+
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                if (matricular) {</span>
+                    try {
+<span class="nc" id="L166">                        Long idEstudiante = ((Number) creado.get(&quot;id_estudiante&quot;)).longValue();</span>
+<span class="nc" id="L167">                        matriculaService.crear(new MatriculaRequest(idEstudiante, idGrado, idParalelo, idAnoLectivo, null, null), username);</span>
+<span class="nc" id="L168">                        matriculados++;</span>
+<span class="nc" id="L169">                    } catch (ApiException ignored) {</span>
+                        // El estudiante ya quedó creado; la matrícula se puede completar luego desde el módulo de Matrículas.
+<span class="nc" id="L171">                    }</span>
+                }
+<span class="nc" id="L173">            } catch (ApiException e) {</span>
+<span class="nc" id="L174">                omitidos++;</span>
+<span class="nc" id="L175">            }</span>
+<span class="nc" id="L176">        }</span>
+
+<span class="nc" id="L178">        Map&lt;String, Object&gt; resultado = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L179">        resultado.put(&quot;creados&quot;, creados);</span>
+<span class="nc" id="L180">        resultado.put(&quot;existentes&quot;, existentes);</span>
+<span class="nc" id="L181">        resultado.put(&quot;omitidos&quot;, omitidos);</span>
+<span class="nc" id="L182">        resultado.put(&quot;matriculados&quot;, matriculados);</span>
+<span class="nc" id="L183">        resultado.put(&quot;total&quot;, filas.size());</span>
+<span class="nc" id="L184">        return resultado;</span>
+    }
+
+    private List&lt;Map&lt;String, String&gt;&gt; leerCsv(MultipartFile archivo) throws IOException {
+<span class="nc" id="L188">        List&lt;Map&lt;String, String&gt;&gt; filas = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L189">        try (InputStreamReader reader = new InputStreamReader(archivo.getInputStream(), StandardCharsets.UTF_8);</span>
+<span class="nc" id="L190">             CSVParser parser = CSVFormat.DEFAULT.builder()</span>
+<span class="nc" id="L191">                     .setHeader()</span>
+<span class="nc" id="L192">                     .setSkipHeaderRecord(true)</span>
+<span class="nc" id="L193">                     .setIgnoreEmptyLines(true)</span>
+<span class="nc" id="L194">                     .setTrim(true)</span>
+<span class="nc" id="L195">                     .build()</span>
+<span class="nc" id="L196">                     .parse(reader)) {</span>
+
+<span class="nc" id="L198">            Map&lt;String, String&gt; mapaEncabezados = mapearEncabezados(parser.getHeaderNames());</span>
+<span class="nc" id="L199">            validarEncabezados(mapaEncabezados);</span>
+
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            for (CSVRecord record : parser) {</span>
+<span class="nc" id="L202">                Map&lt;String, String&gt; fila = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L203">                mapaEncabezados.forEach((original, canonico) -&gt; fila.put(canonico, record.get(original)));</span>
+<span class="nc" id="L204">                filas.add(fila);</span>
+<span class="nc" id="L205">            }</span>
+        }
+<span class="nc" id="L207">        return filas;</span>
+    }
+
+    private List&lt;Map&lt;String, String&gt;&gt; leerExcel(MultipartFile archivo) throws IOException {
+<span class="nc" id="L211">        List&lt;Map&lt;String, String&gt;&gt; filas = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L212">        DataFormatter formatter = new DataFormatter();</span>
+
+<span class="nc" id="L214">        try (Workbook workbook = WorkbookFactory.create(archivo.getInputStream())) {</span>
+<span class="nc" id="L215">            Sheet sheet = workbook.getSheetAt(0);</span>
+<span class="nc" id="L216">            Row encabezado = sheet.getRow(sheet.getFirstRowNum());</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            if (encabezado == null)</span>
+<span class="nc" id="L218">                throw ApiException.badRequest(&quot;El archivo no tiene fila de encabezado&quot;);</span>
+
+<span class="nc" id="L220">            Map&lt;Integer, String&gt; columnas = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L221">            List&lt;String&gt; nombresEncabezado = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            for (int c = encabezado.getFirstCellNum(); c &lt; encabezado.getLastCellNum(); c++) {</span>
+<span class="nc" id="L223">                String valor = formatter.formatCellValue(encabezado.getCell(c));</span>
+<span class="nc" id="L224">                nombresEncabezado.add(valor);</span>
+<span class="nc" id="L225">                columnas.put(c, valor);</span>
+            }
+<span class="nc" id="L227">            Map&lt;String, String&gt; mapaEncabezados = mapearEncabezados(nombresEncabezado);</span>
+<span class="nc" id="L228">            validarEncabezados(mapaEncabezados);</span>
+
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            for (int r = sheet.getFirstRowNum() + 1; r &lt;= sheet.getLastRowNum(); r++) {</span>
+<span class="nc" id="L231">                Row row = sheet.getRow(r);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                if (row == null) continue;</span>
+
+<span class="nc" id="L234">                Map&lt;String, String&gt; fila = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                for (Map.Entry&lt;Integer, String&gt; col : columnas.entrySet()) {</span>
+<span class="nc" id="L236">                    String canonico = mapaEncabezados.get(col.getValue());</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                    if (canonico == null) continue;</span>
+<span class="nc" id="L238">                    fila.put(canonico, formatter.formatCellValue(row.getCell(col.getKey())).trim());</span>
+<span class="nc" id="L239">                }</span>
+<span class="nc" id="L240">                filas.add(fila);</span>
+            }
+        }
+<span class="nc" id="L243">        return filas;</span>
+    }
+
+    private List&lt;Map&lt;String, String&gt;&gt; leerPdf(MultipartFile archivo) throws IOException {
+        String texto;
+<span class="nc" id="L248">        try (PDDocument doc = Loader.loadPDF(archivo.getBytes())) {</span>
+<span class="nc" id="L249">            PDFTextStripper stripper = new PDFTextStripper();</span>
+<span class="nc" id="L250">            stripper.setSortByPosition(true);</span>
+<span class="nc" id="L251">            texto = stripper.getText(doc);</span>
+        }
+
+<span class="nc" id="L254">        texto = texto.replaceAll(&quot;(?i)(\\.edu\\.e)\\s*[\\r\\n]+\\s*(c)&quot;, &quot;$1$2&quot;);</span>
+<span class="nc" id="L255">        String[] lineas = texto.split(&quot;\\r?\\n&quot;);</span>
+
+<span class="nc" id="L257">        List&lt;Map&lt;String, String&gt;&gt; filas = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L259">        Pattern p1 = Pattern.compile(</span>
+                &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+(.+?)\\s+([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)\\s*$&quot;);
+<span class="nc" id="L261">        Pattern p2 = Pattern.compile(</span>
+                &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,})\\s*$&quot;);
+<span class="nc" id="L263">        Pattern p3 = Pattern.compile(</span>
+                &quot;(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,}?)\\s*([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)?\\s*$&quot;);
+
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        for (String linea : lineas) {</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">            if (linea.trim().isEmpty()) continue;</span>
+<span class="nc bnc" id="L268" title="All 6 branches missed.">            if (linea.contains(&quot;CÉDULA&quot;) || linea.contains(&quot;CEDULA&quot;) || linea.contains(&quot;NOMBRES COMPLETOS&quot;)) continue;</span>
+<span class="nc bnc" id="L269" title="All 4 branches missed.">            if (linea.contains(&quot;LISTADO&quot;) || linea.contains(&quot;Transformar&quot;)) continue;</span>
+<span class="nc bnc" id="L270" title="All 6 branches missed.">            if (linea.contains(&quot;Institución&quot;) || linea.contains(&quot;Régimen&quot;) || linea.contains(&quot;Jornada&quot;)) continue;</span>
+<span class="nc bnc" id="L271" title="All 6 branches missed.">            if (linea.contains(&quot;Año Escolar&quot;) || linea.contains(&quot;Año Lectivo&quot;) || linea.contains(&quot;Paralelo:&quot;)) continue;</span>
+<span class="nc bnc" id="L272" title="All 4 branches missed.">            if (linea.contains(&quot;CUENTA&quot;) || linea.contains(&quot;No.&quot;)) continue;</span>
+
+<span class="nc" id="L274">            Map&lt;String, String&gt; fila = null;</span>
+
+<span class="nc" id="L276">            Matcher m1 = p1.matcher(linea);</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            if (m1.matches()) {</span>
+<span class="nc" id="L278">                fila = construirFilaPdf(m1.group(2), m1.group(3).trim(), m1.group(4).trim());</span>
+            }
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            if (fila == null) {</span>
+<span class="nc" id="L281">                Matcher m2 = p2.matcher(linea);</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                if (m2.matches()) fila = construirFilaPdf(m2.group(2), m2.group(3).trim(), &quot;&quot;);</span>
+            }
+<span class="nc bnc" id="L284" title="All 2 branches missed.">            if (fila == null) {</span>
+<span class="nc" id="L285">                Matcher m3 = p3.matcher(linea);</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                if (m3.find()) {</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                    String email = m3.group(3) != null ? m3.group(3).trim() : &quot;&quot;;</span>
+<span class="nc" id="L288">                    fila = construirFilaPdf(m3.group(1), m3.group(2).trim(), email);</span>
+                }
+            }
+<span class="nc bnc" id="L291" title="All 2 branches missed.">            if (fila != null) filas.add(fila);</span>
+        }
+
+<span class="nc" id="L294">        List&lt;String&gt; emailsEncontrados = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L295">        Pattern emailPattern = Pattern.compile(&quot;[a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec&quot;);</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        for (String linea : lineas) {</span>
+<span class="nc bnc" id="L297" title="All 4 branches missed.">            if (linea.contains(&quot;CUENTA&quot;) || linea.contains(&quot;CORREO&quot;)) continue;</span>
+<span class="nc" id="L298">            Matcher em = emailPattern.matcher(linea);</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">            while (em.find()) emailsEncontrados.add(em.group());</span>
+        }
+
+<span class="nc" id="L302">        int emailIdx = 0;</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        for (Map&lt;String, String&gt; fila : filas) {</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            if (emailIdx &gt;= emailsEncontrados.size()) break;</span>
+<span class="nc bnc" id="L305" title="All 4 branches missed.">            if (fila.get(&quot;CORREO&quot;) == null || fila.get(&quot;CORREO&quot;).isBlank()) {</span>
+<span class="nc" id="L306">                fila.put(&quot;CORREO&quot;, emailsEncontrados.get(emailIdx));</span>
+            }
+<span class="nc" id="L308">            emailIdx++;</span>
+<span class="nc" id="L309">        }</span>
+
+<span class="nc" id="L311">        return filas;</span>
+    }
+
+    private Map&lt;String, String&gt; construirFilaPdf(String cedula, String nombresCompletos, String email) {
+<span class="nc" id="L315">        nombresCompletos = nombresCompletos.replaceAll(&quot;\\s+&quot;, &quot; &quot;).trim();</span>
+<span class="nc" id="L316">        String[] partes = nombresCompletos.split(&quot;\\s+&quot;);</span>
+        String apellidos;
+        String nombres;
+<span class="nc bnc" id="L319" title="All 2 branches missed.">        if (partes.length &gt;= 4) {</span>
+<span class="nc" id="L320">            apellidos = partes[0] + &quot; &quot; + partes[1];</span>
+<span class="nc" id="L321">            nombres = String.join(&quot; &quot;, Arrays.copyOfRange(partes, 2, partes.length));</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        } else if (partes.length == 3) {</span>
+<span class="nc" id="L323">            apellidos = partes[0] + &quot; &quot; + partes[1];</span>
+<span class="nc" id="L324">            nombres = partes[2];</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        } else if (partes.length == 2) {</span>
+<span class="nc" id="L326">            apellidos = partes[0];</span>
+<span class="nc" id="L327">            nombres = partes[1];</span>
+        } else {
+<span class="nc" id="L329">            apellidos = nombresCompletos;</span>
+<span class="nc" id="L330">            nombres = &quot;&quot;;</span>
+        }
+
+<span class="nc" id="L333">        Map&lt;String, String&gt; fila = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L334">        fila.put(&quot;CEDULA&quot;, cedula);</span>
+<span class="nc" id="L335">        fila.put(&quot;APELLIDOS&quot;, apellidos);</span>
+<span class="nc" id="L336">        fila.put(&quot;NOMBRES&quot;, nombres);</span>
+<span class="nc" id="L337">        fila.put(&quot;CORREO&quot;, email);</span>
+<span class="nc" id="L338">        return fila;</span>
+    }
+
+    private Map&lt;String, String&gt; mapearEncabezados(List&lt;String&gt; encabezados) {
+<span class="nc" id="L342">        Map&lt;String, String&gt; mapa = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        for (String original : encabezados) {</span>
+<span class="nc" id="L344">            String normalizado = normalizar(original);</span>
+<span class="nc bnc" id="L345" title="All 5 branches missed.">            String canonico = switch (normalizado) {</span>
+<span class="nc" id="L346">                case &quot;CEDULA&quot; -&gt; &quot;CEDULA&quot;;</span>
+<span class="nc" id="L347">                case &quot;NOMBRES&quot; -&gt; &quot;NOMBRES&quot;;</span>
+<span class="nc" id="L348">                case &quot;APELLIDOS&quot; -&gt; &quot;APELLIDOS&quot;;</span>
+<span class="nc" id="L349">                case &quot;CORREO&quot;, &quot;EMAIL&quot;, &quot;CORREO ELECTRONICO&quot; -&gt; &quot;CORREO&quot;;</span>
+<span class="nc" id="L350">                default -&gt; null;</span>
+            };
+<span class="nc bnc" id="L352" title="All 2 branches missed.">            if (canonico != null) mapa.put(original, canonico);</span>
+<span class="nc" id="L353">        }</span>
+<span class="nc" id="L354">        return mapa;</span>
+    }
+
+    private void validarEncabezados(Map&lt;String, String&gt; mapaEncabezados) {
+<span class="nc" id="L358">        Set&lt;String&gt; encontrados = new HashSet&lt;&gt;(mapaEncabezados.values());</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        if (!encontrados.containsAll(COLUMNAS_REQUERIDAS))</span>
+<span class="nc" id="L360">            throw ApiException.badRequest(&quot;El archivo debe tener las columnas CEDULA, NOMBRES y APELLIDOS&quot;);</span>
+<span class="nc" id="L361">    }</span>
+
+    private String normalizar(String texto) {
+<span class="nc" id="L364">        String sinAcentos = Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll(&quot;\\p{M}&quot;, &quot;&quot;);</span>
+<span class="nc" id="L365">        return sinAcentos.trim().toUpperCase();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

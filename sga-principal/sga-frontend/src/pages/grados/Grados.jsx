@@ -70,7 +70,7 @@ export default function Grados() {
   const [modalSesionGrados, setModalSesionGrados] = useState(null);
   const [errorMicroservicio, setErrorMicroservicio] = useState(false);
 
-  const DJANGO_REST = "http://localhost:8081/api/docente";
+  const DJANGO_REST = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8081/api/docente`;
 
   // Consolidado de notas/asistencia del curso (para los paneles Notas y Asistencia).
   useEffect(() => {
@@ -203,9 +203,30 @@ export default function Grados() {
     if (id === "cursos") { setGradoSel(null); setParaleloSel(null); }
   };
 
+  const normalizarNivel = (nivel, nombreGrado = "") => {
+    const n = (nivel || "").toUpperCase().trim();
+    const nom = (nombreGrado || "").toUpperCase().trim();
+    if (n.includes("INICIAL") || nom.includes("INICIAL") || n.includes("PREPARATORIA") || nom.includes("PREPARATORIA") || nom.includes("1ER") || nom.includes("PRIMER")) {
+      return "Educación Inicial y Preparatoria";
+    }
+    if (n.includes("ELEMENTAL") || nom.includes("2DO") || nom.includes("3RO") || nom.includes("4TO") || nom.includes("SEGUNDO") || nom.includes("TERCERO") || nom.includes("CUARTO")) {
+      return "Básica Elemental (2do - 4to EGB)";
+    }
+    if (n.includes("MEDIA") || nom.includes("5TO") || nom.includes("6TO") || nom.includes("7MO") || nom.includes("QUINTO") || nom.includes("SEXTO") || nom.includes("SÉPTIMO")) {
+      return "Básica Media (5to - 7mo EGB)";
+    }
+    if (n.includes("SUPERIOR") || nom.includes("8VO") || nom.includes("9NO") || nom.includes("10MO") || nom.includes("OCTAVO") || nom.includes("NOVENO") || nom.includes("DÉCIMO")) {
+      return "Básica Superior (8vo - 10mo EGB)";
+    }
+    if (n.includes("BACHILLERATO") || n.includes("BGU") || nom.includes("BACHILLERATO") || nom.includes("BGU")) {
+      return "Bachillerato General Unificado (BGU)";
+    }
+    return nivel || "General";
+  };
+
   const nivelesAgrupados = {};
   grados.forEach(g => {
-    const nivel = g.nivelEducativo || "Sin nivel";
+    const nivel = normalizarNivel(g.nivelEducativo, g.nombre);
     if (!nivelesAgrupados[nivel]) nivelesAgrupados[nivel] = [];
     nivelesAgrupados[nivel].push(g);
   });
@@ -762,7 +783,7 @@ export default function Grados() {
                 <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: PRIMARY }}>{nivel}</h2>
                 <span className="text-xs text-slate-400 ml-1">({gradosNivel.length} grado{gradosNivel.length !== 1 ? "s" : ""})</span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {gradosNivel.map(g => (
                   <GradoCard key={g.idGrado} grado={g} onClick={() => setGradoSel(g)} />
                 ))}

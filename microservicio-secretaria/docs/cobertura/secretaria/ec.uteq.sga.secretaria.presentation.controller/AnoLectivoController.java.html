@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnoLectivoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.presentation.controller</a> &gt; <span class="el_source">AnoLectivoController.java</span></div><h1>AnoLectivoController.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.presentation.controller;
+
+import ec.uteq.sga.secretaria.domain.dto.AnoLectivoRequest;
+import ec.uteq.sga.secretaria.domain.dto.PeriodoEvaluacionRequest;
+import ec.uteq.sga.secretaria.application.service.AnoLectivoService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/secretario/anos-lectivos&quot;)
+public class AnoLectivoController {
+
+    private final AnoLectivoService anoLectivoService;
+
+<span class="nc" id="L19">    public AnoLectivoController(AnoLectivoService anoLectivoService) {</span>
+<span class="nc" id="L20">        this.anoLectivoService = anoLectivoService;</span>
+<span class="nc" id="L21">    }</span>
+
+    @GetMapping
+    public List&lt;Map&lt;String, Object&gt;&gt; listar() {
+<span class="nc" id="L25">        return anoLectivoService.listarTodos();</span>
+    }
+
+    @GetMapping(&quot;/actual&quot;)
+    public Map&lt;String, Object&gt; obtenerActual() {
+<span class="nc" id="L30">        return anoLectivoService.obtenerActual();</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public Map&lt;String, Object&gt; obtener(@PathVariable long id) {
+<span class="nc" id="L35">        return anoLectivoService.obtenerPorId(id);</span>
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map&lt;String, Object&gt; crear(@Valid @RequestBody AnoLectivoRequest dto) {
+<span class="nc" id="L41">        return anoLectivoService.crear(dto);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public Map&lt;String, Object&gt; actualizar(@PathVariable long id, @Valid @RequestBody AnoLectivoRequest dto) {
+<span class="nc" id="L46">        return anoLectivoService.actualizar(id, dto);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/activar&quot;)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void activar(@PathVariable long id) {
+<span class="nc" id="L52">        anoLectivoService.establecerActual(id);</span>
+<span class="nc" id="L53">    }</span>
+
+    @GetMapping(&quot;/{id}/periodos&quot;)
+    public List&lt;Map&lt;String, Object&gt;&gt; listarPeriodos(@PathVariable long id) {
+<span class="nc" id="L57">        return anoLectivoService.listarPeriodos(id);</span>
+    }
+
+    @PostMapping(&quot;/{id}/periodos&quot;)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map&lt;String, Object&gt; crearPeriodo(@PathVariable long id, @Valid @RequestBody PeriodoEvaluacionRequest dto) {
+<span class="nc" id="L63">        return anoLectivoService.crearPeriodo(id, dto);</span>
+    }
+
+    @PutMapping(&quot;/periodos/{idPeriodo}&quot;)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void actualizarPeriodo(@PathVariable long idPeriodo, @Valid @RequestBody PeriodoEvaluacionRequest dto) {
+<span class="nc" id="L69">        anoLectivoService.actualizarPeriodo(idPeriodo, dto);</span>
+<span class="nc" id="L70">    }</span>
+
+    @DeleteMapping(&quot;/periodos/{idPeriodo}&quot;)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarPeriodo(@PathVariable long idPeriodo) {
+<span class="nc" id="L75">        anoLectivoService.eliminarPeriodo(idPeriodo);</span>
+<span class="nc" id="L76">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocenteServiceGrpc.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.grpc.docente</a> &gt; <span class="el_source">DocenteServiceGrpc.java</span></div><h1>DocenteServiceGrpc.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.grpc.docente;
+
+import static io.grpc.MethodDescriptor.generateFullMethodName;
+
+/**
+ * &lt;pre&gt;
+ * Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+ * MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+ * que ambos lados se entiendan.
+ * &lt;/pre&gt;
+ */
+@javax.annotation.Generated(
+    value = &quot;by gRPC proto compiler (version 1.65.1)&quot;,
+    comments = &quot;Source: docente.proto&quot;)
+@io.grpc.stub.annotations.GrpcGenerated
+public final class DocenteServiceGrpc {
+
+  private DocenteServiceGrpc() {}
+
+  public static final java.lang.String SERVICE_NAME = &quot;sga.docente.DocenteService&quot;;
+
+  // Static method descriptors that strictly reflect the proto.
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest,
+      ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt; getObtenerCalificacionesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ObtenerCalificaciones&quot;,
+      requestType = ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest,
+      ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt; getObtenerCalificacionesMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest, ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt; getObtenerCalificacionesMethod;
+    if ((getObtenerCalificacionesMethod = DocenteServiceGrpc.getObtenerCalificacionesMethod) == null) {
+      synchronized (DocenteServiceGrpc.class) {
+        if ((getObtenerCalificacionesMethod = DocenteServiceGrpc.getObtenerCalificacionesMethod) == null) {
+          DocenteServiceGrpc.getObtenerCalificacionesMethod = getObtenerCalificacionesMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest, ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ObtenerCalificaciones&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new DocenteServiceMethodDescriptorSupplier(&quot;ObtenerCalificaciones&quot;))
+              .build();
+        }
+      }
+    }
+    return getObtenerCalificacionesMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest,
+      ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; getCalcularPromedioFormativoMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CalcularPromedioFormativo&quot;,
+      requestType = ec.edu.uteq.sga.grpc.docente.PromedioRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.docente.PromedioResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest,
+      ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; getCalcularPromedioFormativoMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest, ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; getCalcularPromedioFormativoMethod;
+    if ((getCalcularPromedioFormativoMethod = DocenteServiceGrpc.getCalcularPromedioFormativoMethod) == null) {
+      synchronized (DocenteServiceGrpc.class) {
+        if ((getCalcularPromedioFormativoMethod = DocenteServiceGrpc.getCalcularPromedioFormativoMethod) == null) {
+          DocenteServiceGrpc.getCalcularPromedioFormativoMethod = getCalcularPromedioFormativoMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest, ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CalcularPromedioFormativo&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.PromedioRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.PromedioResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new DocenteServiceMethodDescriptorSupplier(&quot;CalcularPromedioFormativo&quot;))
+              .build();
+        }
+      }
+    }
+    return getCalcularPromedioFormativoMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest,
+      ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; getCalcularPromedioFinalMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;CalcularPromedioFinal&quot;,
+      requestType = ec.edu.uteq.sga.grpc.docente.PromedioRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.docente.PromedioResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest,
+      ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; getCalcularPromedioFinalMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest, ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; getCalcularPromedioFinalMethod;
+    if ((getCalcularPromedioFinalMethod = DocenteServiceGrpc.getCalcularPromedioFinalMethod) == null) {
+      synchronized (DocenteServiceGrpc.class) {
+        if ((getCalcularPromedioFinalMethod = DocenteServiceGrpc.getCalcularPromedioFinalMethod) == null) {
+          DocenteServiceGrpc.getCalcularPromedioFinalMethod = getCalcularPromedioFinalMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.docente.PromedioRequest, ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;CalcularPromedioFinal&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.PromedioRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.PromedioResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new DocenteServiceMethodDescriptorSupplier(&quot;CalcularPromedioFinal&quot;))
+              .build();
+        }
+      }
+    }
+    return getCalcularPromedioFinalMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest,
+      ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt; getRegistrarCalificacionMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;RegistrarCalificacion&quot;,
+      requestType = ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest,
+      ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt; getRegistrarCalificacionMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest, ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt; getRegistrarCalificacionMethod;
+    if ((getRegistrarCalificacionMethod = DocenteServiceGrpc.getRegistrarCalificacionMethod) == null) {
+      synchronized (DocenteServiceGrpc.class) {
+        if ((getRegistrarCalificacionMethod = DocenteServiceGrpc.getRegistrarCalificacionMethod) == null) {
+          DocenteServiceGrpc.getRegistrarCalificacionMethod = getRegistrarCalificacionMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest, ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;RegistrarCalificacion&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new DocenteServiceMethodDescriptorSupplier(&quot;RegistrarCalificacion&quot;))
+              .build();
+        }
+      }
+    }
+    return getRegistrarCalificacionMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest,
+      ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt; getConvertirACualitativaMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + &quot;ConvertirACualitativa&quot;,
+      requestType = ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest.class,
+      responseType = ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest,
+      ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt; getConvertirACualitativaMethod() {
+    io.grpc.MethodDescriptor&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest, ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt; getConvertirACualitativaMethod;
+    if ((getConvertirACualitativaMethod = DocenteServiceGrpc.getConvertirACualitativaMethod) == null) {
+      synchronized (DocenteServiceGrpc.class) {
+        if ((getConvertirACualitativaMethod = DocenteServiceGrpc.getConvertirACualitativaMethod) == null) {
+          DocenteServiceGrpc.getConvertirACualitativaMethod = getConvertirACualitativaMethod =
+              io.grpc.MethodDescriptor.&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest, ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt;newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, &quot;ConvertirACualitativa&quot;))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new DocenteServiceMethodDescriptorSupplier(&quot;ConvertirACualitativa&quot;))
+              .build();
+        }
+      }
+    }
+    return getConvertirACualitativaMethod;
+  }
+
+  /**
+   * Creates a new async stub that supports all call types for the service
+   */
+  public static DocenteServiceStub newStub(io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;DocenteServiceStub&gt; factory =
+<span class="nc" id="L183">      new io.grpc.stub.AbstractStub.StubFactory&lt;DocenteServiceStub&gt;() {</span>
+        @java.lang.Override
+        public DocenteServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L186">          return new DocenteServiceStub(channel, callOptions);</span>
+        }
+      };
+    return DocenteServiceStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new blocking-style stub that supports unary and streaming output calls on the service
+   */
+  public static DocenteServiceBlockingStub newBlockingStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;DocenteServiceBlockingStub&gt; factory =
+<span class="nc" id="L198">      new io.grpc.stub.AbstractStub.StubFactory&lt;DocenteServiceBlockingStub&gt;() {</span>
+        @java.lang.Override
+        public DocenteServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L201">          return new DocenteServiceBlockingStub(channel, callOptions);</span>
+        }
+      };
+    return DocenteServiceBlockingStub.newStub(factory, channel);
+  }
+
+  /**
+   * Creates a new ListenableFuture-style stub that supports unary calls on the service
+   */
+  public static DocenteServiceFutureStub newFutureStub(
+      io.grpc.Channel channel) {
+    io.grpc.stub.AbstractStub.StubFactory&lt;DocenteServiceFutureStub&gt; factory =
+<span class="nc" id="L213">      new io.grpc.stub.AbstractStub.StubFactory&lt;DocenteServiceFutureStub&gt;() {</span>
+        @java.lang.Override
+        public DocenteServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L216">          return new DocenteServiceFutureStub(channel, callOptions);</span>
+        }
+      };
+    return DocenteServiceFutureStub.newStub(factory, channel);
+  }
+
+  /**
+   * &lt;pre&gt;
+   * Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+   * MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+   * que ambos lados se entiendan.
+   * &lt;/pre&gt;
+   */
+  public interface AsyncService {
+
+    /**
+     */
+    default void obtenerCalificaciones(ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt; responseObserver) {
+<span class="nc" id="L235">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getObtenerCalificacionesMethod(), responseObserver);</span>
+<span class="nc" id="L236">    }</span>
+
+    /**
+     */
+    default void calcularPromedioFormativo(ec.edu.uteq.sga.grpc.docente.PromedioRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; responseObserver) {
+<span class="nc" id="L242">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCalcularPromedioFormativoMethod(), responseObserver);</span>
+<span class="nc" id="L243">    }</span>
+
+    /**
+     */
+    default void calcularPromedioFinal(ec.edu.uteq.sga.grpc.docente.PromedioRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; responseObserver) {
+<span class="nc" id="L249">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCalcularPromedioFinalMethod(), responseObserver);</span>
+<span class="nc" id="L250">    }</span>
+
+    /**
+     */
+    default void registrarCalificacion(ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt; responseObserver) {
+<span class="nc" id="L256">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getRegistrarCalificacionMethod(), responseObserver);</span>
+<span class="nc" id="L257">    }</span>
+
+    /**
+     */
+    default void convertirACualitativa(ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt; responseObserver) {
+<span class="nc" id="L263">      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getConvertirACualitativaMethod(), responseObserver);</span>
+<span class="nc" id="L264">    }</span>
+  }
+
+  /**
+   * Base class for the server implementation of the service DocenteService.
+   * &lt;pre&gt;
+   * Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+   * MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+   * que ambos lados se entiendan.
+   * &lt;/pre&gt;
+   */
+<span class="nc" id="L275">  public static abstract class DocenteServiceImplBase</span>
+      implements io.grpc.BindableService, AsyncService {
+
+    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+<span class="nc" id="L279">      return DocenteServiceGrpc.bindService(this);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do asynchronous rpc calls to service DocenteService.
+   * &lt;pre&gt;
+   * Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+   * MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+   * que ambos lados se entiendan.
+   * &lt;/pre&gt;
+   */
+  public static final class DocenteServiceStub
+      extends io.grpc.stub.AbstractAsyncStub&lt;DocenteServiceStub&gt; {
+    private DocenteServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L295">      super(channel, callOptions);</span>
+<span class="nc" id="L296">    }</span>
+
+    @java.lang.Override
+    protected DocenteServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L301">      return new DocenteServiceStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public void obtenerCalificaciones(ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt; responseObserver) {
+<span class="nc" id="L308">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L309">          getChannel().newCall(getObtenerCalificacionesMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L310">    }</span>
+
+    /**
+     */
+    public void calcularPromedioFormativo(ec.edu.uteq.sga.grpc.docente.PromedioRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; responseObserver) {
+<span class="nc" id="L316">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L317">          getChannel().newCall(getCalcularPromedioFormativoMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L318">    }</span>
+
+    /**
+     */
+    public void calcularPromedioFinal(ec.edu.uteq.sga.grpc.docente.PromedioRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; responseObserver) {
+<span class="nc" id="L324">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L325">          getChannel().newCall(getCalcularPromedioFinalMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L326">    }</span>
+
+    /**
+     */
+    public void registrarCalificacion(ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt; responseObserver) {
+<span class="nc" id="L332">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L333">          getChannel().newCall(getRegistrarCalificacionMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L334">    }</span>
+
+    /**
+     */
+    public void convertirACualitativa(ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest request,
+        io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt; responseObserver) {
+<span class="nc" id="L340">      io.grpc.stub.ClientCalls.asyncUnaryCall(</span>
+<span class="nc" id="L341">          getChannel().newCall(getConvertirACualitativaMethod(), getCallOptions()), request, responseObserver);</span>
+<span class="nc" id="L342">    }</span>
+  }
+
+  /**
+   * A stub to allow clients to do synchronous rpc calls to service DocenteService.
+   * &lt;pre&gt;
+   * Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+   * MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+   * que ambos lados se entiendan.
+   * &lt;/pre&gt;
+   */
+  public static final class DocenteServiceBlockingStub
+      extends io.grpc.stub.AbstractBlockingStub&lt;DocenteServiceBlockingStub&gt; {
+    private DocenteServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L357">      super(channel, callOptions);</span>
+<span class="nc" id="L358">    }</span>
+
+    @java.lang.Override
+    protected DocenteServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L363">      return new DocenteServiceBlockingStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse obtenerCalificaciones(ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest request) {
+<span class="nc" id="L369">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L370">          getChannel(), getObtenerCalificacionesMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.docente.PromedioResponse calcularPromedioFormativo(ec.edu.uteq.sga.grpc.docente.PromedioRequest request) {
+<span class="nc" id="L376">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L377">          getChannel(), getCalcularPromedioFormativoMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.docente.PromedioResponse calcularPromedioFinal(ec.edu.uteq.sga.grpc.docente.PromedioRequest request) {
+<span class="nc" id="L383">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L384">          getChannel(), getCalcularPromedioFinalMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse registrarCalificacion(ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest request) {
+<span class="nc" id="L390">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L391">          getChannel(), getRegistrarCalificacionMethod(), getCallOptions(), request);</span>
+    }
+
+    /**
+     */
+    public ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse convertirACualitativa(ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest request) {
+<span class="nc" id="L397">      return io.grpc.stub.ClientCalls.blockingUnaryCall(</span>
+<span class="nc" id="L398">          getChannel(), getConvertirACualitativaMethod(), getCallOptions(), request);</span>
+    }
+  }
+
+  /**
+   * A stub to allow clients to do ListenableFuture-style rpc calls to service DocenteService.
+   * &lt;pre&gt;
+   * Contrato compartido entre sga-principal (cliente) y MICRO-DOCENTE (servidor).
+   * MICRO-DOCENTE debe implementar este mismo .proto en Python (grpcio) para
+   * que ambos lados se entiendan.
+   * &lt;/pre&gt;
+   */
+  public static final class DocenteServiceFutureStub
+      extends io.grpc.stub.AbstractFutureStub&lt;DocenteServiceFutureStub&gt; {
+    private DocenteServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L414">      super(channel, callOptions);</span>
+<span class="nc" id="L415">    }</span>
+
+    @java.lang.Override
+    protected DocenteServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+<span class="nc" id="L420">      return new DocenteServiceFutureStub(channel, callOptions);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt; obtenerCalificaciones(
+        ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest request) {
+<span class="nc" id="L427">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L428">          getChannel().newCall(getObtenerCalificacionesMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; calcularPromedioFormativo(
+        ec.edu.uteq.sga.grpc.docente.PromedioRequest request) {
+<span class="nc" id="L435">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L436">          getChannel().newCall(getCalcularPromedioFormativoMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt; calcularPromedioFinal(
+        ec.edu.uteq.sga.grpc.docente.PromedioRequest request) {
+<span class="nc" id="L443">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L444">          getChannel().newCall(getCalcularPromedioFinalMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt; registrarCalificacion(
+        ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest request) {
+<span class="nc" id="L451">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L452">          getChannel().newCall(getRegistrarCalificacionMethod(), getCallOptions()), request);</span>
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt; convertirACualitativa(
+        ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest request) {
+<span class="nc" id="L459">      return io.grpc.stub.ClientCalls.futureUnaryCall(</span>
+<span class="nc" id="L460">          getChannel().newCall(getConvertirACualitativaMethod(), getCallOptions()), request);</span>
+    }
+  }
+
+  private static final int METHODID_OBTENER_CALIFICACIONES = 0;
+  private static final int METHODID_CALCULAR_PROMEDIO_FORMATIVO = 1;
+  private static final int METHODID_CALCULAR_PROMEDIO_FINAL = 2;
+  private static final int METHODID_REGISTRAR_CALIFICACION = 3;
+  private static final int METHODID_CONVERTIR_ACUALITATIVA = 4;
+
+  private static final class MethodHandlers&lt;Req, Resp&gt; implements
+      io.grpc.stub.ServerCalls.UnaryMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ServerStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.ClientStreamingMethod&lt;Req, Resp&gt;,
+      io.grpc.stub.ServerCalls.BidiStreamingMethod&lt;Req, Resp&gt; {
+    private final AsyncService serviceImpl;
+    private final int methodId;
+
+<span class="nc" id="L478">    MethodHandlers(AsyncService serviceImpl, int methodId) {</span>
+<span class="nc" id="L479">      this.serviceImpl = serviceImpl;</span>
+<span class="nc" id="L480">      this.methodId = methodId;</span>
+<span class="nc" id="L481">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public void invoke(Req request, io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc bnc" id="L486" title="All 6 branches missed.">      switch (methodId) {</span>
+        case METHODID_OBTENER_CALIFICACIONES:
+<span class="nc" id="L488">          serviceImpl.obtenerCalificaciones((ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt;) responseObserver);
+<span class="nc" id="L490">          break;</span>
+        case METHODID_CALCULAR_PROMEDIO_FORMATIVO:
+<span class="nc" id="L492">          serviceImpl.calcularPromedioFormativo((ec.edu.uteq.sga.grpc.docente.PromedioRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt;) responseObserver);
+<span class="nc" id="L494">          break;</span>
+        case METHODID_CALCULAR_PROMEDIO_FINAL:
+<span class="nc" id="L496">          serviceImpl.calcularPromedioFinal((ec.edu.uteq.sga.grpc.docente.PromedioRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt;) responseObserver);
+<span class="nc" id="L498">          break;</span>
+        case METHODID_REGISTRAR_CALIFICACION:
+<span class="nc" id="L500">          serviceImpl.registrarCalificacion((ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt;) responseObserver);
+<span class="nc" id="L502">          break;</span>
+        case METHODID_CONVERTIR_ACUALITATIVA:
+<span class="nc" id="L504">          serviceImpl.convertirACualitativa((ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest) request,</span>
+              (io.grpc.stub.StreamObserver&lt;ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt;) responseObserver);
+<span class="nc" id="L506">          break;</span>
+        default:
+<span class="nc" id="L508">          throw new AssertionError();</span>
+      }
+<span class="nc" id="L510">    }</span>
+
+    @java.lang.Override
+    @java.lang.SuppressWarnings(&quot;unchecked&quot;)
+    public io.grpc.stub.StreamObserver&lt;Req&gt; invoke(
+        io.grpc.stub.StreamObserver&lt;Resp&gt; responseObserver) {
+<span class="nc" id="L516">      switch (methodId) {</span>
+        default:
+<span class="nc" id="L518">          throw new AssertionError();</span>
+      }
+    }
+  }
+
+  public static final io.grpc.ServerServiceDefinition bindService(AsyncService service) {
+    return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+        .addMethod(
+          getObtenerCalificacionesMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesRequest,
+              ec.edu.uteq.sga.grpc.docente.ObtenerCalificacionesResponse&gt;(
+                service, METHODID_OBTENER_CALIFICACIONES)))
+        .addMethod(
+          getCalcularPromedioFormativoMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.docente.PromedioRequest,
+              ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt;(
+                service, METHODID_CALCULAR_PROMEDIO_FORMATIVO)))
+        .addMethod(
+          getCalcularPromedioFinalMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.docente.PromedioRequest,
+              ec.edu.uteq.sga.grpc.docente.PromedioResponse&gt;(
+                service, METHODID_CALCULAR_PROMEDIO_FINAL)))
+        .addMethod(
+          getRegistrarCalificacionMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionRequest,
+              ec.edu.uteq.sga.grpc.docente.RegistrarCalificacionResponse&gt;(
+                service, METHODID_REGISTRAR_CALIFICACION)))
+        .addMethod(
+          getConvertirACualitativaMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers&lt;
+              ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaRequest,
+              ec.edu.uteq.sga.grpc.docente.ConvertirACualitativaResponse&gt;(
+                service, METHODID_CONVERTIR_ACUALITATIVA)))
+        .build();
+  }
+
+  private static abstract class DocenteServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
+<span class="nc" id="L565">    DocenteServiceBaseDescriptorSupplier() {}</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
+<span class="nc" id="L569">      return ec.edu.uteq.sga.grpc.docente.Docente.getDescriptor();</span>
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
+<span class="nc" id="L574">      return getFileDescriptor().findServiceByName(&quot;DocenteService&quot;);</span>
+    }
+  }
+
+  private static final class DocenteServiceFileDescriptorSupplier
+      extends DocenteServiceBaseDescriptorSupplier {
+<span class="nc" id="L580">    DocenteServiceFileDescriptorSupplier() {}</span>
+  }
+
+  private static final class DocenteServiceMethodDescriptorSupplier
+      extends DocenteServiceBaseDescriptorSupplier
+      implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
+    private final java.lang.String methodName;
+
+<span class="nc" id="L588">    DocenteServiceMethodDescriptorSupplier(java.lang.String methodName) {</span>
+<span class="nc" id="L589">      this.methodName = methodName;</span>
+<span class="nc" id="L590">    }</span>
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
+<span class="nc" id="L594">      return getServiceDescriptor().findMethodByName(methodName);</span>
+    }
+  }
+
+  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
+
+  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
+    io.grpc.ServiceDescriptor result = serviceDescriptor;
+    if (result == null) {
+      synchronized (DocenteServiceGrpc.class) {
+        result = serviceDescriptor;
+        if (result == null) {
+          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
+              .setSchemaDescriptor(new DocenteServiceFileDescriptorSupplier())
+              .addMethod(getObtenerCalificacionesMethod())
+              .addMethod(getCalcularPromedioFormativoMethod())
+              .addMethod(getCalcularPromedioFinalMethod())
+              .addMethod(getRegistrarCalificacionMethod())
+              .addMethod(getConvertirACualitativaMethod())
+              .build();
+        }
+      }
+    }
+    return result;
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

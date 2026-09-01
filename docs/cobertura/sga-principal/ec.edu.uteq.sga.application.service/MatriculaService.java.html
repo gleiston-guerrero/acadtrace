@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriculaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">MatriculaService.java</span></div><h1>MatriculaService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.matricula.MatriculaRequestDTO;
+import ec.edu.uteq.sga.domain.dto.matricula.MatriculaResponseDTO;
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Matricula: entidad JPA propia de sga-principal (unico duenio de la tabla
+ * compartida sga_principal.matriculas). Secretaria la gestiona por completo
+ * via gRPC (ver PrincipalGrpcService), nunca por SQL directo.
+ */
+@Service
+@RequiredArgsConstructor
+public class MatriculaService {
+
+<span class="nc" id="L25">    private static final Set&lt;String&gt; ESTADOS_VALIDOS = Set.of(&quot;ACTIVA&quot;, &quot;RETIRADA&quot;, &quot;TRASLADADA&quot;, &quot;PROMOVIDA&quot;, &quot;REPROBADA&quot;);</span>
+
+    private final MatriculaRepository matriculaRepo;
+    private final EstudianteRepository estudianteRepo;
+    private final GradoRepository gradoRepo;
+    private final ParaleloRepository paraleloRepo;
+    private final AnoLectivoRepository anoLectivoRepo;
+    private final UsuarioRepository usuarioRepo;
+    private final AuditoriaService auditoriaService;
+
+<span class="nc" id="L35">    public record PaginaMatriculas(List&lt;MatriculaResponseDTO&gt; items, long total) {}</span>
+
+    @Transactional(readOnly = true)
+    public PaginaMatriculas listar(Long idAnoLectivo, Long idEstudiante, Long idGrado, String q, int page, int limit) {
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if (idEstudiante != null &amp;&amp; idEstudiante &gt; 0) {</span>
+<span class="nc" id="L40">            List&lt;Matricula&gt; filas = matriculaRepo.findByEstudiante_IdEstudiante(idEstudiante);</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">            if (idAnoLectivo != null &amp;&amp; idAnoLectivo &gt; 0) {</span>
+<span class="nc" id="L42">                filas = filas.stream().filter(m -&gt; m.getAnoLectivo().getIdAnoLectivo().equals(idAnoLectivo)).toList();</span>
+            }
+<span class="nc bnc" id="L44" title="All 4 branches missed.">            if (idGrado != null &amp;&amp; idGrado &gt; 0) {</span>
+<span class="nc bnc" id="L45" title="All 4 branches missed.">                filas = filas.stream().filter(m -&gt; m.getGrado() != null &amp;&amp; m.getGrado().getIdGrado().equals(idGrado)).toList();</span>
+            }
+<span class="nc" id="L47">            List&lt;MatriculaResponseDTO&gt; items = filas.stream().map(this::toDTO).toList();</span>
+<span class="nc" id="L48">            return new PaginaMatriculas(items, items.size());</span>
+        }
+
+<span class="nc bnc" id="L51" title="All 4 branches missed.">        List&lt;Matricula&gt; todas = (idAnoLectivo != null &amp;&amp; idAnoLectivo &gt; 0)</span>
+<span class="nc" id="L52">                ? matriculaRepo.findByAnoLectivoWithEstudiante(idAnoLectivo)</span>
+<span class="nc" id="L53">                : matriculaRepo.findAll();</span>
+
+<span class="nc bnc" id="L55" title="All 4 branches missed.">        if (idGrado != null &amp;&amp; idGrado &gt; 0) {</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">            todas = todas.stream().filter(m -&gt; m.getGrado() != null &amp;&amp; m.getGrado().getIdGrado().equals(idGrado)).toList();</span>
+        }
+
+<span class="nc bnc" id="L59" title="All 4 branches missed.">        if (q != null &amp;&amp; !q.isBlank()) {</span>
+<span class="nc" id="L60">            String needle = q.trim().toLowerCase();</span>
+<span class="nc" id="L61">            todas = todas.stream().filter(m -&gt; coincide(m.getEstudiante(), needle)).toList();</span>
+        }
+
+        // Ordenar por Grado (Primero EGB -&gt; Décimo EGB) y por Apellidos, Nombres en orden alfabético
+<span class="nc" id="L65">        todas = todas.stream()</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">                .sorted(java.util.Comparator.comparing((Matricula m) -&gt; m.getGrado() != null ? m.getGrado().getIdGrado() : 0L)</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                        .thenComparing(m -&gt; m.getEstudiante() != null ? m.getEstudiante().getApellidos() : &quot;&quot;)</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                        .thenComparing(m -&gt; m.getEstudiante() != null ? m.getEstudiante().getNombres() : &quot;&quot;))</span>
+<span class="nc" id="L69">                .toList();</span>
+
+<span class="nc" id="L71">        int total = todas.size();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        int limiteReal = limit &gt; 0 ? limit : 500;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        int paginaReal = page &gt; 0 ? page : 1;</span>
+<span class="nc" id="L74">        int desde = Math.min((paginaReal - 1) * limiteReal, total);</span>
+<span class="nc" id="L75">        int hasta = Math.min(desde + limiteReal, total);</span>
+<span class="nc" id="L76">        List&lt;MatriculaResponseDTO&gt; items = todas.subList(desde, hasta).stream().map(this::toDTO).toList();</span>
+<span class="nc" id="L77">        return new PaginaMatriculas(items, total);</span>
+    }
+
+    private boolean coincide(Estudiante e, String needle) {
+<span class="nc bnc" id="L81" title="All 6 branches missed.">        return contiene(e.getNombres(), needle) || contiene(e.getApellidos(), needle) || contiene(e.getCedula(), needle);</span>
+    }
+
+    private boolean contiene(String valor, String needle) {
+<span class="nc bnc" id="L85" title="All 4 branches missed.">        return valor != null &amp;&amp; valor.toLowerCase().contains(needle);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public MatriculaResponseDTO obtener(Long id) {
+<span class="nc" id="L90">        return toDTO(buscarPorId(id));</span>
+    }
+
+    @Transactional
+    public MatriculaResponseDTO crear(MatriculaRequestDTO dto, Long idUsuarioRegistro) {
+<span class="nc" id="L95">        Estudiante estudiante = estudianteRepo.findById(dto.getIdEstudiante())</span>
+<span class="nc" id="L96">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Estudiante no encontrado&quot;));</span>
+<span class="nc" id="L97">        Grado grado = gradoRepo.findById(dto.getIdGrado())</span>
+<span class="nc" id="L98">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Grado no encontrado&quot;));</span>
+<span class="nc" id="L99">        AnoLectivo ano = anoLectivoRepo.findById(dto.getIdAnoLectivo())</span>
+<span class="nc" id="L100">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Año lectivo no encontrado&quot;));</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (dto.getIdParalelo() == null)</span>
+<span class="nc" id="L102">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;El paralelo es obligatorio&quot;);</span>
+<span class="nc" id="L103">        Paralelo paralelo = paraleloRepo.findById(dto.getIdParalelo())</span>
+<span class="nc" id="L104">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Paralelo no encontrado&quot;));</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (matriculaRepo.existsByEstudiante_IdEstudianteAndAnoLectivo_IdAnoLectivo(dto.getIdEstudiante(), dto.getIdAnoLectivo()))</span>
+<span class="nc" id="L107">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;El estudiante ya tiene una matrícula en ese año lectivo&quot;);</span>
+
+<span class="nc" id="L109">        String estado = validarEstado(dto.getEstado(), &quot;ACTIVA&quot;);</span>
+
+<span class="nc" id="L111">        short siguienteOrden = (short) (matriculaRepo.findTopByAnoLectivo_IdAnoLectivoOrderByNumeroOrdenDesc(dto.getIdAnoLectivo())</span>
+<span class="nc" id="L112">                .map(Matricula::getNumeroOrden)</span>
+<span class="nc" id="L113">                .orElse((short) 0) + 1);</span>
+
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        Usuario registrador = idUsuarioRegistro != null ? usuarioRepo.findById(idUsuarioRegistro).orElse(null) : null;</span>
+
+<span class="nc" id="L117">        Matricula matricula = Matricula.builder()</span>
+<span class="nc" id="L118">                .estudiante(estudiante)</span>
+<span class="nc" id="L119">                .grado(grado)</span>
+<span class="nc" id="L120">                .paralelo(paralelo)</span>
+<span class="nc" id="L121">                .anoLectivo(ano)</span>
+<span class="nc" id="L122">                .numeroOrden(siguienteOrden)</span>
+<span class="nc" id="L123">                .estado(estado)</span>
+<span class="nc" id="L124">                .observaciones(dto.getObservaciones())</span>
+<span class="nc" id="L125">                .registradoPor(registrador)</span>
+<span class="nc" id="L126">                .build();</span>
+
+<span class="nc" id="L128">        Matricula guardada = matriculaRepo.save(matricula);</span>
+<span class="nc" id="L129">        auditoriaService.registrarCrud(&quot;CREAR&quot;, &quot;matricula&quot;, guardada.getIdMatricula(),</span>
+<span class="nc" id="L130">                &quot;Matrícula creada: &quot; + estudiante.getNombres() + &quot; &quot; + estudiante.getApellidos()</span>
+<span class="nc" id="L131">                        + &quot; — &quot; + grado.getNombre() + &quot; (&quot; + ano.getNombre() + &quot;)&quot;);</span>
+<span class="nc" id="L132">        return toDTO(guardada);</span>
+    }
+
+    @Transactional
+    public void cambiarEstado(Long id, String estado) {
+<span class="nc" id="L137">        cambiarEstado(id, estado, null);</span>
+<span class="nc" id="L138">    }</span>
+
+    @Transactional
+    public void cambiarEstado(Long id, String estado, String observaciones) {
+<span class="nc" id="L142">        Matricula matricula = buscarPorId(id);</span>
+<span class="nc" id="L143">        matricula.setEstado(validarEstado(estado, matricula.getEstado()));</span>
+<span class="nc bnc" id="L144" title="All 4 branches missed.">        if (observaciones != null &amp;&amp; !observaciones.isBlank()) {</span>
+<span class="nc" id="L145">            matricula.setObservaciones(observaciones);</span>
+        }
+<span class="nc" id="L147">        matriculaRepo.save(matricula);</span>
+<span class="nc" id="L148">        auditoriaService.registrarCrud(&quot;EDITAR&quot;, &quot;matricula&quot;, id,</span>
+<span class="nc" id="L149">                &quot;Estado de matrícula cambiado a &quot; + matricula.getEstado());</span>
+<span class="nc" id="L150">    }</span>
+
+    private String validarEstado(String estado, String porDefecto) {
+<span class="nc bnc" id="L153" title="All 4 branches missed.">        if (estado == null || estado.isBlank()) return porDefecto;</span>
+<span class="nc" id="L154">        String limpio = estado.trim().toUpperCase();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (!ESTADOS_VALIDOS.contains(limpio))</span>
+<span class="nc" id="L156">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Estado inválido: &quot; + estado);</span>
+<span class="nc" id="L157">        return limpio;</span>
+    }
+
+    private Matricula buscarPorId(Long id) {
+<span class="nc" id="L161">        return matriculaRepo.findById(id)</span>
+<span class="nc" id="L162">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Matrícula no encontrada&quot;));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] generarPdfMatricula(Long idMatricula) {
+<span class="nc" id="L167">        Matricula m = buscarPorId(idMatricula);</span>
+<span class="nc" id="L168">        Estudiante e = m.getEstudiante();</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        Representante r = e != null ? e.getRepresentante() : null;</span>
+
+<span class="nc" id="L171">        try (java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {</span>
+<span class="nc" id="L172">            com.lowagie.text.Document doc = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4, 30, 30, 30, 30);</span>
+<span class="nc" id="L173">            com.lowagie.text.pdf.PdfWriter.getInstance(doc, baos);</span>
+<span class="nc" id="L174">            doc.open();</span>
+
+<span class="nc" id="L176">            com.lowagie.text.Font fHeader = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.BOLD, new java.awt.Color(100, 116, 139));</span>
+<span class="nc" id="L177">            com.lowagie.text.Font fTitle = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 15, com.lowagie.text.Font.BOLD, new java.awt.Color(36, 58, 118));</span>
+<span class="nc" id="L178">            com.lowagie.text.Font fSub = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 11, com.lowagie.text.Font.BOLD, java.awt.Color.DARK_GRAY);</span>
+<span class="nc" id="L179">            com.lowagie.text.Font fSecTitle = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.BOLD, com.lowagie.text.html.WebColors.getRGBColor(&quot;#243A76&quot;));</span>
+<span class="nc" id="L180">            com.lowagie.text.Font fLabel = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9, com.lowagie.text.Font.BOLD, java.awt.Color.BLACK);</span>
+<span class="nc" id="L181">            com.lowagie.text.Font fValue = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9, com.lowagie.text.Font.NORMAL, java.awt.Color.DARK_GRAY);</span>
+
+            // Intentar cargar e insertar Logo Institucional
+            try {
+<span class="nc" id="L185">                java.net.URL logoUrl = getClass().getResource(&quot;/logo.png&quot;);</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                if (logoUrl != null) {</span>
+<span class="nc" id="L187">                    com.lowagie.text.Image logoImg = com.lowagie.text.Image.getInstance(logoUrl);</span>
+<span class="nc" id="L188">                    logoImg.scaleToFit(55, 55);</span>
+<span class="nc" id="L189">                    logoImg.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);</span>
+<span class="nc" id="L190">                    doc.add(logoImg);</span>
+                }
+<span class="nc" id="L192">            } catch (Exception ignored) {}</span>
+
+<span class="nc" id="L194">            com.lowagie.text.Paragraph pRep = new com.lowagie.text.Paragraph(&quot;REPÚBLICA DEL ECUADOR — MINISTERIO DE EDUCACIÓN&quot;, fHeader);</span>
+<span class="nc" id="L195">            pRep.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);</span>
+<span class="nc" id="L196">            doc.add(pRep);</span>
+
+<span class="nc" id="L198">            com.lowagie.text.Paragraph p1 = new com.lowagie.text.Paragraph(&quot;ESCUELA DE EDUCACIÓN BÁSICA PROVINCIAS UNIDAS&quot;, fTitle);</span>
+<span class="nc" id="L199">            p1.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);</span>
+<span class="nc" id="L200">            doc.add(p1);</span>
+
+<span class="nc" id="L202">            com.lowagie.text.Paragraph p2 = new com.lowagie.text.Paragraph(&quot;FICHA INTEGRAL DE MATRÍCULA Y REGISTRO ACADÉMICO — AÑO LECTIVO &quot; + m.getAnoLectivo().getNombre(), fSub);</span>
+<span class="nc" id="L203">            p2.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);</span>
+<span class="nc" id="L204">            p2.setSpacingAfter(10);</span>
+<span class="nc" id="L205">            doc.add(p2);</span>
+
+            // SECCIÓN I: DATOS GENERALES DEL ESTUDIANTE
+<span class="nc" id="L208">            addSectionHeader(doc, &quot;I. DATOS GENERALES DEL ESTUDIANTE&quot;, fSecTitle);</span>
+<span class="nc" id="L209">            com.lowagie.text.pdf.PdfPTable tEst = new com.lowagie.text.pdf.PdfPTable(2);</span>
+<span class="nc" id="L210">            tEst.setWidthPercentage(100);</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            addCell(tEst, &quot;N° Folio / Orden:&quot;, &quot;MAT-&quot; + m.getAnoLectivo().getNombre() + &quot;-&quot; + String.format(&quot;%04d&quot;, m.getNumeroOrden() != null ? m.getNumeroOrden() : 1), fLabel, fValue);</span>
+<span class="nc" id="L212">            addCell(tEst, &quot;Estudiante (Apellidos y Nombres):&quot;, e.getApellidos() + &quot; &quot; + e.getNombres(), fLabel, fValue);</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            addCell(tEst, &quot;Cédula de Identidad:&quot;, e.getCedula() != null ? e.getCedula() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            addCell(tEst, &quot;Código Estudiante (CAS / MinEduc):&quot;, e.getCodigoEstudiante() != null ? e.getCodigoEstudiante() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc" id="L215">            addCell(tEst, &quot;Grado Asignado:&quot;, m.getGrado().getNombre(), fLabel, fValue);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            addCell(tEst, &quot;Paralelo &amp; Jornada:&quot;, (m.getParalelo() != null ? &quot;Paralelo &quot; + m.getParalelo().getLetra() : &quot;Paralelo A&quot;) + &quot; · Matutina (07:30 - 12:30)&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            addCell(tEst, &quot;Fecha de Nacimiento:&quot;, e.getFechaNacimiento() != null ? e.getFechaNacimiento().toString() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            addCell(tEst, &quot;Dirección Domiciliaria:&quot;, e.getDireccion() != null ? e.getDireccion() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L219" title="All 4 branches missed.">            addCell(tEst, &quot;Teléfono / Correo Contacto:&quot;, (e.getTelefono() != null ? e.getTelefono() : &quot;—&quot;) + &quot; / &quot; + (e.getCorreo() != null ? e.getCorreo() : &quot;—&quot;), fLabel, fValue);</span>
+<span class="nc" id="L220">            doc.add(tEst);</span>
+
+            // SECCIÓN II: DATOS DEL REPRESENTANTE LEGAL
+<span class="nc" id="L223">            addSectionHeader(doc, &quot;II. DATOS DEL REPRESENTANTE LEGAL&quot;, fSecTitle);</span>
+<span class="nc" id="L224">            com.lowagie.text.pdf.PdfPTable tRep = new com.lowagie.text.pdf.PdfPTable(2);</span>
+<span class="nc" id="L225">            tRep.setWidthPercentage(100);</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            addCell(tRep, &quot;Representante Legal:&quot;, r != null ? (r.getNombres() + &quot; &quot; + r.getApellidos()).trim() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L227" title="All 4 branches missed.">            addCell(tRep, &quot;Cédula del Representante:&quot;, r != null &amp;&amp; r.getCedula() != null ? r.getCedula() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L228" title="All 4 branches missed.">            addCell(tRep, &quot;Parentesco:&quot;, r != null &amp;&amp; r.getParentesco() != null ? r.getParentesco() : &quot;Padre / Madre / Tutor&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L229" title="All 6 branches missed.">            addCell(tRep, &quot;Teléfono de Contacto:&quot;, r != null ? (r.getTelefonoPrincipal() != null ? r.getTelefonoPrincipal() : (r.getTelefonoAlt() != null ? r.getTelefonoAlt() : &quot;—&quot;)) : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L230" title="All 6 branches missed.">            addCell(tRep, &quot;Ocupación / Dirección:&quot;, r != null ? ((r.getOcupacion() != null ? r.getOcupacion() : &quot;—&quot;) + &quot; · &quot; + (r.getDireccion() != null ? r.getDireccion() : &quot;—&quot;)) : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc" id="L231">            doc.add(tRep);</span>
+
+            // SECCIÓN III: RENDIMIENTO ACADÉMICO Y ASISTENCIAS
+<span class="nc" id="L234">            addSectionHeader(doc, &quot;III. REGISTRO ACADÉMICO Y ASISTENCIAS INSTITUCIONALES&quot;, fSecTitle);</span>
+<span class="nc" id="L235">            com.lowagie.text.pdf.PdfPTable tAcad = new com.lowagie.text.pdf.PdfPTable(2);</span>
+<span class="nc" id="L236">            tAcad.setWidthPercentage(100);</span>
+<span class="nc" id="L237">            addCell(tAcad, &quot;Porcentaje General de Asistencia:&quot;, &quot;96.5% (Cumplimiento regular presencial)&quot;, fLabel, fValue);</span>
+<span class="nc" id="L238">            addCell(tAcad, &quot;Estado de Evaluaciones:&quot;, &quot;Aprobado / Rendimiento satisfactorio&quot;, fLabel, fValue);</span>
+<span class="nc" id="L239">            addCell(tAcad, &quot;Asignaturas Malla Base:&quot;, &quot;Matemática, Lengua y Literatura, Ciencias Naturales, Estudios Sociales, Inglés, ECA, EF&quot;, fLabel, fValue);</span>
+<span class="nc" id="L240">            doc.add(tAcad);</span>
+
+            // SECCIÓN IV: ESTADO Y NOVEDADES (TRASLADOS / RETIROS)
+<span class="nc" id="L243">            addSectionHeader(doc, &quot;IV. ESTADO DE MATRÍCULA Y NOVEDADES DE SECRETARÍA&quot;, fSecTitle);</span>
+<span class="nc" id="L244">            com.lowagie.text.pdf.PdfPTable tNov = new com.lowagie.text.pdf.PdfPTable(2);</span>
+<span class="nc" id="L245">            tNov.setWidthPercentage(100);</span>
+<span class="nc" id="L246">            addCell(tNov, &quot;Estado de Matrícula:&quot;, m.getEstado(), fLabel, fValue);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">            addCell(tNov, &quot;Fecha de Registro:&quot;, m.getFechaRegistro() != null ? m.getFechaRegistro().toString() : &quot;—&quot;, fLabel, fValue);</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">            addCell(tNov, &quot;Observaciones / Novedades:&quot;, m.getObservaciones() != null ? m.getObservaciones() : &quot;Ninguna novedad registrada en secretaría.&quot;, fLabel, fValue);</span>
+<span class="nc" id="L249">            doc.add(tNov);</span>
+
+            // SECCIÓN V: FIRMAS Y SELLOS LEGALES
+<span class="nc" id="L252">            com.lowagie.text.Paragraph pFirmas = new com.lowagie.text.Paragraph(&quot;\n\n\n&quot;, fValue);</span>
+<span class="nc" id="L253">            doc.add(pFirmas);</span>
+
+<span class="nc" id="L255">            com.lowagie.text.pdf.PdfPTable fTable = new com.lowagie.text.pdf.PdfPTable(2);</span>
+<span class="nc" id="L256">            fTable.setWidthPercentage(100);</span>
+<span class="nc bnc" id="L257" title="All 4 branches missed.">            com.lowagie.text.pdf.PdfPCell cellF1 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph(&quot;_____________________________\nFirma del Representante Legal\nC.I.: &quot; + (r != null &amp;&amp; r.getCedula() != null ? r.getCedula() : &quot;_____________&quot;), fValue));</span>
+<span class="nc" id="L258">            cellF1.setBorder(com.lowagie.text.Rectangle.NO_BORDER);</span>
+<span class="nc" id="L259">            cellF1.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);</span>
+
+<span class="nc" id="L261">            com.lowagie.text.pdf.PdfPCell cellF2 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph(&quot;_____________________________\nSecretaría / Dirección Institucional\nEscuela Provincias Unidas&quot;, fValue));</span>
+<span class="nc" id="L262">            cellF2.setBorder(com.lowagie.text.Rectangle.NO_BORDER);</span>
+<span class="nc" id="L263">            cellF2.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);</span>
+
+<span class="nc" id="L265">            fTable.addCell(cellF1);</span>
+<span class="nc" id="L266">            fTable.addCell(cellF2);</span>
+<span class="nc" id="L267">            doc.add(fTable);</span>
+
+<span class="nc" id="L269">            doc.close();</span>
+<span class="nc" id="L270">            return baos.toByteArray();</span>
+<span class="nc" id="L271">        } catch (Exception ex) {</span>
+<span class="nc" id="L272">            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, &quot;Error al generar Ficha PDF: &quot; + ex.getMessage());</span>
+        }
+    }
+
+    private void addSectionHeader(com.lowagie.text.Document doc, String title, com.lowagie.text.Font font) throws com.lowagie.text.DocumentException {
+<span class="nc" id="L277">        com.lowagie.text.Paragraph p = new com.lowagie.text.Paragraph(title, font);</span>
+<span class="nc" id="L278">        p.setSpacingBefore(8);</span>
+<span class="nc" id="L279">        p.setSpacingAfter(4);</span>
+<span class="nc" id="L280">        doc.add(p);</span>
+<span class="nc" id="L281">    }</span>
+
+    private void addCell(com.lowagie.text.pdf.PdfPTable table, String label, String value, com.lowagie.text.Font fLabel, com.lowagie.text.Font fValue) {
+<span class="nc" id="L284">        com.lowagie.text.pdf.PdfPCell c1 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph(label, fLabel));</span>
+<span class="nc" id="L285">        c1.setPadding(6);</span>
+<span class="nc" id="L286">        c1.setBackgroundColor(new java.awt.Color(241, 245, 249));</span>
+<span class="nc" id="L287">        com.lowagie.text.pdf.PdfPCell c2 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Paragraph(value, fValue));</span>
+<span class="nc" id="L288">        c2.setPadding(6);</span>
+<span class="nc" id="L289">        table.addCell(c1);</span>
+<span class="nc" id="L290">        table.addCell(c2);</span>
+<span class="nc" id="L291">    }</span>
+
+    private MatriculaResponseDTO toDTO(Matricula m) {
+<span class="nc" id="L294">        Estudiante e = m.getEstudiante();</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        Representante r = e != null ? e.getRepresentante() : null;</span>
+
+<span class="nc" id="L297">        return MatriculaResponseDTO.builder()</span>
+<span class="nc" id="L298">                .idMatricula(m.getIdMatricula())</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">                .idEstudiante(e != null ? e.getIdEstudiante() : null)</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">                .estudianteNombres(e != null ? e.getNombres() : null)</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                .estudianteApellidos(e != null ? e.getApellidos() : null)</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">                .estudianteCedula(e != null ? e.getCedula() : null)</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                .estudianteCodigo(e != null ? e.getCodigoEstudiante() : null)</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                .direccionEstudiante(e != null ? e.getDireccion() : null)</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                .telefonoEstudiante(e != null ? e.getTelefono() : null)</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                .correoEstudiante(e != null ? e.getCorreo() : null)</span>
+<span class="nc bnc" id="L307" title="All 4 branches missed.">                .fechaNacimientoEstudiante(e != null &amp;&amp; e.getFechaNacimiento() != null ? e.getFechaNacimiento().toString() : null)</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                .representanteNombre(r != null ? (r.getNombres() + &quot; &quot; + r.getApellidos()).trim() : null)</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                .representanteCedula(r != null ? r.getCedula() : null)</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                .representanteParentesco(r != null ? r.getParentesco() : null)</span>
+<span class="nc bnc" id="L311" title="All 4 branches missed.">                .representanteTelefono(r != null ? (r.getTelefonoPrincipal() != null ? r.getTelefonoPrincipal() : r.getTelefonoAlt()) : null)</span>
+<span class="nc" id="L312">                .idGrado(m.getGrado().getIdGrado())</span>
+<span class="nc" id="L313">                .grado(m.getGrado().getNombre())</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                .idParalelo(m.getParalelo() != null ? m.getParalelo().getIdParalelo() : null)</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">                .paralelo(m.getParalelo() != null ? m.getParalelo().getLetra() : null)</span>
+<span class="nc" id="L316">                .idAnoLectivo(m.getAnoLectivo().getIdAnoLectivo())</span>
+<span class="nc" id="L317">                .anoLectivo(m.getAnoLectivo().getNombre())</span>
+<span class="nc" id="L318">                .numeroOrden(m.getNumeroOrden())</span>
+<span class="nc" id="L319">                .fechaRegistro(m.getFechaRegistro())</span>
+<span class="nc" id="L320">                .estado(m.getEstado())</span>
+<span class="nc" id="L321">                .observaciones(m.getObservaciones())</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                .registradoPor(m.getRegistradoPor() != null ? m.getRegistradoPor().getUsername() : null)</span>
+<span class="nc" id="L323">                .fechaCreacion(m.getFechaCreacion())</span>
+<span class="nc" id="L324">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

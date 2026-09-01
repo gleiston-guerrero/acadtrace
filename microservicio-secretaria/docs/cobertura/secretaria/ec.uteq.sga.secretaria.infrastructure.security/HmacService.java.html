@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HmacService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.security</a> &gt; <span class="el_source">HmacService.java</span></div><h1>HmacService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.security;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+/**
+ * Firma HMAC-SHA256 para filas de sga_principal.auditoria escritas desde
+ * secretaria. Debe producir exactamente la misma firma que
+ * ec.edu.uteq.sga.security.HmacService en sga-principal (mismo secreto
+ * app.jwt.secret == jwt.secret, mismo orden de campos) para que una fila
+ * escrita por cualquiera de los dos servicios sea verificable por el otro.
+ */
+@Component
+public class HmacService {
+
+    private final Mac mac;
+
+<span class="nc" id="L24">    public HmacService(@Value(&quot;${app.jwt.secret:***REMOVED***}&quot;) String secret) {</span>
+        try {
+<span class="nc" id="L26">            this.mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="nc" id="L27">            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;));</span>
+<span class="nc" id="L28">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
+<span class="nc" id="L29">            throw new IllegalStateException(&quot;No se pudo inicializar HmacSHA256&quot;, e);</span>
+<span class="nc" id="L30">        }</span>
+<span class="nc" id="L31">    }</span>
+
+    public synchronized String firmar(String... campos) {
+<span class="nc" id="L34">        String canonical = String.join(&quot;|&quot;, campos);</span>
+<span class="nc" id="L35">        byte[] digest = mac.doFinal(canonical.getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L36">        StringBuilder hex = new StringBuilder(digest.length * 2);</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        for (byte b : digest) hex.append(String.format(&quot;%02x&quot;, b));</span>
+<span class="nc" id="L38">        return hex.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

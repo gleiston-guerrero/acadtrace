@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import Layout from "../components/Layout";
 
 const API = "/api/soporte";
@@ -83,82 +81,91 @@ export default function Reportes() {
     const maxTecnico   = data ? Math.max(...data.porTecnico.map(t => t.total), 1) : 1;
 
     // ── Exportar a PDF ──────────────────────────────────────────
-    // Usa jsPDF + autoTable en el navegador (sin ida y vuelta al backend):
-    // los datos ya están cargados en `data`, así que el PDF sale del mismo
-    // JSON que ya se ve en pantalla, sin duplicar la consulta.
+    // Genera un HTML propio (sin depender de jsPDF, que se rompia al
+    // compilar para produccion dentro de Docker) y usa la funcion de
+    // impresion nativa del navegador: el usuario elige "Guardar como PDF"
+    // en el dialogo de impresion. Cero dependencias externas = cero riesgo
+    // de que el bundler lo rompa.
     const exportarPDF = () => {
         if (!data) return;
 
-        const doc = new jsPDF();
         const fecha = new Date().toLocaleString("es-EC", {
             day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
         });
 
-        // Encabezado
-        doc.setFillColor(36, 58, 118); // #243A76
-        doc.rect(0, 0, 210, 24, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(15);
-        doc.setFont(undefined, "bold");
-        doc.text("SGA · Reporte de Soporte Técnico", 14, 12);
-        doc.setFontSize(9);
-        doc.setFont(undefined, "normal");
-        doc.text("Escuela Provincias Unidas", 14, 18);
+        const filaCategoria = (c) => `
+            <tr>
+                <td>${c.categoria}</td>
+                <td style="text-align:right">${c.total}</td>
+                <td style="text-align:right">${c.resueltos}</td>
+                <td style="text-align:right">${formatHoras(c.tiempoPromedioHoras)}</td>
+            </tr>`;
 
-        doc.setTextColor(80, 80, 80);
-        doc.setFontSize(9);
-        doc.text(`Generado: ${fecha}`, 14, 32);
+        const filaTecnico = (t) => `
+            <tr>
+                <td>${t.tecnico}</td>
+                <td style="text-align:right">${t.total}</td>
+                <td style="text-align:right">${t.resueltos}</td>
+                <td style="text-align:right">${formatHoras(t.tiempoPromedioHoras)}</td>
+            </tr>`;
 
-        // Resumen general
-        doc.setTextColor(30, 30, 30);
-        doc.setFontSize(11);
-        doc.setFont(undefined, "bold");
-        doc.text("Resumen general", 14, 42);
-        doc.setFont(undefined, "normal");
-        doc.setFontSize(10);
-        doc.text(`Tiempo promedio de resolución: ${formatHoras(data.general.tiempoPromedioHoras)}`, 14, 49);
-        doc.text(`Tickets resueltos considerados: ${data.general.ticketsResueltos}`, 14, 55);
+        const html = `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+            <meta charset="UTF-8" />
+            <title>Reporte de Soporte - ${fecha}</title>
+            <style>
+                body { font-family: Arial, sans-serif; color: #1e293b; margin: 0; padding: 24px; }
+                .header { background: #243A76; color: white; padding: 16px 24px; margin: -24px -24px 24px -24px; }
+                .header h1 { margin: 0; font-size: 18px; }
+                .header p { margin: 4px 0 0; font-size: 11px; opacity: 0.85; }
+                .meta { font-size: 11px; color: #64748b; margin-bottom: 20px; }
+                h2 { font-size: 14px; margin: 24px 0 8px; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+                th, td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+                th { background: #f1f5f9; color: #475569; font-weight: 600; }
+                .resumen { display: flex; gap: 24px; margin-bottom: 8px; }
+                .resumen div { font-size: 12px; }
+                .resumen strong { display: block; font-size: 18px; color: #243A76; }
+                @media print { body { padding: 0; } .header { margin: 0 0 24px 0; } }
+            </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>SGA · Reporte de Soporte Técnico</h1>
+                    <p>Escuela Provincias Unidas</p>
+                </div>
+                <div class="meta">Generado: ${fecha}</div>
 
-        let y = 63;
+                <div class="resumen">
+                    <div>Tiempo promedio de resolución<strong>${formatHoras(data.general.tiempoPromedioHoras)}</strong></div>
+                    <div>Tickets resueltos considerados<strong>${data.general.ticketsResueltos}</strong></div>
+                </div>
 
-        // Tabla por categoría
-        if (data.porCategoria.length > 0) {
-            doc.setFontSize(11);
-            doc.setFont(undefined, "bold");
-            doc.text("Tickets por categoría", 14, y);
-            autoTable(doc, {
-                startY: y + 4,
-                head: [["Categoría", "Total", "Resueltos", "Tiempo promedio"]],
-                body: data.porCategoria.map(c => [
-                    c.categoria, String(c.total), String(c.resueltos), formatHoras(c.tiempoPromedioHoras),
-                ]),
-                headStyles: { fillColor: [36, 58, 118] },
-                styles: { fontSize: 9 },
-                margin: { left: 14, right: 14 },
-            });
-            y = doc.lastAutoTable.finalY + 12;
+                <h2>Tickets por categoría</h2>
+                <table>
+                    <thead><tr><th>Categoría</th><th style="text-align:right">Total</th><th style="text-align:right">Resueltos</th><th style="text-align:right">Tiempo promedio</th></tr></thead>
+                    <tbody>${data.porCategoria.map(filaCategoria).join("")}</tbody>
+                </table>
+
+                <h2>Tickets por técnico</h2>
+                <table>
+                    <thead><tr><th>Técnico</th><th style="text-align:right">Total</th><th style="text-align:right">Resueltos</th><th style="text-align:right">Tiempo promedio</th></tr></thead>
+                    <tbody>${data.porTecnico.map(filaTecnico).join("")}</tbody>
+                </table>
+            </body>
+            </html>`;
+
+        const ventana = window.open("", "_blank");
+        if (!ventana) {
+            alert("El navegador bloqueó la ventana de impresión. Permite pop-ups para este sitio e intenta de nuevo.");
+            return;
         }
-
-        // Tabla por técnico
-        if (data.porTecnico.length > 0) {
-            if (y > 250) { doc.addPage(); y = 20; } // evita cortar la tabla entre páginas
-            doc.setFontSize(11);
-            doc.setFont(undefined, "bold");
-            doc.text("Tickets por técnico", 14, y);
-            autoTable(doc, {
-                startY: y + 4,
-                head: [["Técnico", "Total", "Resueltos", "Tiempo promedio"]],
-                body: data.porTecnico.map(t => [
-                    t.tecnico, String(t.total), String(t.resueltos), formatHoras(t.tiempoPromedioHoras),
-                ]),
-                headStyles: { fillColor: [36, 58, 118] },
-                styles: { fontSize: 9 },
-                margin: { left: 14, right: 14 },
-            });
-        }
-
-        const nombreArchivo = `reporte-soporte-${new Date().toISOString().slice(0, 10)}.pdf`;
-        doc.save(nombreArchivo);
+        ventana.document.write(html);
+        ventana.document.close();
+        ventana.focus();
+        setTimeout(() => ventana.print(), 300); // espera a que renderice antes de abrir el dialogo
     };
 
     return (

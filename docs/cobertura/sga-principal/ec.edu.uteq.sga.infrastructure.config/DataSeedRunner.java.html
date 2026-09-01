@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataSeedRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.config</a> &gt; <span class="el_source">DataSeedRunner.java</span></div><h1>DataSeedRunner.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.config;
+
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import javax.sql.DataSource;
+import java.sql.Connection;
+
+//@Component
+@Profile(&quot;dev&quot;)
+<span class="nc" id="L19">public class DataSeedRunner implements CommandLineRunner {</span>
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PersonaRepository personaRepository;
+    @Autowired
+    private RolRepository rolRepository;
+    @Autowired
+    private AnoLectivoRepository anoLectivoRepository;
+    @Autowired
+    private GradoRepository gradoRepository;
+    @Autowired
+    private AsignaturaRepository asignaturaRepository;
+    @Autowired
+    private AsignacionRepository asignacionRepository;
+    @Autowired
+    private EstudianteRepository estudianteRepository;
+    @Autowired
+    private MatriculaRepository matriculaRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private DataSource dataSource;
+
+    @Override
+    @Transactional
+    public void run(String... args) throws Exception {
+<span class="nc" id="L47">        System.out.println(&quot;====== INICIANDO SEED DE DATOS (PERFIL DEV) ======&quot;);</span>
+        
+<span class="nc" id="L49">        try (Connection conn = dataSource.getConnection()) {</span>
+<span class="nc" id="L50">            System.out.println(&quot;URL BD: &quot; + conn.getMetaData().getURL());</span>
+<span class="nc" id="L51">            System.out.println(&quot;Base de datos: &quot; + conn.getCatalog());</span>
+<span class="nc" id="L52">            System.out.println(&quot;Esquema actual: &quot; + conn.getSchema());</span>
+            
+            // Verificar si la tabla usuarios existe
+<span class="nc" id="L55">            var rs = conn.getMetaData().getTables(null, &quot;sga_principal&quot;, &quot;usuarios&quot;, null);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">            if (!rs.next()) {</span>
+<span class="nc" id="L57">                System.err.println(&quot;La tabla sga_principal.usuarios no existe. Omitiendo seed.&quot;);</span>
+<span class="nc" id="L58">                return;</span>
+            }
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        } catch (Exception e) {</span>
+<span class="nc" id="L61">            System.err.println(&quot;Error verificando la BD: &quot; + e.getMessage());</span>
+<span class="nc" id="L62">            return;</span>
+<span class="nc" id="L63">        }</span>
+
+        try {
+
+        // 1. Crear Rol DOCENTE si no existe
+<span class="nc" id="L68">        Rol rolDocente = rolRepository.findByNombre(&quot;ROLE_DOCENTE&quot;).orElseGet(() -&gt; {</span>
+<span class="nc" id="L69">            Rol nuevo = new Rol();</span>
+<span class="nc" id="L70">            nuevo.setNombre(&quot;ROLE_DOCENTE&quot;);</span>
+<span class="nc" id="L71">            nuevo.setDescripcion(&quot;Rol para los docentes del sistema&quot;);</span>
+<span class="nc" id="L72">            nuevo.setActivo(true);</span>
+<span class="nc" id="L73">            return rolRepository.save(nuevo);</span>
+        });
+
+        // 2. Crear Usuario y Persona
+<span class="nc" id="L77">        String username = &quot;keyla123@correo.local&quot;;</span>
+<span class="nc" id="L78">        Usuario usuario = usuarioRepository.findByUsername(username).orElseGet(() -&gt; {</span>
+<span class="nc" id="L79">            Usuario nuevo = new Usuario();</span>
+<span class="nc" id="L80">            nuevo.setUsername(username);</span>
+<span class="nc" id="L81">            nuevo.setCorreo(username);</span>
+<span class="nc" id="L82">            nuevo.setPasswordHash(passwordEncoder.encode(&quot;Keyla123@&quot;));</span>
+<span class="nc" id="L83">            nuevo.setEstado(true);</span>
+<span class="nc" id="L84">            nuevo.setPrimerIngreso(false); // Para que no pida cambiar contraseña</span>
+<span class="nc" id="L85">            nuevo.getRoles().add(rolDocente);</span>
+<span class="nc" id="L86">            return usuarioRepository.save(nuevo);</span>
+        });
+
+<span class="nc" id="L89">        Persona docente = personaRepository.findAll().stream().filter(p -&gt; p.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())).findFirst().orElseGet(() -&gt; {</span>
+<span class="nc" id="L90">            Persona nueva = new Persona();</span>
+<span class="nc" id="L91">            nueva.setNombres(&quot;Keyla&quot;);</span>
+<span class="nc" id="L92">            nueva.setApellidos(&quot;Docente&quot;);</span>
+<span class="nc" id="L93">            nueva.setCedula(&quot;0000000001&quot;);</span>
+<span class="nc" id="L94">            nueva.setUsuario(usuario);</span>
+<span class="nc" id="L95">            return personaRepository.save(nueva);</span>
+        });
+
+        // 3. Crear Año Lectivo
+<span class="nc" id="L99">        AnoLectivo ano = anoLectivoRepository.findAll().stream().filter(a -&gt; a.getNombre().equals(&quot;2026 - 2027&quot;)).findFirst().orElseGet(() -&gt; {</span>
+<span class="nc" id="L100">            AnoLectivo nuevo = new AnoLectivo();</span>
+<span class="nc" id="L101">            nuevo.setNombre(&quot;2026 - 2027&quot;);</span>
+<span class="nc" id="L102">            nuevo.setFechaInicio(LocalDate.of(2026, 4, 1));</span>
+<span class="nc" id="L103">            nuevo.setFechaFin(LocalDate.of(2027, 2, 28));</span>
+<span class="nc" id="L104">            nuevo.setEsActual(true);</span>
+<span class="nc" id="L105">            return anoLectivoRepository.save(nuevo);</span>
+        });
+
+        // 4. Crear Grado
+<span class="nc" id="L109">        Grado grado = null;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (gradoRepository.findAll().stream().anyMatch(g -&gt; g.getNombre().equals(&quot;Octavo de prueba&quot;))) {</span>
+<span class="nc" id="L111">            grado = gradoRepository.findAll().stream().filter(g -&gt; g.getNombre().equals(&quot;Octavo de prueba&quot;)).findFirst().get();</span>
+        } else {
+<span class="nc" id="L113">            grado = new Grado();</span>
+<span class="nc" id="L114">            grado.setNombre(&quot;Octavo de prueba&quot;);</span>
+<span class="nc" id="L115">            grado.setOrden((short) 8);</span>
+<span class="nc" id="L116">            grado.setActivo(true);</span>
+<span class="nc" id="L117">            grado = gradoRepository.save(grado);</span>
+        }
+
+        // 5. Crear Asignatura
+<span class="nc" id="L121">        Asignatura asignatura = null;</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (asignaturaRepository.findAll().stream().anyMatch(a -&gt; a.getNombre().equals(&quot;Matemática de prueba&quot;))) {</span>
+<span class="nc" id="L123">            asignatura = asignaturaRepository.findAll().stream().filter(a -&gt; a.getNombre().equals(&quot;Matemática de prueba&quot;)).findFirst().get();</span>
+        } else {
+<span class="nc" id="L125">            asignatura = new Asignatura();</span>
+<span class="nc" id="L126">            asignatura.setNombre(&quot;Matemática de prueba&quot;);</span>
+<span class="nc" id="L127">            asignatura.setActiva(true);</span>
+<span class="nc" id="L128">            asignatura = asignaturaRepository.save(asignatura);</span>
+        }
+
+        // 6. Crear Asignación
+<span class="nc" id="L132">        final Grado g = grado;</span>
+<span class="nc" id="L133">        final Asignatura a = asignatura;</span>
+<span class="nc" id="L134">        Asignacion asignacion = asignacionRepository.findAll()</span>
+<span class="nc" id="L135">                .stream()</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                .filter(as -&gt; as.getDocente().getIdPersona().equals(docente.getIdPersona()) &amp;&amp; </span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                              as.getAnoLectivo().getIdAnoLectivo().equals(ano.getIdAnoLectivo()) &amp;&amp;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                              as.getGrado().getIdGrado().equals(g.getIdGrado()) &amp;&amp; </span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                              as.getAsignatura().getIdAsignatura().equals(a.getIdAsignatura()))</span>
+<span class="nc" id="L140">                .findFirst()</span>
+<span class="nc" id="L141">                .orElseGet(() -&gt; {</span>
+<span class="nc" id="L142">                    Asignacion nueva = new Asignacion();</span>
+<span class="nc" id="L143">                    nueva.setDocente(docente);</span>
+<span class="nc" id="L144">                    nueva.setAnoLectivo(ano);</span>
+<span class="nc" id="L145">                    nueva.setGrado(g);</span>
+<span class="nc" id="L146">                    nueva.setAsignatura(a);</span>
+<span class="nc" id="L147">                    nueva.setActivo(true);</span>
+<span class="nc" id="L148">                    return asignacionRepository.save(nueva);</span>
+                });
+
+        // 7. Crear Estudiantes
+<span class="nc" id="L152">        Estudiante est1 = estudianteRepository.findByCedula(&quot;0000000002&quot;).orElseGet(() -&gt; {</span>
+<span class="nc" id="L153">            Estudiante e = new Estudiante();</span>
+<span class="nc" id="L154">            e.setNombres(&quot;Estudiante Prueba&quot;);</span>
+<span class="nc" id="L155">            e.setApellidos(&quot;Uno&quot;);</span>
+<span class="nc" id="L156">            e.setCedula(&quot;0000000002&quot;);</span>
+<span class="nc" id="L157">            return estudianteRepository.save(e);</span>
+        });
+
+<span class="nc" id="L160">        Estudiante est2 = estudianteRepository.findByCedula(&quot;0000000003&quot;).orElseGet(() -&gt; {</span>
+<span class="nc" id="L161">            Estudiante e = new Estudiante();</span>
+<span class="nc" id="L162">            e.setNombres(&quot;Estudiante Prueba&quot;);</span>
+<span class="nc" id="L163">            e.setApellidos(&quot;Dos&quot;);</span>
+<span class="nc" id="L164">            e.setCedula(&quot;0000000003&quot;);</span>
+<span class="nc" id="L165">            return estudianteRepository.save(e);</span>
+        });
+
+        // 8. Crear Matrículas
+<span class="nc" id="L169">        crearMatriculaSiNoExiste(est1, ano, g);</span>
+<span class="nc" id="L170">        crearMatriculaSiNoExiste(est2, ano, g);</span>
+
+<span class="nc" id="L172">        System.out.println(&quot;====== DATOS DE PRUEBA CREADOS ======&quot;);</span>
+<span class="nc" id="L173">        System.out.println(&quot;Usuario: &quot; + username);</span>
+<span class="nc" id="L174">        System.out.println(&quot;ID Usuario: &quot; + usuario.getIdUsuario());</span>
+<span class="nc" id="L175">        System.out.println(&quot;ID Persona: &quot; + docente.getIdPersona());</span>
+<span class="nc" id="L176">        System.out.println(&quot;ID Asignacion: &quot; + asignacion.getIdAsignacion());</span>
+<span class="nc" id="L177">        System.out.println(&quot;ID Estudiante 1: &quot; + est1.getIdEstudiante());</span>
+<span class="nc" id="L178">        System.out.println(&quot;ID Estudiante 2: &quot; + est2.getIdEstudiante());</span>
+<span class="nc" id="L179">        System.out.println(&quot;=====================================&quot;);</span>
+<span class="nc" id="L180">        } catch (Exception e) {</span>
+<span class="nc" id="L181">            System.err.println(&quot;Error ejecutando el SeedRunner: &quot; + e.getMessage());</span>
+<span class="nc" id="L182">            e.printStackTrace();</span>
+<span class="nc" id="L183">        }</span>
+<span class="nc" id="L184">    }</span>
+
+    private void crearMatriculaSiNoExiste(Estudiante estudiante, AnoLectivo ano, Grado grado) {
+<span class="nc" id="L187">        boolean existe = matriculaRepository.findAll()</span>
+<span class="nc" id="L188">                .stream()</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                .anyMatch(m -&gt; m.getAnoLectivo().getIdAnoLectivo().equals(ano.getIdAnoLectivo()) &amp;&amp; </span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                               m.getEstudiante().getIdEstudiante().equals(estudiante.getIdEstudiante()));</span>
+        
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (!existe) {</span>
+<span class="nc" id="L193">            Matricula m = new Matricula();</span>
+<span class="nc" id="L194">            m.setEstudiante(estudiante);</span>
+<span class="nc" id="L195">            m.setAnoLectivo(ano);</span>
+<span class="nc" id="L196">            m.setGrado(grado);</span>
+<span class="nc" id="L197">            m.setEstado(&quot;ACTIVA&quot;);</span>
+<span class="nc" id="L198">            matriculaRepository.save(m);</span>
+        }
+<span class="nc" id="L200">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

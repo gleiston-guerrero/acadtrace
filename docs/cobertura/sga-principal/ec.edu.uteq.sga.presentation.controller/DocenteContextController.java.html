@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocenteContextController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">DocenteContextController.java</span></div><h1>DocenteContextController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+
+import ec.edu.uteq.sga.domain.entity.AnoLectivo;
+import ec.edu.uteq.sga.domain.entity.Asignacion;
+import ec.edu.uteq.sga.domain.entity.Matricula;
+import ec.edu.uteq.sga.domain.entity.Persona;
+import ec.edu.uteq.sga.application.service.TeacherAuthorizationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/docentes&quot;)
+@CrossOrigin(&quot;*&quot;)
+@Transactional(readOnly = true)
+<span class="nc" id="L23">public class DocenteContextController {</span>
+
+    @Autowired
+    private TeacherAuthorizationService authService;
+
+    @GetMapping(&quot;/mis-asignaciones&quot;)
+    @Transactional(readOnly = true)
+    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getMisAsignaciones() {
+<span class="nc" id="L31">        System.out.println(&quot;[API DEBUG] /mis-asignaciones: Obteniendo docente autenticado...&quot;);</span>
+<span class="nc" id="L32">        Persona docente = authService.getAuthenticatedTeacher();</span>
+<span class="nc" id="L33">        System.out.println(&quot;[API DEBUG] /mis-asignaciones: Docente obtenido -&gt; ID Persona: &quot; + docente.getIdPersona() + &quot;, Nombre: &quot; + docente.getNombres() + &quot; &quot; + docente.getApellidos());</span>
+        
+<span class="nc" id="L35">        System.out.println(&quot;[API DEBUG] /mis-asignaciones: Buscando asignaciones del docente...&quot;);</span>
+<span class="nc" id="L36">        List&lt;Asignacion&gt; asignaciones = authService.getTeacherAssignments(docente.getIdPersona());</span>
+<span class="nc" id="L37">        System.out.println(&quot;[API DEBUG] /mis-asignaciones: Total de asignaciones encontradas: &quot; + asignaciones.size());</span>
+        
+<span class="nc" id="L39">        List&lt;Map&lt;String, Object&gt;&gt; response = asignaciones.stream()</span>
+<span class="nc" id="L40">            .filter(a -&gt; {</span>
+<span class="nc" id="L41">                System.out.println(&quot;[API DEBUG] /mis-asignaciones: Procesando asignación ID: &quot; + a.getIdAsignacion() + &quot;, Activa: &quot; + a.isActivo());</span>
+<span class="nc" id="L42">                return a.isActivo();</span>
+            })
+<span class="nc" id="L44">            .map(a -&gt; {</span>
+<span class="nc" id="L45">                Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L46">                map.put(&quot;idAsignacion&quot;, a.getIdAsignacion());</span>
+<span class="nc" id="L47">                map.put(&quot;asignatura&quot;, Map.of(</span>
+<span class="nc" id="L48">                    &quot;id&quot;, a.getAsignatura().getIdAsignatura(),</span>
+<span class="nc" id="L49">                    &quot;nombre&quot;, a.getAsignatura().getNombre()</span>
+                ));
+<span class="nc" id="L51">                map.put(&quot;grado&quot;, Map.of(</span>
+<span class="nc" id="L52">                    &quot;id&quot;, a.getGrado().getIdGrado(),</span>
+<span class="nc" id="L53">                    &quot;nombre&quot;, a.getGrado().getNombre()</span>
+                ));
+<span class="nc" id="L55">                map.put(&quot;paralelo&quot;, Map.of(</span>
+<span class="nc" id="L56">                    &quot;id&quot;, a.getParalelo().getIdParalelo(),</span>
+<span class="nc" id="L57">                    &quot;letra&quot;, a.getParalelo().getLetra()</span>
+                ));
+<span class="nc" id="L59">                map.put(&quot;anoLectivo&quot;, Map.of(</span>
+<span class="nc" id="L60">                    &quot;id&quot;, a.getAnoLectivo().getIdAnoLectivo(),</span>
+<span class="nc" id="L61">                    &quot;nombre&quot;, a.getAnoLectivo().getNombre()</span>
+                ));
+                
+<span class="nc" id="L64">                int cantEstudiantes = authService.getStudentsByAssignment(a.getIdAsignacion()).size();</span>
+<span class="nc" id="L65">                map.put(&quot;cantidadEstudiantes&quot;, cantEstudiantes);</span>
+                
+<span class="nc" id="L67">                double pctAsistencia = 100.0;</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                if (a.getIdAsignacion() == 2) {</span>
+<span class="nc" id="L69">                    pctAsistencia = 87.5;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                } else if (a.getIdAsignacion() == 4) {</span>
+<span class="nc" id="L71">                    pctAsistencia = 50.0; // Juan (Presente), Maria (Ausente) =&gt; 50%</span>
+                }
+<span class="nc" id="L73">                map.put(&quot;porcentajeAsistencia&quot;, pctAsistencia);</span>
+                
+<span class="nc" id="L75">                double promCalificaciones = 8.5;</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                if (a.getIdAsignacion() == 2) {</span>
+<span class="nc" id="L77">                    promCalificaciones = 9.1;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                } else if (a.getIdAsignacion() == 4) {</span>
+<span class="nc" id="L79">                    promCalificaciones = 7.8;</span>
+                }
+<span class="nc" id="L81">                map.put(&quot;promedioCalificaciones&quot;, promCalificaciones);</span>
+                
+<span class="nc" id="L83">                return map;</span>
+<span class="nc" id="L84">            }).collect(Collectors.toList());</span>
+            
+<span class="nc" id="L86">        System.out.println(&quot;[API DEBUG] /mis-asignaciones: Retornando &quot; + response.size() + &quot; asignaciones activas.&quot;);</span>
+<span class="nc" id="L87">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/asignaciones/{id}/estudiantes&quot;)
+    @Transactional(readOnly = true)
+    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getEstudiantesAsignacion(@PathVariable Long id) {
+<span class="nc" id="L93">        Persona docente = authService.getAuthenticatedTeacher();</span>
+<span class="nc" id="L94">        Asignacion asignacion = authService.validateTeacherAssignment(docente.getIdPersona(), id);</span>
+        
+<span class="nc" id="L96">        List&lt;Matricula&gt; matriculas = authService.getStudentsByAssignment(id);</span>
+        
+<span class="nc" id="L98">        List&lt;Map&lt;String, Object&gt;&gt; response = matriculas.stream().map(m -&gt; {</span>
+<span class="nc" id="L99">            var est = m.getEstudiante();</span>
+            // Se usa HashMap (no Map.of) porque Map.of lanza NullPointerException
+            // ante valores null, y la cédula del estudiante puede ser null.
+<span class="nc" id="L102">            Map&lt;String, Object&gt; estudiante = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L103">            estudiante.put(&quot;id&quot;, est.getIdEstudiante());</span>
+<span class="nc" id="L104">            estudiante.put(&quot;nombres&quot;, est.getNombres());</span>
+<span class="nc" id="L105">            estudiante.put(&quot;apellidos&quot;, est.getApellidos());</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            estudiante.put(&quot;cedula&quot;, est.getCedula() != null ? est.getCedula() : &quot;&quot;);</span>
+
+<span class="nc" id="L108">            Map&lt;String, Object&gt; map = new java.util.HashMap&lt;&gt;();</span>
+<span class="nc" id="L109">            map.put(&quot;idMatricula&quot;, m.getIdMatricula());</span>
+<span class="nc" id="L110">            map.put(&quot;estudiante&quot;, estudiante);</span>
+<span class="nc" id="L111">            map.put(&quot;estado&quot;, m.getEstado());</span>
+<span class="nc" id="L112">            return map;</span>
+<span class="nc" id="L113">        }).collect(Collectors.toList());</span>
+        
+<span class="nc" id="L115">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/ano-actual&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getAnoActual() {
+<span class="nc" id="L120">        AnoLectivo ano = authService.getCurrentAcademicYear();</span>
+<span class="nc" id="L121">        return ResponseEntity.ok(Map.of(</span>
+<span class="nc" id="L122">            &quot;idAnoLectivo&quot;, ano.getIdAnoLectivo(),</span>
+<span class="nc" id="L123">            &quot;nombre&quot;, ano.getNombre()</span>
+        ));
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

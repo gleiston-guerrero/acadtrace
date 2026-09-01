@@ -1,4 +1,4 @@
-package ec.uteq.sga.soporte.grpc;
+package ec.uteq.sga.soporte.infrastructure.grpc;
 
 import ec.uteq.sga.soporte.grpc.principal.ListarUsuariosRequest;
 import ec.uteq.sga.soporte.grpc.principal.ListarUsuariosResponse;
@@ -6,12 +6,16 @@ import ec.uteq.sga.soporte.grpc.principal.Usuario;
 import ec.uteq.sga.soporte.grpc.principal.UsuarioServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.MetadataUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Cliente gRPC hacia sga-principal. Reemplaza el llamado REST directo que
@@ -26,11 +30,19 @@ import java.util.Map;
  * entrante (ver InternalAuthInterceptor.java alla); se lo agregamos aqui con
  * el mismo patron que ya usa DocenteGrpcClient del lado de sga-principal
  * para llamar a MICRO-DOCENTE.
+ *
+ * Resiliencia (issue #8): deadline de 3s por intento, maximo 2 reintentos
+ * con backoff simple, y degradacion a lista vacia si sga-principal no
+ * responde, en vez de romper el request que disparo esta llamada.
  */
+@Slf4j
 @Service
 public class TecnicoGrpcClient {
 
     private static final String INTERNAL_TOKEN_VALUE = "***REMOVED***";
+    private static final long   DEADLINE_SECONDS      = 3;
+    private static final int    MAX_REINTENTOS        = 2; // reintentos ADEMAS del intento inicial
+    private static final long   BACKOFF_BASE_MS        = 300; // 300ms, 600ms...
 
     private final UsuarioServiceGrpc.UsuarioServiceBlockingStub stub;
 
@@ -52,11 +64,42 @@ public class TecnicoGrpcClient {
                 .setRol(rol == null ? "" : rol)
                 .build();
 
-        ListarUsuariosResponse response = stub.listarUsuarios(request);
+        for (int intento = 0; intento <= MAX_REINTENTOS; intento++) {
+            try {
+                ListarUsuariosResponse response = stub
+                        .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
+                        .listarUsuarios(request);
 
-        return response.getUsuariosList().stream()
-                .map(this::aMapa)
-                .toList();
+                return response.getUsuariosList().stream()
+                        .map(this::aMapa)
+                        .toList();
+
+            } catch (StatusRuntimeException e) {
+                boolean quedanReintentos = intento < MAX_REINTENTOS;
+                log.error("Fallo al llamar a sga-principal (gRPC listarUsuarios, rol={}, intento={}/{}): {}",
+                        rol, intento + 1, MAX_REINTENTOS + 1, e.getStatus());
+
+                if (!quedanReintentos) {
+                    log.error("Se agotaron los reintentos contra sga-principal, se degrada a lista vacia.");
+                    return Collections.emptyList();
+                }
+
+                esperarBackoff(intento);
+            }
+        }
+
+        // Inalcanzable en la practica (el for siempre retorna o cae al degradado arriba),
+        // pero se deja como red de seguridad.
+        return Collections.emptyList();
+    }
+
+    private void esperarBackoff(int intento) {
+        long esperaMs = BACKOFF_BASE_MS * (long) Math.pow(2, intento); // 300ms, 600ms...
+        try {
+            Thread.sleep(esperaMs);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private Map<String, Object> aMapa(Usuario u) {

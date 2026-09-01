@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GenericRowMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.common.jdbc</a> &gt; <span class="el_source">GenericRowMapper.java</span></div><h1>GenericRowMapper.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.common.jdbc;
+
+import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.Array;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * RowMapper generico para queries con columnas dinamicas (SELECT e.*, joins...).
+ * A diferencia del ColumnMapRowMapper por defecto de Spring, convierte explicitamente:
+ * - DATE/TIMESTAMP -&gt; LocalDate/LocalDateTime/OffsetDateTime (para que Jackson serialice ISO-8601)
+ * - java.sql.Array (ej. array_agg de roles) -&gt; List&lt;Object&gt;
+ * Los tipos enum custom de Postgres (genero_t, estado_matricula_t) llegan como String sin tratamiento especial.
+ */
+<span class="fc" id="L24">public class GenericRowMapper implements RowMapper&lt;Map&lt;String, Object&gt;&gt; {</span>
+
+<span class="fc" id="L26">    public static final GenericRowMapper INSTANCE = new GenericRowMapper();</span>
+
+    @Override
+    public Map&lt;String, Object&gt; mapRow(ResultSet rs, int rowNum) throws SQLException {
+<span class="nc" id="L30">        ResultSetMetaData meta = rs.getMetaData();</span>
+<span class="nc" id="L31">        int columnCount = meta.getColumnCount();</span>
+<span class="nc" id="L32">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        for (int i = 1; i &lt;= columnCount; i++) {</span>
+<span class="nc" id="L34">            row.put(meta.getColumnLabel(i), extractValue(rs, meta, i));</span>
+        }
+<span class="nc" id="L36">        return row;</span>
+    }
+
+    private Object extractValue(ResultSet rs, ResultSetMetaData meta, int index) throws SQLException {
+<span class="nc" id="L40">        int type = meta.getColumnType(index);</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">        switch (type) {</span>
+            case Types.DATE:
+<span class="nc" id="L43">                return rs.getObject(index, LocalDate.class);</span>
+            case Types.TIMESTAMP:
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                // pgjdbc reporta &quot;timestamptz&quot; como Types.TIMESTAMP (no TIMESTAMP_WITH_TIMEZONE) segun la
+                // version del driver, asi que el codigo JDBC no alcanza para distinguirlo: hay que mirar el
+                // nombre real de tipo de Postgres para no pedirle LocalDateTime a una columna con offset.
+<span class="nc bnc" id="L49" title="All 2 branches missed.">                return &quot;timestamptz&quot;.equalsIgnoreCase(meta.getColumnTypeName(index))</span>
+<span class="nc" id="L50">                        ? rs.getObject(index, OffsetDateTime.class)</span>
+<span class="nc" id="L51">                        : rs.getObject(index, LocalDateTime.class);</span>
+            case Types.ARRAY:
+<span class="nc" id="L53">                Array array = rs.getArray(index);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                if (array == null) return null;</span>
+<span class="nc" id="L55">                Object javaArray = array.getArray();</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                if (javaArray instanceof Object[] objects) {</span>
+<span class="nc" id="L57">                    return Arrays.asList(objects);</span>
+                }
+<span class="nc" id="L59">                return javaArray;</span>
+            default:
+<span class="nc" id="L61">                return rs.getObject(index);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

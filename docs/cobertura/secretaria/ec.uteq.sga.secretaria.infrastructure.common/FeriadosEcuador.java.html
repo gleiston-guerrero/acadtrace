@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeriadosEcuador.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.common</a> &gt; <span class="el_source">FeriadosEcuador.java</span></div><h1>FeriadosEcuador.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.common;
+
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/** Feriados nacionales de Ecuador (fijos + móviles calculados desde Pascua). No hay tabla para esto en ningún repo del sistema. */
+public final class FeriadosEcuador {
+
+    private FeriadosEcuador() {}
+
+    public static List&lt;Map&lt;String, Object&gt;&gt; delAno(int anio) {
+<span class="nc" id="L14">        LocalDate pascua = domingoPascua(anio);</span>
+
+<span class="nc" id="L16">        return List.of(</span>
+<span class="nc" id="L17">                evento(&quot;Año Nuevo&quot;, LocalDate.of(anio, 1, 1)),</span>
+<span class="nc" id="L18">                evento(&quot;Carnaval&quot;, pascua.minusDays(48)),</span>
+<span class="nc" id="L19">                evento(&quot;Carnaval&quot;, pascua.minusDays(47)),</span>
+<span class="nc" id="L20">                evento(&quot;Viernes Santo&quot;, pascua.minusDays(2)),</span>
+<span class="nc" id="L21">                evento(&quot;Día del Trabajo&quot;, LocalDate.of(anio, 5, 1)),</span>
+<span class="nc" id="L22">                evento(&quot;Batalla de Pichincha&quot;, LocalDate.of(anio, 5, 24)),</span>
+<span class="nc" id="L23">                evento(&quot;Primer Grito de la Independencia&quot;, LocalDate.of(anio, 8, 10)),</span>
+<span class="nc" id="L24">                evento(&quot;Independencia de Guayaquil&quot;, LocalDate.of(anio, 10, 9)),</span>
+<span class="nc" id="L25">                evento(&quot;Día de los Difuntos&quot;, LocalDate.of(anio, 11, 2)),</span>
+<span class="nc" id="L26">                evento(&quot;Independencia de Cuenca&quot;, LocalDate.of(anio, 11, 3)),</span>
+<span class="nc" id="L27">                evento(&quot;Navidad&quot;, LocalDate.of(anio, 12, 25))</span>
+        );
+    }
+
+    private static Map&lt;String, Object&gt; evento(String titulo, LocalDate fecha) {
+<span class="nc" id="L32">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L33">        row.put(&quot;titulo&quot;, titulo);</span>
+<span class="nc" id="L34">        row.put(&quot;fecha_inicio&quot;, fecha);</span>
+<span class="nc" id="L35">        row.put(&quot;fecha_fin&quot;, null);</span>
+<span class="nc" id="L36">        row.put(&quot;tipo&quot;, &quot;FERIADO&quot;);</span>
+<span class="nc" id="L37">        return row;</span>
+    }
+
+    /** Algoritmo de Meeus/Jones/Butcher (calendario gregoriano). */
+    private static LocalDate domingoPascua(int anio) {
+<span class="nc" id="L42">        int a = anio % 19;</span>
+<span class="nc" id="L43">        int b = anio / 100;</span>
+<span class="nc" id="L44">        int c = anio % 100;</span>
+<span class="nc" id="L45">        int d = b / 4;</span>
+<span class="nc" id="L46">        int e = b % 4;</span>
+<span class="nc" id="L47">        int f = (b + 8) / 25;</span>
+<span class="nc" id="L48">        int g = (b - f + 1) / 3;</span>
+<span class="nc" id="L49">        int h = (19 * a + b - d - g + 15) % 30;</span>
+<span class="nc" id="L50">        int i = c / 4;</span>
+<span class="nc" id="L51">        int k = c % 4;</span>
+<span class="nc" id="L52">        int l = (32 + 2 * e + 2 * i - h - k) % 7;</span>
+<span class="nc" id="L53">        int m = (a + 11 * h + 22 * l) / 451;</span>
+<span class="nc" id="L54">        int mes = (h + l - 7 * m + 114) / 31;</span>
+<span class="nc" id="L55">        int dia = ((h + l - 7 * m + 114) % 31) + 1;</span>
+<span class="nc" id="L56">        return LocalDate.of(anio, mes, dia);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

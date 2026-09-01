@@ -2,7 +2,22 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+# ─── Remote write hacia Grafana Cloud ───
+# NO subas este bloque con la API key real al repo compartido.
+remote_write:
+  - url: "https://<TU-PROMETHEUS-URL>.grafana.net/api/prom/push"
+    basic_auth:
+      username: "<TU_INSTANCE_ID>"
+      password: "<TU_API_KEY>"
+
 scrape_configs:
+  # Auto-monitoreo: permite consultar metricas internas de Prometheus
+  # (ej. prometheus_remote_storage_samples_total) para diagnosticar el
+  # remote_write hacia Grafana Cloud.
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
   # sga-principal corre con 2 replicas detras de HAProxy (deploy.replicas: 2 en
   # docker-compose.yml) — se scrapea cada replica por separado (no el puerto de
   # HAProxy) para no mezclar las metricas de las 2 instancias en Grafana.
@@ -22,9 +37,8 @@ scrape_configs:
         labels:
           application: sga-secretaria-backend
 
-  # microservicio-soporte (Java/Spring Boot): pendiente que su dueño agregue
-  # micrometer-registry-prometheus + las properties management.* a su repo.
-  # El target ya queda listo para cuando exponga /actuator/prometheus.
+  # microservicio-soporte (Java/Spring Boot): ya expone /actuator/prometheus
+  # (micrometer-registry-prometheus + management.* en application.properties).
   - job_name: "microservicio-soporte"
     metrics_path: /actuator/prometheus
     static_configs:

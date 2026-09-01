@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ActividadGrpcClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.grpc</a> &gt; <span class="el_source">ActividadGrpcClient.java</span></div><h1>ActividadGrpcClient.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.grpc;
+
+import ec.edu.uteq.sga.grpc.actividades.*;
+import ec.edu.uteq.sga.application.service.TeacherAuthorizationService;
+import io.grpc.StatusRuntimeException;
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+<span class="nc" id="L13">public class ActividadGrpcClient {</span>
+
+    @GrpcClient(&quot;docente-service&quot;)
+    private ActividadServiceGrpc.ActividadServiceBlockingStub stub;
+
+    @Autowired
+    private TeacherAuthorizationService authService;
+
+    private ActividadServiceGrpc.ActividadServiceBlockingStub getStubWithMetadata() {
+<span class="nc" id="L22">        String docenteId = authService.getAuthenticatedTeacher().getIdPersona().toString();</span>
+
+<span class="nc" id="L24">        io.grpc.Metadata metadata = new io.grpc.Metadata();</span>
+<span class="nc" id="L25">        metadata.put(io.grpc.Metadata.Key.of(&quot;docente_id&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), docenteId);</span>
+<span class="nc" id="L26">        metadata.put(io.grpc.Metadata.Key.of(&quot;internal_token&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), &quot;***REMOVED***&quot;);</span>
+<span class="nc" id="L27">        return stub.withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(metadata));</span>
+    }
+
+    public ActividadResponse crearActividad(CrearActividadRequest request) {
+        try {
+<span class="nc" id="L32">            return getStubWithMetadata().crearActividad(request);</span>
+<span class="nc" id="L33">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L34">            System.err.println(&quot;Error gRPC crearActividad: &quot; + e.getMessage());</span>
+<span class="nc" id="L35">            throw e;</span>
+        }
+    }
+
+    public ActividadResponse editarActividad(EditarActividadRequest request) {
+        try {
+<span class="nc" id="L41">            return getStubWithMetadata().editarActividad(request);</span>
+<span class="nc" id="L42">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L43">            System.err.println(&quot;Error gRPC editarActividad: &quot; + e.getMessage());</span>
+<span class="nc" id="L44">            throw e;</span>
+        }
+    }
+
+    public ActividadResponse obtenerActividad(Long idActividad) {
+        try {
+<span class="nc" id="L50">            ObtenerActividadRequest request = ObtenerActividadRequest.newBuilder().setIdActividad(idActividad).build();</span>
+<span class="nc" id="L51">            return getStubWithMetadata().obtenerActividad(request);</span>
+<span class="nc" id="L52">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L53">            System.err.println(&quot;Error gRPC obtenerActividad: &quot; + e.getMessage());</span>
+<span class="nc" id="L54">            throw e;</span>
+        }
+    }
+
+    public List&lt;ActividadDto&gt; listarActividades(Long idAsignacion, Long idPeriodo) {
+        try {
+<span class="nc" id="L60">            ListarActividadesRequest.Builder builder = ListarActividadesRequest.newBuilder()</span>
+<span class="nc" id="L61">                    .setIdAsignacion(idAsignacion);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (idPeriodo != null) {</span>
+<span class="nc" id="L63">                builder.setIdPeriodo(idPeriodo);</span>
+            }
+<span class="nc" id="L65">            ListarActividadesResponse response = getStubWithMetadata().listarActividades(builder.build());</span>
+<span class="nc" id="L66">            return response.getActividadesList();</span>
+<span class="nc" id="L67">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L68">            System.err.println(&quot;Error gRPC listarActividades: &quot; + e.getMessage());</span>
+<span class="nc" id="L69">            throw e;</span>
+        }
+    }
+
+    public EliminarActividadResponse eliminarActividad(Long idActividad) {
+        try {
+<span class="nc" id="L75">            EliminarActividadRequest request = EliminarActividadRequest.newBuilder().setIdActividad(idActividad).build();</span>
+<span class="nc" id="L76">            return getStubWithMetadata().eliminarActividad(request);</span>
+<span class="nc" id="L77">        } catch (StatusRuntimeException e) {</span>
+<span class="nc" id="L78">            System.err.println(&quot;Error gRPC eliminarActividad: &quot; + e.getMessage());</span>
+<span class="nc" id="L79">            throw e;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

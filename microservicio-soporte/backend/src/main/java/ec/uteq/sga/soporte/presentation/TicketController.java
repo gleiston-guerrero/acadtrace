@@ -16,7 +16,8 @@ import java.util.Map;
 
 /**
  * API del microservicio de soporte tecnico. Protegida por JwtAuthFilter
- * (roles SOPORTE_TECNICO / DIRECTOR) sobre /api/soporte/*.
+ * (autenticacion) sobre /api/soporte/*; las acciones exclusivas del equipo
+ * de soporte se autorizan dentro de TicketService via AuthenticatedUser.
  */
 @RestController
 @RequestMapping("/api/soporte/tickets")
@@ -29,8 +30,8 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<Map<String, Object>> listar() {
-        return service.listar();
+    public List<Map<String, Object>> listar(AuthenticatedUser user) {
+        return service.listar(user);
     }
 
     @GetMapping("/mis-tickets")
@@ -39,18 +40,18 @@ public class TicketController {
     }
 
     @GetMapping("/estadisticas")
-    public Map<String, Object> estadisticas() {
-        return service.estadisticas();
+    public Map<String, Object> estadisticas(AuthenticatedUser user) {
+        return service.estadisticas(user);
     }
 
     @GetMapping("/reportes")
-    public Map<String, Object> reportes() {
-        return service.reportes();
+    public Map<String, Object> reportes(AuthenticatedUser user) {
+        return service.reportes(user);
     }
 
     @GetMapping("/{id}")
-    public Map<String, Object> obtener(@PathVariable long id) {
-        return service.obtener(id);
+    public Map<String, Object> obtener(@PathVariable long id, AuthenticatedUser user) {
+        return service.obtener(id, user);
     }
 
     @PostMapping
@@ -60,22 +61,22 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-@PutMapping("/{id}")
-public Map<String, Object> actualizar(
-        @PathVariable long id, @Valid @RequestBody ActualizarTicketRequest req, AuthenticatedUser user) {
-    return service.actualizar(id, req, user.username());
-}
+    @PutMapping("/{id}")
+    public Map<String, Object> actualizar(
+            @PathVariable long id, @Valid @RequestBody ActualizarTicketRequest req, AuthenticatedUser user) {
+        return service.actualizar(id, req, user);
+    }
 
-@PostMapping("/{id}/escalar")
-public Map<String, Object> escalar(
-        @PathVariable long id, @Valid @RequestBody EscalarTicketRequest req, AuthenticatedUser user) {
-    return service.escalar(id, req, user.username());
-}
+    @PostMapping("/{id}/escalar")
+    public Map<String, Object> escalar(
+            @PathVariable long id, @Valid @RequestBody EscalarTicketRequest req, AuthenticatedUser user) {
+        return service.escalar(id, req, user);
+    }
 
-@GetMapping("/{id}/historial")
-public List<Map<String, Object>> historial(@PathVariable long id) {
-    return service.listarHistorial(id);
-}
+    @GetMapping("/{id}/historial")
+    public List<Map<String, Object>> historial(@PathVariable long id, AuthenticatedUser user) {
+        return service.listarHistorial(id, user);
+    }
 
     @GetMapping("/{id}/comentarios")
     public List<Map<String, Object>> listarComentarios(@PathVariable long id) {
@@ -85,7 +86,7 @@ public List<Map<String, Object>> historial(@PathVariable long id) {
     @PostMapping("/{id}/comentarios")
     public ResponseEntity<Map<String, Object>> comentar(
             @PathVariable long id, @Valid @RequestBody ComentarioRequest req, AuthenticatedUser user) {
-        Map<String, Object> creado = service.comentar(id, req, user.username());
+        Map<String, Object> creado = service.comentar(id, req, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 }

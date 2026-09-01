@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">SGA Docente</string>
+    <string name="login_title">Sistema de Gestión Académica</string>
+    <string name="login_subtitle">Módulo Docente</string>
+    <string name="username_label">Usuario</string>
+    <string name="password_label">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="offline_mode_active">Modo sin conexión activo</string>
+    <string name="sync_pending_count">Operaciones pendientes por sincronizar: %1$d</string>
+    <string name="server_settings">Configuración de Servidor</string>
+</resources>

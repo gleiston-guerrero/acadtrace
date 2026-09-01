@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Configuración de Logging Estructurado en Formato JSON para Microservicio Secretaría -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ec.uteq.sga.secretaria.infrastructure.logging.JsonStructuredLayout">
+                <serviceName>microservicio-secretaria</serviceName>
+            </layout>
+        </encoder>
+    </appender>
+
+    <!-- Nivel de logging para el paquete del microservicio y librerías -->
+    <logger name="ec.uteq.sga.secretaria" level="DEBUG"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.security" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+</configuration>

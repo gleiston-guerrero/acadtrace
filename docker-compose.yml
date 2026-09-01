@@ -32,9 +32,11 @@ services:
     container_name: sga-haproxy
     depends_on:
       - sga-principal
+      - microservicio-secretaria
     ports:
       - "8080:8080"   # REST balanceado hacia las 2 replicas
       - "8081:8081"   # REST balanceado hacia las replicas de docente
+      - "8082:8082"   # REST balanceado hacia microservicio-secretaria
       - "9092:9092"   # gRPC balanceado hacia las 2 replicas
       - "8404:8404"   # Panel de estadisticas HAProxy
     volumes:
@@ -95,7 +97,8 @@ services:
       dockerfile: backend/Dockerfile
     container_name: microservicio-secretaria
     ports:
-      - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
+      - "5176:5176"   # REST & Frontend integrado en Spring Boot
+      # - "8082:5176"  # REST Backend alias compatible
     environment:
       - DB_HOST=192.0.2.1
       - DB_PORT=5433
@@ -217,6 +220,23 @@ services:
       - sga-distribuido-net
     depends_on:
       - prometheus
+
+  # ─── 6. MICROSERVICIO IA (Python FastAPI - Google Gemini 1.5 Flash) ───
+  microservicio-ia:
+    build:
+      context: ./microservicio-ia
+      dockerfile: Dockerfile
+    image: microservicio-ia:latest
+    container_name: microservicio-ia
+    expose:
+      - "8084"
+    ports:
+      - "8084:8084"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    networks:
+      - sga-distribuido-net
+    restart: unless-stopped
 
 networks:
   sga-distribuido-net:

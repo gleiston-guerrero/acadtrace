@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PersonaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">PersonaService.java</span></div><h1>PersonaService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.persona.PersonaRequestDTO;
+import ec.edu.uteq.sga.domain.dto.persona.PersonaResponseDTO;
+import ec.edu.uteq.sga.domain.entity.Persona;
+import ec.edu.uteq.sga.domain.entity.Rol;
+import ec.edu.uteq.sga.domain.entity.Usuario;
+import ec.edu.uteq.sga.infrastructure.repository.PersonaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class PersonaService {
+
+    private final PersonaRepository personaRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    @Transactional(readOnly = true)
+    public List&lt;PersonaResponseDTO&gt; listar() {
+<span class="nc" id="L29">        return personaRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public PersonaResponseDTO buscarPorCedula(String cedula) {
+<span class="nc" id="L34">        Persona p = personaRepository.findByCedula(cedula)</span>
+<span class="nc" id="L35">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND,</span>
+                        &quot;No se encontró una persona con la cédula &quot; + cedula));
+<span class="nc" id="L37">        return toResponse(p);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public PersonaResponseDTO obtenerPorUsuario(Long idUsuario) {
+<span class="nc" id="L42">        Persona p = personaRepository.findByUsuario_IdUsuario(idUsuario)</span>
+<span class="nc" id="L43">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND,</span>
+                        &quot;El usuario no tiene datos personales registrados&quot;));
+<span class="nc" id="L45">        return toResponse(p);</span>
+    }
+
+    @Transactional
+    public PersonaResponseDTO crear(PersonaRequestDTO dto) {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (dto.getIdUsuario() == null) {</span>
+<span class="nc" id="L51">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;id_usuario es requerido&quot;);</span>
+        }
+<span class="nc" id="L53">        Usuario usuario = usuarioRepository.findById(dto.getIdUsuario())</span>
+<span class="nc" id="L54">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Usuario no existe&quot;));</span>
+
+<span class="nc" id="L56">        personaRepository.findByUsuario_IdUsuario(usuario.getIdUsuario()).ifPresent(existente -&gt; {</span>
+<span class="nc" id="L57">            throw new ResponseStatusException(HttpStatus.CONFLICT,</span>
+                    &quot;El usuario ya tiene datos personales registrados&quot;);
+        });
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (personaRepository.existsByCedula(dto.getCedula())) {</span>
+<span class="nc" id="L62">            throw new ResponseStatusException(HttpStatus.CONFLICT,</span>
+                    &quot;Ya existe una persona registrada con esa cédula&quot;);
+        }
+
+<span class="nc" id="L66">        Persona p = Persona.builder()</span>
+<span class="nc" id="L67">                .usuario(usuario)</span>
+<span class="nc" id="L68">                .cedula(dto.getCedula())</span>
+<span class="nc" id="L69">                .nombres(dto.getNombres())</span>
+<span class="nc" id="L70">                .apellidos(dto.getApellidos())</span>
+<span class="nc" id="L71">                .fechaNacimiento(dto.getFechaNacimiento())</span>
+<span class="nc" id="L72">                .genero(dto.getGenero())</span>
+<span class="nc" id="L73">                .telefono(dto.getTelefono())</span>
+<span class="nc" id="L74">                .telefonoAlt(dto.getTelefonoAlt())</span>
+<span class="nc" id="L75">                .direccion(dto.getDireccion())</span>
+<span class="nc" id="L76">                .correoPersonal(dto.getCorreoPersonal())</span>
+<span class="nc" id="L77">                .tituloAcademico(dto.getTituloAcademico())</span>
+<span class="nc" id="L78">                .especializacion(dto.getEspecializacion())</span>
+<span class="nc" id="L79">                .fotoUrl(dto.getFotoUrl())</span>
+<span class="nc" id="L80">                .build();</span>
+
+<span class="nc" id="L82">        return toResponse(personaRepository.save(p));</span>
+    }
+
+    @Transactional
+    public PersonaResponseDTO actualizar(Long idPersona, PersonaRequestDTO dto) {
+<span class="nc" id="L87">        Persona p = personaRepository.findById(idPersona)</span>
+<span class="nc" id="L88">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Persona no existe&quot;));</span>
+
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        if (dto.getCedula() != null &amp;&amp; !dto.getCedula().equals(p.getCedula())</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                &amp;&amp; personaRepository.existsByCedula(dto.getCedula())) {</span>
+<span class="nc" id="L92">            throw new ResponseStatusException(HttpStatus.CONFLICT,</span>
+                    &quot;Otra persona ya tiene esa cédula&quot;);
+        }
+
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (dto.getCedula() != null) p.setCedula(dto.getCedula());</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (dto.getNombres() != null) p.setNombres(dto.getNombres());</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (dto.getApellidos() != null) p.setApellidos(dto.getApellidos());</span>
+<span class="nc" id="L99">        p.setFechaNacimiento(dto.getFechaNacimiento());</span>
+<span class="nc" id="L100">        p.setGenero(dto.getGenero());</span>
+<span class="nc" id="L101">        p.setTelefono(dto.getTelefono());</span>
+<span class="nc" id="L102">        p.setTelefonoAlt(dto.getTelefonoAlt());</span>
+<span class="nc" id="L103">        p.setDireccion(dto.getDireccion());</span>
+<span class="nc" id="L104">        p.setCorreoPersonal(dto.getCorreoPersonal());</span>
+<span class="nc" id="L105">        p.setTituloAcademico(dto.getTituloAcademico());</span>
+<span class="nc" id="L106">        p.setEspecializacion(dto.getEspecializacion());</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (dto.getFotoUrl() != null) p.setFotoUrl(dto.getFotoUrl());</span>
+<span class="nc" id="L108">        p.setFechaActualizacion(Instant.now());</span>
+
+<span class="nc" id="L110">        return toResponse(p);</span>
+    }
+
+    @Transactional
+    public void eliminar(Long idPersona) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (!personaRepository.existsById(idPersona)) {</span>
+<span class="nc" id="L116">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Persona no existe&quot;);</span>
+        }
+<span class="nc" id="L118">        personaRepository.deleteById(idPersona);</span>
+<span class="nc" id="L119">    }</span>
+
+    private PersonaResponseDTO toResponse(Persona p) {
+<span class="nc" id="L122">        Usuario u = p.getUsuario();</span>
+<span class="nc" id="L123">        return PersonaResponseDTO.builder()</span>
+<span class="nc" id="L124">                .idPersona(p.getIdPersona())</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                .idUsuario(u != null ? u.getIdUsuario() : null)</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                .username(u != null ? u.getUsername() : null)</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                .correo(u != null ? u.getCorreo() : null)</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                .roles(u != null</span>
+<span class="nc" id="L129">                        ? u.getRoles().stream().map(Rol::getNombre).collect(Collectors.toSet())</span>
+<span class="nc" id="L130">                        : null)</span>
+<span class="nc" id="L131">                .cedula(p.getCedula())</span>
+<span class="nc" id="L132">                .nombres(p.getNombres())</span>
+<span class="nc" id="L133">                .apellidos(p.getApellidos())</span>
+<span class="nc" id="L134">                .fechaNacimiento(p.getFechaNacimiento())</span>
+<span class="nc" id="L135">                .genero(p.getGenero())</span>
+<span class="nc" id="L136">                .telefono(p.getTelefono())</span>
+<span class="nc" id="L137">                .telefonoAlt(p.getTelefonoAlt())</span>
+<span class="nc" id="L138">                .direccion(p.getDireccion())</span>
+<span class="nc" id="L139">                .correoPersonal(p.getCorreoPersonal())</span>
+<span class="nc" id="L140">                .tituloAcademico(p.getTituloAcademico())</span>
+<span class="nc" id="L141">                .especializacion(p.getEspecializacion())</span>
+<span class="nc" id="L142">                .fotoUrl(p.getFotoUrl())</span>
+<span class="nc" id="L143">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
