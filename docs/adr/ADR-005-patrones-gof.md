@@ -4,31 +4,41 @@
 Aceptado
 
 ## Contexto
-La Guía de Entrega E4 exige la justificación y aplicación de al menos 5 patrones de diseño de la banda de los cuatro (GoF) en el código del sistema distribuido del equipo `BCEL` (SGA Escuela).
+La Guía de Entrega E4 y la rúbrica de evaluación (Dimensión D1, criterio 1.2) exigen la justificación, diseño y aplicación de al menos 5 patrones de diseño de la banda de los cuatro (GoF) en el código del sistema distribuido del equipo `BCEL` (AcadTrace / SGA Escuela). Los patrones asignados en la Tabla 1 de la guía corresponden al camino crítico del dominio académico y deben estar respaldados por clases, interfaces y jerarquías reales en el código.
 
 ## Decisión
-Se implementaron y documentaron los siguientes 5 patrones GoF en los microservicios:
+Se implementaron y formalizaron en el código fuente los siguientes 5 patrones de diseño GoF:
 
-### 1. Patrón Repository (Estructural / Creacional)
-- **Ubicación:** `ec.edu.uteq.sga.infrastructure.repository.*`
-- **Propósito:** Mediar entre la capa de dominio/aplicación y la capa de acceso a datos en PostgreSQL, encapsulando las consultas JPA y liberando a los servicios de detalles SQL.
+### 1. Patrón Strategy (Comportamiento)
+- **Propósito:** Encapsular algoritmos intercambiables de cálculo de promedios académicos (ponderación ministerial formativa 70% + sumativa 30% vs. aritmético simple) y alternar las estrategias de auditoría criptográfica en tiempo de ejecución según la variable `AUDIT` (`m0`, `m1`, `m2`, `m3`).
+- **Participantes en Código:**
+  - *Interfaz Estrategia (Java):* `ec.edu.uteq.sga.domain.strategy.CalculoPromedioStrategy`
+  - *Estrategias Concretas (Java):* `ec.edu.uteq.sga.domain.strategy.PromedioPonderado7030Strategy` y `ec.edu.uteq.sga.domain.strategy.PromedioAritmeticoSimpleStrategy`
+  - *Estrategias de Auditoría (Python):* `docentes.auditoria.strategies.NoAuditStrategy` (m0), `FlatAuditStrategy` (m1), `HashChainAuditStrategy` (m2) y `VectorClockAuditStrategy` (m3).
 
-### 2. Patrón Strategy (Comportamiento)
-- **Ubicación:** `microservicio-ia.app.main` y `ConfiguracionCalificacionService`
-- **Propósito:** Encapsular algoritmos de promedios ponderados según la normativa ministerial (Formativas 70% + Sumativas 30%) y el motor de inferencia pedagógica, permitiendo alternar estrategias de evaluación en tiempo de ejecución.
+### 2. Patrón Template Method (Comportamiento)
+- **Propósito:** Definir el esqueleto invariable del algoritmo de emisión de reportes y actas académicas por período (validación de matrícula, encabezado ministerial oficial, matriz tabular de notas, cómputo ponderado y bloque de firmas de auditoría), delegando los pasos de renderizado específico a las subclases.
+- **Participantes en Código:**
+  - *Clase Abstracta Base (Java):* `ec.edu.uteq.sga.application.report.GeneradorReporteAcademicoTemplate`
+  - *Subclase Concreta (Java):* `ec.edu.uteq.sga.application.report.ReporteNotasPeriodoPDF`
 
-### 3. Patrón Facade (Estructural)
-- **Ubicación:** Balanceador HAProxy (`infra/haproxy/haproxy.cfg`) y controladores fachada
-- **Propósito:** Proveer una interfaz perimetral unificada hacia el subsistema de microservicios políglotas (`sga-principal:8080`, `microservicio-docente:8081`, `microservicio-ia:8084`, `sga-principal-grpc:9092`), ocultando la topología interna.
+### 3. Patrón Observer (Comportamiento)
+- **Propósito:** Desacoplar la publicación de eventos de dominio (registro/modificación de calificaciones y confirmación de matrículas) de las acciones subsecuentes de notificación a representantes y registro en la bitácora inmutable.
+- **Participantes en Código:**
+  - *Evento de Dominio:* `ec.edu.uteq.sga.application.event.NotaPublicadaEvent`
+  - *Escucha / Observer:* `ec.edu.uteq.sga.application.event.NotificacionRepresentanteListener`
+  - *Publicador:* `org.springframework.context.ApplicationEventPublisher` inyectado en `CalificacionService`.
 
-### 4. Patrón Observer (Comportamiento)
-- **Ubicación:** `ec.edu.uteq.sga.application.service.AuditoriaService`
-- **Propósito:** Desacoplar el registro de eventos de auditoría y notificaciones ante eventos del sistema (login, modificación de calificaciones, matriculaciones).
+### 4. Patrón Facade (Estructural)
+- **Propósito:** Proveer una interfaz unificada de alto nivel para el portal web y clientes externos, coordinando llamadas atómicas entre múltiples servicios del dominio (estudiantes, asignaciones, notas y autorizaciones) sin exponer el acoplamiento interno.
+- **Participantes en Código:**
+  - *Clase Fachada (Java):* `ec.edu.uteq.sga.application.facade.PortalAcademicoFacade`
 
-### 5. Patrón Template Method (Comportamiento)
-- **Ubicación:** Servicios de exportación y generación de reportes (`MatriculaService.generarPdfMatricula`, reportes de sábanas)
-- **Propósito:** Definir el esqueleto de construcción de documentos oficiales (encabezado ministerial, matriz de calificaciones, cálculo de promedios y pie de firmas), delegando la renderización específica a cada formato.
+### 5. Patrón Repository (Estructural / Creacional)
+- **Propósito:** Mediar entre la capa de dominio/aplicación y la capa de infraestructura de persistencia sobre el clúster de datos, aislando las entidades de las consultas SQL/JPA y permitiendo la sustitución mediante dobles de prueba.
+- **Participantes en Código:**
+  - *Interfaces de Repositorio:* `ec.edu.uteq.sga.infrastructure.repository.EstudianteRepository`, `MatriculaRepository`, `CalificacionRepository`, `AuditoriaRepository`.
 
 ## Consecuencias
-- Cumplimiento estricto de la rúbrica E4 (Dimensión D1, criterio 1.2).
-- Alta modularidad y facilidad de extensión para futuras integraciones.
+- Cumplimiento estricto del criterio 1.2 (Nivel 4) con clases e interfaces reales verificables en el repositorio.
+- Alto desacoplamiento y extensibilidad del núcleo académico ante nuevas políticas ministeriales o esquemas de persistencia.
