@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SgaDocenteApp"
+rootProject.name = "SgaRepresentanteApp"
 include(":app")
