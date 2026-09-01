@@ -1,5 +1,6 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
+from .representante_views import AsistenciaRepresentadoView, CalificacionesRepresentadoView
 
 from .views import (
     ActividadViewSet,
@@ -33,6 +34,8 @@ router.register("anuncios", AnuncioViewSet)
 router.register("materiales", MaterialViewSet)
 
 urlpatterns = [
+    path("representante/me/estudiantes/<int:id_estudiante>/calificaciones/", CalificacionesRepresentadoView.as_view()),
+    path("representante/me/estudiantes/<int:id_estudiante>/asistencia/", AsistenciaRepresentadoView.as_view()),
     path("aula-virtual/resumen/", AulaVirtualResumenView.as_view()),
     path(
         "aula-virtual/<int:id_asignacion>/semanas/",

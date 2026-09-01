@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
     List<Matricula> findByAnoLectivo_IdAnoLectivo(Long idAnoLectivo);
     List<Matricula> findByEstudiante_IdEstudiante(Long idEstudiante);
+    @Query("SELECT m FROM Matricula m JOIN FETCH m.estudiante e JOIN FETCH m.grado JOIN FETCH m.paralelo WHERE e.representante.idRepresentante = :idRepresentante AND m.estado = 'ACTIVA' ORDER BY e.apellidos, e.nombres")
+    List<Matricula> findActivasByRepresentante(@Param("idRepresentante") Long idRepresentante);
     boolean existsByEstudiante_IdEstudianteAndAnoLectivo_IdAnoLectivo(Long idEstudiante, Long idAnoLectivo);
     List<Matricula> findByGrado_IdGradoAndAnoLectivo_IdAnoLectivo(Long idGrado, Long idAnoLectivo);
     List<Matricula> findByGrado_IdGradoAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivo(Long idGrado, Long idParalelo, Long idAnoLectivo);

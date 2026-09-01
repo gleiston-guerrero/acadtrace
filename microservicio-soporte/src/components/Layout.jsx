@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../config/axios";
 import logo from "../assets/logo.png";
+import LanguageSelector from "./LanguageSelector";
+import ThemeToggle from "./ThemeToggle";
 
 const PRIMARY = "#243A76";
 const PRIMARY_LIGHT = "#2d4a96";
@@ -201,6 +203,11 @@ export default function Layout({
 
         {/* Controles superiores */}
         <div className="flex items-center gap-2">
+          {/* Selector de Idioma (i18n) */}
+          <LanguageSelector />
+
+          {/* Selector de Tema (Claro / Oscuro) */}
+          <ThemeToggle />
 
           {/* ================================
               AÑO LECTIVO

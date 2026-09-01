@@ -4,8 +4,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 
 @SpringBootApplication
+@ComponentScan(excludeFilters = @ComponentScan.Filter(
+        type = FilterType.REGEX,
+        pattern = "ec\\.edu\\.uteq\\.sga\\.grpc\\..*"
+))
 @EnableAsync
 public class SgaPrincipalApplication {
 

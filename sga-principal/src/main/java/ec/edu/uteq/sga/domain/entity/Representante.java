@@ -14,6 +14,10 @@ public class Representante {
     @Column(name = "id_representante")
     private Long idRepresentante;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", unique = true)
+    private Usuario usuario;
+
     @Column(unique = true, length = 20)
     private String cedula;
 

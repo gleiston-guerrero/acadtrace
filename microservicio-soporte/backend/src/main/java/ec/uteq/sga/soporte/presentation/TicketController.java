@@ -1,4 +1,4 @@
-package ec.uteq.sga.soporte.controller;
+package ec.uteq.sga.soporte.presentation;
 
 import ec.uteq.sga.soporte.application.TicketService;
 import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;

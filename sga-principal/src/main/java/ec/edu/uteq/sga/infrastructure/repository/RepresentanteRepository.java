@@ -8,5 +8,6 @@ import java.util.Optional;
 @Repository
 public interface RepresentanteRepository extends JpaRepository<Representante, Long> {
     Optional<Representante> findByCedula(String cedula);
+    Optional<Representante> findByUsuario_Username(String username);
     boolean existsByCedula(String cedula);
 }
