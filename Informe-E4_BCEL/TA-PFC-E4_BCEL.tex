@@ -108,9 +108,9 @@
 
 \textbf{Integrantes del Equipo BCEL (Autores):}
 \begin{itemize}[noitemsep,leftmargin=*]
-  \item \textbf{Pedro Leonardo Castro L\'opez} -- \textit{M\'odulo Central (\texttt{sga-principal}), DevOps \& CI/CD}
-  \item \textbf{Keyla Lisbeth Buste Caicedo} -- \textit{M\'odulo de Secretar\'ia (\texttt{microservicio-secretaria}), Event Sourcing \& IA}
-  \item \textbf{Gregory Steven Espa\~na Zambrano} -- \textit{M\'odulo Docente (\texttt{microservicio-docente}) \& App M\'ovil Android}
+  \item \textbf{Pedro Leonardo Castro L\'opez} -- \textit{L\'ider de Proyecto \& M\'odulo Central (\texttt{sga-principal}), Patrones GoF, DevOps \& CI/CD}
+  \item \textbf{Keyla Betzabe Bedon Viteri} -- \textit{M\'odulo Docente (\texttt{microservicio-docente}), App M\'ovil Android \& Auditor\'ia Criptogr\'afica}
+  \item \textbf{Ernesto Gregory Luna Mora} -- \textit{M\'odulo de Secretar\'ia (\texttt{microservicio-secretaria}), API Gateway (HAProxy) \& Calidad ISO 25010}
   \item \textbf{Juliana Romina Emanuel Pino} -- \textit{M\'odulo de Soporte (\texttt{microservicio-soporte}), Documentaci\'on \& Observabilidad}
 \end{itemize}
 \textbf{Fecha de Entrega:} Septiembre de 2026
@@ -209,7 +209,7 @@ La arquitectura global del sistema se documenta formalmente mediante los tres pr
 
 \begin{figure}[H]
 \centering
-\fbox{\includegraphics[width=0.90\textwidth]{c4_nivel1_contexto.svg}}
+\fbox{\includegraphics[width=0.90\textwidth]{c4_nivel1_contexto.png}}
 \caption{Diagrama C4 -- Nivel 1: Contexto del Sistema SGA Distribuido.}
 \label{fig:c4-n1}
 \end{figure}
@@ -218,7 +218,7 @@ La arquitectura global del sistema se documenta formalmente mediante los tres pr
 
 \begin{figure}[H]
 \centering
-\fbox{\includegraphics[width=0.90\textwidth]{c4_nivel2_contenedores.svg}}
+\fbox{\includegraphics[width=0.90\textwidth]{c4_nivel2_contenedores.png}}
 \caption{Diagrama C4 -- Nivel 2: Contenedores del SGA Distribuido.}
 \label{fig:c4-n2}
 \end{figure}
@@ -227,7 +227,7 @@ La arquitectura global del sistema se documenta formalmente mediante los tres pr
 
 \begin{figure}[H]
 \centering
-\fbox{\includegraphics[width=0.90\textwidth]{c4_nivel3_componentes.svg}}
+\fbox{\includegraphics[width=0.90\textwidth]{c4_nivel3_componentes.png}}
 \caption{Diagrama C4 -- Nivel 3: Componentes Internos de \texttt{microservicio-soporte}.}
 \label{fig:c4-n3}
 \end{figure}
@@ -422,23 +422,23 @@ La ejecuci\'on de la Entrega 4 permiti\'o validar emp\'iricamente que una arquit
 
 \subsection{Conclusiones Individuales de los Integrantes}
 
-\subsubsection{Conclusi\'on Individual -- Pedro Leonardo Castro L\'opez}
-El dise\~no y automatizaci\'on del pipeline CI/CD en GitHub Actions para el m\'odulo \texttt{sga-principal} evidenci\'o la importancia de contar con barreras de calidad autom\'aticas desde las etapas tempranas del desarrollo. Implementar pruebas unitarias con Mockito y alcanzar un 83\% de cobertura JaCoCo no s\'olo increment\'o la confianza al integrar cambios, sino que permiti\'o detectar regresiones de forma instant\'anea antes de empaquetar im\'agenes Docker. Asimismo, la exposici\'on de contratos gRPC valid\'o que la serializaci\'on binaria optimiza sustancialmente el rendimiento en comparaci\'on con interfaces JSON tradicionales, resultando indispensable para la comunicaci\'on interna entre microservicios.
+\subsubsection{Conclusi\'on Individual -- Pedro Leonardo Castro L\'opez (Arquitecto y L\'ider de Proyecto)}
+El dise\~no, refactorizaci\'on e implementaci\'on de los patrones de dise\~no GoF (Repository, Strategy, Template Method, Observer y Facade) en el m\'odulo central \texttt{sga-principal} evidenci\'o la relevancia de desacoplar las capas de negocio de la infraestructura en sistemas cr\'iticos. Implementar barreras de calidad automatizadas mediante un pipeline CI/CD en GitHub Actions con cuatro trabajos encadenados y certificar una cobertura del 88\% con JaCoCo bajo reglas estrictas (\texttt{<goal>check</goal>}) garantiz\'o que ning\'un cambio se despliegue en producci\'on sin superar pruebas exhaustivas. Asimismo, la instrumentaci\'on de m\'etricas de negocio con Micrometer y Prometheus permiti\'o contar con observabilidad en tiempo real sobre transacciones acad\'emicas y matr\'iculas.
 
-\subsubsection{Conclusi\'on Individual -- Keyla Lisbeth Buste Caicedo}
-La implementaci\'on del m\'odulo de secretar\'ia bajo el enfoque de \textit{Event Sourcing} con relojes l\'ogicos de Lamport demostr\'o ser una soluci\'on robusta para garantizar la inmutabilidad y la trazabilidad de las actas de matr\'icula. En un sistema educativo, la p\'erdida o alteraci\'on de registros puede causar da\~nos irreparables a los expedientes de los estudiantes; disponer de un hist\'orico inalterable de eventos permite auditar cada transacci\'on con certeza temporal. La integraci\'on con Google Gemini 1.5 Flash a trav\'es de \texttt{microservicio-ia} abri\'o adem\'as un potencial significativo para la generaci\'on automatizada de res\'umenes acad\'emicos confiables.
+\subsubsection{Conclusi\'on Individual -- Keyla Betzabe Bedon Viteri (Desarrolladora Backend y M\'ovil)}
+El desarrollo del microservicio docente sobre Python/Django y la aplicaci\'on m\'ovil bajo el paradigma \textit{offline-first} ratific\'o que los sistemas escolares distribuidos deben tolerar desconexiones sin comprometer la integridad. La implementaci\'on del conmutador de auditor\'ia criptogr\'afica con encadenamiento SHA-256 y marcas l\'ogicas de Lamport garantiz\'o que cualquier manipulaci\'on no autorizada en calificaciones sea detectable de forma inmediata. Asimismo, alcanzar una cobertura del 73\% con \texttt{pytest-cov} certific\'o la fiabilidad en la ejecuci\'on de servicios transaccionales y la comunicaci\'on de alto rendimiento v\'ia gRPC.
 
-\subsubsection{Conclusi\'on Individual -- Gregory Steven Espa\~na Zambrano}
-El desarrollo del m\'odulo docente y la aplicaci\'on m\'ovil Android bajo el paradigma \textit{offline-first} ratific\'o que las aplicaciones distribuidas no deben asumir conectividad permanente. Dise\~nar la persistencia local con Room SQLite y un mecanismo de sincronizaci\'on por lotes resolvi\'o el desaf\'io que enfrentan los profesores en entornos con baja se\~nal, permiti\'endoles registrar asistencias y notas sin interrupciones. La reconciliaci\'on determinista de datos en el backend Django asegur\'o la consistencia global del sistema sin generar sobreescrituras accidentales entre dispositivos.
+\subsubsection{Conclusi\'on Individual -- Ernesto Gregory Luna Mora (Responsable de Calidad y Gateway)}
+La implementaci\'on del API Gateway perimetral con HAProxy y la configuraci\'on de pruebas de integraci\'on con JaCoCo al 70\% en el microservicio de secretar\'ia demostraron ser esenciales para gobernar el flujo de tr\'afico entrante y blindar la seguridad institucional. La evaluaci\'on formal bajo la norma ISO/IEC 25010:2023 con datos medidos en pruebas de carga y el rechazo estricto (HTTP 401) ante peticiones sin credenciales JWT v\'alidas certificaron la robustez del sistema, asegurando la confidencialidad de los expedientes estudiantiles y la alta disponibilidad ante fallos.
 
-\subsubsection{Conclusi\'on Individual -- Juliana Romina Emanuel Pino}
+\subsubsection{Conclusi\'on Individual -- Juliana Romina Emanuel Pino (Documentalista y Observabilidad)}
 El desarrollo de esta entrega permiti\'o comprender que la observabilidad y la seguridad no son complementos accesorios, sino pilares estructurales que deben verificarse de forma emp\'irica. Durante la implementaci\'on de \texttt{microservicio-soporte}, la correcci\'on de la vulnerabilidad IDOR y el saneamiento de secretos JWT demostraron que la protecci\'on de datos sensibles de menores exige controles de acceso a nivel de recurso y no s\'olo autenticaci\'on general. Asimismo, en la ampliaci\'on del tablero de Grafana con las 6 vistas operativas, se comprob\'o que las m\'etricas promedio ocultan problemas graves de latencia que \'unicamente los percentiles de cola (P95/P99) y cAdvisor revelan con precisi\'on bajo estr\'es concurrente.
 
 % =============================================================================
 % 9. REFERENCIAS BIBLIOGRÁFICAS
 % =============================================================================
 \newpage
-\bibliographystyle{IEEEtran}
+\bibliographystyle{ieeetr}
 \bibliography{referencias}
 
 % =============================================================================
