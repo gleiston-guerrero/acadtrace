@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "./context/ToastContext";
+import { ConfirmProvider } from "./context/ConfirmContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { I18nProvider } from "./context/I18nContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/login/Login";
 import Portales from "./pages/portales/Portales";
@@ -17,35 +21,49 @@ import ConsultaAsistencias from "./pages/asistencias/ConsultaAsistencias";
 import Horarios from "./pages/horarios/Horarios";
 import Auditoria from "./pages/auditoria/Auditoria";
 import Matriculas from "./pages/matriculas/Matriculas";
+import About from "./pages/about/About";
 
 function App() {
-    return (
+  return (
+    <ThemeProvider>
+      <I18nProvider>
         <ToastProvider>
+          <ConfirmProvider>
             <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<Navigate to="/login" />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/portales" element={<Portales />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/cambiar-password" element={<CambiarPassword />} />
-                    <Route path="/usuarios" element={<ConfiguracionGeneral />} />
-                    <Route path="/estudiantes" element={<Estudiantes />} />
-                    <Route path="/asistencias" element={<ConsultaAsistencias />} />
-                    <Route path="/calificaciones" element={<Calificaciones />} />
-                    <Route path="/anos-lectivos" element={<ConfiguracionGeneral />} />
-                    <Route path="/grados" element={<Grados />} />
-                    <Route path="/asignaciones" element={<Asignaciones />} />
-                    <Route path="/asignaturas" element={<Asignaturas />} />
-                    <Route path="/horarios" element={<Horarios />} />
-                    <Route path="/configuracion" element={<ConfiguracionGeneral />} />
-                    <Route path="/configuracion/calificacion" element={<ConfiguracionGeneral />} />
-                    <Route path="/auditoria" element={<Auditoria />} />
-                    <Route path="/matriculas" element={<Matriculas />} />
-                    <Route path="*" element={<Navigate to="/dashboard" />} />
-                </Routes>
+              <Routes>
+                {/* 5 Rutas Canónicas del Módulo B */}
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/calificaciones" element={<ProtectedRoute><Calificaciones /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><ConfiguracionGeneral /></ProtectedRoute>} />
+                <Route path="/about" element={<About />} />
+
+                {/* Rutas Operativas y de Gestión */}
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/portales" element={<ProtectedRoute><Portales /></ProtectedRoute>} />
+                <Route path="/cambiar-password" element={<ProtectedRoute><CambiarPassword /></ProtectedRoute>} />
+                <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
+                <Route path="/estudiantes" element={<ProtectedRoute><Estudiantes /></ProtectedRoute>} />
+                <Route path="/asistencias" element={<ProtectedRoute><ConsultaAsistencias /></ProtectedRoute>} />
+                <Route path="/anos-lectivos" element={<ProtectedRoute><AnosLectivos /></ProtectedRoute>} />
+                <Route path="/grados" element={<ProtectedRoute><Grados /></ProtectedRoute>} />
+                <Route path="/asignaciones" element={<ProtectedRoute><Asignaciones /></ProtectedRoute>} />
+                <Route path="/asignaturas" element={<ProtectedRoute><Asignaturas /></ProtectedRoute>} />
+                <Route path="/horarios" element={<ProtectedRoute><Horarios /></ProtectedRoute>} />
+                <Route path="/configuracion" element={<ProtectedRoute><ConfiguracionGeneral /></ProtectedRoute>} />
+                <Route path="/configuracion/calificacion" element={<ProtectedRoute><ConfiguracionGeneral /></ProtectedRoute>} />
+                <Route path="/auditoria" element={<ProtectedRoute><Auditoria /></ProtectedRoute>} />
+                <Route path="/matriculas" element={<ProtectedRoute><Matriculas /></ProtectedRoute>} />
+
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/dashboard" />} />
+              </Routes>
             </BrowserRouter>
+          </ConfirmProvider>
         </ToastProvider>
-    );
+      </I18nProvider>
+    </ThemeProvider>
+  );
 }
 
 export default App;
