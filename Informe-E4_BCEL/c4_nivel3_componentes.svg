@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 600" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: sans-serif; font-size: 18px; font-weight: bold; fill: #1e293b; }
+      .boundary { fill: #f8fafc; stroke: #3b82f6; stroke-dasharray: 4,4; stroke-width: 2; rx: 12; }
+      .comp-web { fill: #3b82f6; stroke: #1d4ed8; stroke-width: 2; rx: 6; }
+      .comp-srv { fill: #6366f1; stroke: #4338ca; stroke-width: 2; rx: 6; }
+      .comp-grpc { fill: #8b5cf6; stroke: #6d28d9; stroke-width: 2; rx: 6; }
+      .comp-data { fill: #0ea5e9; stroke: #0284c7; stroke-width: 2; rx: 6; }
+      .comp-obs { fill: #f59e0b; stroke: #d97706; stroke-width: 2; rx: 6; }
+      .label-white { font-family: sans-serif; font-size: 12px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .desc-white { font-family: sans-serif; font-size: 9px; fill: #f8fafc; text-anchor: middle; }
+      .arrow { stroke: #64748b; stroke-width: 1.5; fill: none; marker-end: url(#arrow3); }
+      .boundary-title { font-family: sans-serif; font-size: 13px; font-weight: bold; fill: #1d4ed8; }
+    </style>
+    <marker id="arrow3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b" />
+    </marker>
+  </defs>
+
+  <text x="470" y="25" class="title" text-anchor="middle">Diagrama C4 - Nivel 3: Componentes de microservicio-soporte</text>
+
+  <!-- Límite Microservicio -->
+  <rect x="20" y="50" width="900" height="530" class="boundary"/>
+  <text x="35" y="75" class="boundary-title">microservicio-soporte (Spring Boot 3 / Java 21 / Hexagonal)</text>
+
+  <!-- Capa Web / Controllers -->
+  <rect x="50" y="95" width="240" height="65" class="comp-web"/>
+  <text x="170" y="120" class="label-white">TicketController</text>
+  <text x="170" y="135" class="desc-white">Endpoints REST /api/soporte/tickets</text>
+  <text x="170" y="148" class="desc-white">RBAC 2 niveles (Solución IDOR)</text>
+
+  <rect x="350" y="95" width="240" height="65" class="comp-web"/>
+  <text x="470" y="120" class="label-white">TecnicoController</text>
+  <text x="470" y="135" class="desc-white">Endpoints REST /api/soporte/tecnicos</text>
+  <text x="470" y="148" class="desc-white">Gestión y nómina técnica</text>
+
+  <rect x="650" y="95" width="240" height="65" class="comp-web"/>
+  <text x="770" y="120" class="label-white">LeaderElectionController</text>
+  <text x="770" y="135" class="desc-white">/api/soporte/election/status</text>
+  <text x="770" y="148" class="desc-white">Consulta estado de líder etcd</text>
+
+  <!-- Capa de Servicios de Aplicación -->
+  <rect x="50" y="200" width="240" height="75" class="comp-srv"/>
+  <text x="170" y="225" class="label-white">TicketService</text>
+  <text x="170" y="240" class="desc-white">Lógica de tickets, comentarios,</text>
+  <text x="170" y="253" class="desc-white">validación de autoría y cierre</text>
+
+  <rect x="350" y="200" width="240" height="75" class="comp-srv"/>
+  <text x="470" y="225" class="label-white">LeaderElectionService</text>
+  <text x="470" y="240" class="desc-white">Campaña de liderazgo en etcd</text>
+  <text x="470" y="253" class="desc-white">Lease TTL 5s y heartbeat</text>
+
+  <rect x="650" y="200" width="240" height="75" class="comp-srv"/>
+  <text x="770" y="225" class="label-white">TicketScheduledTasks</text>
+  <text x="770" y="240" class="desc-white">Cierre automático de inactivos</text>
+  <text x="770" y="253" class="desc-white">Ejecución exclusiva en líder</text>
+
+  <!-- Integración gRPC -->
+  <rect x="50" y="315" width="240" height="70" class="comp-grpc"/>
+  <text x="170" y="340" class="label-white">IncidenciaGrpcServer</text>
+  <text x="170" y="355" class="desc-white">Servidor gRPC en puerto :9094</text>
+  <text x="170" y="368" class="desc-white">Recepción de fallas inter-servicio</text>
+
+  <rect x="350" y="315" width="240" height="70" class="comp-grpc"/>
+  <text x="470" y="340" class="label-white">PrincipalGrpcClient</text>
+  <text x="470" y="355" class="desc-white">Cliente gRPC a sga-principal :9092</text>
+  <text x="470" y="368" class="desc-white">Validación remota de usuarios</text>
+
+  <rect x="650" y="315" width="240" height="70" class="comp-obs"/>
+  <text x="770" y="340" class="label-white">Actuator &amp; Micrometer</text>
+  <text x="770" y="355" class="desc-white">Métricas /actuator/prometheus</text>
+  <text x="770" y="368" class="desc-white">percentiles-histogram activo</text>
+
+  <!-- Capa de Datos e Infraestructura -->
+  <rect x="50" y="425" width="380" height="70" class="comp-data"/>
+  <text x="240" y="450" class="label-white">DataSourceConfig &amp; JdbcTemplate</text>
+  <text x="240" y="465" class="desc-white">Conexión a PostgreSQL (schema soporte) con HikariCP</text>
+  <text x="240" y="478" class="desc-white">Consultas SQL parametrizadas contra inyección SQL</text>
+
+  <rect x="510" y="425" width="380" height="70" class="comp-data"/>
+  <text x="700" y="450" class="label-white">GenericRowMapper &amp; Modelos</text>
+  <text x="700" y="465" class="desc-white">Mapeo JDBC hacia Ticket, Comentario, Historial</text>
+  <text x="700" y="478" class="desc-white">Entidades inmutables de dominio</text>
+
+  <!-- Flechas de relación interna -->
+  <path d="M 170 160 L 170 200" class="arrow"/>
+  <path d="M 470 160 L 470 200" class="arrow"/>
+  <path d="M 770 160 L 470 200" class="arrow"/>
+  <path d="M 770 275 L 770 315" class="arrow"/>
+  <path d="M 470 275 L 770 275" class="arrow"/>
+  <path d="M 170 275 L 170 315" class="arrow"/>
+  <path d="M 170 275 L 470 315" class="arrow"/>
+  <path d="M 170 275 L 240 425" class="arrow"/>
+  <path d="M 240 460 L 510 460" class="arrow"/>
+</svg>

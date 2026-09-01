@@ -1,0 +1,56 @@
+@startuml C4_Nivel3_Componentes_Soporte
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama C4 - Nivel 3: Componentes Internos de microservicio-soporte
+
+Container_Boundary(ms_soporte_boundary, "microservicio-soporte (Java 21 / Spring Boot)") {
+    Component(ticket_ctrl, "TicketController", "Spring REST Controller", "Expone endpoints /api/soporte/tickets y valida control de acceso RBAC contra IDOR.")
+    Component(tecnico_ctrl, "TecnicoController", "Spring REST Controller", "Gestiona la nómina de técnicos asignables.")
+    Component(election_ctrl, "LeaderElectionController", "Spring REST Controller", "Expone estado del liderazgo distribuido (/api/soporte/election/status).")
+    
+    Component(ticket_service, "TicketService", "Spring Service", "Lógica central de tickets: creación, asignación, escalamiento, RBAC y auditoría.")
+    Component(tecnico_service, "TecnicoService", "Spring Service", "Servicio de consulta y disponibilidad de personal técnico.")
+    Component(election_service, "LeaderElectionService", "Spring Service / jetcd", "Mantiene campaña de liderazgo en etcd con lease TTL 5s.")
+    Component(scheduled_tasks, "TicketScheduledTasks", "Spring Scheduler", "Ejecuta cierre automático de tickets inactivos únicamente si la instancia es líder.")
+    
+    Component(grpc_server, "IncidenciaGrpcServer", "gRPC Server (IncidenciaService)", "Escucha en :9094 llamadas RPC de otros microservicios para crear tickets automáticos.")
+    Component(principal_client, "PrincipalGrpcClient", "gRPC Client", "Conecta con sga-principal:9092 para validar existencia y roles de usuarios.")
+    
+    Component(jwt_filter, "JwtAuthenticationFilter", "Spring Security / JJWT", "Intercepta peticiones REST, valida firma HMAC-SHA256 y extrae roles.")
+    Component(datasource_config, "DataSourceConfig & JdbcTemplate", "Spring Data JDBC / HikariCP", "Pool de conexiones y acceso optimizado a PostgreSQL schema soporte.")
+    Component(mapper, "GenericRowMapper", "JDBC Helper", "Mapeo reflexivo de ResultSets hacia entidades Ticket y TicketComentario.")
+    
+    Component(actuator_micrometer, "Actuator & Micrometer Prometheus", "Spring Boot Actuator", "Exporta métricas en /actuator/prometheus con percentiles-histogram activado.")
+}
+
+ContainerDb(db, "PostgreSQL (Schema soporte)", "Base de Datos Relacional", "Tablas: tickets, ticket_comentarios, tecnicos, historial_estados.")
+ContainerDb(etcd, "etcd Raft Clúster", "Clúster Clave-Valor", "Clave /sga/leader para exclusión mutua de tareas.")
+Container(gateway, "HAProxy Gateway", "Reverse Proxy", "Enruta peticiones de clientes autorizados.")
+Container(prom, "Prometheus", "Monitoreo", "Recolecta métricas cada 15 segundos.")
+
+Rel(gateway, jwt_filter, "Petición HTTP con Header Authorization Bearer", "HTTP / JSON")
+Rel(jwt_filter, ticket_ctrl, "Pasa solicitud autenticada", "In-Process")
+Rel(jwt_filter, tecnico_ctrl, "Pasa solicitud autenticada", "In-Process")
+Rel(jwt_filter, election_ctrl, "Pasa solicitud autenticada", "In-Process")
+
+Rel(ticket_ctrl, ticket_service, "Invoca operaciones de tickets", "In-Process")
+Rel(tecnico_ctrl, tecnico_service, "Invoca operaciones de técnicos", "In-Process")
+Rel(election_ctrl, election_service, "Consulta estado de líder", "In-Process")
+
+Rel(grpc_server, ticket_service, "Crea ticket por falla remota", "In-Process")
+Rel(ticket_service, principal_client, "Valida rol y existencia de usuario", "gRPC :9092")
+Rel(scheduled_tasks, election_service, "Verifica si esta instancia es líder", "In-Process")
+Rel(scheduled_tasks, ticket_service, "Ejecuta cierre por inactividad", "In-Process")
+
+Rel(election_service, etcd, "Renueva Lease y compite por /sga/leader", "gRPC / Raft :2379")
+
+Rel(ticket_service, datasource_config, "Ejecuta consultas SQL seguras", "In-Process")
+Rel(tecnico_service, datasource_config, "Ejecuta consultas SQL seguras", "In-Process")
+Rel(datasource_config, mapper, "Mapea tuplas a objetos Java", "In-Process")
+Rel(datasource_config, db, "Consultas parametrizadas sobre schema soporte", "JDBC :5432")
+
+Rel(prom, actuator_micrometer, "Scrapea /actuator/prometheus", "HTTP :5178")
+
+@enduml
