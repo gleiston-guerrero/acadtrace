@@ -337,22 +337,57 @@ Se ejecut\'o una prueba de carga real simulando \textbf{50 usuarios concurrentes
 \label{fig:locust-chart}
 \end{figure}
 
-\subsection{Tablero de Grafana con las 6 Vistas Operativas}
-Se dise\~n\'o y export\'o el tablero oficial en \texttt{ops/grafana/pfc-dashboard.json}, cubriendo las \textbf{6 vistas obligatorias} (Figura~\ref{fig:grafana-dashboard}):
-\begin{enumerate}[noitemsep]
-  \item \textbf{Tasa de Peticiones/seg (RPS):} Throughput por microservicio y balanceador HAProxy.
-  \item \textbf{Latencias Percentiles P50, P95 y P99:} Histogramas calculados v\'ia PromQL sobre peticiones HTTP.
-  \item \textbf{Tasa de Errores 4xx y 5xx:} Monitoreo perimetral de rechazos de autenticaci\'on y fallas de backend.
-  \item \textbf{Disponibilidad y Consenso Raft:} Estado del l\'ider etcd (\texttt{etcd\_server\_has\_leader}), propuestas comprometidas y conexiones HikariCP.
-  \item \textbf{Uso de CPU y RAM por Contenedor:} M\'etricas extra\'idas en tiempo real por cAdvisor.
-  \item \textbf{Latencia Extremo a Extremo (E2E) M\'ovil:} Tiempos de respuesta en rutas de sincronizaci\'on docente y HAProxy backend.
+\subsection{Tablero de Grafana con las 6 Vistas Operativas y M\'etricas de cAdvisor}
+Se dise\~n\'o, estructur\'o y export\'o el tablero oficial en \texttt{ops/grafana/pfc-dashboard.json} (aprovisionado autom\'aticamente en \texttt{infra/grafana/dashboards/}), el cual brinda observabilidad 360$^\circ$ a trav\'es de las \textbf{6 vistas operativas obligatorias} exigidas en la Gu\'ia E4 (Figura~\ref{fig:grafana-dashboard}):
+
+\begin{enumerate}
+  \item \textbf{Vista 1: Tasa de Peticiones por Segundo (RPS / Throughput):}
+  Calcula la tasa de tr\'afico HTTP entrante agregada por microservicio y balanceador HAProxy mediante la expresi\'on PromQL:
+  \begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
+sum by (application) (rate(http_server_requests_seconds_count{application=~"$application"}[1m]))
+sum by (proxy) (rate(haproxy_frontend_http_requests_total[1m]))
+  \end{lstlisting}
+  Permite identificar picos s\'ubitos de demanda en per\'iodos de matriculaci\'on o registro de notas.
+
+  \item \textbf{Vista 2: Latencias Percentiles (P50 Mediana, P95 y P99 Casos Extremos):}
+  Computa la distribuci\'on real de latencias utilizando la interpolaci\'on de cuantiles sobre los \textit{buckets} de histograma de Micrometer (\texttt{percentiles-histogram=true}):
+  \begin{equation}
+    P_{99} = \text{histogram\_quantile}\left(0.99, \sum_{\text{le}} \text{rate}(\text{http\_server\_requests\_seconds\_bucket}[5\text{m}])\right)
+  \end{equation}
+  Evidencia que mientras la mediana P50 se mantuvo en 5\,ms, el percentil P99 captur\'o las solicitudes con operaciones complejas de base de datos en 1300\,ms.
+
+  \item \textbf{Vista 3: Tasa de Errores HTTP 4xx y 5xx:}
+  Discrimina en tiempo real entre rechazos de cliente/autenticaci\'on (401 Unauthorized, 403 Forbidden por IDOR) y fallas internas de servidor (500 Internal Server Error, 503 Service Unavailable), permitiendo activar alertas tempranas ante anomal\'ias en microservicios.
+
+  \item \textbf{Vista 4: Disponibilidad y Consenso Raft del Cl\'uster (etcd / PostgreSQL):}
+  Monitorea la salud del consenso distribuido mediante la m\'etrica \texttt{etcd\_server\_has\_leader} (1 = L\'ider Raft activo, 0 = Partici\'on de red), la tasa de propuestas confirmadas (\texttt{etcd\_server\_proposals\_committed\_total}) y el n\'umero de conexiones activas en los pools HikariCP (\texttt{hikaricp\_connections\_active}).
+
+  \item \textbf{Vista 5: Uso de Recursos por Contenedor con cAdvisor (CPU y RAM):}
+  Monitorea de forma no invasiva el consumo de hardware por cada contenedor Docker en tiempo real utilizando las series temporales de cAdvisor (\texttt{sga-cadvisor:8080}):
+  \begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
+# Uso de CPU (%)
+sum by (name) (rate(container_cpu_usage_seconds_total{name=~"sga-.*|microservicio-.*"}[1m])) * 100
+# Uso de Memoria RAM (Bytes)
+sum by (name) (container_memory_usage_bytes{name=~"sga-.*|microservicio-.*"})
+  \end{lstlisting}
+  Garantiza que ning\'un microservicio sature los l\'imites del host f\'isico durante las pruebas de estr\'es.
+
+  \item \textbf{Vista 6: Latencia de Extremo a Extremo (E2E) desde el Cliente M\'ovil:}
+  Mide el retardo total percibido en la sincronizaci\'on de actas y asistencia docente correlacionando los tiempos de respuesta perimetrales en HAProxy (\texttt{haproxy\_backend\_response\_time\_average\_seconds}) con los endpoints de la API m\'ovil (\texttt{/api/docente/sync}, \texttt{/api/docente/asistencia}).
 \end{enumerate}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{grafana_bajo_carga.png}
-\caption{Tablero de Grafana (\texttt{pfc-dashboard.json}) operando en tiempo real durante la prueba de carga.}
+\caption{Tablero de Grafana (\texttt{pfc-dashboard.json}) operando en tiempo real con las 6 vistas y m\'etricas de cAdvisor bajo 50 usuarios concurrentes.}
 \label{fig:grafana-dashboard}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{tolerancia_soporte.png}
+\caption{Validaci\'on de recuperaci\'on autom\'atica y tolerancia a fallos en \texttt{microservicio-soporte} durante pruebas de conmutaci\'on.}
+\label{fig:tolerancia-soporte}
 \end{figure}
 
 \subsection{Evaluaci\'on de Calidad ISO/IEC 25010:2023 y Plan de Mejora}
