@@ -250,7 +250,7 @@ export default function Soporte() {
         setLoading(true);
         const endpoint = esTecnico ? `${API}/tickets` : `${API}/tickets/mis-tickets`;
         axios.get(endpoint, { headers })
-            .then(r => setTickets(r.data))
+            .then(r => setTickets(Array.isArray(r.data) ? r.data : (Array.isArray(r.data?.content) ? r.data.content : [])))
             .catch(() => setError("Error al cargar tickets"))
             .finally(() => setLoading(false));
     };
@@ -258,7 +258,7 @@ export default function Soporte() {
     const cargarTecnicos = () => {
         if (!esTecnico) return;
         axios.get(`${API}/tecnicos-list`, { headers })
-            .then(r => setTecnicos(r.data))
+            .then(r => setTecnicos(Array.isArray(r.data) ? r.data : (Array.isArray(r.data?.content) ? r.data.content : [])))
             .catch(() => setTecnicos([]));
     };
 
@@ -430,10 +430,11 @@ export default function Soporte() {
 
     /* ── Datos para el dashboard (calculados en el cliente) ──── */
     const dashboardData = useMemo(() => {
-        const total = tickets.length;
-        const abiertosHoy = tickets.filter(t => t.estado === "ABIERTO" && esHoy(t.fechaCreacion)).length;
+        const lista = Array.isArray(tickets) ? tickets : (Array.isArray(tickets?.content) ? tickets.content : []);
+        const total = lista.length;
+        const abiertosHoy = lista.filter(t => t && t.estado === "ABIERTO" && esHoy(t.fechaCreacion)).length;
 
-        const resueltosConFecha = tickets.filter(t => t.fechaResolucion);
+        const resueltosConFecha = lista.filter(t => t && t.fechaResolucion);
         const promedioHoras = resueltosConFecha.length
             ? (resueltosConFecha.reduce((sum, t) => {
                 const h = (new Date(t.fechaResolucion) - new Date(t.fechaCreacion)) / 3_600_000;
@@ -442,7 +443,7 @@ export default function Soporte() {
             : 0;
 
         const porTecnicoMap = {};
-        tickets.filter(t => t.estado === "CERRADO" && t.asignadoA).forEach(t => {
+        lista.filter(t => t && t.estado === "CERRADO" && t.asignadoA).forEach(t => {
             porTecnicoMap[t.asignadoA] = (porTecnicoMap[t.asignadoA] || 0) + 1;
         });
         const topTecnicos = Object.entries(porTecnicoMap)
@@ -459,7 +460,8 @@ export default function Soporte() {
             dias.push(d);
         }
         const porDia = dias.map(d => {
-            const count = tickets.filter(t => {
+            const count = lista.filter(t => {
+                if (!t || !t.fechaCreacion) return false;
                 const f = new Date(t.fechaCreacion);
                 return f.getFullYear() === d.getFullYear() && f.getMonth() === d.getMonth() && f.getDate() === d.getDate();
             }).length;
@@ -467,7 +469,7 @@ export default function Soporte() {
         });
 
         const porCategoriaMap = {};
-        tickets.forEach(t => { porCategoriaMap[t.categoria] = (porCategoriaMap[t.categoria] || 0) + 1; });
+        lista.forEach(t => { if (t && t.categoria) porCategoriaMap[t.categoria] = (porCategoriaMap[t.categoria] || 0) + 1; });
         const porCategoria = Object.entries(porCategoriaMap)
             .map(([label, value]) => ({ label, value, color: CATEGORIA_COLOR[label] || "#94a3b8" }))
             .sort((a, b) => b.value - a.value);

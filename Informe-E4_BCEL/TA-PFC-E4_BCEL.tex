@@ -449,6 +449,12 @@ La observabilidad se articula mediante la recolecci\'on de m\'etricas de Prometh
   \item \textbf{Vista 6 (Latencia E2E Cliente M\'ovil):} Tiempos de respuesta de extremo a extremo desde el dispositivo m\'ovil.
 \end{enumerate}
 
+
+\subsection{Registro Estructurado JSON y Propagaci\'on de Contexto MDC}
+Para garantizar la correlaci\'on de eventos transaccionales a lo largo de m\'ultiples saltos de red, se implement\'o un filtro de trazabilidad (\texttt{TraceIdFilter}) y un contenedor de contexto (\texttt{TraceContext}) en los microservicios Java y Python. Cada petici\'on entrante recibe o genera un identificador \'unico de correlaci\'on (\texttt{trace\_id}) que es inyectado en el \textit{Mapped Diagnostic Context} (MDC) de SLF4J / Logback y en los encabezados binarios de las llamadas gRPC.
+
+El layout personalizado \texttt{JsonStructuredLayout} formatea los registros en JSON emitidos por consola estándar (\texttt{stdout}), incluyendo los campos: \texttt{timestamp}, \texttt{level}, \texttt{service}, \texttt{trace\_id}, \texttt{thread}, \texttt{logger} y \texttt{message}. La emisi\'on estructurada es validada autom\'aticamente mediante pruebas unitarias (\texttt{JsonLoggingTest} y \texttt{test\_observability.py}) que comprueban la presencia ininterrumpida de estos campos.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{grafana_bajo_carga.png}
