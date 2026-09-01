@@ -248,21 +248,21 @@ management.metrics.distribution.percentiles-histogram.http.server.requests=true
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{evidencias/grafana_bajo_carga.png}
+\includegraphics[width=0.85\textwidth]{grafana_bajo_carga.png}
 \caption{Tablero de Grafana durante la ejecuci\'on de la prueba de carga real, mostrando los paneles de latencia P50/P95/P99 y tasa de errores 4xx/5xx con la serie \texttt{sga-soporte-backend} activa.}
 \label{fig:grafana-carga}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{evidencias/locust_resultados.png}
+\includegraphics[width=0.85\textwidth]{locust_resultados.png}
 \caption{Resultados de la prueba de carga ejecutada con Locust mostrando el comportamiento del microservicio bajo 50 usuarios concurrentes.}
 \label{fig:locust-resultados}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{evidencias/tolerancia_soporte.png}
+\includegraphics[width=0.85\textwidth]{tolerancia_soporte.png}
 \caption{Evidencia de tolerancia del microservicio-soporte durante la validaci\'on de comportamiento bajo carga y recuperaci\'on del sistema.}
 \label{fig:tolerancia-soporte}
 \end{figure}
@@ -317,7 +317,18 @@ Finalmente, el \textbf{Principio 6 (Profesi\'on)} exhorta a promover la integrid
 % ANEXOS
 % =============================================================================
 \section{Anexos: Preguntas T\'ecnicas de An\'alisis del Sistema}
-\textit{[PENDIENTE -- Esta secci\'on requiere las 4 preguntas t\'ecnicas espec\'ificas proporcionadas por la c\'atedra o el l\'ider de proyecto. Una vez confirmadas, se completar\'a con las respuestas correspondientes basadas en la implementaci\'on real documentada en este informe.]}
+
+\subsection*{A. \textquestiondown Cu\'al fue el cuello de botella identificado durante el proceso de pruebas?}
+El cuello de botella no fue de capacidad de c\'omputo, sino de \textbf{instrumentaci\'on}: el microservicio no exportaba los \textit{buckets} de histograma de Micrometer (faltaba \texttt{management.metrics.distribution.percentiles-histogram.http.server.requests=true}), por lo que era imposible calcular P50/P95/P99 pese a que las peticiones s\'i se estaban registrando. A nivel de configuraci\'on de aplicaci\'on, el \textit{pool} de conexiones HikariCP tampoco tiene definido expl\'icitamente un \texttt{maximum-pool-size}, dependiendo del valor por defecto de Spring Boot (10 conexiones) -- un l\'imite que, si bien no se satur\'o en esta corrida de 50 usuarios, sigue sin dimensionarse formalmente frente a la carga esperada en producci\'on.
+
+\subsection*{B. \textquestiondown C\'omo se comport\'o el servicio bajo una carga de 50 usuarios concurrentes durante 60 segundos?}
+El servicio proces\'o \textbf{2446 peticiones con 0\,\% de tasa de error} (Tabla~\ref{tab:locust-results}). No obstante, se observ\'o una disparidad clara de latencia entre endpoints: \texttt{/health} respondi\'o con una mediana de 3\,ms, mientras que \texttt{/api/soporte/tickets} (que consulta base de datos) promedi\'o 130\,ms de mediana con un percentil~99 de 1300\,ms -- m\'as de dos \'ordenes de magnitud por encima de su comportamiento t\'ipico. Esto confirma que, aunque el servicio no lleg\'o a fallar bajo esta carga, el margen de holgura ante un incremento de usuarios o duraci\'on de la prueba sigue siendo estrecho en las rutas dependientes de base de datos.
+
+\subsection*{C. \textquestiondown Qu\'e \textit{quality gates} se identifican o recomiendan a partir de este ejercicio?}
+Se identifican tres controles de calidad ausentes en el proyecto: (1) un \textbf{umbral de tasa de error y latencia P99 en el pipeline CI/CD}, que bloquee el despliegue si una prueba de carga automatizada supera un porcentaje de error o una latencia de cola definidos; (2) \textbf{validaci\'on autom\'atica de exposici\'on de histogramas de m\'etricas} antes de dar por completa una tarea de observabilidad, dado que un servicio puede reportar m\'etricas ``saludables'' (conteos, sumas) sin exponer realmente la informaci\'on necesaria para calcular percentiles; y (3) un \textbf{gate de revisi\'on de secretos} (\textit{secret scanning}) que impida commitear claves criptogr\'aficas hardcodeadas, como la que se encontr\'o y corrigi\'o en \texttt{locustfile.py}.
+
+\subsection*{D. \textquestiondown Qu\'e mejora concreta se propone a partir de los hallazgos de esta entrega?}
+Se propone (1) configurar expl\'icitamente el tama\~no del \textit{pool} HikariCP acorde a la carga esperada en producci\'on, en lugar de depender del valor por defecto de Spring Boot; y (2) extender la propiedad \texttt{percentiles-histogram} habilitada en este m\'odulo al resto de microservicios del cl\'uster que a\'un no la expongan, de modo que el tablero de Grafana ofrezca visibilidad de percentiles de forma consistente en toda la arquitectura distribuida, no solo en \texttt{microservicio-soporte}.
 
 % =============================================================================
 % CONCLUSIÓN INDIVIDUAL
@@ -326,5 +337,11 @@ Finalmente, el \textbf{Principio 6 (Profesi\'on)} exhorta a promover la integrid
 El desarrollo de esta entrega permiti\'o comprender, m\'as all\'a de la teor\'ia, por qu\'e la observabilidad no puede tratarse como un componente accesorio que se a\~nade al final de un proyecto de software distribuido, sino como una capacidad que debe verificarse activamente y no simplemente asumirse como funcional. Durante la ampliaci\'on del tablero de Grafana, el microservicio-soporte report\'o correctamente m\'etricas b\'asicas de tr\'afico y conexiones de base de datos, lo cual pudo haberse interpretado err\'oneamente como evidencia suficiente de una instrumentaci\'on completa. Sin embargo, al intentar calcular percentiles de latencia se descubri\'o que faltaba una \'unica propiedad de configuraci\'on de Micrometer, sin la cual el sistema era ciego a la existencia de solicitudes con latencias extremas -- exactamente el tipo de comportamiento que una arquitectura de microservicios necesita detectar antes de que impacte a los usuarios finales. Esta experiencia refuerza la idea de que las m\'etricas agregadas simples, como el conteo de peticiones o la latencia promedio, pueden enmascarar problemas reales de rendimiento que \'unicamente se revelan al observar la distribuci\'on completa del comportamiento del sistema.
 
 De manera similar, la ejecuci\'on de pruebas de carga reales con Locust no fue un ejercicio trivial de correr un comando y copiar resultados: la primera corrida fall\'o por completo debido a una confusi\'on entre el puerto expuesto por el balanceador perimetral y el puerto real del microservicio, generando una tasa de error del 100\% que, de no haberse investigado a fondo, hubiera producido evidencia enga\~nosa en el informe final. Esto ilustra un principio fundamental de la observabilidad distribuida: los s\'intomas superficiales (errores HTTP, latencias an\'omalas) rara vez apuntan de forma obvia a su causa ra\'iz, y la capacidad de correlacionar m\'etricas de distintos servicios -- en este caso, notar que el tr\'afico fallido se hab\'ia enrutado hacia \texttt{sga-principal} en lugar de hacia el microservicio propio -- resulta indispensable para el diagn\'ostico efectivo en arquitecturas distribuidas. En conjunto, esta entrega consolid\'o la convicci\'on de que la seguridad, el rendimiento bajo carga y la observabilidad no son atributos independientes del software, sino dimensiones profundamente interconectadas que deben validarse de forma emp\'irica y no darse nunca por sentadas.
+
+% =============================================================================
+% BIBLIOGRAFÍA
+% =============================================================================
+\bibliographystyle{plain}
+\bibliography{referencias}
 
 \end{document}
