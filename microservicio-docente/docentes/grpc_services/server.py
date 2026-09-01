@@ -1,11 +1,13 @@
 import grpc
 from decimal import Decimal
-from django.db import connection
+from django.db import connection, transaction
 from . import docente_pb2
 from . import docente_pb2_grpc
 from .client import validate_teacher_assignment
 from docentes.models import Actividad, Calificacion
 from micro_docente.middleware import registrar_calificacion_exitosa
+from docentes.auditoria import auditar_evento
+from docentes.auditoria.payloads import payload_instancia
 
 
 def _usuario_de_persona(id_persona):
@@ -64,19 +66,27 @@ class DocenteServiceServicer(docente_pb2_grpc.DocenteServiceServicer):
         # La nota cualitativa (A+/A-/.../D) depende del nivel educativo y se
         # calcula en el consolidado; aquí se guarda solo la nota numérica.
         # Upsert: si ya existe la nota de ese estudiante en esa actividad, se actualiza.
-        calificacion, creada = Calificacion.objects.update_or_create(
-            id_actividad=actividad,
-            id_matricula=request.id_matricula,
-            defaults={
-                "nota": nota,
-                "nota_cualitativa": None,
-                "registrado_por": _usuario_de_persona(int(id_docente)),
-            },
-        )
-        response = docente_pb2.RegistrarCalificacionResponse(
-            exitoso=True,
-            mensaje="Calificación guardada" if creada else "Calificación actualizada",
-            id_calificacion=calificacion.id_calificacion
-        )
+        with transaction.atomic():
+            calificacion, creada = Calificacion.objects.update_or_create(
+                id_actividad=actividad,
+                id_matricula=request.id_matricula,
+                defaults={
+                    "nota": nota,
+                    "nota_cualitativa": None,
+                    "registrado_por": _usuario_de_persona(int(id_docente)),
+                },
+            )
+            auditar_evento(
+                tipo_evento="CALIFICACION_CREADA" if creada else "CALIFICACION_ACTUALIZADA",
+                entidad="Calificacion", entidad_id=calificacion.id_calificacion,
+                operacion="CREAR" if creada else "ACTUALIZAR",
+                actor_id=calificacion.registrado_por,
+                payload=payload_instancia(calificacion), nodo=f"docente-{id_docente}",
+            )
+            response = docente_pb2.RegistrarCalificacionResponse(
+                exitoso=True,
+                mensaje="Calificación guardada" if creada else "Calificación actualizada",
+                id_calificacion=calificacion.id_calificacion
+            )
         registrar_calificacion_exitosa()
         return response

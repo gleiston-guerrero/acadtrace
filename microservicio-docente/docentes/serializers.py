@@ -2,7 +2,7 @@ import mimetypes
 from pathlib import Path
 from uuid import uuid4
 
-from django.db import DatabaseError, connection
+from django.db import DatabaseError, connection, transaction
 from django.core.files.storage import default_storage
 from rest_framework import serializers
 from django.db.models import Sum
@@ -21,6 +21,8 @@ from .models import (
     SeguimientoAcademico,
 )
 from .services import convertir_nota_cualitativa
+from .auditoria import auditar_evento
+from .auditoria.payloads import payload_instancia
 
 
 class PeriodoEvaluacionSerializer(serializers.ModelSerializer):
@@ -58,6 +60,26 @@ class ActividadSerializer(serializers.ModelSerializer):
                 })
         return attrs
 
+    def create(self, validated_data):
+        with transaction.atomic():
+            instancia = super().create(validated_data)
+            auditar_evento(
+                tipo_evento="ACTIVIDAD_CREADA", entidad="Actividad",
+                entidad_id=instancia.pk, operacion="CREAR", actor_id=None,
+                payload=payload_instancia(instancia),
+            )
+            return instancia
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            instancia = super().update(instance, validated_data)
+            auditar_evento(
+                tipo_evento="ACTIVIDAD_ACTUALIZADA", entidad="Actividad",
+                entidad_id=instancia.pk, operacion="ACTUALIZAR", actor_id=None,
+                payload=payload_instancia(instancia),
+            )
+            return instancia
+
 
 class CalificacionSerializer(serializers.ModelSerializer):
     nivel = serializers.CharField(write_only=True, required=False, default="EGB")
@@ -77,25 +99,59 @@ class CalificacionSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        nivel = validated_data.pop("nivel", "EGB")
-        validated_data["nota_cualitativa"] = convertir_nota_cualitativa(
-            validated_data["nota"], nivel
-        )
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        nivel = validated_data.pop("nivel", "EGB")
-        if "nota" in validated_data:
+        with transaction.atomic():
+            nivel = validated_data.pop("nivel", "EGB")
             validated_data["nota_cualitativa"] = convertir_nota_cualitativa(
                 validated_data["nota"], nivel
             )
-        return super().update(instance, validated_data)
+            instancia = super().create(validated_data)
+            auditar_evento(
+                tipo_evento="CALIFICACION_CREADA", entidad="Calificacion",
+                entidad_id=instancia.pk, operacion="CREAR",
+                actor_id=instancia.registrado_por, payload=payload_instancia(instancia),
+            )
+            return instancia
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            nivel = validated_data.pop("nivel", "EGB")
+            if "nota" in validated_data:
+                validated_data["nota_cualitativa"] = convertir_nota_cualitativa(
+                    validated_data["nota"], nivel
+                )
+            instancia = super().update(instance, validated_data)
+            auditar_evento(
+                tipo_evento="CALIFICACION_ACTUALIZADA", entidad="Calificacion",
+                entidad_id=instancia.pk, operacion="ACTUALIZAR",
+                actor_id=instancia.registrado_por, payload=payload_instancia(instancia),
+            )
+            return instancia
 
 
 class AsistenciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asistencia
         fields = "__all__"
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            instancia = super().create(validated_data)
+            auditar_evento(
+                tipo_evento="ASISTENCIA_REGISTRADA", entidad="Asistencia",
+                entidad_id=instancia.pk, operacion="CREAR",
+                actor_id=instancia.registrado_por, payload=payload_instancia(instancia),
+            )
+            return instancia
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            instancia = super().update(instance, validated_data)
+            auditar_evento(
+                tipo_evento="ASISTENCIA_ACTUALIZADA", entidad="Asistencia",
+                entidad_id=instancia.pk, operacion="ACTUALIZAR",
+                actor_id=instancia.registrado_por, payload=payload_instancia(instancia),
+            )
+            return instancia
 
 
 class ResumenAsistenciaSerializer(serializers.ModelSerializer):

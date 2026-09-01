@@ -1,3 +1,3 @@
 import os
 
-os.environ.setdefault("DJANGO_USE_SQLITE", "true")
+os.environ["DJANGO_USE_SQLITE"] = "true"

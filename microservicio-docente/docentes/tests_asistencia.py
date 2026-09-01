@@ -115,7 +115,7 @@ def test_registro_valida_matricula_y_estado(mock_periodo, mock_auth, mock_assign
 def test_actualiza_asistencia_y_resumen(mock_get, mock_resumen, mock_auth, mock_atomic):
     asistencia = SimpleNamespace(id_asistencia=1, id_matricula=101, id_asignacion=50,
         id_periodo=SimpleNamespace(), id_periodo_id=3, fecha="2026-07-15", estado="PRESENTE",
-        justificacion=None, save=MagicMock())
+        justificacion=None, registrado_por=77, save=MagicMock())
     mock_get.return_value = asistencia
     request = asistencia_pb2.ActualizarAsistenciaRequest(id_asistencia=1, estado="ATRASO", justificacion="Tarde")
     response = AsistenciaServiceServicer().ActualizarAsistencia(request, auth_context())

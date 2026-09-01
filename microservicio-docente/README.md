@@ -41,6 +41,50 @@ Base URL local: `http://localhost:8081/api/docente/`
 
 Todos los recursos tienen CRUD REST: `GET`, `POST`, `GET /{id}/`, `PUT`, `PATCH`, `DELETE`.
 
+## Auditoría académica
+
+La variable `AUDIT` selecciona una única estrategia para mutaciones REST y gRPC:
+
+| Valor | Comportamiento |
+| --- | --- |
+| `m0` | Sin escrituras, hashes ni relojes de auditoría. Es el valor predeterminado. |
+| `m1` | Bitácora plana PostgreSQL con evento y payload canónico. |
+| `m2` | Cadena SHA-256 enlazada y reloj lógico de Lamport. |
+| `m3` | Todo m2, más reloj vectorial y detección de versiones concurrentes. |
+
+El payload se serializa como JSON UTF-8 con claves ordenadas y separadores
+compactos. Nunca incluye JWT, `Authorization`, passwords, tokens internos o
+secretos. En m3 una edición concurrente se marca `CONFLICTO`: ambas versiones
+quedan preservadas en auditoría para resolución manual y no se elige un ganador
+silencioso.
+
+La cadena usa un registro de estado bloqueado mediante la transacción y
+`select_for_update()`. El material exacto del hash es:
+
+```text
+SHA256(hash_anterior + JSON_CANONICO(evento, timestamp, payload, Lamport y vector))
+```
+
+### Verificación y experimentos
+
+```powershell
+python -m pytest
+python -m pytest --cov=. --cov-report=term-missing --cov-report=html:..\docs\cobertura\docente
+python experimentos/verificador_cadena.py
+python experimentos/generador_sintetico.py --salida dataset-docente.json
+```
+
+El inyector es destructivo y se bloquea salvo que se use una base experimental,
+`DJANGO_DEBUG=True` y autorización explícita:
+
+```powershell
+$env:ALLOW_AUDIT_EXPERIMENTS="1"
+python experimentos/inyector_manipulaciones.py --tipo T1
+```
+
+Los tipos disponibles son T1, T2, T3, T4 y T5. El verificador solo diagnostica;
+devuelve código 0 para una cadena válida y 2 para una cadena inválida, sin reparar.
+
 ## Endpoints de negocio
 
 ### Promedio formativo
