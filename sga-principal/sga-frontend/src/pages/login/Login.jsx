@@ -61,6 +61,12 @@ export default function Login() {
                 return;
             }
 
+            // Guardar credenciales en localStorage
+            localStorage.setItem("token", sesion.token);
+            localStorage.setItem("username", sesion.username);
+            localStorage.setItem("roles", JSON.stringify(roles));
+            localStorage.setItem("primerIngreso", String(res.data.primerIngreso));
+
             // Con más de un portal, se elige en la pantalla intermedia.
             if (portales.length > 1) {
                 navigate("/portales", { state: sesion });
@@ -68,14 +74,8 @@ export default function Login() {
             }
 
             // Un solo portal: se entra directo.
-            // DIRECTOR o ADMINISTRADOR permanece en el SGA Principal (este mismo origen); el resto
-            // se entrega a su microservicio por SSO sin guardar token aquí.
             const destino = portales[0];
             if (destino === "DIRECTOR" || destino === "ADMINISTRADOR") {
-                localStorage.setItem("token", sesion.token);
-                localStorage.setItem("username", sesion.username);
-                localStorage.setItem("roles", JSON.stringify(roles));
-                localStorage.setItem("primerIngreso", res.data.primerIngreso);
                 navigate("/dashboard");
                 return;
             }
