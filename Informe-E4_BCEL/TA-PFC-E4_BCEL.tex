@@ -150,7 +150,7 @@ Prof. Ing. Gleiston C. Guerrero-Ulloa, Mgs.
 % =============================================================================
 \section{Introducci\'on y Contextualizaci\'on del Problema}
 \label{sec:introduccion}
-La digitalizaci\'on de los procesos de evaluaci\'on, matr\'icula y asistencia en instituciones de educaci\'on b\'asica y media exige plataformas inform\'aticas que garanticen no solo alta disponibilidad y rendimiento ante accesos concurrentes, sino fundamentalmente la \textbf{inmutabilidad y no repudio} de los expedientes acad\'emicos~\cite{newman2021building,bass2021software}. En entornos escolares reales, como el caso de estudio de la Escuela de Educaci\'on B\'asica Provincias Unidas, los cierres de per\'iodo lectivo generan picos intensivos de concurrencia donde 14 docentes registran y rectifican calificaciones de 344 estudiantes simult\'aneamente.
+La gesti\'on acad\'emica en instituciones educativas de educaci\'on b\'asica demanda soluciones tecnol\'ogicas que garanticen alta disponibilidad, integridad estricta de expedientes escolares, escalabilidad ante picos de matr\'icula y una observabilidad profunda del estado operacional~\cite{newman2021microservices,burns2025designing}. El SGA Escuela Provincias Unidas evolucion\'o desde una arquitectura monol\'itica preliminar hacia una arquitectura distribuida orientada a microservicios desacoplados.
 
 Los esquemas convencionales de persistencia centralizada y bit\'acoras de auditor\'ia pasivas almacenadas en texto plano presentan tres vulnerabilidades estructurales cr\'iticas:
 \begin{enumerate}[leftmargin=*]
@@ -168,14 +168,32 @@ Para resolver estos desaf\'ios, el proyecto \textbf{AcadTrace} consolida a lo la
 \label{sec:trabajos-relacionados}
 El dise\~no de sistemas acad\'emicos distribuidos y auditor\'ia verificable se fundamenta en un s\'olido corpus cient\'ifico en ingenier\'ia de software y computaci\'on distribuida indexado en IEEE, ACM y Springer:
 
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Arquitecturas de Microservicios y Patrones de Dise\~no:} Alharbi y Wieringa~\cite{alharbi2025microservices} analizan los patrones arquitect\'onicos en microservicios, concluyendo que el desacoplamiento de capas mediante puertos y adaptadores (arquitectura hexagonal) y el uso de pasarelas perimetrales (\textit{API Gateways}) mitigan en un 42\% la propagaci\'on de fallos y mejoran la mantenibilidad. Gamma et al.~\cite{gamma1994design} y Fowler~\cite{fowler2018refactoring} establecen las bases de los patrones GoF aplicados en este proyecto (Repository, Strategy, Template Method, Observer y Facade) para desacoplar las reglas de evaluaci\'on pedag\'ogica de la infraestructura de almacenamiento.
-  
-  \item \textbf{Orden Causal y Consistencia en Sistemas Distribuidos:} La determinaci\'on del orden causal sin dependencia de sincronizaci\'on de relojes f\'isicos fue formalizada por Lamport~\cite{lamport1978time} mediante marcas l\'ogicas escalares, y extendida por Fidge~\cite{fidge1988timestamps} y Mattern a trav\'es de Relojes Vectoriales para capturar relaciones de concurrencia e independencia entre procesos distribuidos. Abadi~\cite{abadi2012pacelc} formul\'o el teorema PACELC, que gu\'ia el balance entre consistencia y latencia en AcadTrace durante particiones de red.
-  
-  \item \textbf{Bit\'acoras Criptogr\'aficas Inmutables y Trazabilidad:} Haber y Stornetta~\cite{haber1991time} introdujeron el encadenamiento criptogr\'afico de documentos digitales mediante funciones hash unidireccionales (SHA-256), principio adoptado en este proyecto para garantizar que cualquier eliminaci\'on o reordenamiento de eventos rompa el v\'inculo de verificaci\'on de la cadena.
-  
-  \item \textbf{Observabilidad y Evaluaci\'on de Calidad Experimental:} Sridharan~\cite{sridharan2018distributed} y Richardson~\cite{richardson2018microservices} destacan la necesidad de correlacionar registros estructurados JSON con identificadores de traza (\textit{Distributed Tracing}) e instrumentaci\'on de percentiles P95/P99 en sistemas distribuidos. Wohlin et al.~\cite{wohlin2012experimentation} y Arcuri y Briand~\cite{arcuri2011practical} proveen el marco estad\'istico no param\'etrico (Mann-Whitney U y tama\~no del efecto $\hat{A}_{12}$ de Vargha-Delaney) utilizado en nuestra evaluaci\'on.
+\subsection{Microservicios y Descomposici\'on de Dominio}
+Newman~\cite{newman2021microservices} y Burns~\cite{burns2025designing} formalizan que la independencia funcional debe acompa\~narse de fronteras de datos aisladas, evitando bases de datos compartidas sin esquemas definidos. En este proyecto se adopt\'o el particionamiento multi-esquema en PostgreSQL, aislando \texttt{public}, \texttt{secretaria}, \texttt{docente} y \texttt{soporte}.
+
+\subsection{Observabilidad, Detecci\'on de Anomal\'ias y M\'etricas de Cola}
+Nedelkoski \textit{et al.}~\cite{nedelkoski2021anomaly} demuestran que las anomal\'ias en microservicios frecuentemente se ocultan en las m\'etricas promedio y requieren el an\'alisis de percentiles de latencia ($P_{95}$ y $P_{99}$), fen\'omeno corroborado en este trabajo al detectar que la media aritm\'etica subestimaba la latencia de cola generada por consultas de base de datos. Por su parte, Li \textit{et al.}~\cite{li2021fault} formulan la localizaci\'on de la causa ra\'iz mediante el an\'alisis de trazas de ejecuci\'on, mientras que Zhang \textit{et al.}~\cite{zhang2022microservice} exponen la necesidad de correlacionar fuentes multi-origen (m\'etricas de contenedor, red y aplicaci\'on).
+
+\subsection{Consenso Distribuido, Tolerancia a Fallos e Ingenier\'ia del Caos}
+El algoritmo de consenso Raft~\cite{ongaro2014raft} proporciona garant\'ias de seguridad y disponibilidad en presencia de fallos de red en almacenes clave-valor como \textbf{etcd}. En arquitecturas de microservicios, la elecci\'on de l\'ider previene la duplicidad en tareas batch. Por otra parte, se implementaron pruebas de resiliencia y saturaci\'on para verificar la degradaci\'on elegante de servicios bajo estr\'es.
+
+\subsection{Seguridad Zero-Trust y Control de Acceso}
+Jones \textit{et al.}~\cite{jones2015jwt} y Fielding~\cite{fielding2000architectural} analizan la adopci\'on de modelos \textit{Zero-Trust} y tokens criptogr\'aficos JWT. Se enfatiza que la autenticaci\'on por token es insuficiente si no se acompa\~na de un control de acceso basado en roles a nivel de recurso (RBAC), evitando vulnerabilidades de referencia directa como IDOR~\cite{provos1999bcrypt}.
+
+% =============================================================================
+% 3. FUNDAMENTOS TEÓRICOS Y ARQUITECTURA DEL SISTEMA
+% =============================================================================
+\section{Fundamentos Te\'oricos y Arquitectura del Sistema}
+\label{sec:fundamentos}
+
+\subsection{Arquitectura en Capas y Patrones de Dise\~no GoF}
+Los microservicios en Java (\texttt{sga-principal}, \texttt{secretaria}, \texttt{soporte}) fueron construidos bajo los principios de \textbf{Clean Architecture}, estableciendo cuatro capas conc\'entricas: Presentaci\'on (\texttt{controllers}), Aplicaci\'on (\texttt{services}), Dominio (\texttt{entities/ports}) e Infraestructura (\texttt{repositories/gRPC/security}). Se aplicaron cinco patrones GoF fundamentales:
+\begin{itemize}[noitemsep]
+  \item \textbf{Repository:} Aislamiento de consultas SQL y posibilitaci\'on de dobles de prueba con Mockito.
+  \item \textbf{Facade (Fachada gRPC):} Interfaz binaria unificada expuesta por \texttt{PrincipalGrpcService} hacia el resto de servicios.
+  \item \textbf{Strategy:} Intercambio din\'amico de algoritmos de c\'alculo de notas y asignaci\'on de tickets.
+  \item \textbf{Observer:} Emisi\'on as\'incrona de eventos de auditor\'ia y cambios de estado.
+  \item \textbf{Proxy / Decorator:} Interceptaci\'on perimetral de seguridad mediante filtros JWT.
 \end{itemize}
 
 \newpage
@@ -471,6 +489,8 @@ El layout personalizado \texttt{JsonStructuredLayout} formatea los registros en 
 \label{fig:grafana-dashboard}
 \end{figure}
 
+\textit{Nota metodol\'ogica: el desglose de CPU/RAM por contenedor individual no fue posible en el entorno de desarrollo local (Docker Desktop para Windows), debido a una limitaci\'on conocida de cAdvisor con la virtualizaci\'on anidada de WSL2, que impide identificar contenedores por nombre en ese entorno. Se reporta en su lugar el consumo agregado de CPU y RAM de todos los contenedores del host.}
+
 % =============================================================================
 % 8. EVALUACIÓN EXPERIMENTAL ISO/IEC 25010 Y CRIPTO-AUDITORÍA (MÓDULO G)
 % =============================================================================
@@ -624,9 +644,32 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 
   \item \textbf{Ernesto Gregory Luna Mora (Responsable de Microservicio Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 permiti\'o consolidar la robustez del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on centralizada de enrutamiento, terminaci\'on segura y balanceo de carga. Se implement\'o una estricta compuerta de calidad mediante el plugin JaCoCo (\texttt{<goal>check</goal>}) enforceable al 70\%, alcanzando una cobertura real del 90.7\% en componentes clave del n\'ucleo y seguridad soportada por una bater\'ia de 46 pruebas automatizadas (unitarias, verificaci\'on gRPC in-process y de integraci\'on extremo a extremo E2E) que certifican la interoperabilidad entre servicios y el rechazo inmediato (HTTP 401 Unauthorized) ante peticiones carentes de tokens JWT HMAC-SHA256 v\'alidos. Asimismo, la incorporaci\'on del filtro \texttt{TraceIdFilter} con el patr\'on MDC de SLF4J posibilit\'o la propagaci\'on transparente de identificadores de correlaci\'on (\texttt{X-Trace-Id}) en registros estructurados en formato JSON, viabilizando una observabilidad distribuida unificada. En el \'ambito experimental del M\'odulo G, la ejecuci\'on de 120 corridas factoriales automatizadas con 344 estudiantes y 14 docentes demostr\'o la superioridad del encadenamiento criptogr\'afico SHA-256 junto a los Relojes de Lamport ($M_2$) y Relojes Vectoriales ($M_3$), logrando una tasa de detecci\'on del 100.0\% ante ataques de manipulaci\'on directa en base de datos ($T_1$) y eliminaci\'on de eventos ($T_2$). El an\'alisis estad\'istico inferencial no param\'etrico mediante la prueba $U$ de Mann-Whitney ($p < 10^{-15}$), los intervalos de confianza al 95\% Bootstrap ($MD = 7.10$\,ms, IC 95\% $[6.99, 7.24]$\,ms) y la magnitud del efecto de Vargha-Delaney ($\hat{A}_{12} = 1.000$) demostraron cient\'ificamente que la sobrecarga criptogr\'afica es marginal frente al beneficio de inmutabilidad, satisfaciendo a cabalidad los est\'andares de la norma ISO/IEC 25010:2023.
 
-  \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se complet\'o la refactorizaci\'on del microservicio de Soporte y Gesti\'on de Tickets bajo Node.js/Express, incorporando el bus de comunicaci\'on gRPC y la arquitectura de observabilidad integral con Prometheus, Grafana y cAdvisor. El dise\~no del tablero de Grafana (\texttt{pfc-dashboard.json}) con seis vistas operativas en tiempo real permiti\'o visualizar el comportamiento del cl\'uster ante las pruebas de estr\'es con Locust (50 usuarios nominales y rampa de 0 a 200), supervisando de forma continua la tasa de peticiones (RPS), la utilizaci\'on de memoria y CPU por contenedor, y los percentiles de latencia ($P_{50} = 68.5$\,ms, $P_{95} = 285.0$\,ms, $P_{99} = 410.2$\,ms). Se certific\'o una tasa de error del 0.0\% y una disponibilidad del 100\% bajo carga, comprobando que la instrumentaci\'on de m\'etricas estructuradas y la correlaci\'on de logs facilitan el diagn\'ostico proactivo de cuellos de botella y la resiliencia operativa en plataformas distribuidas.
+  \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se completó la refactorización del microservicio de Soporte y Gestión de Tickets bajo Java 17/Spring Boot, incorporando el bus de comunicación gRPC (elección de líder vía \texttt{etcd}) y la arquitectura de observabilidad con Prometheus, Grafana y cAdvisor. El diseño del tablero de Grafana (\texttt{ops/grafana/pfc-dashboard.json}) permite visualizar en tiempo real la tasa de peticiones (RPS), latencias por percentil (P50/P95/P99) y la tasa de errores 4xx/5xx. En la prueba de carga real ejecutada con Locust (50 usuarios concurrentes, 60 segundos, autenticación JWT generada localmente sin dependencia externa) se registraron 2446 peticiones con 0\,\% de tasa de error, pero con una disparidad de latencia medible entre endpoints: \texttt{/health} respondió con mediana de 5--6\,ms, mientras que \texttt{/api/soporte/tickets} (dependiente de base de datos) promedió 232\,ms con P99 de hasta 1500\,ms. Un hallazgo adicional relevante fue metodológico: una ejecución previa de la misma prueba, cuyo generador de carga dependía de una llamada de red externa para autenticarse, sí produjo fallos reales (500/503) por agotamiento del \textit{pool} de conexiones HikariCP -- evidencia de que la resiliencia observada bajo carga depende tanto de los recursos propios del servicio como de la arquitectura de sus dependencias de autenticación. Se identificó y corrigió además una clave JWT hardcodeada en el generador de carga, reforzando la práctica de gestión segura de secretos mediante variables de entorno.
 \end{itemize}
 
+\section{Declaración de Uso de Inteligencia Artificial}
+En cumplimiento de la transparencia académica exigida por la cátedra, se declara el uso de asistentes de inteligencia artificial generativa (Claude, Antigravity/Gemini) durante el desarrollo de la Entrega 4, con el siguiente alcance por integrante:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Juliana Romina Emanuel Pino:} uso de Claude y Antigravity para generación asistida de la prueba de carga (\texttt{locustfile.py}), configuración de Prometheus/Grafana/cAdvisor, corrección de una vulnerabilidad de secreto JWT hardcodeado, redacción asistida de secciones del informe individual y verificación bibliográfica. Todo hallazgo técnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos generados por el modelo de IA.
+\end{itemize}
+
+\textit{[NOTA PARA EL EQUIPO: cada integrante debe completar aquí su propia declaración de uso de IA, con el mismo nivel de detalle -- qué herramienta, para qué tarea, y qué se verificó manualmente antes de aceptar el resultado. No dejar esta sección incompleta.]}
+
+\section{Revisión Cruzada entre Pares}
+\textit{[NOTA PARA EL EQUIPO: esta tabla debe completarse con datos REALES de GitHub (Pull Requests revisados, comentarios de revisión, aprobaciones) -- NO inventar filas. Ejemplo de estructura esperada:]}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2.5cm}p{2.5cm}p{2cm}p{5cm}}
+\toprule
+\textbf{PR revisado} & \textbf{Autor} & \textbf{Revisor} & \textbf{Observación principal} \\
+\midrule
+\#XX & Nombre & Nombre & [completar con el comentario real de revisión] \\
+\bottomrule
+\end{tabular}
+\caption{Registro de revisión cruzada entre integrantes del equipo (completar con PRs reales de \url{https://github.com/LEO23as/acadtrace/pulls?q=is:pr})}
+\end{table}
 \newpage
 \bibliographystyle{ieeetr}
 \bibliography{referencias}

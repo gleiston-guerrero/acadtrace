@@ -1,64 +1,31 @@
 {
-  "annotations": {
+  "title": "SGA - Observabilidad de Microservicios",
+  "uid": "sga-observabilidad",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
     "list": [
       {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
+        "name": "application",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "Prometheus" },
+        "query": "label_values(http_server_requests_seconds_count, application)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true
       }
     ]
   },
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 1,
-  "id": null,
-  "links": [],
-  "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 100,
-      "title": "Vista 1: Tasa de Peticiones por Segundo (RPS / Throughput)",
-      "type": "row"
-    },
-    {
       "id": 1,
-      "title": "1.1 Throughput por Microservicio (RPS)",
+      "title": "Requests por segundo (RPS)",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 1
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 15
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$application\"}[1m]))",
@@ -68,577 +35,146 @@
     },
     {
       "id": 2,
-      "title": "1.2 Throughput Global HAProxy Frontend (RPS)",
+      "title": "Latencia p95 (HTTP server requests)",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 1
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 15
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
       "targets": [
         {
-          "expr": "sum by (proxy) (rate(haproxy_frontend_http_requests_total[1m]))",
-          "legendFormat": "Frontend: {{proxy}}"
+          "expr": "histogram_quantile(0.95, sum by (le, application) (rate(http_server_requests_seconds_bucket{application=~\"$application\"}[5m])))",
+          "legendFormat": "{{application}}"
         }
       ]
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 9
-      },
-      "id": 200,
-      "title": "Vista 2: Latencias Percentiles (P50 Mediana, P95 y P99 Casos Extremos)",
-      "type": "row"
-    },
-    {
       "id": 3,
-      "title": "2.1 Latencia P50 (Mediana de Respuesta)",
+      "title": "Memoria JVM usada",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 10
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le, application) (rate(http_server_requests_seconds_bucket{application=~\"$application\"}[5m])))",
-          "legendFormat": "{{application}} (P50)"
+          "expr": "sum by (application) (jvm_memory_used_bytes{application=~\"$application\"})",
+          "legendFormat": "{{application}}"
         }
       ]
     },
     {
       "id": 4,
-      "title": "2.2 Latencia P95 (Percentil 95)",
+      "title": "Códigos de respuesta HTTP",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 10
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le, application) (rate(http_server_requests_seconds_bucket{application=~\"$application\"}[5m])))",
-          "legendFormat": "{{application}} (P95)"
+          "expr": "sum by (application, status) (rate(http_server_requests_seconds_count{application=~\"$application\"}[1m]))",
+          "legendFormat": "{{application}} - {{status}}"
         }
       ]
     },
     {
       "id": 5,
-      "title": "2.3 Latencia P99 (Cola de Latencia / Casos Críticos)",
+      "title": "HikariCP - Conexiones activas",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 10
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (le, application) (rate(http_server_requests_seconds_bucket{application=~\"$application\"}[5m])))",
-          "legendFormat": "{{application}} (P99)"
+          "expr": "hikaricp_connections_active{application=~\"$application\"}",
+          "legendFormat": "{{application}} - {{pool}}"
         }
       ]
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 18
-      },
-      "id": 300,
-      "title": "Vista 3: Tasa de Errores HTTP 4xx y 5xx",
-      "type": "row"
-    },
-    {
       "id": 6,
-      "title": "3.1 Tasa de Errores 4xx (Cliente / Autenticación)",
+      "title": "Latencia p50 (Mediana)",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 19
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "bars",
-            "fillOpacity": 80
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
       "targets": [
         {
-          "expr": "sum by (application, status) (rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"4..\"}[1m]))",
-          "legendFormat": "{{application}} ({{status}})"
+          "expr": "histogram_quantile(0.50, sum by (le, application) (rate(http_server_requests_seconds_bucket{application=~\"$application\"}[5m])))",
+          "legendFormat": "{{application}}"
         }
       ]
     },
     {
       "id": 7,
-      "title": "3.2 Tasa de Errores 5xx (Fallas de Servidor / Tolerancia)",
+      "title": "Latencia p99 (Casos extremos)",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 19
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "red"
-          },
-          "custom": {
-            "drawStyle": "bars",
-            "fillOpacity": 80
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
       "targets": [
         {
-          "expr": "sum by (application, status) (rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"5..\"}[1m]))",
-          "legendFormat": "{{application}} ({{status}})"
+          "expr": "histogram_quantile(0.99, sum by (le, application) (rate(http_server_requests_seconds_bucket{application=~\"$application\"}[5m])))",
+          "legendFormat": "{{application}}"
         }
       ]
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 27
-      },
-      "id": 400,
-      "title": "Vista 4: Disponibilidad y Consenso Raft del Clúster (etcd / PostgreSQL / CockroachDB)",
-      "type": "row"
+      "id": 8,
+      "title": "Tasa de errores HTTP 4xx / 5xx",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"4..\"}[5m]))",
+          "legendFormat": "{{application}} - 4xx"
+        },
+        {
+          "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"5..\"}[5m]))",
+          "legendFormat": "{{application}} - 5xx"
+        }
+      ]
     },
     {
-      "id": 8,
-      "title": "4.1 Estado de Líder y Consenso Raft (etcd / Clúster)",
+      "id": 9,
+      "title": "Disponibilidad de PostgreSQL (Primario)",
       "type": "stat",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 28
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "text": "Sin Líder (Partición)"
-                },
-                "1": {
-                  "color": "green",
-                  "text": "Líder Raft Activo"
-                }
-              },
-              "type": "value"
-            }
+            { "type": "value", "options": { "0": { "text": "CAÍDO" }, "1": { "text": "DISPONIBLE" } } }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
             ]
           }
         },
         "overrides": []
       },
       "targets": [
-        {
-          "expr": "etcd_server_has_leader",
-          "legendFormat": "Líder etcd Raft"
-        }
-      ]
-    },
-    {
-      "id": 9,
-      "title": "4.2 Propuestas Raft y Concurrencia de Consenso",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 28
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "expr": "rate(etcd_server_proposals_committed_total[1m])",
-          "legendFormat": "Propuestas Comprometidas / s"
-        },
-        {
-          "expr": "rate(etcd_server_proposals_failed_total[1m])",
-          "legendFormat": "Propuestas Fallidas / s"
-        }
+        { "expr": "pg_up", "legendFormat": "PostgreSQL" }
       ]
     },
     {
       "id": 10,
-      "title": "4.3 Conexiones Activas de Base de Datos (HikariCP / PostgreSQL)",
+      "title": "CPU y RAM por contenedor",
       "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 28
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 15
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
       "targets": [
         {
-          "expr": "hikaricp_connections_active{application=~\"$application\"}",
-          "legendFormat": "{{application}} (Conexiones BD)"
-        }
-      ]
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 36
-      },
-      "id": 500,
-      "title": "Vista 5: Uso de CPU y RAM por Contenedor (cAdvisor)",
-      "type": "row"
-    },
-    {
-      "id": 11,
-      "title": "5.1 Uso de CPU por Contenedor (%)",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 37
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10
-          },
-          "unit": "percent"
+          "expr": "sum(rate(container_cpu_usage_seconds_total{id=\"/docker\"}[5m])) * 100",
+          "legendFormat": "CPU total (todos los contenedores) %"
         },
-        "overrides": []
-      },
-      "targets": [
         {
-          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name=~\"sga-.*|microservicio-.*|etcd.*|prometheus.*|grafana.*\"}[1m])) * 100",
-          "legendFormat": "{{name}}"
-        }
-      ]
-    },
-    {
-      "id": 12,
-      "title": "5.2 Uso de Memoria RAM por Contenedor (MB / Bytes)",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 37
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 15
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "expr": "sum by (name) (container_memory_usage_bytes{name=~\"sga-.*|microservicio-.*|etcd.*|prometheus.*|grafana.*\"})",
-          "legendFormat": "{{name}}"
-        }
-      ]
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 45
-      },
-      "id": 600,
-      "title": "Vista 6: Latencia de Extremo a Extremo (E2E) desde el Cliente Móvil",
-      "type": "row"
-    },
-    {
-      "id": 13,
-      "title": "6.1 Latencia E2E Móvil / Docente (Rutas de Sincronización y Asistencia)",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 46
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 15
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{uri=~\"/api/.*docente.*|/api/.*asistencia.*|/api/.*calificaciones.*|/api/.*sync.*\"}[5m])))",
-          "legendFormat": "Endpoint: {{uri}} (P95)"
-        }
-      ]
-    },
-    {
-      "id": 14,
-      "title": "6.2 Tiempo de Respuesta HAProxy Backend Docente/Móvil (E2E Gateway)",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 46
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 15
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "expr": "sum by (backend) (rate(haproxy_backend_response_time_average_seconds[1m]))",
-          "legendFormat": "Backend: {{backend}}"
+          "expr": "container_memory_usage_bytes{id=\"/docker\"} / 1024 / 1024",
+          "legendFormat": "RAM total (todos los contenedores) MB"
         }
       ]
     }
-  ],
-  "refresh": "10s",
-  "schemaVersion": 39,
-  "tags": [
-    "sga",
-    "pfc",
-    "observabilidad",
-    "microservicios",
-    "cadvisor",
-    "etcd"
-  ],
-  "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
-        },
-        "definition": "label_values(http_server_requests_seconds_count, application)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Aplicación",
-        "multi": true,
-        "name": "application",
-        "options": [],
-        "query": {
-          "query": "label_values(http_server_requests_seconds_count, application)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      }
-    ]
-  },
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m",
-      "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
-    ]
-  },
-  "timezone": "browser",
-  "title": "SGA - Observabilidad Distribuida PFC E4",
-  "uid": "sga-pfc-dashboard",
-  "version": 1,
-  "weekStart": ""
+  ]
 }
