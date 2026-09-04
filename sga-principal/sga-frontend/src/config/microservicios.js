@@ -21,22 +21,18 @@ export const MICROSERVICIOS = {
   SECRETARIA: {
     nombre: "Portal Secretaría",
     hosts: [
-      `http://${host}:5174`,
       `http://${host}:5176`,
       `http://${host}:8082`,
-      `http://${host}:5175`,
     ],
   },
   SOPORTE_TECNICO: {
     nombre: "Portal Soporte",
     hosts: [
       `http://${host}:8083`,
-      `http://${host}:5176`,
+      `http://${host}:5178`,
       `http://${host}:5177`,
       `http://${host}:6001`,
       `http://${host}:6002`,
-      `http://${host}:6003`,
-      `http://${host}:6004`,
     ],
   },
 };
