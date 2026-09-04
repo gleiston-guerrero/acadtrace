@@ -35,7 +35,7 @@ Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican has
 | `minSdk` | 26 |
 | `targetSdk` | 34 |
 | `compileSdk` | 34 |
-| Rutas/pantallas finales del representante | 9 |
+| Rutas/pantallas finales del representante | 10 |
 | ViewModels activos en el flujo final | 2 |
 | Clases ViewModel presentes, incluyendo implementación histórica inaccesible | 13 |
 | Repositories activos en el flujo final | 2 |
@@ -44,6 +44,7 @@ Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican has
 | Entidades Room totales conservadas por compatibilidad de esquema | 17 |
 | Endpoints REST consumidos por el flujo activo | 4 |
 | Casos JVM Android descubiertos en fuente | 26 |
+| Casos Compose instrumentados añadidos | 1 |
 | Resultado JVM actual | No ejecutado: Gradle falla antes del worker con `Unable to establish loopback connection` |
 | Cobertura JaCoCo (instructions/lines/branches/classes) | Pendiente de ejecución real; no disponible en este host |
 | Tamaño APK debug actual | No disponible: no se generó artefacto en esta ejecución |
@@ -52,7 +53,7 @@ Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican has
 | Roles móviles permitidos | 1 (`REPRESENTANTE`) |
 | Escrituras académicas permitidas desde la app | 0 |
 
-Las nueve rutas incluyen Login, desbloqueo biométrico, fallback biométrico, Home, Seguridad, Mis representados, Resumen, Calificaciones y Asistencia. Las implementaciones históricas de docente no aparecen en el grafo activo.
+Las diez rutas incluyen Login, desbloqueo biométrico, fallback biométrico, Home, Seguridad, Comunicados, Mis representados, Resumen, Calificaciones y Asistencia. Las implementaciones históricas de docente no aparecen en el grafo activo. Comunicados es informativa: no existe un endpoint real autorizado para representante y no se reutiliza el endpoint de publicación docente.
 
 ## Alternativas consideradas
 
@@ -95,6 +96,7 @@ Se elige Android nativo porque es la única alternativa que conserva directament
 - JWT, roles y preferencias se guardan mediante almacenamiento cifrado respaldado por Android Keystore.
 - El flujo activo Room usa únicamente `representados_cache`, `calificaciones_representado_cache` y `asistencia_hijo_cache`; las entidades docentes restantes son históricas por compatibilidad del esquema.
 - Los encabezados `Authorization` se redactan en logs.
+- Los cuerpos HTTP no se registran; la traza diagnóstica se limita a método, URL, `idEstudiante` y estado, sin JWT.
 - El keystore de firma y sus contraseñas se suministran mediante variables de entorno y están excluidos de Git.
 
 ## Evidencia
@@ -104,5 +106,8 @@ Se elige Android nativo porque es la única alternativa que conserva directament
 - Salida esperada del APK debug: `app/build/outputs/apk/debug/app-debug.apk`.
 - Contratos: `/api/auth/login`, `/api/representante/me/estudiantes`, `/api/docente/representante/me/estudiantes/{id}/calificaciones/` y `/api/docente/representante/me/estudiantes/{id}/asistencia/`.
 - JaCoCo está configurado para publicar HTML en `docs/cobertura/movil/index.html` y XML en `docs/cobertura/movil/jacoco.xml`.
-- En Windows, `testDebugUnitTest`, JaCoCo, lint y assemble se bloquean antes de ejecutar tareas por `java.io.IOException: Unable to establish loopback connection`; el job Ubuntu es la fuente prevista de evidencia real.
+- El 4 de septiembre de 2026 se ejecutaron `testDebugUnitTest jacocoTestReport`, `lintDebug` y `assembleDebug`; las tres invocaciones se bloquearon antes de iniciar tareas por `java.io.IOException: Unable to establish loopback connection`. No se publican resultados, cobertura ni APK inventados.
+- En el APK previamente instalado en el teléfono TECNO CL7, el desbloqueo usó `BiometricPrompt` y Logcat confirmó autenticación exitosa. Esta evidencia no sustituye la validación del APK nuevo.
+- Evidencia AWS real: Principal respondió 200 a `/api/representante/me/estudiantes` con `idEstudiante=681`; Android envió ese mismo identificador y JWT Bearer a `/api/docente/representante/me/estudiantes/681/calificaciones/`; AWS respondió 403 con `{"detail":"JWT_SECRET no configurado"}`. El bloqueo es configuración del microservicio en AWS y no se oculta ni se corrige desde Android.
+- El crash de `POST_NOTIFICATIONS` se rastreó a Activity Result/Fragment y se fijó `androidx.fragment:fragment-ktx:1.6.2`; su validación física en el nuevo APK permanece pendiente porque `assembleDebug` no puede ejecutarse en este host.
 - APK release: **PENDIENTE ÚNICAMENTE FIRMA INTERACTIVA**; no existe keystore versionado.

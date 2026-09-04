@@ -9,7 +9,7 @@ import ec.edu.uteq.sga.representante.domain.repository.RepresentanteRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-data class ConsultaUiState<T>(val loading: Boolean = false, val data: T? = null, val error: String? = null)
+data class ConsultaUiState<T>(val loading: Boolean = false, val data: T? = null, val error: String? = null, val isOffline: Boolean = false)
 
 class RepresentanteViewModel(private val repository: RepresentanteRepository) : ViewModel() {
     private val _representados = MutableStateFlow(ConsultaUiState<List<Representado>>())
@@ -28,7 +28,7 @@ class RepresentanteViewModel(private val repository: RepresentanteRepository) : 
         var terminalStateReceived = false
         source
             .catch { error ->
-                Log.e(TAG, "Consulta finalizada por excepción local: ${error::class.java.simpleName}: ${error.message}")
+                runCatching { Log.e(TAG, "Consulta finalizada por excepción local: ${error::class.java.simpleName}: ${error.message}") }
                 terminalStateReceived = true
                 emit(Resource.Error("Error local inesperado (${error::class.java.simpleName})", error))
             }
@@ -47,7 +47,7 @@ class RepresentanteViewModel(private val repository: RepresentanteRepository) : 
 object ConsultaStateReducer {
     fun <T> reduce(result: Resource<T>): ConsultaUiState<T> = when (result) {
         Resource.Loading -> ConsultaUiState(loading = true)
-        is Resource.Success -> ConsultaUiState(data = result.data)
+        is Resource.Success -> ConsultaUiState(data = result.data, isOffline = result.isOffline)
         is Resource.Error -> ConsultaUiState(error = result.message)
     }
 }
