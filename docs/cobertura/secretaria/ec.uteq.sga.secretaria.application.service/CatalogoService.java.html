@@ -23,11 +23,11 @@ public class CatalogoService {
 <span class="nc" id="L23">        this.client = client;</span>
 <span class="nc" id="L24">    }</span>
 
-<span class="nc" id="L26">    public record Grado(long id, String nombre, int orden, boolean activo) {}</span>
+<span class="fc" id="L26">    public record Grado(long id, String nombre, int orden, boolean activo) {}</span>
 
-<span class="nc" id="L28">    public record Paralelo(long id, long idGrado, String letra, boolean activo) {}</span>
+<span class="fc" id="L28">    public record Paralelo(long id, long idGrado, String letra, boolean activo) {}</span>
 
-<span class="nc" id="L30">    public record AnoLectivo(long id, String nombre, LocalDate fechaInicio, LocalDate fechaFin, boolean esActual) {}</span>
+<span class="fc" id="L30">    public record AnoLectivo(long id, String nombre, LocalDate fechaInicio, LocalDate fechaFin, boolean esActual) {}</span>
 
 <span class="nc" id="L32">    public record Asignatura(long id, String nombre, String codigo, boolean activa) {}</span>
 

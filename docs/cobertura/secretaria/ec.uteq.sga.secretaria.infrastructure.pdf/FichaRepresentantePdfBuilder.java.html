@@ -15,38 +15,38 @@ public final class FichaRepresentantePdfBuilder {
     private FichaRepresentantePdfBuilder() {}
 
     public static byte[] build(Map&lt;String, Object&gt; representante, PdfTheme theme) throws IOException {
-<span class="nc" id="L18">        try (PDDocument document = new PDDocument()) {</span>
-<span class="nc" id="L19">            PDPage page = new PDPage(PDRectangle.A4);</span>
-<span class="nc" id="L20">            document.addPage(page);</span>
+<span class="fc" id="L18">        try (PDDocument document = new PDDocument()) {</span>
+<span class="fc" id="L19">            PDPage page = new PDPage(PDRectangle.A4);</span>
+<span class="fc" id="L20">            document.addPage(page);</span>
 
-<span class="nc" id="L22">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
-<span class="nc" id="L23">                String nombreCompleto = (str(representante.get(&quot;nombres&quot;)) + &quot; &quot; + str(representante.get(&quot;apellidos&quot;))).trim();</span>
-<span class="nc" id="L24">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Ficha del Representante&quot;, nombreCompleto) + 10;</span>
+<span class="fc" id="L22">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
+<span class="fc" id="L23">                String nombreCompleto = (str(representante.get(&quot;nombres&quot;)) + &quot; &quot; + str(representante.get(&quot;apellidos&quot;))).trim();</span>
+<span class="fc" id="L24">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Ficha del Representante&quot;, nombreCompleto) + 10;</span>
 
-<span class="nc" id="L26">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS PERSONALES&quot;, y);</span>
-<span class="nc" id="L27">                PdfLayout.drawField(canvas, &quot;Nombres&quot;, str(representante.get(&quot;nombres&quot;)), 40, y);</span>
-<span class="nc" id="L28">                PdfLayout.drawField(canvas, &quot;Apellidos&quot;, str(representante.get(&quot;apellidos&quot;)), 320, y);</span>
-<span class="nc" id="L29">                y += 20;</span>
-<span class="nc" id="L30">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(representante.get(&quot;cedula&quot;)), 40, y);</span>
-<span class="nc" id="L31">                PdfLayout.drawField(canvas, &quot;Parentesco&quot;, str(representante.get(&quot;parentesco&quot;)), 320, y);</span>
-<span class="nc" id="L32">                y += 30;</span>
+<span class="fc" id="L26">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS PERSONALES&quot;, y);</span>
+<span class="fc" id="L27">                PdfLayout.drawField(canvas, &quot;Nombres&quot;, str(representante.get(&quot;nombres&quot;)), 40, y);</span>
+<span class="fc" id="L28">                PdfLayout.drawField(canvas, &quot;Apellidos&quot;, str(representante.get(&quot;apellidos&quot;)), 320, y);</span>
+<span class="fc" id="L29">                y += 20;</span>
+<span class="fc" id="L30">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(representante.get(&quot;cedula&quot;)), 40, y);</span>
+<span class="fc" id="L31">                PdfLayout.drawField(canvas, &quot;Parentesco&quot;, str(representante.get(&quot;parentesco&quot;)), 320, y);</span>
+<span class="fc" id="L32">                y += 30;</span>
 
-<span class="nc" id="L34">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS DE CONTACTO&quot;, y);</span>
-<span class="nc" id="L35">                PdfLayout.drawField(canvas, &quot;Teléfono principal&quot;, str(representante.get(&quot;telefono_principal&quot;)), 40, y);</span>
-<span class="nc" id="L36">                PdfLayout.drawField(canvas, &quot;Teléfono alterno&quot;, str(representante.get(&quot;telefono_alt&quot;)), 320, y);</span>
-<span class="nc" id="L37">                y += 20;</span>
-<span class="nc" id="L38">                PdfLayout.drawField(canvas, &quot;Correo electrónico&quot;, str(representante.get(&quot;correo&quot;)), 40, y);</span>
-<span class="nc" id="L39">                y += 20;</span>
-<span class="nc" id="L40">                y = canvas.textWrapped(40, y, canvas.pageWidth() - 80,</span>
-<span class="nc" id="L41">                        &quot;Dirección: &quot; + str(representante.get(&quot;direccion&quot;)), Fonts.HELVETICA, 9, PdfTheme.DARK, 13f, PdfCanvas.Align.LEFT);</span>
-<span class="nc" id="L42">                y += 20;</span>
+<span class="fc" id="L34">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS DE CONTACTO&quot;, y);</span>
+<span class="fc" id="L35">                PdfLayout.drawField(canvas, &quot;Teléfono principal&quot;, str(representante.get(&quot;telefono_principal&quot;)), 40, y);</span>
+<span class="fc" id="L36">                PdfLayout.drawField(canvas, &quot;Teléfono alterno&quot;, str(representante.get(&quot;telefono_alt&quot;)), 320, y);</span>
+<span class="fc" id="L37">                y += 20;</span>
+<span class="fc" id="L38">                PdfLayout.drawField(canvas, &quot;Correo electrónico&quot;, str(representante.get(&quot;correo&quot;)), 40, y);</span>
+<span class="fc" id="L39">                y += 20;</span>
+<span class="fc" id="L40">                y = canvas.textWrapped(40, y, canvas.pageWidth() - 80,</span>
+<span class="fc" id="L41">                        &quot;Dirección: &quot; + str(representante.get(&quot;direccion&quot;)), Fonts.HELVETICA, 9, PdfTheme.DARK, 13f, PdfCanvas.Align.LEFT);</span>
+<span class="fc" id="L42">                y += 20;</span>
 
-<span class="nc" id="L44">                PdfLayout.drawFooter(canvas, theme);</span>
+<span class="fc" id="L44">                PdfLayout.drawFooter(canvas, theme);</span>
             }
 
-<span class="nc" id="L47">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
-<span class="nc" id="L48">            document.save(out);</span>
-<span class="nc" id="L49">            return out.toByteArray();</span>
+<span class="fc" id="L47">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="fc" id="L48">            document.save(out);</span>
+<span class="fc" id="L49">            return out.toByteArray();</span>
         }
     }
 }

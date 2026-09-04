@@ -33,116 +33,116 @@ public class MatriculaService {
     private final CatalogoService catalogo;
     private final PrincipalGrpcClient client;
 
-<span class="nc" id="L36">    public MatriculaService(NamedParameterJdbcTemplate jdbc, CatalogoService catalogo, PrincipalGrpcClient client) {</span>
-<span class="nc" id="L37">        this.jdbc = jdbc;</span>
-<span class="nc" id="L38">        this.catalogo = catalogo;</span>
-<span class="nc" id="L39">        this.client = client;</span>
-<span class="nc" id="L40">    }</span>
+<span class="fc" id="L36">    public MatriculaService(NamedParameterJdbcTemplate jdbc, CatalogoService catalogo, PrincipalGrpcClient client) {</span>
+<span class="fc" id="L37">        this.jdbc = jdbc;</span>
+<span class="fc" id="L38">        this.catalogo = catalogo;</span>
+<span class="fc" id="L39">        this.client = client;</span>
+<span class="fc" id="L40">    }</span>
 
     public List&lt;Map&lt;String, Object&gt;&gt; paralelosPorGrado(long idGrado) {
-<span class="nc" id="L43">        return catalogo.paralelos(idGrado).stream()</span>
-<span class="nc" id="L44">                .filter(CatalogoService.Paralelo::activo)</span>
-<span class="nc" id="L45">                .sorted(Comparator.comparing(CatalogoService.Paralelo::letra))</span>
-<span class="nc" id="L46">                .map(p -&gt; {</span>
-<span class="nc" id="L47">                    Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L48">                    row.put(&quot;id_paralelo&quot;, p.id());</span>
-<span class="nc" id="L49">                    row.put(&quot;letra&quot;, p.letra());</span>
-<span class="nc" id="L50">                    return row;</span>
+<span class="fc" id="L43">        return catalogo.paralelos(idGrado).stream()</span>
+<span class="fc" id="L44">                .filter(CatalogoService.Paralelo::activo)</span>
+<span class="fc" id="L45">                .sorted(Comparator.comparing(CatalogoService.Paralelo::letra))</span>
+<span class="fc" id="L46">                .map(p -&gt; {</span>
+<span class="fc" id="L47">                    Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L48">                    row.put(&quot;id_paralelo&quot;, p.id());</span>
+<span class="fc" id="L49">                    row.put(&quot;letra&quot;, p.letra());</span>
+<span class="fc" id="L50">                    return row;</span>
                 })
-<span class="nc" id="L52">                .toList();</span>
+<span class="fc" id="L52">                .toList();</span>
     }
 
     public PageResult&lt;Map&lt;String, Object&gt;&gt; listarPorAnoLectivo(long idAnoLectivo, int page, int limit, String search) {
-<span class="nc" id="L56">        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()</span>
-<span class="nc" id="L57">                .setIdAnoLectivo(idAnoLectivo)</span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">                .setQ(search != null ? search : &quot;&quot;)</span>
-<span class="nc" id="L59">                .setPage(page)</span>
-<span class="nc" id="L60">                .setLimit(limit)</span>
-<span class="nc" id="L61">                .build();</span>
-<span class="nc" id="L62">        var response = client.listarMatriculas(request);</span>
-<span class="nc" id="L63">        List&lt;Map&lt;String, Object&gt;&gt; data = new ArrayList&lt;&gt;(response.getMatriculasList().stream().map(this::fromProto).toList());</span>
-<span class="nc" id="L64">        enriquecerConCatalogo(data);</span>
-<span class="nc" id="L65">        return PageResult.of(data, response.getTotal(), page, limit);</span>
+<span class="fc" id="L56">        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()</span>
+<span class="fc" id="L57">                .setIdAnoLectivo(idAnoLectivo)</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">                .setQ(search != null ? search : &quot;&quot;)</span>
+<span class="fc" id="L59">                .setPage(page)</span>
+<span class="fc" id="L60">                .setLimit(limit)</span>
+<span class="fc" id="L61">                .build();</span>
+<span class="fc" id="L62">        var response = client.listarMatriculas(request);</span>
+<span class="fc" id="L63">        List&lt;Map&lt;String, Object&gt;&gt; data = new ArrayList&lt;&gt;(response.getMatriculasList().stream().map(this::fromProto).toList());</span>
+<span class="fc" id="L64">        enriquecerConCatalogo(data);</span>
+<span class="fc" id="L65">        return PageResult.of(data, response.getTotal(), page, limit);</span>
     }
 
     public List&lt;Map&lt;String, Object&gt;&gt; estadisticasPorGrado(long idAnoLectivo) {
-<span class="nc" id="L69">        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()</span>
-<span class="nc" id="L70">                .setIdAnoLectivo(idAnoLectivo)</span>
-<span class="nc" id="L71">                .setPage(1)</span>
-<span class="nc" id="L72">                .setLimit(5000)</span>
-<span class="nc" id="L73">                .build();</span>
-<span class="nc" id="L74">        List&lt;MatriculaProto&gt; matriculas = client.listarMatriculas(request).getMatriculasList();</span>
+<span class="fc" id="L69">        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()</span>
+<span class="fc" id="L70">                .setIdAnoLectivo(idAnoLectivo)</span>
+<span class="fc" id="L71">                .setPage(1)</span>
+<span class="fc" id="L72">                .setLimit(5000)</span>
+<span class="fc" id="L73">                .build();</span>
+<span class="fc" id="L74">        List&lt;MatriculaProto&gt; matriculas = client.listarMatriculas(request).getMatriculasList();</span>
 
-<span class="nc" id="L76">        Map&lt;String, long[]&gt; conteoPorClave = new LinkedHashMap&lt;&gt;(); // {total, activas, retiradas}</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (MatriculaProto m : matriculas) {</span>
-<span class="nc" id="L78">            String clave = m.getIdGrado() + &quot;:&quot; + m.getIdParalelo();</span>
-<span class="nc" id="L79">            long[] c = conteoPorClave.computeIfAbsent(clave, k -&gt; new long[3]);</span>
-<span class="nc" id="L80">            c[0]++;</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (&quot;ACTIVA&quot;.equals(m.getEstado())) c[1]++;</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (&quot;RETIRADA&quot;.equals(m.getEstado())) c[2]++;</span>
-<span class="nc" id="L83">        }</span>
+<span class="fc" id="L76">        Map&lt;String, long[]&gt; conteoPorClave = new LinkedHashMap&lt;&gt;(); // {total, activas, retiradas}</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        for (MatriculaProto m : matriculas) {</span>
+<span class="fc" id="L78">            String clave = m.getIdGrado() + &quot;:&quot; + m.getIdParalelo();</span>
+<span class="fc" id="L79">            long[] c = conteoPorClave.computeIfAbsent(clave, k -&gt; new long[3]);</span>
+<span class="fc" id="L80">            c[0]++;</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">            if (&quot;ACTIVA&quot;.equals(m.getEstado())) c[1]++;</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">            if (&quot;RETIRADA&quot;.equals(m.getEstado())) c[2]++;</span>
+<span class="fc" id="L83">        }</span>
 
-<span class="nc" id="L85">        List&lt;CatalogoService.Grado&gt; grados = catalogo.grados().stream()</span>
-<span class="nc" id="L86">                .filter(CatalogoService.Grado::activo)</span>
-<span class="nc" id="L87">                .sorted(Comparator.comparingInt(CatalogoService.Grado::orden))</span>
-<span class="nc" id="L88">                .toList();</span>
+<span class="fc" id="L85">        List&lt;CatalogoService.Grado&gt; grados = catalogo.grados().stream()</span>
+<span class="fc" id="L86">                .filter(CatalogoService.Grado::activo)</span>
+<span class="fc" id="L87">                .sorted(Comparator.comparingInt(CatalogoService.Grado::orden))</span>
+<span class="fc" id="L88">                .toList();</span>
 
-<span class="nc" id="L90">        List&lt;Map&lt;String, Object&gt;&gt; resultado = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        for (CatalogoService.Grado grado : grados) {</span>
-<span class="nc" id="L92">            List&lt;CatalogoService.Paralelo&gt; paralelos = catalogo.paralelos(grado.id()).stream()</span>
-<span class="nc" id="L93">                    .filter(CatalogoService.Paralelo::activo)</span>
-<span class="nc" id="L94">                    .sorted(Comparator.comparing(CatalogoService.Paralelo::letra))</span>
-<span class="nc" id="L95">                    .toList();</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            for (CatalogoService.Paralelo paralelo : paralelos) {</span>
-<span class="nc" id="L97">                long[] c = conteoPorClave.get(grado.id() + &quot;:&quot; + paralelo.id());</span>
-<span class="nc" id="L98">                Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L99">                row.put(&quot;grado&quot;, grado.nombre());</span>
-<span class="nc" id="L100">                row.put(&quot;paralelo&quot;, paralelo.letra());</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">                row.put(&quot;total&quot;, c != null ? c[0] : 0L);</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">                row.put(&quot;activas&quot;, c != null ? c[1] : 0L);</span>
-<span class="nc bnc" id="L103" title="All 2 branches missed.">                row.put(&quot;retiradas&quot;, c != null ? c[2] : 0L);</span>
-<span class="nc" id="L104">                resultado.add(row);</span>
-<span class="nc" id="L105">            }</span>
-<span class="nc" id="L106">        }</span>
-<span class="nc" id="L107">        return resultado;</span>
+<span class="fc" id="L90">        List&lt;Map&lt;String, Object&gt;&gt; resultado = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        for (CatalogoService.Grado grado : grados) {</span>
+<span class="fc" id="L92">            List&lt;CatalogoService.Paralelo&gt; paralelos = catalogo.paralelos(grado.id()).stream()</span>
+<span class="fc" id="L93">                    .filter(CatalogoService.Paralelo::activo)</span>
+<span class="fc" id="L94">                    .sorted(Comparator.comparing(CatalogoService.Paralelo::letra))</span>
+<span class="fc" id="L95">                    .toList();</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            for (CatalogoService.Paralelo paralelo : paralelos) {</span>
+<span class="fc" id="L97">                long[] c = conteoPorClave.get(grado.id() + &quot;:&quot; + paralelo.id());</span>
+<span class="fc" id="L98">                Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L99">                row.put(&quot;grado&quot;, grado.nombre());</span>
+<span class="fc" id="L100">                row.put(&quot;paralelo&quot;, paralelo.letra());</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">                row.put(&quot;total&quot;, c != null ? c[0] : 0L);</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                row.put(&quot;activas&quot;, c != null ? c[1] : 0L);</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                row.put(&quot;retiradas&quot;, c != null ? c[2] : 0L);</span>
+<span class="fc" id="L104">                resultado.add(row);</span>
+<span class="fc" id="L105">            }</span>
+<span class="fc" id="L106">        }</span>
+<span class="fc" id="L107">        return resultado;</span>
     }
 
     public List&lt;Map&lt;String, Object&gt;&gt; listarPorEstudiante(long idEstudiante) {
-<span class="nc" id="L111">        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()</span>
-<span class="nc" id="L112">                .setIdEstudiante(idEstudiante)</span>
-<span class="nc" id="L113">                .build();</span>
-<span class="nc" id="L114">        List&lt;MatriculaProto&gt; matriculas = client.listarMatriculas(request).getMatriculasList();</span>
-<span class="nc" id="L115">        List&lt;Map&lt;String, Object&gt;&gt; data = new ArrayList&lt;&gt;(matriculas.stream().map(this::fromProto).toList());</span>
-<span class="nc" id="L116">        enriquecerConCatalogo(data);</span>
-<span class="nc" id="L117">        enriquecerConHistorial(data);</span>
-<span class="nc" id="L118">        data.sort(Comparator.comparing(</span>
+<span class="fc" id="L111">        ListarMatriculasRequest request = ListarMatriculasRequest.newBuilder()</span>
+<span class="fc" id="L112">                .setIdEstudiante(idEstudiante)</span>
+<span class="fc" id="L113">                .build();</span>
+<span class="fc" id="L114">        List&lt;MatriculaProto&gt; matriculas = client.listarMatriculas(request).getMatriculasList();</span>
+<span class="fc" id="L115">        List&lt;Map&lt;String, Object&gt;&gt; data = new ArrayList&lt;&gt;(matriculas.stream().map(this::fromProto).toList());</span>
+<span class="fc" id="L116">        enriquecerConCatalogo(data);</span>
+<span class="fc" id="L117">        enriquecerConHistorial(data);</span>
+<span class="fc" id="L118">        data.sort(Comparator.comparing(</span>
 <span class="nc" id="L119">                (Map&lt;String, Object&gt; row) -&gt; (LocalDate) row.get(&quot;ano_lectivo_fecha_inicio&quot;),</span>
-<span class="nc" id="L120">                Comparator.nullsLast(Comparator.reverseOrder())));</span>
-<span class="nc" id="L121">        return data;</span>
+<span class="fc" id="L120">                Comparator.nullsLast(Comparator.reverseOrder())));</span>
+<span class="fc" id="L121">        return data;</span>
     }
 
     public Map&lt;String, Object&gt; obtenerPorId(long id) {
-<span class="nc" id="L125">        List&lt;Map&lt;String, Object&gt;&gt; filas = new ArrayList&lt;&gt;(List.of(fromProto(client.obtenerMatricula(id))));</span>
-<span class="nc" id="L126">        enriquecerConCatalogo(filas);</span>
-<span class="nc" id="L127">        return filas.get(0);</span>
+<span class="fc" id="L125">        List&lt;Map&lt;String, Object&gt;&gt; filas = new ArrayList&lt;&gt;(List.of(fromProto(client.obtenerMatricula(id))));</span>
+<span class="fc" id="L126">        enriquecerConCatalogo(filas);</span>
+<span class="fc" id="L127">        return filas.get(0);</span>
     }
 
     public Map&lt;String, Object&gt; crear(MatriculaRequest dto, String username) {
-<span class="nc" id="L131">        Long idUsuario = resolverIdUsuario(username);</span>
-<span class="nc" id="L132">        GuardarMatriculaRequest request = GuardarMatriculaRequest.newBuilder()</span>
-<span class="nc" id="L133">                .setIdEstudiante(dto.id_estudiante())</span>
-<span class="nc" id="L134">                .setIdGrado(dto.id_grado())</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">                .setIdParalelo(dto.id_paralelo() != null ? dto.id_paralelo() : 0)</span>
-<span class="nc" id="L136">                .setIdAnoLectivo(dto.id_ano_lectivo())</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">                .setEstado(dto.estado() != null ? dto.estado() : &quot;&quot;)</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">                .setObservaciones(dto.observaciones() != null ? dto.observaciones() : &quot;&quot;)</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">                .setIdUsuarioRegistro(idUsuario != null ? idUsuario : 0)</span>
-<span class="nc" id="L140">                .build();</span>
-<span class="nc" id="L141">        List&lt;Map&lt;String, Object&gt;&gt; filas = new ArrayList&lt;&gt;(List.of(fromProto(client.crearMatricula(request))));</span>
-<span class="nc" id="L142">        enriquecerConCatalogo(filas);</span>
-<span class="nc" id="L143">        Map&lt;String, Object&gt; matricula = filas.get(0);</span>
-<span class="nc" id="L144">        notificarMatriculaCreada(idUsuario, matricula);</span>
-<span class="nc" id="L145">        return matricula;</span>
+<span class="fc" id="L131">        Long idUsuario = resolverIdUsuario(username);</span>
+<span class="fc" id="L132">        GuardarMatriculaRequest request = GuardarMatriculaRequest.newBuilder()</span>
+<span class="fc" id="L133">                .setIdEstudiante(dto.id_estudiante())</span>
+<span class="fc" id="L134">                .setIdGrado(dto.id_grado())</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">                .setIdParalelo(dto.id_paralelo() != null ? dto.id_paralelo() : 0)</span>
+<span class="fc" id="L136">                .setIdAnoLectivo(dto.id_ano_lectivo())</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">                .setEstado(dto.estado() != null ? dto.estado() : &quot;&quot;)</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">                .setObservaciones(dto.observaciones() != null ? dto.observaciones() : &quot;&quot;)</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">                .setIdUsuarioRegistro(idUsuario != null ? idUsuario : 0)</span>
+<span class="fc" id="L140">                .build();</span>
+<span class="fc" id="L141">        List&lt;Map&lt;String, Object&gt;&gt; filas = new ArrayList&lt;&gt;(List.of(fromProto(client.crearMatricula(request))));</span>
+<span class="fc" id="L142">        enriquecerConCatalogo(filas);</span>
+<span class="fc" id="L143">        Map&lt;String, Object&gt; matricula = filas.get(0);</span>
+<span class="fc" id="L144">        notificarMatriculaCreada(idUsuario, matricula);</span>
+<span class="fc" id="L145">        return matricula;</span>
     }
 
     /**
@@ -151,59 +151,59 @@ public class MatriculaService {
      * Insert directo a sga_principal.notificaciones, mismo patron que historial_promocion.
      */
     private void notificarMatriculaCreada(Long idUsuario, Map&lt;String, Object&gt; matricula) {
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (idUsuario == null) return;</span>
-<span class="nc" id="L155">        String mensaje = &quot;Se registró la matrícula de %s en %s \&quot;%s\&quot;.&quot;.formatted(</span>
-<span class="nc" id="L156">                matricula.get(&quot;estudiante&quot;), matricula.get(&quot;grado&quot;), matricula.get(&quot;paralelo&quot;));</span>
-<span class="nc" id="L157">        jdbc.update(&quot;&quot;&quot;</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if (idUsuario == null) return;</span>
+<span class="fc" id="L155">        String mensaje = &quot;Se registró la matrícula de %s en %s \&quot;%s\&quot;.&quot;.formatted(</span>
+<span class="fc" id="L156">                matricula.get(&quot;estudiante&quot;), matricula.get(&quot;grado&quot;), matricula.get(&quot;paralelo&quot;));</span>
+<span class="fc" id="L157">        jdbc.update(&quot;&quot;&quot;</span>
                 INSERT INTO sga_principal.notificaciones (id_usuario, tipo, titulo, mensaje, url_destino)
                 VALUES (:idUsuario, 'MATRICULA', 'Matrícula registrada', :mensaje, '/matriculas')
                 &quot;&quot;&quot;,
-<span class="nc" id="L161">                new MapSqlParameterSource().addValue(&quot;idUsuario&quot;, idUsuario).addValue(&quot;mensaje&quot;, mensaje));</span>
-<span class="nc" id="L162">    }</span>
+<span class="fc" id="L161">                new MapSqlParameterSource().addValue(&quot;idUsuario&quot;, idUsuario).addValue(&quot;mensaje&quot;, mensaje));</span>
+<span class="fc" id="L162">    }</span>
 
     public void cambiarEstado(long id, String estado) {
-<span class="nc" id="L165">        client.cambiarEstadoMatricula(id, estado);</span>
-<span class="nc" id="L166">    }</span>
+<span class="fc" id="L165">        client.cambiarEstadoMatricula(id, estado);</span>
+<span class="fc" id="L166">    }</span>
 
     private Long resolverIdUsuario(String username) {
-<span class="nc" id="L169">        List&lt;Long&gt; ids = jdbc.query(</span>
+<span class="fc" id="L169">        List&lt;Long&gt; ids = jdbc.query(</span>
                 &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,
 <span class="nc" id="L171">                new MapSqlParameterSource(&quot;username&quot;, username), (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        return ids.isEmpty() ? null : ids.get(0);</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        return ids.isEmpty() ? null : ids.get(0);</span>
     }
 
     /** historial_promocion no se movio de esquema (fuera de alcance, ver HistorialService); se lee directo. */
     private void enriquecerConHistorial(List&lt;Map&lt;String, Object&gt;&gt; filas) {
-<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (filas.isEmpty()) return;</span>
-<span class="nc" id="L178">        List&lt;Long&gt; ids = filas.stream().map(f -&gt; (Long) f.get(&quot;id_matricula&quot;)).toList();</span>
-<span class="nc" id="L179">        List&lt;Map&lt;String, Object&gt;&gt; historial = jdbc.query(</span>
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">        if (filas.isEmpty()) return;</span>
+<span class="fc" id="L178">        List&lt;Long&gt; ids = filas.stream().map(f -&gt; (Long) f.get(&quot;id_matricula&quot;)).toList();</span>
+<span class="fc" id="L179">        List&lt;Map&lt;String, Object&gt;&gt; historial = jdbc.query(</span>
                 &quot;SELECT id_matricula, resultado AS resultado_promocion, promedio_anual FROM sga_principal.historial_promocion WHERE id_matricula IN (:ids)&quot;,
                 new MapSqlParameterSource(&quot;ids&quot;, ids), GenericRowMapper.INSTANCE);
-<span class="nc" id="L182">        Map&lt;Long, Map&lt;String, Object&gt;&gt; porMatricula = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L183">        historial.forEach(h -&gt; porMatricula.put((Long) h.get(&quot;id_matricula&quot;), h));</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; fila : filas) {</span>
-<span class="nc" id="L185">            Map&lt;String, Object&gt; h = porMatricula.get((Long) fila.get(&quot;id_matricula&quot;));</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">            fila.put(&quot;resultado_promocion&quot;, h != null ? h.get(&quot;resultado_promocion&quot;) : null);</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            fila.put(&quot;promedio_anual&quot;, h != null ? h.get(&quot;promedio_anual&quot;) : null);</span>
-<span class="nc" id="L188">        }</span>
-<span class="nc" id="L189">    }</span>
+<span class="fc" id="L182">        Map&lt;Long, Map&lt;String, Object&gt;&gt; porMatricula = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L183">        historial.forEach(h -&gt; porMatricula.put((Long) h.get(&quot;id_matricula&quot;), h));</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; fila : filas) {</span>
+<span class="fc" id="L185">            Map&lt;String, Object&gt; h = porMatricula.get((Long) fila.get(&quot;id_matricula&quot;));</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">            fila.put(&quot;resultado_promocion&quot;, h != null ? h.get(&quot;resultado_promocion&quot;) : null);</span>
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">            fila.put(&quot;promedio_anual&quot;, h != null ? h.get(&quot;promedio_anual&quot;) : null);</span>
+<span class="fc" id="L188">        }</span>
+<span class="fc" id="L189">    }</span>
 
     private Map&lt;String, Object&gt; fromProto(MatriculaProto m) {
-<span class="nc" id="L192">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L193">        row.put(&quot;id_matricula&quot;, m.getIdMatricula());</span>
-<span class="nc" id="L194">        row.put(&quot;id_estudiante&quot;, m.getIdEstudiante());</span>
-<span class="nc" id="L195">        row.put(&quot;cedula&quot;, m.getEstudianteCedula());</span>
-<span class="nc" id="L196">        row.put(&quot;codigo_estudiante&quot;, m.getEstudianteCodigo());</span>
-<span class="nc" id="L197">        row.put(&quot;estudiante&quot;, (m.getEstudianteNombres() + &quot; &quot; + m.getEstudianteApellidos()).trim());</span>
-<span class="nc" id="L198">        row.put(&quot;id_grado&quot;, m.getIdGrado());</span>
-<span class="nc bnc" id="L199" title="All 2 branches missed.">        row.put(&quot;id_paralelo&quot;, m.getIdParalelo() &gt; 0 ? m.getIdParalelo() : null);</span>
-<span class="nc" id="L200">        row.put(&quot;id_ano_lectivo&quot;, m.getIdAnoLectivo());</span>
-<span class="nc" id="L201">        row.put(&quot;numero_orden&quot;, m.getNumeroOrden());</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">        row.put(&quot;fecha_registro&quot;, m.getFechaRegistro().isBlank() ? null : LocalDate.parse(m.getFechaRegistro()));</span>
-<span class="nc" id="L203">        row.put(&quot;estado&quot;, m.getEstado());</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">        row.put(&quot;observaciones&quot;, m.getObservaciones().isBlank() ? null : m.getObservaciones());</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">        row.put(&quot;registrado_por&quot;, m.getRegistradoPor().isBlank() ? null : m.getRegistradoPor());</span>
-<span class="nc" id="L206">        return row;</span>
+<span class="fc" id="L192">        Map&lt;String, Object&gt; row = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L193">        row.put(&quot;id_matricula&quot;, m.getIdMatricula());</span>
+<span class="fc" id="L194">        row.put(&quot;id_estudiante&quot;, m.getIdEstudiante());</span>
+<span class="fc" id="L195">        row.put(&quot;cedula&quot;, m.getEstudianteCedula());</span>
+<span class="fc" id="L196">        row.put(&quot;codigo_estudiante&quot;, m.getEstudianteCodigo());</span>
+<span class="fc" id="L197">        row.put(&quot;estudiante&quot;, (m.getEstudianteNombres() + &quot; &quot; + m.getEstudianteApellidos()).trim());</span>
+<span class="fc" id="L198">        row.put(&quot;id_grado&quot;, m.getIdGrado());</span>
+<span class="pc bpc" id="L199" title="1 of 2 branches missed.">        row.put(&quot;id_paralelo&quot;, m.getIdParalelo() &gt; 0 ? m.getIdParalelo() : null);</span>
+<span class="fc" id="L200">        row.put(&quot;id_ano_lectivo&quot;, m.getIdAnoLectivo());</span>
+<span class="fc" id="L201">        row.put(&quot;numero_orden&quot;, m.getNumeroOrden());</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        row.put(&quot;fecha_registro&quot;, m.getFechaRegistro().isBlank() ? null : LocalDate.parse(m.getFechaRegistro()));</span>
+<span class="fc" id="L203">        row.put(&quot;estado&quot;, m.getEstado());</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        row.put(&quot;observaciones&quot;, m.getObservaciones().isBlank() ? null : m.getObservaciones());</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">        row.put(&quot;registrado_por&quot;, m.getRegistradoPor().isBlank() ? null : m.getRegistradoPor());</span>
+<span class="fc" id="L206">        return row;</span>
     }
 
     /**
@@ -212,34 +212,34 @@ public class MatriculaService {
      * no acoplar Secretaria a las tablas de catalogo de otro servicio.
      */
     private void enriquecerConCatalogo(List&lt;Map&lt;String, Object&gt;&gt; filas) {
-<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (filas.isEmpty()) return;</span>
-<span class="nc" id="L216">        Map&lt;Long, CatalogoService.Grado&gt; grados = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L217">        catalogo.grados().forEach(g -&gt; grados.put(g.id(), g));</span>
-<span class="nc" id="L218">        Map&lt;Long, CatalogoService.Paralelo&gt; paralelos = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L219">        catalogo.paralelos(null).forEach(p -&gt; paralelos.put(p.id(), p));</span>
-<span class="nc" id="L220">        Map&lt;Long, CatalogoService.AnoLectivo&gt; anos = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L221">        catalogo.anosLectivos().forEach(a -&gt; anos.put(a.id(), a));</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">        if (filas.isEmpty()) return;</span>
+<span class="fc" id="L216">        Map&lt;Long, CatalogoService.Grado&gt; grados = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L217">        catalogo.grados().forEach(g -&gt; grados.put(g.id(), g));</span>
+<span class="fc" id="L218">        Map&lt;Long, CatalogoService.Paralelo&gt; paralelos = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L219">        catalogo.paralelos(null).forEach(p -&gt; paralelos.put(p.id(), p));</span>
+<span class="fc" id="L220">        Map&lt;Long, CatalogoService.AnoLectivo&gt; anos = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L221">        catalogo.anosLectivos().forEach(a -&gt; anos.put(a.id(), a));</span>
 
-<span class="nc bnc" id="L223" title="All 2 branches missed.">        for (Map&lt;String, Object&gt; fila : filas) {</span>
-<span class="nc" id="L224">            Long idGrado = toLong(fila.get(&quot;id_grado&quot;));</span>
-<span class="nc" id="L225">            Long idParalelo = toLong(fila.get(&quot;id_paralelo&quot;));</span>
-<span class="nc" id="L226">            Long idAno = toLong(fila.get(&quot;id_ano_lectivo&quot;));</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; fila : filas) {</span>
+<span class="fc" id="L224">            Long idGrado = toLong(fila.get(&quot;id_grado&quot;));</span>
+<span class="fc" id="L225">            Long idParalelo = toLong(fila.get(&quot;id_paralelo&quot;));</span>
+<span class="fc" id="L226">            Long idAno = toLong(fila.get(&quot;id_ano_lectivo&quot;));</span>
 
-<span class="nc bnc" id="L228" title="All 2 branches missed.">            CatalogoService.Grado grado = idGrado != null ? grados.get(idGrado) : null;</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">            CatalogoService.Paralelo paralelo = idParalelo != null ? paralelos.get(idParalelo) : null;</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">            CatalogoService.AnoLectivo ano = idAno != null ? anos.get(idAno) : null;</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">            CatalogoService.Grado grado = idGrado != null ? grados.get(idGrado) : null;</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">            CatalogoService.Paralelo paralelo = idParalelo != null ? paralelos.get(idParalelo) : null;</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">            CatalogoService.AnoLectivo ano = idAno != null ? anos.get(idAno) : null;</span>
 
-<span class="nc bnc" id="L232" title="All 2 branches missed.">            fila.put(&quot;grado&quot;, grado != null ? grado.nombre() : null);</span>
-<span class="nc bnc" id="L233" title="All 2 branches missed.">            fila.put(&quot;paralelo&quot;, paralelo != null ? paralelo.letra() : null);</span>
-<span class="nc bnc" id="L234" title="All 2 branches missed.">            fila.put(&quot;ano_lectivo&quot;, ano != null ? ano.nombre() : null);</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">            fila.put(&quot;ano_lectivo_fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
-<span class="nc bnc" id="L236" title="All 2 branches missed.">            fila.put(&quot;fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
-<span class="nc bnc" id="L237" title="All 2 branches missed.">            fila.put(&quot;fecha_fin&quot;, ano != null ? ano.fechaFin() : null);</span>
-<span class="nc" id="L238">        }</span>
-<span class="nc" id="L239">    }</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">            fila.put(&quot;grado&quot;, grado != null ? grado.nombre() : null);</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">            fila.put(&quot;paralelo&quot;, paralelo != null ? paralelo.letra() : null);</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">            fila.put(&quot;ano_lectivo&quot;, ano != null ? ano.nombre() : null);</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">            fila.put(&quot;ano_lectivo_fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">            fila.put(&quot;fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">            fila.put(&quot;fecha_fin&quot;, ano != null ? ano.fechaFin() : null);</span>
+<span class="fc" id="L238">        }</span>
+<span class="fc" id="L239">    }</span>
 
     private static Long toLong(Object value) {
-<span class="nc bnc" id="L242" title="All 2 branches missed.">        return value instanceof Number n ? n.longValue() : null;</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        return value instanceof Number n ? n.longValue() : null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

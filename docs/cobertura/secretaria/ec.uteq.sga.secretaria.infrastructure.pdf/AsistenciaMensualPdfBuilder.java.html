@@ -15,9 +15,9 @@ import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.str;
 
 public final class AsistenciaMensualPdfBuilder {
 
-<span class="nc" id="L18">    private record Col(String label, float x, float w) {}</span>
+<span class="fc" id="L18">    private record Col(String label, float x, float w) {}</span>
 
-<span class="nc" id="L20">    private static final List&lt;Col&gt; COLS = List.of(</span>
+<span class="fc" id="L20">    private static final List&lt;Col&gt; COLS = List.of(</span>
             new Col(&quot;Fecha&quot;, 40, 90),
             new Col(&quot;Materia&quot;, 130, 300),
             new Col(&quot;Estado&quot;, 430, 90),
@@ -25,42 +25,42 @@ public final class AsistenciaMensualPdfBuilder {
     );
 
     /** A4 landscape: se invierte el rectangulo en vez de usar page.setRotation, para dibujar sin transforms. */
-<span class="nc" id="L28">    private static final PDRectangle A4_LANDSCAPE = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());</span>
+<span class="fc" id="L28">    private static final PDRectangle A4_LANDSCAPE = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());</span>
 
-<span class="nc" id="L30">    private static final Map&lt;String, Color&gt; COLOR_POR_ESTADO = Map.of(</span>
-<span class="nc" id="L31">            &quot;PRESENTE&quot;, Color.decode(&quot;#1b7a3d&quot;),</span>
-<span class="nc" id="L32">            &quot;AUSENTE&quot;, Color.decode(&quot;#c0392b&quot;),</span>
-<span class="nc" id="L33">            &quot;ATRASO&quot;, Color.decode(&quot;#b8860b&quot;),</span>
-<span class="nc" id="L34">            &quot;JUSTIFICADO&quot;, Color.decode(&quot;#2e86ab&quot;)</span>
+<span class="fc" id="L30">    private static final Map&lt;String, Color&gt; COLOR_POR_ESTADO = Map.of(</span>
+<span class="fc" id="L31">            &quot;PRESENTE&quot;, Color.decode(&quot;#1b7a3d&quot;),</span>
+<span class="fc" id="L32">            &quot;AUSENTE&quot;, Color.decode(&quot;#c0392b&quot;),</span>
+<span class="fc" id="L33">            &quot;ATRASO&quot;, Color.decode(&quot;#b8860b&quot;),</span>
+<span class="fc" id="L34">            &quot;JUSTIFICADO&quot;, Color.decode(&quot;#2e86ab&quot;)</span>
     );
 
     private AsistenciaMensualPdfBuilder() {}
 
     public static byte[] build(Map&lt;String, Object&gt; matricula, String mesLabel,
                                 List&lt;Map&lt;String, Object&gt;&gt; registros, PdfTheme theme) throws IOException {
-<span class="nc" id="L41">        try (PDDocument document = new PDDocument()) {</span>
-<span class="nc" id="L42">            PDPage page = new PDPage(A4_LANDSCAPE);</span>
-<span class="nc" id="L43">            document.addPage(page);</span>
+<span class="fc" id="L41">        try (PDDocument document = new PDDocument()) {</span>
+<span class="fc" id="L42">            PDPage page = new PDPage(A4_LANDSCAPE);</span>
+<span class="fc" id="L43">            document.addPage(page);</span>
 
-<span class="nc" id="L45">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
-<span class="nc" id="L46">                String subtitulo = mesLabel + &quot; · &quot; + str(matricula.get(&quot;estudiante&quot;));</span>
-<span class="nc" id="L47">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Registro Mensual de Asistencia&quot;, subtitulo) + 8;</span>
+<span class="fc" id="L45">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
+<span class="fc" id="L46">                String subtitulo = mesLabel + &quot; · &quot; + str(matricula.get(&quot;estudiante&quot;));</span>
+<span class="fc" id="L47">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Registro Mensual de Asistencia&quot;, subtitulo) + 8;</span>
 
-<span class="nc" id="L49">                PdfLayout.drawField(canvas, &quot;Estudiante&quot;, str(matricula.get(&quot;estudiante&quot;)), 40, y);</span>
-<span class="nc" id="L50">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(matricula.get(&quot;cedula&quot;)), 320, y);</span>
-<span class="nc" id="L51">                PdfLayout.drawField(canvas, &quot;Grado / Curso&quot;,</span>
-<span class="nc" id="L52">                        &quot;%s \&quot;%s\&quot;&quot;.formatted(str(matricula.get(&quot;grado&quot;)), str(matricula.get(&quot;paralelo&quot;))), 560, y, 90);</span>
-<span class="nc" id="L53">                y += 24;</span>
+<span class="fc" id="L49">                PdfLayout.drawField(canvas, &quot;Estudiante&quot;, str(matricula.get(&quot;estudiante&quot;)), 40, y);</span>
+<span class="fc" id="L50">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(matricula.get(&quot;cedula&quot;)), 320, y);</span>
+<span class="fc" id="L51">                PdfLayout.drawField(canvas, &quot;Grado / Curso&quot;,</span>
+<span class="fc" id="L52">                        &quot;%s \&quot;%s\&quot;&quot;.formatted(str(matricula.get(&quot;grado&quot;)), str(matricula.get(&quot;paralelo&quot;))), 560, y, 90);</span>
+<span class="fc" id="L53">                y += 24;</span>
 
-<span class="nc" id="L55">                canvas.rect(40, y, canvas.pageWidth() - 80, 18, PdfTheme.SECONDARY);</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">                for (Col c : COLS) {</span>
-<span class="nc" id="L57">                    canvas.text(c.x(), y + 5, c.label(), Fonts.HELVETICA_BOLD, 8, PdfTheme.WHITE);</span>
-<span class="nc" id="L58">                }</span>
-<span class="nc" id="L59">                y += 20;</span>
+<span class="fc" id="L55">                canvas.rect(40, y, canvas.pageWidth() - 80, 18, PdfTheme.SECONDARY);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                for (Col c : COLS) {</span>
+<span class="fc" id="L57">                    canvas.text(c.x(), y + 5, c.label(), Fonts.HELVETICA_BOLD, 8, PdfTheme.WHITE);</span>
+<span class="fc" id="L58">                }</span>
+<span class="fc" id="L59">                y += 20;</span>
 
-<span class="nc" id="L61">                int i = 0;</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">                for (Map&lt;String, Object&gt; row : registros) {</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">                    if (y &gt; canvas.pageHeight() - 60) {</span>
+<span class="fc" id="L61">                int i = 0;</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                for (Map&lt;String, Object&gt; row : registros) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">                    if (y &gt; canvas.pageHeight() - 60) {</span>
 <span class="nc" id="L64">                        PdfLayout.drawFooter(canvas, theme);</span>
 <span class="nc" id="L65">                        PDPage next = new PDPage(A4_LANDSCAPE);</span>
 <span class="nc" id="L66">                        document.addPage(next);</span>
@@ -68,35 +68,35 @@ public final class AsistenciaMensualPdfBuilder {
 <span class="nc" id="L68">                        y = 30;</span>
                     }
 
-<span class="nc bnc" id="L71" title="All 2 branches missed.">                    Color bg = (i % 2 == 0) ? PdfTheme.WHITE : PdfTheme.LIGHT;</span>
-<span class="nc" id="L72">                    canvas.rect(40, y, canvas.pageWidth() - 80, 16, bg);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                    Color bg = (i % 2 == 0) ? PdfTheme.WHITE : PdfTheme.LIGHT;</span>
+<span class="fc" id="L72">                    canvas.rect(40, y, canvas.pageWidth() - 80, 16, bg);</span>
 
-<span class="nc" id="L74">                    String estado = str(row.get(&quot;estado&quot;));</span>
-<span class="nc" id="L75">                    String materia = canvas.truncate(str(row.get(&quot;asignatura&quot;)), Fonts.HELVETICA, 8, COLS.get(1).w() - 4);</span>
-<span class="nc" id="L76">                    String justificacion = canvas.truncate(str(row.get(&quot;justificacion&quot;)), Fonts.HELVETICA, 8, COLS.get(3).w() - 4);</span>
+<span class="fc" id="L74">                    String estado = str(row.get(&quot;estado&quot;));</span>
+<span class="fc" id="L75">                    String materia = canvas.truncate(str(row.get(&quot;asignatura&quot;)), Fonts.HELVETICA, 8, COLS.get(1).w() - 4);</span>
+<span class="fc" id="L76">                    String justificacion = canvas.truncate(str(row.get(&quot;justificacion&quot;)), Fonts.HELVETICA, 8, COLS.get(3).w() - 4);</span>
 
-<span class="nc" id="L78">                    canvas.text(COLS.get(0).x(), y + 4, formatFechaEc(row.get(&quot;fecha&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L79">                    canvas.text(COLS.get(1).x(), y + 4, materia, Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L80">                    canvas.text(COLS.get(2).x(), y + 4, estado, Fonts.HELVETICA_BOLD, 8, COLOR_POR_ESTADO.getOrDefault(estado, PdfTheme.DARK));</span>
-<span class="nc" id="L81">                    canvas.text(COLS.get(3).x(), y + 4, justificacion, Fonts.HELVETICA, 8, PdfTheme.MUTED);</span>
+<span class="fc" id="L78">                    canvas.text(COLS.get(0).x(), y + 4, formatFechaEc(row.get(&quot;fecha&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L79">                    canvas.text(COLS.get(1).x(), y + 4, materia, Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L80">                    canvas.text(COLS.get(2).x(), y + 4, estado, Fonts.HELVETICA_BOLD, 8, COLOR_POR_ESTADO.getOrDefault(estado, PdfTheme.DARK));</span>
+<span class="fc" id="L81">                    canvas.text(COLS.get(3).x(), y + 4, justificacion, Fonts.HELVETICA, 8, PdfTheme.MUTED);</span>
 
-<span class="nc" id="L83">                    y += 16;</span>
-<span class="nc" id="L84">                    i++;</span>
-<span class="nc" id="L85">                }</span>
+<span class="fc" id="L83">                    y += 16;</span>
+<span class="fc" id="L84">                    i++;</span>
+<span class="fc" id="L85">                }</span>
 
-<span class="nc bnc" id="L87" title="All 2 branches missed.">                if (registros.isEmpty()) {</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                if (registros.isEmpty()) {</span>
 <span class="nc" id="L88">                    canvas.text(40, y + 4, &quot;No hay registros de asistencia para este mes.&quot;, Fonts.HELVETICA, 9, PdfTheme.MUTED);</span>
 <span class="nc" id="L89">                    y += 20;</span>
                 }
 
-<span class="nc" id="L92">                canvas.rect(40, y + 4, canvas.pageWidth() - 80, 1, PdfTheme.BORDER);</span>
-<span class="nc" id="L93">                canvas.text(40, y + 8, &quot;Total de registros: &quot; + registros.size(), Fonts.HELVETICA_BOLD, 9, PdfTheme.PRIMARY);</span>
-<span class="nc" id="L94">                PdfLayout.drawFooter(canvas, theme);</span>
+<span class="fc" id="L92">                canvas.rect(40, y + 4, canvas.pageWidth() - 80, 1, PdfTheme.BORDER);</span>
+<span class="fc" id="L93">                canvas.text(40, y + 8, &quot;Total de registros: &quot; + registros.size(), Fonts.HELVETICA_BOLD, 9, PdfTheme.PRIMARY);</span>
+<span class="fc" id="L94">                PdfLayout.drawFooter(canvas, theme);</span>
             }
 
-<span class="nc" id="L97">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
-<span class="nc" id="L98">            document.save(out);</span>
-<span class="nc" id="L99">            return out.toByteArray();</span>
+<span class="fc" id="L97">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="fc" id="L98">            document.save(out);</span>
+<span class="fc" id="L99">            return out.toByteArray();</span>
         }
     }
 }
