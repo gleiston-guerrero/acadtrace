@@ -166,6 +166,7 @@ services:
       - ./sga-principal/sga-frontend:/app
       - /app/node_modules
     ports:
+      - "5173:5173"
       - "5174:5173"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     networks:
