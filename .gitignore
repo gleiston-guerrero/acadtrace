@@ -28,6 +28,7 @@
 *.env
 .env
 .env.*
+!.env.example
 
 # IDEs & System
 .idea/
