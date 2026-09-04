@@ -39,7 +39,7 @@ const PORTALES = {
         desc: "Matrículas, estudiantes y reportes",
         color: "bg-purple-50",
         iconColor: "text-purple-600",
-        tipo: "local",
+        tipo: "handoff",
         destino: "SECRETARIA",
         icon: (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,10 +81,22 @@ const ORDEN = ["DIRECTOR", "ADMINISTRADOR", "SECRETARIA", "DOCENTE", "SOPORTE_TE
 export default function Portales() {
     const navigate = useNavigate();
     const location = useLocation();
-    const sesion = location.state;
+    const sesion = location.state || (localStorage.getItem("token") ? {
+        token: localStorage.getItem("token"),
+        username: localStorage.getItem("username") || "Usuario",
+        roles: (() => {
+            try {
+                return JSON.parse(localStorage.getItem("roles") || "[]");
+            } catch {
+                return ["DIRECTOR"];
+            }
+        })(),
+        idUsuario: localStorage.getItem("userId") || 1,
+        primerIngreso: localStorage.getItem("primerIngreso") === "true",
+    } : null);
     const [cargando, setCargando] = useState(null);
 
-    // Sin sesión en el estado de navegación = acceso directo a la URL → al login.
+    // Sin sesión = al login.
     useEffect(() => {
         if (!sesion?.token) navigate("/login", { replace: true });
     }, [sesion, navigate]);

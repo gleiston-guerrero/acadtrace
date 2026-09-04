@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../config/axios";
 import Layout from "../../components/Layout";
 import ImportarEstudiantesModal from "./ImportarEstudiantesModal";
+import { redirigirAMicroservicio } from "../../utils/handoff";
 
 const PRIMARY = "#243A76";
 const modalBg = { backgroundColor: "rgba(36, 58, 118, 0.5)" };
@@ -94,6 +95,25 @@ export default function Estudiantes() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              const sesion = {
+                token: localStorage.getItem("token"),
+                username: localStorage.getItem("username") || "Usuario",
+                roles: JSON.parse(localStorage.getItem("roles") || "[]"),
+                idUsuario: localStorage.getItem("userId") || 1,
+                primerIngreso: localStorage.getItem("primerIngreso") === "true",
+              };
+              await redirigirAMicroservicio("SECRETARIA", sesion);
+            }}
+            className="flex items-center gap-2 border border-purple-200 text-purple-700 bg-purple-50 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-100 transition shadow-xs cursor-pointer"
+            title="Ir al Portal Secretaría (Microservicio de Matrículas y Estudiantes)"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Portal Secretaría
+          </button>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition"

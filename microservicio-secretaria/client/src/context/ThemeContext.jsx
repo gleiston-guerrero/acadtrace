@@ -4,12 +4,10 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // Modo claro institucional siempre por defecto para evitar pantallas oscuras inesperadas
     const manual = localStorage.getItem("sga_user_theme");
     if (manual === "dark" || manual === "light") {
       return manual;
     }
-    // Limpiar 'theme' previo que se haya seteado en 'dark' por preferencia del SO
     if (localStorage.getItem("theme") === "dark") {
       localStorage.removeItem("theme");
     }

@@ -17,6 +17,9 @@ function capturarSesionSSO() {
   localStorage.setItem("username", p.get("username") || "");
   localStorage.setItem("roles", p.get("roles") || "[]");
   localStorage.setItem("primerIngreso", p.get("primerIngreso") || "false");
+  if (p.get("idUsuario")) {
+    localStorage.setItem("userId", p.get("idUsuario"));
+  }
 
   // Quita el token del URL para no dejarlo expuesto.
   window.history.replaceState({}, document.title, window.location.pathname);

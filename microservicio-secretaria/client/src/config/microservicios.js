@@ -5,6 +5,7 @@ export const MICROSERVICIOS = {
     nombre: "Portal Principal (Administración)",
     hosts: [
       `http://${host}:5173`,
+      `http://${host}:5174`,
     ],
   },
   DOCENTE: {
@@ -18,7 +19,6 @@ export const MICROSERVICIOS = {
     hosts: [
       `http://${host}:5176`,
       `http://${host}:8082`,
-      `http://${host}:5174`,
     ],
   },
   SOPORTE_TECNICO: {
