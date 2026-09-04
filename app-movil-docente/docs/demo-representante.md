@@ -9,18 +9,18 @@ Fecha de evidencia: 4 de septiembre de 2026.
 - Sesión de representante vigente y Home accesible.
 - `BiometricPrompt` real mostrado; Logcat confirmó autenticación satisfactoria y retorno a Home.
 - Principal respondió HTTP 200 a `GET /api/representante/me/estudiantes` y devolvió `idEstudiante=681`.
-- Android llamó con JWT Bearer a `GET /api/docente/representante/me/estudiantes/681/calificaciones/` y AWS devolvió HTTP 403: `{"detail":"JWT_SECRET no configurado"}`.
-- No se modificó backend y la app conserva el error visible. La causa demostrada es la configuración de AWS.
+- La llamada directa histórica a Docente produjo HTTP 403 por `JWT_SECRET no configurado`; la fachada nueva elimina ese flujo inseguro.
 
 El APK instalado es anterior a los últimos cambios locales. No se atribuye a ese APK la corrección de permisos, Comunicados ni las nuevas pruebas.
 
 ## Cambios locales pendientes de instalar
 
 - Compatibilidad de Fragment fijada en 1.6.2 para evitar el `requestCode` fuera de 16 bits al solicitar `POST_NOTIFICATIONS`.
-- Comunicados sólo informa la ausencia de endpoint para representante; no consume ni expone escrituras docentes.
-- Room conserva únicamente caché de lectura para representados, calificaciones y asistencia y marca las respuestas recuperadas como offline.
-- WorkManager refresca esas consultas GET; `SyncManager` rechaza expresamente escrituras académicas.
-- Se añadieron seis pruebas JVM de `RepresentanteViewModel` y una prueba instrumentada Compose del Home exclusivo de representante.
+- Android consume calificaciones, asistencia y comunicados únicamente desde SGA Principal; el flujo activo ya no crea un cliente `RepresentanteApi` hacia Docente/8081.
+- Comunicados consulta `Anuncio`, propiedad real de Docente, mediante Principal REST → gRPC Docente.
+- Room conserva únicamente caché de lectura para representados, calificaciones, asistencia y comunicados y marca las respuestas recuperadas como offline.
+- WorkManager refresca esas cuatro consultas GET; `SyncManager` rechaza expresamente escrituras académicas.
+- Las pruebas de `RepresentanteViewModel` cubren también loading, success, empty, error y caché offline de Comunicados; se conserva la prueba instrumentada Compose.
 
 ## Bloqueo reproducible del host
 
@@ -34,12 +34,15 @@ Estas órdenes se ejecutaron y fallaron antes de iniciar las tareas Gradle con `
 
 En consecuencia, no existen resultados JaCoCo actuales ni un APK nuevo válido para copiar a `release/apk/app-debug.apk`; tampoco se informa tamaño o SHA-256 inventados.
 
+Las pruebas específicas de la fachada en SGA Principal aprobaron 11/11. La suite de Docente aprobó 83/83 con cobertura total de 79.28%. La suite completa de Principal alcanza el test de contexto, pero el canal gRPC Netty no puede inicializarse en este Windows por el mismo error de loopback; se mantiene pendiente la confirmación completa en CI Linux.
+
 ## Interacción humana requerida después de resolver Gradle
 
 1. Instalar el APK nuevo en el TECNO CL7.
 2. Abrir Seguridad, pulsar la opción de notificaciones y aceptar `POST_NOTIFICATIONS`; confirmar que la app permanece abierta.
 3. Bloquear y desbloquear con huella cuando aparezca `BiometricPrompt`.
-4. Entrar en el representado y abrir Calificaciones y Asistencia para verificar ambas respuestas AWS con el mismo `idEstudiante`.
-5. Activar modo avión y repetir las tres consultas para confirmar visualmente la lectura desde Room; después desactivarlo para observar el refresh GET de WorkManager.
+4. Entrar en el representado y abrir Calificaciones y Asistencia; ambas solicitudes Android deben dirigirse a Principal en el puerto 8080.
+5. Abrir Comunicados y verificar que únicamente aparecen anuncios de asignaciones asociadas a matrículas activas de los representados.
+6. Activar modo avión y repetir las cuatro consultas para confirmar visualmente la lectura desde Room; después desactivarlo para observar el refresh GET de WorkManager.
 
 No deben ejecutarse acciones docentes ni escrituras académicas durante la demo.

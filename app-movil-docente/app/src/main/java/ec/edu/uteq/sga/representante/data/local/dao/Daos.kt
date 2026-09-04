@@ -18,6 +18,10 @@ interface RepresentanteCacheDao {
     suspend fun getAsistencia(id: Long): AsistenciaHijoCacheEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun putAsistencia(item: AsistenciaHijoCacheEntity)
+    @Query("SELECT * FROM comunicados_representante_cache WHERE id = 1")
+    suspend fun getComunicados(): ComunicadosRepresentanteCacheEntity?
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun putComunicados(item: ComunicadosRepresentanteCacheEntity)
 }
 
 @Dao

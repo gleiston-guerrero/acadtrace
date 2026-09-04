@@ -13,6 +13,9 @@ data class CalificacionesRepresentadoCacheEntity(@PrimaryKey val idEstudiante: L
 @Entity(tableName = "asistencia_hijo_cache")
 data class AsistenciaHijoCacheEntity(@PrimaryKey val idEstudiante: Long, val json: String, val lastUpdated: Long = System.currentTimeMillis())
 
+@Entity(tableName = "comunicados_representante_cache")
+data class ComunicadosRepresentanteCacheEntity(@PrimaryKey val id: Long = 1, val json: String, val lastUpdated: Long = System.currentTimeMillis())
+
 @Entity(
     tableName = "asignaciones",
     indices = [

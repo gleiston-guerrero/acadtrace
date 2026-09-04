@@ -17,6 +17,7 @@ interface RepresentanteRepository {
     fun getRepresentados(): Flow<Resource<List<Representado>>>
     fun getCalificaciones(idEstudiante: Long): Flow<Resource<CalificacionesRepresentado>>
     fun getAsistencia(idEstudiante: Long): Flow<Resource<AsistenciaRepresentado>>
+    fun getComunicados(): Flow<Resource<List<Comunicado>>>
 }
 
 interface DocenteRepository {

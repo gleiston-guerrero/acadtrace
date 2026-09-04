@@ -23,3 +23,4 @@ data class AsistenciaHijoDTO(@SerializedName("id_asistencia") val idAsistencia: 
 data class ResumenAsistenciaHijoDTO(val total: Int, val presentes: Int, val ausentes: Int,
     val justificados: Int, val atrasos: Int, @SerializedName("porcentaje_asistencia") val porcentajeAsistencia: Double)
 data class AsistenciaRepresentadoDTO(val asistencias: List<AsistenciaHijoDTO>, val resumen: ResumenAsistenciaHijoDTO)
+data class ComunicadoDTO(val id: Long, val titulo: String, val contenido: String, val fecha: String, val fijado: Boolean)

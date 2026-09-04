@@ -131,8 +131,39 @@ class RepresentanteViewModelTest {
         assertNotNull(vm.representados.value.error)
     }
 
+    @Test fun comunicadosLoadingSuccess() = runTest {
+        val item = Comunicado(1, "Reunión", "Viernes", "2026-09-04", true)
+        val vm = RepresentanteViewModel(FakeRepository(flowOf(Resource.Success(emptyList())),
+            flowOf(Resource.Loading, Resource.Success(listOf(item)))))
+        vm.cargarComunicados(); advanceUntilIdle()
+        assertEquals("Reunión", vm.comunicados.value.data!!.single().titulo)
+    }
+
+    @Test fun comunicadosEmpty() = runTest {
+        val vm = RepresentanteViewModel(FakeRepository(flowOf(Resource.Success(emptyList())),
+            flowOf(Resource.Success(emptyList()))))
+        vm.cargarComunicados(); advanceUntilIdle()
+        assertTrue(vm.comunicados.value.data!!.isEmpty())
+    }
+
+    @Test fun comunicadosError() = runTest {
+        val vm = RepresentanteViewModel(FakeRepository(flowOf(Resource.Success(emptyList())),
+            flowOf(Resource.Error("Servicio no disponible"))))
+        vm.cargarComunicados(); advanceUntilIdle()
+        assertEquals("Servicio no disponible", vm.comunicados.value.error)
+    }
+
+    @Test fun comunicadosDesdeCacheOffline() = runTest {
+        val item = Comunicado(1, "Aviso", "Contenido", "2026-09-04", false)
+        val vm = RepresentanteViewModel(FakeRepository(flowOf(Resource.Success(emptyList())),
+            flowOf(Resource.Success(listOf(item), isOffline = true))))
+        vm.cargarComunicados(); advanceUntilIdle()
+        assertTrue(vm.comunicados.value.isOffline)
+    }
+
     private class FakeRepository(
-        private val representados: Flow<Resource<List<Representado>>>
+        private val representados: Flow<Resource<List<Representado>>>,
+        private val comunicados: Flow<Resource<List<Comunicado>>> = flowOf(Resource.Error("sin configurar"))
     ) : RepresentanteRepository {
 
         override fun getRepresentados(): Flow<Resource<List<Representado>>> {
@@ -149,6 +180,10 @@ class RepresentanteViewModelTest {
             idEstudiante: Long
         ): Flow<Resource<AsistenciaRepresentado>> {
             return flowOf(Resource.Error("sin configurar"))
+        }
+
+        override fun getComunicados(): Flow<Resource<List<Comunicado>>> {
+            return comunicados
         }
     }
 

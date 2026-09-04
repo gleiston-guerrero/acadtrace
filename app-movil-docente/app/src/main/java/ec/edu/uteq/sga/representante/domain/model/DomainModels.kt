@@ -21,6 +21,7 @@ data class AsistenciaHijo(val fecha: String, val periodo: String, val estado: St
 data class ResumenAsistenciaHijo(val total: Int, val presentes: Int, val ausentes: Int,
     val justificados: Int, val atrasos: Int, val porcentajeAsistencia: Double)
 data class AsistenciaRepresentado(val asistencias: List<AsistenciaHijo>, val resumen: ResumenAsistenciaHijo)
+data class Comunicado(val id: Long, val titulo: String, val contenido: String, val fecha: String, val fijado: Boolean)
 
 data class Asignacion(
     val idAsignacion: Long,
