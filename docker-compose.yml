@@ -254,6 +254,18 @@ services:
       - sga-distribuido-net
     restart: unless-stopped
 
+  # ─── POSTGRES EXPORTER (métricas de disponibilidad de PostgreSQL) ───
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: sga-postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:***REMOVED***@192.0.2.1:5433/sga?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - sga-distribuido-net
+    restart: unless-stopped
+
 networks:
   sga-distribuido-net:
     driver: bridge

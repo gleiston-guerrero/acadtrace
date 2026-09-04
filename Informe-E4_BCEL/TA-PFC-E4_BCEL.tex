@@ -489,6 +489,8 @@ El layout personalizado \texttt{JsonStructuredLayout} formatea los registros en 
 \label{fig:grafana-dashboard}
 \end{figure}
 
+\textit{Nota metodol\'ogica: el desglose de CPU/RAM por contenedor individual no fue posible en el entorno de desarrollo local (Docker Desktop para Windows), debido a una limitaci\'on conocida de cAdvisor con la virtualizaci\'on anidada de WSL2, que impide identificar contenedores por nombre en ese entorno. Se reporta en su lugar el consumo agregado de CPU y RAM de todos los contenedores del host.}
+
 % =============================================================================
 % 8. EVALUACIÓN EXPERIMENTAL ISO/IEC 25010 Y CRIPTO-AUDITORÍA (MÓDULO G)
 % =============================================================================
