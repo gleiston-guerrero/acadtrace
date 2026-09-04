@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
+    jacoco
 }
 
 val localSigningProperties = Properties()
@@ -54,6 +55,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -82,6 +86,26 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+jacoco { toolVersion = "0.8.13" }
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    reports {
+        html.required.set(true)
+        html.outputLocation.set(rootProject.layout.projectDirectory.dir("../docs/cobertura/movil"))
+        xml.required.set(true)
+        xml.outputLocation.set(rootProject.layout.projectDirectory.file("../docs/cobertura/movil/jacoco.xml"))
+        csv.required.set(false)
+    }
+    val generated = listOf("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "**/*_Impl*.*")
+    classDirectories.setFrom(files(
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) { exclude(generated) },
+        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) { exclude(generated) }
+    ))
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    executionData.setFrom(fileTree(layout.buildDirectory) { include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec", "jacoco/testDebugUnitTest.exec") })
 }
 
 gradle.taskGraph.whenReady {
@@ -127,9 +151,11 @@ dependencies {
     // Security EncryptedSharedPreferences
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment.ktx)
 
     // Testing
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

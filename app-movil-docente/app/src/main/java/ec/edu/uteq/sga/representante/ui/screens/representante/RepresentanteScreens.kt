@@ -12,15 +12,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ec.edu.uteq.sga.representante.domain.model.*
+import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
 
-@Composable fun HomeRepresentante(onRepresentados: () -> Unit, onSecurity: () -> Unit, onLogout: () -> Unit) = Scaffold(
+@Composable fun HomeRepresentante(onRepresentados: () -> Unit, onComunicados: () -> Unit, onSecurity: () -> Unit, onLogout: () -> Unit) = Scaffold(
     topBar = { TopAppBar(title = { Text("Portal del Representante") }, actions = { IconButton(onClick = onLogout) { Icon(Icons.Default.Logout, "Cerrar sesión") } }) }
 ) { padding -> Column(Modifier.padding(padding).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
     Text("Bienvenido", style = MaterialTheme.typography.headlineMedium)
     OptionCard("Mis representados", "Consulte la información académica de sus hijos", Icons.Default.People, onRepresentados)
+    OptionCard("Comunicados", "Avisos institucionales para representantes", Icons.Default.Campaign, onComunicados)
     OptionCard("Seguridad", "Biometría y notificaciones locales", Icons.Default.Security, onSecurity)
     Text("Calificaciones y asistencia se consultan desde cada representado.")
 } }
+
+@Composable fun ComunicadosRepresentanteScreen(back: () -> Unit) = Page("Comunicados", back) {
+    Text("Comunicados institucionales", style = MaterialTheme.typography.headlineSmall)
+    Text("El backend disponible no expone todavía un endpoint de comunicados autorizado para representantes.")
+    Text("La aplicación no usa el endpoint docente de publicación y no permite crear, editar ni eliminar avisos.")
+}
 
 @Composable fun MisRepresentadosScreen(vm: RepresentanteViewModel, back: () -> Unit, select: (Representado) -> Unit) {
     val state by vm.representados.collectAsState()
@@ -66,7 +74,10 @@ import ec.edu.uteq.sga.representante.domain.model.*
 @Composable private fun <T> StateContent(state: ConsultaUiState<T>, retry: () -> Unit, content: @Composable (T) -> Unit) = when {
     state.loading -> CircularProgressIndicator()
     state.error != null -> Column { Text(state.error); Button(onClick = retry) { Text("Reintentar") } }
-    state.data != null -> content(state.data)
+    state.data != null -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OfflineBanner(isOffline = state.isOffline)
+        content(state.data)
+    }
     else -> Text("Sin información")
 }
 

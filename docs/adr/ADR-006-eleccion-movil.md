@@ -19,7 +19,7 @@ Se mantiene una aplicación Android nativa con:
 - MVVM, con UI separada de ViewModels, repositories, Retrofit y Room.
 - Retrofit 2.11 y OkHttp 4.12 para los cuatro contratos REST consumidos por el flujo activo.
 - Room 2.6.1 para caché de representados, calificaciones y asistencia.
-- WorkManager 2.9 para avisos locales periódicos de expiración de sesión.
+- WorkManager 2.9 para refrescar la caché de lectura al recuperar conectividad y para avisos locales de expiración de sesión.
 - `EncryptedSharedPreferences` y Android Keystore para JWT, roles y preferencias sensibles.
 - AndroidX Biometric 1.1 para desbloquear únicamente una sesión local que siga vigente.
 - `NotificationChannel` y `POST_NOTIFICATIONS` para notificaciones locales de seguridad.
@@ -28,14 +28,14 @@ No se integra FCM porque el repositorio no contiene `google-services.json`, plug
 
 ## Justificación cuantitativa
 
-Las cifras se midieron directamente en el código y los artefactos del 1 de septiembre de 2026:
+Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican hasta que JaCoCo logre completar una ejecución real:
 
 | Métrica | Valor comprobado |
 | --- | ---: |
 | `minSdk` | 26 |
 | `targetSdk` | 34 |
 | `compileSdk` | 34 |
-| Rutas/pantallas finales del representante | 9 |
+| Rutas/pantallas finales del representante | 10 |
 | ViewModels activos en el flujo final | 2 |
 | Clases ViewModel presentes, incluyendo implementación histórica inaccesible | 13 |
 | Repositories activos en el flujo final | 2 |
@@ -43,15 +43,17 @@ Las cifras se midieron directamente en el código y los artefactos del 1 de sept
 | Entidades Room activas para caché de representante | 3 |
 | Entidades Room totales conservadas por compatibilidad de esquema | 17 |
 | Endpoints REST consumidos por el flujo activo | 4 |
-| Tests JVM Android | 15 |
-| Resultado comprobado antes del release | 15 aprobados |
-| Tamaño APK debug | 19,984,468 bytes |
+| Casos JVM Android descubiertos en fuente | 26 |
+| Casos Compose instrumentados añadidos | 1 |
+| Resultado JVM actual | No ejecutado: Gradle falla antes del worker con `Unable to establish loopback connection` |
+| Cobertura JaCoCo (instructions/lines/branches/classes) | Pendiente de ejecución real; no disponible en este host |
+| Tamaño APK debug actual | No disponible: no se generó artefacto en esta ejecución |
 | Tamaño APK release | Pendiente de keystore y firma interactiva |
 | Capacidades del dispositivo implementadas | 2 |
 | Roles móviles permitidos | 1 (`REPRESENTANTE`) |
 | Escrituras académicas permitidas desde la app | 0 |
 
-Las nueve rutas incluyen Login, desbloqueo biométrico, fallback biométrico, Home, Seguridad, Mis representados, Resumen, Calificaciones y Asistencia. Las implementaciones históricas de docente no aparecen en el grafo activo.
+Las diez rutas incluyen Login, desbloqueo biométrico, fallback biométrico, Home, Seguridad, Comunicados, Mis representados, Resumen, Calificaciones y Asistencia. Las implementaciones históricas de docente no aparecen en el grafo activo. Comunicados es informativa: no existe un endpoint real autorizado para representante y no se reutiliza el endpoint de publicación docente.
 
 ## Alternativas consideradas
 
@@ -92,16 +94,20 @@ Se elige Android nativo porque es la única alternativa que conserva directament
 - La biometría no crea, renueva ni sustituye el JWT; solo desbloquea localmente una sesión válida.
 - No se almacenan contraseña, huellas ni plantillas biométricas.
 - JWT, roles y preferencias se guardan mediante almacenamiento cifrado respaldado por Android Keystore.
-- Room contiene únicamente caché académico de lectura.
+- El flujo activo Room usa únicamente `representados_cache`, `calificaciones_representado_cache` y `asistencia_hijo_cache`; las entidades docentes restantes son históricas por compatibilidad del esquema.
 - Los encabezados `Authorization` se redactan en logs.
+- Los cuerpos HTTP no se registran; la traza diagnóstica se limita a método, URL, `idEstudiante` y estado, sin JWT.
 - El keystore de firma y sus contraseñas se suministran mediante variables de entorno y están excluidos de Git.
 
 ## Evidencia
 
 - Proyecto: `C:\acadtrace\app-movil-docente`.
 - Package físico y lógico: `app/src/main/java/ec/edu/uteq/sga/representante`.
-- APK debug: `app/build/outputs/apk/debug/app-debug.apk`.
+- Salida esperada del APK debug: `app/build/outputs/apk/debug/app-debug.apk`.
 - Contratos: `/api/auth/login`, `/api/representante/me/estudiantes`, `/api/docente/representante/me/estudiantes/{id}/calificaciones/` y `/api/docente/representante/me/estudiantes/{id}/asistencia/`.
-- Validación funcional real con el representado 681: los tres endpoints de consulta respondieron HTTP 200.
-- `assembleDebug`: `BUILD SUCCESSFUL`.
-- Las cifras de tests y APK release deben actualizarse en esta evidencia después de completar la firma interactiva final.
+- JaCoCo está configurado para publicar HTML en `docs/cobertura/movil/index.html` y XML en `docs/cobertura/movil/jacoco.xml`.
+- El 4 de septiembre de 2026 se ejecutaron `testDebugUnitTest jacocoTestReport`, `lintDebug` y `assembleDebug`; las tres invocaciones se bloquearon antes de iniciar tareas por `java.io.IOException: Unable to establish loopback connection`. No se publican resultados, cobertura ni APK inventados.
+- En el APK previamente instalado en el teléfono TECNO CL7, el desbloqueo usó `BiometricPrompt` y Logcat confirmó autenticación exitosa. Esta evidencia no sustituye la validación del APK nuevo.
+- Evidencia AWS real: Principal respondió 200 a `/api/representante/me/estudiantes` con `idEstudiante=681`; Android envió ese mismo identificador y JWT Bearer a `/api/docente/representante/me/estudiantes/681/calificaciones/`; AWS respondió 403 con `{"detail":"JWT_SECRET no configurado"}`. El bloqueo es configuración del microservicio en AWS y no se oculta ni se corrige desde Android.
+- El crash de `POST_NOTIFICATIONS` se rastreó a Activity Result/Fragment y se fijó `androidx.fragment:fragment-ktx:1.6.2`; su validación física en el nuevo APK permanece pendiente porque `assembleDebug` no puede ejecutarse en este host.
+- APK release: **PENDIENTE ÚNICAMENTE FIRMA INTERACTIVA**; no existe keystore versionado.

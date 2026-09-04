@@ -17,7 +17,8 @@ from docentes.auditoria.clocks import (
 from docentes.auditoria.config import obtener_modo_auditoria
 from docentes.auditoria.hashing import GENESIS_HASH, calcular_hash, contenido_evento, json_canonico
 from docentes.auditoria.service import auditar_evento
-from docentes.auditoria.verifier import verificar_cadena
+from docentes.auditoria.verifier import verificar_cadena, verificar_estado_academico
+from docentes.auditoria.payloads import payload_instancia
 from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
 from experimentos.generador_sintetico import SEED, generar_dataset
 from experimentos.manipulaciones import aplicar_manipulacion
@@ -183,3 +184,18 @@ def test_generador_es_determinista_y_respeta_propiedad_de_datos():
     assert len(primero["estudiantes"]) == 344
     assert len(primero["docentes"]) == 14
     assert primero["seed"] == 701
+
+
+def test_t1_detecta_cambio_directo_en_nota_contra_evidencia(monkeypatch):
+    nota = SimpleNamespace(pk=31, id_matricula=20, nota="8.50")
+    evidencia = [{
+        "id_evento": 9,
+        "payload_canonico": json_canonico(payload_instancia(nota)),
+    }]
+    assert verificar_estado_academico(nota, evidencia).valido is True
+
+    # Representa el estado recargado tras un UPDATE SQL que elude la aplicación.
+    nota.nota = "2.00"
+    resultado = verificar_estado_academico(nota, evidencia)
+    assert resultado.valido is False
+    assert resultado.tipo_inconsistencia == "ESTADO_ACADEMICO_DIVERGENTE"
