@@ -6,6 +6,9 @@ import logo from '../assets/logo.png';
 import AsistenteIaSecretaria from './AsistenteIaSecretaria';
 import { detectarHostVivo } from '../utils/handoff';
 import { MICROSERVICIOS } from '../config/microservicios';
+import LanguageSelector from './LanguageSelector';
+import ThemeToggle from './ThemeToggle';
+import { useI18n } from '../context/I18nContext';
 
 const PRIMARY = '#243A76';
 const PRIMARY_LIGHT = '#2d4a96';
@@ -19,6 +22,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
   const [anoActual, setAnoActual] = useState(null);
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const { t } = useI18n();
 
   const username = localStorage.getItem('username') || 'Secretario';
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
@@ -72,7 +76,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
   const hasSidebar = menuItems.length > 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors text-slate-800 dark:text-slate-100">
 
       {/* TOP BAR — FIJO */}
       <header style={{ backgroundColor: PRIMARY }} className="fixed top-0 left-0 right-0 text-white h-14 flex items-center justify-between px-4 shadow z-40 flex-shrink-0">
@@ -99,7 +103,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
               </svg>
             </button>
             {showPeriodo && (
-              <div className="absolute right-0 top-11 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+              <div className="absolute right-0 top-11 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden text-slate-800 dark:text-slate-100">
                 <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center gap-2">
                   <svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -108,18 +112,18 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                 </div>
                 <div className="p-3">
                   {anoActual ? (
-                    <div style={{ color: PRIMARY }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 font-semibold text-sm">
+                    <div style={{ color: PRIMARY }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 font-semibold text-sm">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       {anoActual.nombre} (Actual)
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 text-center px-2">No hay año lectivo activo</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 text-center px-2">No hay año lectivo activo</p>
                   )}
                   <button
                     onClick={() => { setShowPeriodo(false); navigate('/anos-lectivos'); }}
-                    className="w-full mt-2 py-1.5 px-3 text-xs font-semibold text-[#243A76] bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition"
+                    className="w-full mt-2 py-1.5 px-3 text-xs font-semibold text-[#243A76] dark:text-blue-400 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-lg text-center transition"
                   >
                     Administrar Años Lectivos →
                   </button>
@@ -128,11 +132,18 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
             )}
           </div>
 
+          {/* Selector de idioma */}
+          <LanguageSelector />
+
+          {/* Selector de tema claro/oscuro */}
+          <ThemeToggle />
+
           {/* Notificaciones */}
           <div className="relative">
             <button
               onClick={() => { setShowNotifs(!showNotifs); setShowPeriodo(false); setShowUserMenu(false); }}
               className="relative p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition"
+              title="Notificaciones"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -144,7 +155,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
               )}
             </button>
             {showNotifs && (
-              <div className="absolute right-0 top-11 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+              <div className="absolute right-0 top-11 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden text-slate-800 dark:text-slate-100">
                 <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3 flex items-center justify-between">
                   <p className="text-white text-sm font-semibold">Notificaciones</p>
                   {noLeidas > 0 && (
@@ -153,16 +164,16 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifs.length === 0 && (
-                    <p className="text-xs text-slate-400 text-center py-6">Sin notificaciones</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-6">Sin notificaciones</p>
                   )}
                   {notifs.map(n => (
                     <button
                       key={n.idNotificacion}
                       onClick={() => abrirNotificacion(n)}
-                      className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition ${n.leida ? '' : 'bg-blue-50/50'}`}
+                      className={`w-full text-left px-4 py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition ${n.leida ? '' : 'bg-blue-50/50 dark:bg-blue-900/20'}`}
                     >
-                      <p className={`text-xs ${n.leida ? 'text-slate-600' : 'text-slate-800 font-semibold'}`}>{n.titulo}</p>
-                      {n.mensaje && <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{n.mensaje}</p>}
+                      <p className={`text-xs ${n.leida ? 'text-slate-600 dark:text-slate-300' : 'text-slate-800 dark:text-white font-semibold'}`}>{n.titulo}</p>
+                      {n.mensaje && <p className="text-xs text-slate-400 dark:text-slate-400 mt-0.5 line-clamp-2">{n.mensaje}</p>}
                     </button>
                   ))}
                 </div>
@@ -186,7 +197,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
               </svg>
             </button>
             {showUserMenu && (
-              <div className="absolute right-0 top-11 w-52 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+              <div className="absolute right-0 top-11 w-52 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden text-slate-800 dark:text-slate-100">
                 <div style={{ backgroundColor: PRIMARY }} className="px-4 py-3">
                   <p className="text-white text-sm font-semibold capitalize">{username}</p>
                   <p className="text-white text-opacity-60 text-xs">{roles.join(', ') || 'SECRETARIO'}</p>
@@ -194,7 +205,7 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                 <div className="p-2">
                   <button
                     onClick={() => navigate('/portales')}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-2 transition"
                   >
                     <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -203,15 +214,15 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                   </button>
                   <button
                     onClick={() => navigate('/cambiar-password')}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition"
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-2 transition"
                   >
                     <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                     Cambiar contraseña
                   </button>
-                  <hr className="my-1 border-slate-100" />
+                  <hr className="my-1 border-slate-100 dark:border-slate-700" />
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition font-medium"
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center gap-2 transition font-medium"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                     Cerrar sesión
@@ -227,14 +238,14 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
       <div className="h-14 flex-shrink-0" />
 
       {/* BREADCRUMB */}
-      <div className="bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between">
-        <nav className="text-xs text-slate-500 flex items-center gap-1">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-2 flex items-center justify-between transition-colors">
+        <nav className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
           {breadcrumb.map((item, i) => (
             <span key={i} className="flex items-center gap-1">
-              {i > 0 && <span className="text-slate-300">/</span>}
+              {i > 0 && <span className="text-slate-300 dark:text-slate-600">/</span>}
               <span
                 style={i === breadcrumb.length - 1 ? { color: PRIMARY } : {}}
-                className={i === breadcrumb.length - 1 ? 'font-medium' : 'hover:underline cursor-pointer'}
+                className={i === breadcrumb.length - 1 ? 'font-medium dark:text-blue-400' : 'hover:underline cursor-pointer'}
                 onClick={() => i === 0 && navigate('/dashboard')}
               >
                 {item}
@@ -250,13 +261,13 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
 
         {/* SIDEBAR FIJO */}
         {hasSidebar && (
-          <aside className="w-56 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200 bg-white overflow-y-auto"
+          <aside className="w-56 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-y-auto transition-colors"
             style={{ height: 'calc(100vh - 14rem)' }}
           >
             <div className="p-3">
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                 {sidebarTitle && (
-                  <p className="px-4 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  <p className="px-4 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                     {sidebarTitle}
                   </p>
                 )}
@@ -267,8 +278,8 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                       onClick={() => item.path ? navigate(item.path) : onSeccionChange?.(item.id)}
                       className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition ${
                         seccion === item.id
-                          ? 'bg-blue-50 font-medium border-l-[3px]'
-                          : 'border-l-[3px] border-l-transparent text-slate-500 hover:bg-slate-50'
+                          ? 'bg-blue-50 dark:bg-blue-900/30 font-medium border-l-[3px]'
+                          : 'border-l-[3px] border-l-transparent text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                       }`}
                       style={seccion === item.id ? { color: PRIMARY, borderLeftColor: PRIMARY } : {}}
                     >
@@ -277,10 +288,10 @@ export default function Layout({ children, breadcrumb = ['Inicio'], sidebarTitle
                     </button>
                   ))}
                 </nav>
-                <hr className="border-slate-100" />
+                <hr className="border-slate-100 dark:border-slate-700" />
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left text-slate-400 hover:bg-slate-50 transition"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />

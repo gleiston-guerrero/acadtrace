@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/Toast';
+import { ThemeProvider } from './context/ThemeContext';
+import { I18nProvider } from './context/I18nContext';
 import Login from './pages/Login';
 import Portales from './pages/Portales';
 import Dashboard from './pages/Dashboard';
@@ -32,8 +34,10 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   return (
-    <ToastProvider>
-    <BrowserRouter>
+    <ThemeProvider>
+      <I18nProvider>
+        <ToastProvider>
+          <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/portales" element={<Portales />} />
@@ -59,7 +63,9 @@ export default function App() {
         <Route path="/cambiar-password" element={<PrivateRoute><CambiarPassword /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </BrowserRouter>
-    </ToastProvider>
+          </BrowserRouter>
+        </ToastProvider>
+      </I18nProvider>
+    </ThemeProvider>
   );
 }
