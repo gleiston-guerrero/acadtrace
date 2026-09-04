@@ -87,7 +87,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: "20.19.0"
 
       - name: Configurar Python 3.12
         uses: actions/setup-python@v5
@@ -152,7 +152,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: "20.19.0"
 
       - name: Compilar Frontend SGA Principal
         run: |
