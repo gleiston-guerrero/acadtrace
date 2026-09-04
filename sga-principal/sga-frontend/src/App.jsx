@@ -40,7 +40,7 @@ function App() {
 
                 {/* Rutas Operativas y de Gestión */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/portales" element={<ProtectedRoute><Portales /></ProtectedRoute>} />
+                <Route path="/portales" element={<Portales />} />
                 <Route path="/cambiar-password" element={<ProtectedRoute><CambiarPassword /></ProtectedRoute>} />
                 <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
                 <Route path="/estudiantes" element={<ProtectedRoute><Estudiantes /></ProtectedRoute>} />
