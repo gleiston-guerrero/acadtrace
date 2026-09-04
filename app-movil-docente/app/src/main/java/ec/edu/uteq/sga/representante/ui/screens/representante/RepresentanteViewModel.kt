@@ -18,11 +18,14 @@ class RepresentanteViewModel(private val repository: RepresentanteRepository) : 
     val calificaciones = _calificaciones.asStateFlow()
     private val _asistencia = MutableStateFlow(ConsultaUiState<AsistenciaRepresentado>())
     val asistencia = _asistencia.asStateFlow()
+    private val _comunicados = MutableStateFlow(ConsultaUiState<List<Comunicado>>())
+    val comunicados = _comunicados.asStateFlow()
 
     init { cargarRepresentados() }
     fun cargarRepresentados() = collect(repository.getRepresentados(), _representados)
     fun cargarCalificaciones(id: Long) = collect(repository.getCalificaciones(id), _calificaciones)
     fun cargarAsistencia(id: Long) = collect(repository.getAsistencia(id), _asistencia)
+    fun cargarComunicados() = collect(repository.getComunicados(), _comunicados)
 
     private fun <T> collect(source: Flow<Resource<T>>, state: MutableStateFlow<ConsultaUiState<T>>) = viewModelScope.launch {
         var terminalStateReceived = false

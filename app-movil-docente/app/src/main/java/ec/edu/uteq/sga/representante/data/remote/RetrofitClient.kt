@@ -24,10 +24,6 @@ class RetrofitClient(private val sessionManager: SessionManager) {
         .baseUrl(sanitizeBaseUrl(sessionManager.getGatewayUrl())).client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create()).build().create(RepresentanteApi::class.java)
 
-    fun getRepresentanteDocenteApi(): RepresentanteApi = Retrofit.Builder()
-        .baseUrl(sanitizeBaseUrl(sessionManager.getDocenteUrl())).client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create()).build().create(RepresentanteApi::class.java)
-
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(sessionManager))
         .addInterceptor(loggingInterceptor)

@@ -40,7 +40,7 @@ class RepresentanteRepositoryImpl(private val db: AppDatabase, private val clien
     override fun getCalificaciones(idEstudiante: Long): Flow<Resource<CalificacionesRepresentado>> = flow {
         emit(Resource.Loading)
         val result = try {
-            val response = client.getRepresentanteDocenteApi().getCalificaciones(idEstudiante)
+            val response = client.getRepresentantePrincipalApi().getCalificaciones(idEstudiante)
             if (!response.isSuccessful) throw HttpException(response)
             val body = requireNotNull(response.body())
             cache.putCalificaciones(CalificacionesRepresentadoCacheEntity(idEstudiante, gson.toJson(body)))
@@ -58,7 +58,7 @@ class RepresentanteRepositoryImpl(private val db: AppDatabase, private val clien
     override fun getAsistencia(idEstudiante: Long): Flow<Resource<AsistenciaRepresentado>> = flow {
         emit(Resource.Loading)
         val result = try {
-            val response = client.getRepresentanteDocenteApi().getAsistencia(idEstudiante)
+            val response = client.getRepresentantePrincipalApi().getAsistencia(idEstudiante)
             if (!response.isSuccessful) throw HttpException(response)
             val body = requireNotNull(response.body())
             cache.putAsistencia(AsistenciaHijoCacheEntity(idEstudiante, gson.toJson(body)))
@@ -73,6 +73,27 @@ class RepresentanteRepositoryImpl(private val db: AppDatabase, private val clien
         emit(result)
     }
 
+    override fun getComunicados(): Flow<Resource<List<Comunicado>>> = flow {
+        emit(Resource.Loading)
+        val result = try {
+            val response = client.getRepresentantePrincipalApi().getComunicados()
+            if (!response.isSuccessful) throw HttpException(response)
+            val body = response.body().orEmpty()
+            cache.putComunicados(ComunicadosRepresentanteCacheEntity(json = gson.toJson(body)))
+            Resource.Success(body.map { it.domain() })
+        } catch (error: Exception) {
+            logFailure("getComunicados", error)
+            val cached = runCatching {
+                cache.getComunicados()?.let { entity ->
+                    val type = com.google.gson.reflect.TypeToken.getParameterized(List::class.java, ComunicadoDTO::class.java).type
+                    gson.fromJson<List<ComunicadoDTO>>(entity.json, type).map { it.domain() }
+                }
+            }.getOrNull()
+            if (cached != null) Resource.Success(cached, isOffline = true) else Resource.Error(message(error), error)
+        }
+        emit(result)
+    }
+
     private fun RepresentadoDTO.domain() = Representado(idEstudiante, nombres, apellidos, curso, paralelo, matriculas)
     private fun CalificacionesRepresentadoDTO.domain() = CalificacionesRepresentado(
         calificaciones.map { NotaRepresentado(it.actividad, it.periodo, it.nota, it.notaCualitativa) },
@@ -80,6 +101,7 @@ class RepresentanteRepositoryImpl(private val db: AppDatabase, private val clien
     private fun AsistenciaRepresentadoDTO.domain() = AsistenciaRepresentado(
         asistencias.map { AsistenciaHijo(it.fecha, it.periodo, it.estado) },
         ResumenAsistenciaHijo(resumen.total, resumen.presentes, resumen.ausentes, resumen.justificados, resumen.atrasos, resumen.porcentajeAsistencia))
+    private fun ComunicadoDTO.domain() = Comunicado(id, titulo, contenido, fecha, fijado)
     private fun message(error: Exception): String = when (error) {
         is HttpException -> when (error.code()) {
             401 -> "Sesión expirada"

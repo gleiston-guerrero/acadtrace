@@ -16,6 +16,8 @@ class SyncWorker(
         val app = applicationContext as SgaRepresentanteApp
         val representados = app.representanteRepository.getRepresentados().first { it !is Resource.Loading }
         if (representados !is Resource.Success) return Result.retry()
+        val comunicados = app.representanteRepository.getComunicados().first { it !is Resource.Loading }
+        if (comunicados !is Resource.Success) return Result.retry()
         for (representado in representados.data) {
             val notas = app.representanteRepository.getCalificaciones(representado.idEstudiante).first { it !is Resource.Loading }
             val asistencia = app.representanteRepository.getAsistencia(representado.idEstudiante).first { it !is Resource.Loading }

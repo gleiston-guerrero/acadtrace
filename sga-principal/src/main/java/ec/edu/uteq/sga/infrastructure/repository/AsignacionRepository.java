@@ -9,6 +9,8 @@ import java.util.List;
 public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
     List<Asignacion> findByAnoLectivo_IdAnoLectivo(Long idAnoLectivo);
     List<Asignacion> findByDocente_IdPersona(Long idDocente);
+    List<Asignacion> findByGrado_IdGradoAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivoAndActivoTrue(
+            Long idGrado, Long idParalelo, Long idAnoLectivo);
     boolean existsByDocente_IdPersonaAndAsignatura_IdAsignaturaAndGrado_IdGradoAndAnoLectivo_IdAnoLectivo(
             Long idDocente, Long idAsignatura, Long idGrado, Long idAnoLectivo);
 

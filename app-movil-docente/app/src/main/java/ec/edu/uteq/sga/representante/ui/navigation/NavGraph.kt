@@ -47,7 +47,8 @@ fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, star
             SecurityScreen(app.sessionManager) { nav.popBackStack() }
         }
         composable(Screen.Comunicados.route) {
-            ComunicadosRepresentanteScreen { nav.popBackStack() }
+            val vm: RepresentanteViewModel = factory("comunicados") { RepresentanteViewModel(app.representanteRepository) }
+            ComunicadosRepresentanteScreen(vm) { nav.popBackStack() }
         }
         composable(Screen.MisRepresentados.route) {
             val vm: RepresentanteViewModel = factory { RepresentanteViewModel(app.representanteRepository) }

@@ -24,10 +24,18 @@ import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
     Text("Calificaciones y asistencia se consultan desde cada representado.")
 } }
 
-@Composable fun ComunicadosRepresentanteScreen(back: () -> Unit) = Page("Comunicados", back) {
-    Text("Comunicados institucionales", style = MaterialTheme.typography.headlineSmall)
-    Text("El backend disponible no expone todavía un endpoint de comunicados autorizado para representantes.")
-    Text("La aplicación no usa el endpoint docente de publicación y no permite crear, editar ni eliminar avisos.")
+@Composable fun ComunicadosRepresentanteScreen(vm: RepresentanteViewModel, back: () -> Unit) {
+    val state by vm.comunicados.collectAsState()
+    LaunchedEffect(Unit) { vm.cargarComunicados() }
+    Page("Comunicados", back) { StateContent(state, vm::cargarComunicados) { items ->
+        if (items.isEmpty()) Text("No existen comunicados disponibles") else LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(items, key = { it.id }) { item -> Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) {
+                Text(item.titulo, fontWeight = FontWeight.Bold)
+                Text(item.contenido)
+                Text(item.fecha, style = MaterialTheme.typography.bodySmall)
+            } } }
+        }
+    } }
 }
 
 @Composable fun MisRepresentadosScreen(vm: RepresentanteViewModel, back: () -> Unit, select: (Representado) -> Unit) {
