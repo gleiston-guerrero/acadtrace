@@ -17,9 +17,9 @@ import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.str;
 
 public final class NominaMatriculasPdfBuilder {
 
-<span class="nc" id="L20">    private record Col(String label, float x, float w) {}</span>
+<span class="fc" id="L20">    private record Col(String label, float x, float w) {}</span>
 
-<span class="nc" id="L22">    private static final List&lt;Col&gt; COLS = List.of(</span>
+<span class="fc" id="L22">    private static final List&lt;Col&gt; COLS = List.of(</span>
             new Col(&quot;N°&quot;, 40, 30),
             new Col(&quot;Cédula&quot;, 70, 80),
             new Col(&quot;Apellidos y Nombres&quot;, 150, 200),
@@ -30,31 +30,31 @@ public final class NominaMatriculasPdfBuilder {
     );
 
     /** A4 landscape: se invierte el rectangulo en vez de usar page.setRotation, para dibujar sin transforms. */
-<span class="nc" id="L33">    private static final PDRectangle A4_LANDSCAPE = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());</span>
+<span class="fc" id="L33">    private static final PDRectangle A4_LANDSCAPE = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());</span>
 
     private NominaMatriculasPdfBuilder() {}
 
     public static byte[] build(List&lt;Map&lt;String, Object&gt;&gt; datos, String anoLectivo, String grado, String paralelo,
                                 PdfTheme theme) throws IOException {
-<span class="nc" id="L39">        try (PDDocument document = new PDDocument()) {</span>
-<span class="nc" id="L40">            PDPage page = new PDPage(A4_LANDSCAPE);</span>
-<span class="nc" id="L41">            document.addPage(page);</span>
+<span class="fc" id="L39">        try (PDDocument document = new PDDocument()) {</span>
+<span class="fc" id="L40">            PDPage page = new PDPage(A4_LANDSCAPE);</span>
+<span class="fc" id="L41">            document.addPage(page);</span>
 
-<span class="nc" id="L43">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
-<span class="nc bnc" id="L44" title="All 4 branches missed.">                String subtitulo = Stream.of(anoLectivo, grado, (paralelo != null &amp;&amp; !paralelo.isBlank()) ? &quot;Paralelo &quot; + paralelo : null)</span>
-<span class="nc bnc" id="L45" title="All 4 branches missed.">                        .filter(s -&gt; s != null &amp;&amp; !s.isBlank())</span>
-<span class="nc" id="L46">                        .collect(Collectors.joining(&quot; · &quot;));</span>
-<span class="nc" id="L47">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Nómina de Estudiantes Matriculados&quot;, subtitulo) + 8;</span>
+<span class="fc" id="L43">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
+<span class="pc bpc" id="L44" title="2 of 4 branches missed.">                String subtitulo = Stream.of(anoLectivo, grado, (paralelo != null &amp;&amp; !paralelo.isBlank()) ? &quot;Paralelo &quot; + paralelo : null)</span>
+<span class="pc bpc" id="L45" title="2 of 4 branches missed.">                        .filter(s -&gt; s != null &amp;&amp; !s.isBlank())</span>
+<span class="fc" id="L46">                        .collect(Collectors.joining(&quot; · &quot;));</span>
+<span class="fc" id="L47">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Nómina de Estudiantes Matriculados&quot;, subtitulo) + 8;</span>
 
-<span class="nc" id="L49">                canvas.rect(40, y, canvas.pageWidth() - 80, 18, PdfTheme.SECONDARY);</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">                for (Col c : COLS) {</span>
-<span class="nc" id="L51">                    canvas.text(c.x(), y + 5, c.label(), Fonts.HELVETICA_BOLD, 8, PdfTheme.WHITE);</span>
-<span class="nc" id="L52">                }</span>
-<span class="nc" id="L53">                y += 20;</span>
+<span class="fc" id="L49">                canvas.rect(40, y, canvas.pageWidth() - 80, 18, PdfTheme.SECONDARY);</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">                for (Col c : COLS) {</span>
+<span class="fc" id="L51">                    canvas.text(c.x(), y + 5, c.label(), Fonts.HELVETICA_BOLD, 8, PdfTheme.WHITE);</span>
+<span class="fc" id="L52">                }</span>
+<span class="fc" id="L53">                y += 20;</span>
 
-<span class="nc" id="L55">                int i = 0;</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">                for (Map&lt;String, Object&gt; row : datos) {</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">                    if (y &gt; canvas.pageHeight() - 60) {</span>
+<span class="fc" id="L55">                int i = 0;</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                for (Map&lt;String, Object&gt; row : datos) {</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">                    if (y &gt; canvas.pageHeight() - 60) {</span>
 <span class="nc" id="L58">                        PdfLayout.drawFooter(canvas, theme);</span>
 <span class="nc" id="L59">                        PDPage next = new PDPage(A4_LANDSCAPE);</span>
 <span class="nc" id="L60">                        document.addPage(next);</span>
@@ -62,30 +62,30 @@ public final class NominaMatriculasPdfBuilder {
 <span class="nc" id="L62">                        y = 30;</span>
                     }
 
-<span class="nc bnc" id="L65" title="All 2 branches missed.">                    Color bg = (i % 2 == 0) ? PdfTheme.WHITE : PdfTheme.LIGHT;</span>
-<span class="nc" id="L66">                    canvas.rect(40, y, canvas.pageWidth() - 80, 16, bg);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">                    Color bg = (i % 2 == 0) ? PdfTheme.WHITE : PdfTheme.LIGHT;</span>
+<span class="fc" id="L66">                    canvas.rect(40, y, canvas.pageWidth() - 80, 16, bg);</span>
 
-<span class="nc" id="L68">                    String estudiante = canvas.truncate(str(row.get(&quot;estudiante&quot;)), Fonts.HELVETICA, 8, COLS.get(2).w() - 4);</span>
-<span class="nc" id="L69">                    canvas.text(COLS.get(0).x(), y + 4, String.valueOf(i + 1), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L70">                    canvas.text(COLS.get(1).x(), y + 4, str(row.get(&quot;cedula&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L71">                    canvas.text(COLS.get(2).x(), y + 4, estudiante, Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L72">                    canvas.text(COLS.get(3).x(), y + 4, str(row.get(&quot;grado&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L73">                    canvas.text(COLS.get(4).x(), y + 4, str(row.get(&quot;paralelo&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L74">                    canvas.text(COLS.get(5).x(), y + 4, str(row.get(&quot;estado&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
-<span class="nc" id="L75">                    canvas.text(COLS.get(6).x(), y + 4, formatFechaEc(row.get(&quot;fecha_registro&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L68">                    String estudiante = canvas.truncate(str(row.get(&quot;estudiante&quot;)), Fonts.HELVETICA, 8, COLS.get(2).w() - 4);</span>
+<span class="fc" id="L69">                    canvas.text(COLS.get(0).x(), y + 4, String.valueOf(i + 1), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L70">                    canvas.text(COLS.get(1).x(), y + 4, str(row.get(&quot;cedula&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L71">                    canvas.text(COLS.get(2).x(), y + 4, estudiante, Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L72">                    canvas.text(COLS.get(3).x(), y + 4, str(row.get(&quot;grado&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L73">                    canvas.text(COLS.get(4).x(), y + 4, str(row.get(&quot;paralelo&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L74">                    canvas.text(COLS.get(5).x(), y + 4, str(row.get(&quot;estado&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
+<span class="fc" id="L75">                    canvas.text(COLS.get(6).x(), y + 4, formatFechaEc(row.get(&quot;fecha_registro&quot;)), Fonts.HELVETICA, 8, PdfTheme.DARK);</span>
 
-<span class="nc" id="L77">                    y += 16;</span>
-<span class="nc" id="L78">                    i++;</span>
-<span class="nc" id="L79">                }</span>
+<span class="fc" id="L77">                    y += 16;</span>
+<span class="fc" id="L78">                    i++;</span>
+<span class="fc" id="L79">                }</span>
 
-<span class="nc" id="L81">                canvas.rect(40, y + 4, canvas.pageWidth() - 80, 1, PdfTheme.BORDER);</span>
-<span class="nc" id="L82">                canvas.text(40, y + 8, &quot;Total de estudiantes: &quot; + datos.size(), Fonts.HELVETICA_BOLD, 9, PdfTheme.PRIMARY);</span>
-<span class="nc" id="L83">                PdfLayout.drawFooter(canvas, theme);</span>
+<span class="fc" id="L81">                canvas.rect(40, y + 4, canvas.pageWidth() - 80, 1, PdfTheme.BORDER);</span>
+<span class="fc" id="L82">                canvas.text(40, y + 8, &quot;Total de estudiantes: &quot; + datos.size(), Fonts.HELVETICA_BOLD, 9, PdfTheme.PRIMARY);</span>
+<span class="fc" id="L83">                PdfLayout.drawFooter(canvas, theme);</span>
             }
 
-<span class="nc" id="L86">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
-<span class="nc" id="L87">            document.save(out);</span>
-<span class="nc" id="L88">            return out.toByteArray();</span>
+<span class="fc" id="L86">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="fc" id="L87">            document.save(out);</span>
+<span class="fc" id="L88">            return out.toByteArray();</span>
         }
     }
 }

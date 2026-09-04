@@ -18,24 +18,24 @@ import java.util.List;
  */
 public class PdfCanvas implements Closeable {
 
-<span class="nc" id="L21">    public enum Align { LEFT, CENTER, RIGHT }</span>
+<span class="fc" id="L21">    public enum Align { LEFT, CENTER, RIGHT }</span>
 
     private final PDDocument document;
     private PDPage page;
     private PDPageContentStream stream;
 
-<span class="nc" id="L27">    public PdfCanvas(PDDocument document, PDPage page) throws IOException {</span>
-<span class="nc" id="L28">        this.document = document;</span>
-<span class="nc" id="L29">        this.page = page;</span>
-<span class="nc" id="L30">        this.stream = new PDPageContentStream(document, page);</span>
-<span class="nc" id="L31">    }</span>
+<span class="fc" id="L27">    public PdfCanvas(PDDocument document, PDPage page) throws IOException {</span>
+<span class="fc" id="L28">        this.document = document;</span>
+<span class="fc" id="L29">        this.page = page;</span>
+<span class="fc" id="L30">        this.stream = new PDPageContentStream(document, page);</span>
+<span class="fc" id="L31">    }</span>
 
     public float pageWidth() {
-<span class="nc" id="L34">        return page.getMediaBox().getWidth();</span>
+<span class="fc" id="L34">        return page.getMediaBox().getWidth();</span>
     }
 
     public float pageHeight() {
-<span class="nc" id="L38">        return page.getMediaBox().getHeight();</span>
+<span class="fc" id="L38">        return page.getMediaBox().getHeight();</span>
     }
 
     /** Cierra el content stream de la pagina actual y continua dibujando en una nueva (paginacion de tablas). */
@@ -46,33 +46,33 @@ public class PdfCanvas implements Closeable {
 <span class="nc" id="L46">    }</span>
 
     public void rect(float x, float yTop, float width, float height, Color color) throws IOException {
-<span class="nc" id="L49">        stream.setNonStrokingColor(color);</span>
-<span class="nc" id="L50">        stream.addRect(x, pageHeight() - yTop - height, width, height);</span>
-<span class="nc" id="L51">        stream.fill();</span>
-<span class="nc" id="L52">    }</span>
+<span class="fc" id="L49">        stream.setNonStrokingColor(color);</span>
+<span class="fc" id="L50">        stream.addRect(x, pageHeight() - yTop - height, width, height);</span>
+<span class="fc" id="L51">        stream.fill();</span>
+<span class="fc" id="L52">    }</span>
 
     /** Texto sin alineacion/ajuste, ancla top-left en (x, yTop) igual que doc.text(x,y) en pdfkit. */
     public void text(float x, float yTop, String value, PDFont font, float size, Color color) throws IOException {
-<span class="nc" id="L56">        drawLine(x, yTop, safe(value), font, size, color);</span>
-<span class="nc" id="L57">    }</span>
+<span class="fc" id="L56">        drawLine(x, yTop, safe(value), font, size, color);</span>
+<span class="fc" id="L57">    }</span>
 
     /** Texto de una sola linea alineado dentro de una banda [x, x+width]. */
     public void textAligned(float x, float yTop, float width, String value, PDFont font, float size,
                              Color color, Align align) throws IOException {
-<span class="nc" id="L62">        String text = safe(value);</span>
-<span class="nc" id="L63">        float textWidth = widthOf(text, font, size);</span>
-<span class="nc bnc" id="L64" title="All 3 branches missed.">        float drawX = switch (align) {</span>
-<span class="nc" id="L65">            case LEFT -&gt; x;</span>
-<span class="nc" id="L66">            case CENTER -&gt; x + Math.max(0, (width - textWidth) / 2f);</span>
-<span class="nc" id="L67">            case RIGHT -&gt; x + Math.max(0, width - textWidth);</span>
+<span class="fc" id="L62">        String text = safe(value);</span>
+<span class="fc" id="L63">        float textWidth = widthOf(text, font, size);</span>
+<span class="fc bfc" id="L64" title="All 3 branches covered.">        float drawX = switch (align) {</span>
+<span class="fc" id="L65">            case LEFT -&gt; x;</span>
+<span class="fc" id="L66">            case CENTER -&gt; x + Math.max(0, (width - textWidth) / 2f);</span>
+<span class="fc" id="L67">            case RIGHT -&gt; x + Math.max(0, width - textWidth);</span>
         };
-<span class="nc" id="L69">        drawLine(drawX, yTop, text, font, size, color);</span>
-<span class="nc" id="L70">    }</span>
+<span class="fc" id="L69">        drawLine(drawX, yTop, text, font, size, color);</span>
+<span class="fc" id="L70">    }</span>
 
     /** Recorta el texto con &quot;…&quot; si excede maxWidth (evita que una celda invada la columna siguiente). */
     public String truncate(String value, PDFont font, float size, float maxWidth) throws IOException {
-<span class="nc" id="L74">        String text = safe(value);</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (widthOf(text, font, size) &lt;= maxWidth) return text;</span>
+<span class="fc" id="L74">        String text = safe(value);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (widthOf(text, font, size) &lt;= maxWidth) return text;</span>
 <span class="nc" id="L76">        String ellipsis = &quot;…&quot;;</span>
 <span class="nc" id="L77">        StringBuilder sb = new StringBuilder();</span>
 <span class="nc bnc" id="L78" title="All 2 branches missed.">        for (int i = 0; i &lt; text.length(); i++) {</span>
@@ -90,59 +90,59 @@ public class PdfCanvas implements Closeable {
      */
     public float textWrapped(float x, float yTop, float width, String value, PDFont font, float size,
                               Color color, float lineHeight, Align align) throws IOException {
-<span class="nc" id="L93">        List&lt;String&gt; lines = wrap(safe(value), font, size, width);</span>
-<span class="nc" id="L94">        float y = yTop;</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        for (String line : lines) {</span>
-<span class="nc" id="L96">            textAligned(x, y, width, line, font, size, color, align);</span>
-<span class="nc" id="L97">            y += lineHeight;</span>
-<span class="nc" id="L98">        }</span>
-<span class="nc" id="L99">        return y;</span>
+<span class="fc" id="L93">        List&lt;String&gt; lines = wrap(safe(value), font, size, width);</span>
+<span class="fc" id="L94">        float y = yTop;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        for (String line : lines) {</span>
+<span class="fc" id="L96">            textAligned(x, y, width, line, font, size, color, align);</span>
+<span class="fc" id="L97">            y += lineHeight;</span>
+<span class="fc" id="L98">        }</span>
+<span class="fc" id="L99">        return y;</span>
     }
 
     private void drawLine(float x, float yTop, String text, PDFont font, float size, Color color) throws IOException {
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (text.isEmpty()) return;</span>
-<span class="nc" id="L104">        float baseline = pageHeight() - yTop - ascent(font, size);</span>
-<span class="nc" id="L105">        stream.beginText();</span>
-<span class="nc" id="L106">        stream.setFont(font, size);</span>
-<span class="nc" id="L107">        stream.setNonStrokingColor(color);</span>
-<span class="nc" id="L108">        stream.newLineAtOffset(x, baseline);</span>
-<span class="nc" id="L109">        stream.showText(text);</span>
-<span class="nc" id="L110">        stream.endText();</span>
-<span class="nc" id="L111">    }</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (text.isEmpty()) return;</span>
+<span class="fc" id="L104">        float baseline = pageHeight() - yTop - ascent(font, size);</span>
+<span class="fc" id="L105">        stream.beginText();</span>
+<span class="fc" id="L106">        stream.setFont(font, size);</span>
+<span class="fc" id="L107">        stream.setNonStrokingColor(color);</span>
+<span class="fc" id="L108">        stream.newLineAtOffset(x, baseline);</span>
+<span class="fc" id="L109">        stream.showText(text);</span>
+<span class="fc" id="L110">        stream.endText();</span>
+<span class="fc" id="L111">    }</span>
 
     private List&lt;String&gt; wrap(String text, PDFont font, float size, float maxWidth) throws IOException {
-<span class="nc" id="L114">        List&lt;String&gt; lines = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">        for (String paragraph : text.split(&quot;\n&quot;, -1)) {</span>
-<span class="nc" id="L116">            StringBuilder current = new StringBuilder();</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">            for (String word : paragraph.split(&quot; &quot;)) {</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">                String candidate = current.isEmpty() ? word : current + &quot; &quot; + word;</span>
-<span class="nc bnc" id="L119" title="All 4 branches missed.">                if (!current.isEmpty() &amp;&amp; widthOf(candidate, font, size) &gt; maxWidth) {</span>
-<span class="nc" id="L120">                    lines.add(current.toString());</span>
-<span class="nc" id="L121">                    current = new StringBuilder(word);</span>
+<span class="fc" id="L114">        List&lt;String&gt; lines = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        for (String paragraph : text.split(&quot;\n&quot;, -1)) {</span>
+<span class="fc" id="L116">            StringBuilder current = new StringBuilder();</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">            for (String word : paragraph.split(&quot; &quot;)) {</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">                String candidate = current.isEmpty() ? word : current + &quot; &quot; + word;</span>
+<span class="fc bfc" id="L119" title="All 4 branches covered.">                if (!current.isEmpty() &amp;&amp; widthOf(candidate, font, size) &gt; maxWidth) {</span>
+<span class="fc" id="L120">                    lines.add(current.toString());</span>
+<span class="fc" id="L121">                    current = new StringBuilder(word);</span>
                 } else {
-<span class="nc" id="L123">                    current = new StringBuilder(candidate);</span>
+<span class="fc" id="L123">                    current = new StringBuilder(candidate);</span>
                 }
             }
-<span class="nc" id="L126">            lines.add(current.toString());</span>
+<span class="fc" id="L126">            lines.add(current.toString());</span>
         }
-<span class="nc" id="L128">        return lines;</span>
+<span class="fc" id="L128">        return lines;</span>
     }
 
     private float widthOf(String text, PDFont font, float size) throws IOException {
-<span class="nc" id="L132">        return font.getStringWidth(text) / 1000f * size;</span>
+<span class="fc" id="L132">        return font.getStringWidth(text) / 1000f * size;</span>
     }
 
     private float ascent(PDFont font, float size) {
-<span class="nc" id="L136">        return font.getFontDescriptor().getAscent() / 1000f * size;</span>
+<span class="fc" id="L136">        return font.getFontDescriptor().getAscent() / 1000f * size;</span>
     }
 
     private String safe(String value) {
-<span class="nc bnc" id="L140" title="All 2 branches missed.">        return value == null ? &quot;&quot; : value;</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">        return value == null ? &quot;&quot; : value;</span>
     }
 
     @Override
     public void close() throws IOException {
-<span class="nc" id="L145">        stream.close();</span>
-<span class="nc" id="L146">    }</span>
+<span class="fc" id="L145">        stream.close();</span>
+<span class="fc" id="L146">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

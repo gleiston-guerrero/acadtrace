@@ -8,53 +8,53 @@ import java.util.Locale;
 /** Cabecera/pie/secciones/campos comunes a los 3 reportes PDF (portados de pdfGenerator.js). */
 public final class PdfLayout {
 
-<span class="nc" id="L11">    private static final DateTimeFormatter FOOTER_DATE_FORMAT =</span>
-<span class="nc" id="L12">            DateTimeFormatter.ofPattern(&quot;d 'de' MMMM 'de' yyyy&quot;, new Locale(&quot;es&quot;, &quot;EC&quot;));</span>
+<span class="fc" id="L11">    private static final DateTimeFormatter FOOTER_DATE_FORMAT =</span>
+<span class="fc" id="L12">            DateTimeFormatter.ofPattern(&quot;d 'de' MMMM 'de' yyyy&quot;, new Locale(&quot;es&quot;, &quot;EC&quot;));</span>
 
     private PdfLayout() {}
 
     public static float drawHeader(PdfCanvas canvas, PdfTheme theme, String titulo, String subtitulo) throws IOException {
-<span class="nc" id="L17">        float pageWidth = canvas.pageWidth();</span>
+<span class="fc" id="L17">        float pageWidth = canvas.pageWidth();</span>
 
-<span class="nc" id="L19">        canvas.rect(0, 0, pageWidth, 90, PdfTheme.PRIMARY);</span>
-<span class="nc" id="L20">        canvas.textAligned(40, 22, pageWidth - 80, theme.nombre(), Fonts.HELVETICA_BOLD, 16,</span>
+<span class="fc" id="L19">        canvas.rect(0, 0, pageWidth, 90, PdfTheme.PRIMARY);</span>
+<span class="fc" id="L20">        canvas.textAligned(40, 22, pageWidth - 80, theme.nombre(), Fonts.HELVETICA_BOLD, 16,</span>
                 PdfTheme.WHITE, PdfCanvas.Align.CENTER);
-<span class="nc" id="L22">        canvas.textAligned(40, 48, pageWidth - 80, titulo.toUpperCase(Locale.ROOT), Fonts.HELVETICA, 11,</span>
+<span class="fc" id="L22">        canvas.textAligned(40, 48, pageWidth - 80, titulo.toUpperCase(Locale.ROOT), Fonts.HELVETICA, 11,</span>
                 PdfTheme.HEADER_SUBTITLE, PdfCanvas.Align.CENTER);
-<span class="nc bnc" id="L24" title="All 4 branches missed.">        if (subtitulo != null &amp;&amp; !subtitulo.isBlank()) {</span>
-<span class="nc" id="L25">            canvas.textAligned(40, 66, pageWidth - 80, subtitulo, Fonts.HELVETICA, 9,</span>
+<span class="pc bpc" id="L24" title="1 of 4 branches missed.">        if (subtitulo != null &amp;&amp; !subtitulo.isBlank()) {</span>
+<span class="fc" id="L25">            canvas.textAligned(40, 66, pageWidth - 80, subtitulo, Fonts.HELVETICA, 9,</span>
                     PdfTheme.HEADER_SUBSUBTITLE, PdfCanvas.Align.CENTER);
         }
-<span class="nc" id="L28">        canvas.rect(0, 90, pageWidth, 4, PdfTheme.ACCENT);</span>
+<span class="fc" id="L28">        canvas.rect(0, 90, pageWidth, 4, PdfTheme.ACCENT);</span>
 
-<span class="nc" id="L30">        return 110;</span>
+<span class="fc" id="L30">        return 110;</span>
     }
 
     public static void drawFooter(PdfCanvas canvas, PdfTheme theme) throws IOException {
-<span class="nc" id="L34">        float pageWidth = canvas.pageWidth();</span>
-<span class="nc" id="L35">        float y = canvas.pageHeight() - 40;</span>
+<span class="fc" id="L34">        float pageWidth = canvas.pageWidth();</span>
+<span class="fc" id="L35">        float y = canvas.pageHeight() - 40;</span>
 
-<span class="nc" id="L37">        canvas.rect(0, y - 8, pageWidth, 1, PdfTheme.BORDER);</span>
-<span class="nc" id="L38">        String fecha = LocalDate.now().format(FOOTER_DATE_FORMAT);</span>
-<span class="nc" id="L39">        canvas.text(40, y, theme.ciudad() + &quot; — Generado el &quot; + fecha, Fonts.HELVETICA, 8, PdfTheme.MUTED);</span>
-<span class="nc" id="L40">        canvas.textAligned(40, y, pageWidth - 80, &quot;Documento generado por SGA&quot;, Fonts.HELVETICA, 8,</span>
+<span class="fc" id="L37">        canvas.rect(0, y - 8, pageWidth, 1, PdfTheme.BORDER);</span>
+<span class="fc" id="L38">        String fecha = LocalDate.now().format(FOOTER_DATE_FORMAT);</span>
+<span class="fc" id="L39">        canvas.text(40, y, theme.ciudad() + &quot; — Generado el &quot; + fecha, Fonts.HELVETICA, 8, PdfTheme.MUTED);</span>
+<span class="fc" id="L40">        canvas.textAligned(40, y, pageWidth - 80, &quot;Documento generado por SGA&quot;, Fonts.HELVETICA, 8,</span>
                 PdfTheme.MUTED, PdfCanvas.Align.RIGHT);
-<span class="nc" id="L42">    }</span>
+<span class="fc" id="L42">    }</span>
 
     public static float drawSectionTitle(PdfCanvas canvas, String title, float y) throws IOException {
-<span class="nc" id="L45">        canvas.rect(40, y, canvas.pageWidth() - 80, 20, PdfTheme.LIGHT);</span>
-<span class="nc" id="L46">        canvas.rect(40, y, 4, 20, PdfTheme.SECONDARY);</span>
-<span class="nc" id="L47">        canvas.text(50, y + 5, title, Fonts.HELVETICA_BOLD, 10, PdfTheme.PRIMARY);</span>
-<span class="nc" id="L48">        return y + 28;</span>
+<span class="fc" id="L45">        canvas.rect(40, y, canvas.pageWidth() - 80, 20, PdfTheme.LIGHT);</span>
+<span class="fc" id="L46">        canvas.rect(40, y, 4, 20, PdfTheme.SECONDARY);</span>
+<span class="fc" id="L47">        canvas.text(50, y + 5, title, Fonts.HELVETICA_BOLD, 10, PdfTheme.PRIMARY);</span>
+<span class="fc" id="L48">        return y + 28;</span>
     }
 
     public static void drawField(PdfCanvas canvas, String label, String value, float x, float y) throws IOException {
-<span class="nc" id="L52">        drawField(canvas, label, value, x, y, 130);</span>
-<span class="nc" id="L53">    }</span>
+<span class="fc" id="L52">        drawField(canvas, label, value, x, y, 130);</span>
+<span class="fc" id="L53">    }</span>
 
     public static void drawField(PdfCanvas canvas, String label, String value, float x, float y, float labelWidth) throws IOException {
-<span class="nc" id="L56">        canvas.text(x, y, label + &quot;:&quot;, Fonts.HELVETICA_BOLD, 9, PdfTheme.MUTED);</span>
-<span class="nc bnc" id="L57" title="All 4 branches missed.">        canvas.text(x + labelWidth, y, (value == null || value.isBlank()) ? &quot;—&quot; : value, Fonts.HELVETICA, 9, PdfTheme.DARK);</span>
-<span class="nc" id="L58">    }</span>
+<span class="fc" id="L56">        canvas.text(x, y, label + &quot;:&quot;, Fonts.HELVETICA_BOLD, 9, PdfTheme.MUTED);</span>
+<span class="pc bpc" id="L57" title="2 of 4 branches missed.">        canvas.text(x + labelWidth, y, (value == null || value.isBlank()) ? &quot;—&quot; : value, Fonts.HELVETICA, 9, PdfTheme.DARK);</span>
+<span class="fc" id="L58">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

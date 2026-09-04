@@ -68,7 +68,7 @@ import java.util.function.Supplier;
  * un exito o un registro que no existe seria peor que mostrar el fallo.
  */
 @Component
-<span class="nc" id="L71">public class PrincipalGrpcClient {</span>
+<span class="fc" id="L71">public class PrincipalGrpcClient {</span>
 
 <span class="fc" id="L73">    private static final Logger log = LoggerFactory.getLogger(PrincipalGrpcClient.class);</span>
 
@@ -97,14 +97,14 @@ import java.util.function.Supplier;
      * en sga-principal).
      */
     private PrincipalServiceGrpc.PrincipalServiceBlockingStub autenticado() {
-<span class="nc" id="L100">        Metadata metadata = new Metadata();</span>
-<span class="nc" id="L101">        metadata.put(INTERNAL_TOKEN_KEY, internalToken);</span>
-<span class="nc" id="L102">        String traceId = TraceContext.current();</span>
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (traceId != null) metadata.put(TRACE_ID_KEY, traceId);</span>
-<span class="nc" id="L104">        String actor = usernameActual();</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (actor != null) metadata.put(ACTOR_KEY, actor);</span>
-<span class="nc" id="L106">        return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))</span>
-<span class="nc" id="L107">                .withDeadlineAfter(DEADLINE_SEGUNDOS, TimeUnit.SECONDS);</span>
+<span class="fc" id="L100">        Metadata metadata = new Metadata();</span>
+<span class="fc" id="L101">        metadata.put(INTERNAL_TOKEN_KEY, internalToken);</span>
+<span class="fc" id="L102">        String traceId = TraceContext.current();</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (traceId != null) metadata.put(TRACE_ID_KEY, traceId);</span>
+<span class="fc" id="L104">        String actor = usernameActual();</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (actor != null) metadata.put(ACTOR_KEY, actor);</span>
+<span class="fc" id="L106">        return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))</span>
+<span class="fc" id="L107">                .withDeadlineAfter(DEADLINE_SEGUNDOS, TimeUnit.SECONDS);</span>
     }
 
     private static String usernameActual() {
@@ -113,16 +113,16 @@ import java.util.function.Supplier;
 <span class="nc" id="L113">            HttpServletRequest request = attrs.getRequest();</span>
 <span class="nc" id="L114">            AuthenticatedUser user = (AuthenticatedUser) request.getAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE);</span>
 <span class="nc bnc" id="L115" title="All 2 branches missed.">            return user != null ? user.username() : null;</span>
-<span class="nc" id="L116">        } catch (IllegalStateException e) {</span>
-<span class="nc" id="L117">            return null;</span>
+<span class="fc" id="L116">        } catch (IllegalStateException e) {</span>
+<span class="fc" id="L117">            return null;</span>
         }
     }
 
     /** Ejecuta una llamada gRPC reintentando ante caidas transitorias de sga-principal. */
     private &lt;T&gt; T conReintentos(Supplier&lt;T&gt; llamada) {
-<span class="nc" id="L123">        for (int intento = 0; ; intento++) {</span>
+<span class="pc" id="L123">        for (int intento = 0; ; intento++) {</span>
             try {
-<span class="nc" id="L125">                return llamada.get();</span>
+<span class="fc" id="L125">                return llamada.get();</span>
 <span class="nc" id="L126">            } catch (StatusRuntimeException e) {</span>
 <span class="nc bnc" id="L127" title="All 4 branches missed.">                if (!esTransitorio(e) || intento == MAX_REINTENTOS) throw e;</span>
 <span class="nc" id="L128">                log.warn(&quot;sga-principal no respondio (intento {}/{}, {}); reintentando en {} ms&quot;,</span>
@@ -154,7 +154,7 @@ import java.util.function.Supplier;
 <span class="nc" id="L154">            Thread.sleep(ms);</span>
 <span class="nc" id="L155">        } catch (InterruptedException ie) {</span>
 <span class="nc" id="L156">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L157">        }</span>
+        }
 <span class="nc" id="L158">    }</span>
 
     public List&lt;AnoLectivoProto&gt; listarAnosLectivos() {
@@ -228,8 +228,8 @@ import java.util.function.Supplier;
 
     public EstudianteProto obtenerEstudiante(long id) {
         try {
-<span class="nc" id="L231">            return conReintentos(() -&gt;</span>
-<span class="nc" id="L232">                    autenticado().obtenerEstudiante(ObtenerEstudianteRequest.newBuilder().setIdEstudiante(id).build()));</span>
+<span class="fc" id="L231">            return conReintentos(() -&gt;</span>
+<span class="fc" id="L232">                    autenticado().obtenerEstudiante(ObtenerEstudianteRequest.newBuilder().setIdEstudiante(id).build()));</span>
 <span class="nc" id="L233">        } catch (StatusRuntimeException e) {</span>
 <span class="nc" id="L234">            throw mapearError(e, &quot;obtener&quot;, &quot;el estudiante&quot;);</span>
         }
@@ -262,7 +262,7 @@ import java.util.function.Supplier;
 <span class="nc" id="L262">                    .setIdEstudiante(id).setActivo(activo).build()));</span>
 <span class="nc" id="L263">        } catch (StatusRuntimeException e) {</span>
 <span class="nc" id="L264">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;el estudiante&quot;);</span>
-<span class="nc" id="L265">        }</span>
+        }
 <span class="nc" id="L266">    }</span>
 
     public GradoProto crearGrado(GuardarGradoRequest request) {
@@ -287,7 +287,7 @@ import java.util.function.Supplier;
 <span class="nc" id="L287">                    .setIdGrado(idGrado).setActivo(activo).build()));</span>
 <span class="nc" id="L288">        } catch (StatusRuntimeException e) {</span>
 <span class="nc" id="L289">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;el grado&quot;);</span>
-<span class="nc" id="L290">        }</span>
+        }
 <span class="nc" id="L291">    }</span>
 
     public ParaleloProto crearParalelo(long idGrado, String letra) {
@@ -305,7 +305,7 @@ import java.util.function.Supplier;
 <span class="nc" id="L305">                    .setIdParalelo(idParalelo).setActivo(activo).build()));</span>
 <span class="nc" id="L306">        } catch (StatusRuntimeException e) {</span>
 <span class="nc" id="L307">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;el paralelo&quot;);</span>
-<span class="nc" id="L308">        }</span>
+        }
 <span class="nc" id="L309">    }</span>
 
     public MatriculaProto crearMatricula(GuardarMatriculaRequest request) {
@@ -331,7 +331,7 @@ import java.util.function.Supplier;
 <span class="nc" id="L331">                    .setIdMatricula(idMatricula).setEstado(estado).build()));</span>
 <span class="nc" id="L332">        } catch (StatusRuntimeException e) {</span>
 <span class="nc" id="L333">            throw mapearError(e, &quot;cambiar el estado de&quot;, &quot;la matrícula&quot;);</span>
-<span class="nc" id="L334">        }</span>
+        }
 <span class="nc" id="L335">    }</span>
 
     public ListarMatriculasResponse listarMatriculas(ListarMatriculasRequest request) {
