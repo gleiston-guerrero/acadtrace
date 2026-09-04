@@ -4,9 +4,16 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved) return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // Modo claro institucional siempre por defecto para evitar pantallas oscuras inesperadas
+    const manual = localStorage.getItem("sga_user_theme");
+    if (manual === "dark" || manual === "light") {
+      return manual;
+    }
+    // Limpiar 'theme' previo que se haya seteado en 'dark' por preferencia del SO
+    if (localStorage.getItem("theme") === "dark") {
+      localStorage.removeItem("theme");
+    }
+    return "light";
   });
 
   useEffect(() => {
@@ -16,6 +23,7 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.remove("dark");
     }
+    localStorage.setItem("sga_user_theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
 
