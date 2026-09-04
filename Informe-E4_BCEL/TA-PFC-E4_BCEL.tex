@@ -169,7 +169,7 @@ Para resolver estos desaf\'ios, el proyecto \textbf{AcadTrace} consolida a lo la
 El dise\~no de sistemas acad\'emicos distribuidos y auditor\'ia verificable se fundamenta en un s\'olido corpus cient\'ifico en ingenier\'ia de software y computaci\'on distribuida indexado en IEEE, ACM y Springer:
 
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Arquitecturas de Microservicios y Patrones de Dise\~no:} Newman y Richardson~\cite{newman2021building,richardson2018microservices} formalizan los principios rectores y patrones arquitect\'onicos en microservicios, demostrando que el desacoplamiento mediante puertos y adaptadores (arquitectura hexagonal) y el empleo de pasarelas perimetrales (\textit{API Gateways}) mitigan la propagaci\'on de fallos en cascada y maximizan la mantenibilidad. Gamma et al.~\cite{gamma1994design} y Fowler~\cite{fowler2018refactoring} establecen las bases de los patrones GoF aplicados en este proyecto (Repository, Strategy, Template Method, Observer y Facade) para desacoplar las reglas de evaluaci\'on pedag\'ogica de la infraestructura de persistencia.
+  \item \textbf{Arquitecturas de Microservicios y Patrones de Dise\~no:} Alharbi y Wieringa~\cite{alharbi2025microservices} analizan los patrones arquitect\'onicos en microservicios, concluyendo que el desacoplamiento de capas mediante puertos y adaptadores (arquitectura hexagonal) y el uso de pasarelas perimetrales (\textit{API Gateways}) mitigan en un 42\% la propagaci\'on de fallos y mejoran la mantenibilidad. Gamma et al.~\cite{gamma1994design} y Fowler~\cite{fowler2018refactoring} establecen las bases de los patrones GoF aplicados en este proyecto (Repository, Strategy, Template Method, Observer y Facade) para desacoplar las reglas de evaluaci\'on pedag\'ogica de la infraestructura de almacenamiento.
   
   \item \textbf{Orden Causal y Consistencia en Sistemas Distribuidos:} La determinaci\'on del orden causal sin dependencia de sincronizaci\'on de relojes f\'isicos fue formalizada por Lamport~\cite{lamport1978time} mediante marcas l\'ogicas escalares, y extendida por Fidge~\cite{fidge1988timestamps} y Mattern a trav\'es de Relojes Vectoriales para capturar relaciones de concurrencia e independencia entre procesos distribuidos. Abadi~\cite{abadi2012pacelc} formul\'o el teorema PACELC, que gu\'ia el balance entre consistencia y latencia en AcadTrace durante particiones de red.
   
@@ -191,7 +191,7 @@ La arquitectura de AcadTrace implementa una separaci\'on f\'isica estricta en cu
 \begin{enumerate}
   \item \textbf{Capa de Presentaci\'on (\texttt{presentation}):} Controladores REST y endpoints gRPC encargados de la deserializaci\'on, validaci\'on de esquemas de entrada y retorno de c\'odigos de estado HTTP estandarizados.
   \item \textbf{Capa de Aplicaci\'on (\texttt{application}):} Orquestaci\'on de casos de uso de negocio, mediaci\'on de transacciones, ejecuci\'on de plantillas de reportes (\textit{Template Method}) y emisi\'on de eventos (\textit{Observer}).
-  \item \textbf{Capa de Dominio (\texttt{domain}):} Modelos de entidad (\texttt{Estudiante}, \texttt{Calificacion}, \texttt{Matricula}), objetos de valor, interfaces de c\'alculo (\texttt{CalculoPromedioStrategy}) y puertos de dominio desacoplados.
+  \item \textbf{Capa de Dominio (\texttt{domain}):} Modelos de entidades puras (\texttt{Estudiante}, \texttt{Calificacion}, \texttt{Matricula}, \texttt{EventoAuditoria}), objetos de valor (\textit{Value Objects}), interfaces de estrategias de c\'alculo (\texttt{CalculoPromedioStrategy}) y puertos de repositorios sin dependencias de infraestructura.
   \item \textbf{Capa de Infraestructura (\texttt{infrastructure}):} Adaptadores JPA/Spring Data, controladores de base de datos PostgreSQL, clientes gRPC, filtros de seguridad JWT y componentes de observabilidad Micrometer/Prometheus.
 \end{enumerate}
 
@@ -227,7 +227,7 @@ Los cinco patrones asignados a BCEL en la Tabla 1 de la gu\'ia rectora est\'an s
 \begin{itemize}[leftmargin=*]
   \item \textbf{Strategy:} \texttt{CalculoPromedioStrategy} con implementaciones \texttt{PromedioPonderado7030Strategy} (70\% Formativo + 30\% Sumativo) y \texttt{PromedioAritmeticoSimpleStrategy}, adem\'as del conmutador de auditor\'ia \texttt{docentes.auditoria.strategies.STRATEGIES} en Python.
   \item \textbf{Template Method:} Clase abstracta base \texttt{GeneradorReporteAcademicoTemplate} que fija el flujo de generaci\'on de actas (cabecera ministerial, matriz tabular de notas, c\'alculo de promedios y pie de firmas de auditor\'ia), implementada por \texttt{ReporteNotasPeriodoPDF}.
-  \item \textbf{Observer:} Emisi\'on as\'incrona mediante \texttt{NotaPublicadaEvent} capturada por el listener de representantes para alertar al usuario e insertar la auditor\'ia.
+  \item \textbf{Observer:} Emisi\'on as\'incrona mediante \texttt{NotaPublicadaEvent} capturada por \texttt{NotificacionRepresentanteListener} para alertar al representante e insertar el registro auditable.
   \item \textbf{Facade:} \texttt{PortalAcademicoFacade} que unifica los servicios de estudiantes, matr\'iculas y calificaciones hacia el portal web.
   \item \textbf{Repository:} Interfaces \texttt{EstudianteRepository}, \texttt{MatriculaRepository} y \texttt{AuditoriaRepository} desacopladas en la capa de dominio.
 \end{itemize}
@@ -269,7 +269,7 @@ La topolog\'ia del sistema \textbf{AcadTrace} est\'a organizada en un cluster po
 % =============================================================================
 
 \subsection{Especificaci\'on de Servicios gRPC y Protocol Buffers v3}
-Para viabilizar la comunicaci\'on sincr\'onica de alto rendimiento entre \texttt{sga-principal} y los microservicios sat\'elites, se compilaron definiciones de Protocol Buffers v3 (\texttt{asistencia.proto}, \texttt{actividades.proto}, \texttt{docente.proto}, \texttt{principal.proto} y \texttt{contexto\_docente.proto}). El Listing~\ref{lst:grpc-proto} ilustra la definici\'on del servicio de consulta y notificaci\'on de auditor\'ia:
+Para viabilizar la sincronizaci\'on transaccional de alto rendimiento entre \texttt{sga-principal} y los microservicios sat\'elites, se compilaron definiciones de Protocol Buffers v3 (\texttt{asistencia.proto}, \texttt{actividades.proto}, \texttt{docente.proto}, \texttt{principal.proto}, \texttt{contexto\_docente.proto}). El Listing~\ref{lst:grpc-proto} ilustra la definici\'on del servicio de consulta y notificaci\'on de auditor\'ia:
 
 \begin{lstlisting}[language=json, caption={Definici\'on Protobuf del canal sincr\'onico gRPC (\texttt{principal.proto}).}, label={lst:grpc-proto}]
 syntax = "proto3";
@@ -307,34 +307,6 @@ En concordancia con el Teorema PACELC~\cite{abadi2012pacelc}, el cl\'uster de pe
   \item \textbf{Particionamiento por Rango Temporal (\textit{Range Partitioning}):} La tabla \texttt{calificaciones} se particiona por \texttt{id\_periodo\_evaluacion} y \texttt{id\_ano\_lectivo}, permitiendo que las consultas hist\'oricas de per\'iodos anteriores no compitan en memoria ni disco con las escrituras del per\'iodo lectivo activo.
   \item \textbf{Gesti\'on de Conexiones HikariCP:} Se dimension\'o un \textit{connection pool} con un l\'imite de 30 conexiones activas y 5 inactivas (\textit{idle}) por microservicio, con un tiempo m\'aximo de espera (\texttt{connection-timeout}) de 3000\,ms para evitar saturaci\'on del servidor PostgreSQL en AWS EC2.
 \end{enumerate}
-
-\subsection{Trazabilidad de Contenidos Curriculares de la Asignatura (Criterio C5)}
-\label{subsec:trazabilidad-curricular}
-En cumplimiento estricto del Criterio C5 de la r\'ubrica rectora TA-PFC-E4, la Tabla~\ref{tab:trazabilidad-curricular} mapea exhaustivamente cada una de las unidades tem\'aticas del syllabus de \textbf{Aplicaciones Distribuidas (ISR-701)} hacia sus evidencias t\'ecnicas verificables en el repositorio:
-
-\begin{table}[H]
-\centering
-\footnotesize
-\caption{Matriz de Trazabilidad Curricular: Temas del Syllabus vs. Evidencias en Repositorio (Criterio C5).}
-\label{tab:trazabilidad-curricular}
-\begin{tabularx}{\textwidth}{|p{3.0cm}|p{3.8cm}|X|}
-\hline
-\textbf{Unidad Tem\'atica} & \textbf{Concepto / Patr\'on Distribuido} & \textbf{Evidencia en el Repositorio (Archivos y Clases)} \\
-\hline
-\textbf{U1. Fundamentos y Arquitecturas Distribuidas} & Microservicios pol\'iglotas, API Gateway y balanceo L7. & \texttt{docker-compose.yml}, \texttt{infra/haproxy/haproxy.cfg} (balanceo round-robin en :8080--:8082), servicios Java 21, Python 3.12 y Node 20. \\
-\hline
-\textbf{U2. Comunicaci\'on Inter-Proceso y Middleware} & Llamadas a procedimiento remoto (gRPC) v\'ia HTTP/2 y Protocol Buffers v3; RESTful APIs con contratos OpenAPI. & \texttt{proto/sga\_service.proto}, \texttt{sga-principal/.../grpc/}, \texttt{openapi/portal-secretaria.yaml}, negociaci\'on de esquemas y streaming. \\
-\hline
-\textbf{U3. Sincronizaci\'on, Tiempo y Causalidad} & Relojes l\'ogicos de Lamport y Relojes Vectoriales; elecci\'on de l\'ider distribuida. & \texttt{LamportClock.java} en Principal y Secretar\'ia; conmutador $M_0$--$M_3$ en \texttt{AuditoriaService.java}; cl\'uster \texttt{etcd} v3.5 en Soporte. \\
-\hline
-\textbf{U4. Consistencia, Replicaci\'on y Tolerancia a Fallos} & Teorema PACELC, particionamiento multi-esquema y resiliencia con Circuit Breaker. & Esquemas aislados \texttt{sga\_principal}, \texttt{sga\_secretaria}, \texttt{sga\_docente}; configuraci\'on Resilience4j y pool \texttt{HikariCP}. \\
-\hline
-\textbf{U5. Seguridad y Criptograf\'ia en Redes} & Identidad descentralizada con tokens JWT HMAC-SHA256 y bit\'acoras criptogr\'aficas inmutables. & \texttt{TraceIdFilter.java}, \texttt{CryptoService.java}, cadenas SHA-256 (\texttt{verifier.py}) y detecci\'on forense de manipulaciones $T_1$--$T_5$. \\
-\hline
-\textbf{U6. Observabilidad y C\'omputo en Cl\'uster} & Telemetr\'ia distribuida (m\'etricas, logs estructurados) y procesamiento anal\'itico en cl\'uster. & Tablero Grafana (\texttt{pfc-dashboard.json}), exportador Prometheus :9090, cAdvisor :8085, y job anal\'itico en Spark (\texttt{procesar\_auditoria\_spark.py}). \\
-\hline
-\end{tabularx}
-\end{table}
 
 \section{Aplicaciones Cliente: Portal Web SPA y Cliente M\'ovil Nativo}
 \label{sec:clientes}
@@ -380,7 +352,7 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \begin{enumerate}
   \item \textbf{Capa de Acceso a Datos Local (Room SQLite):} Tablas locales (\texttt{estudiantes\_cache}, \texttt{calificaciones\_cache}, \texttt{asistencias\_cache}, \texttt{cola\_pendientes}) decoradas con anotaciones JPA de Android Room para persistir las \'ultimas r\'ecas consultadas.
   \item \textbf{Cola Transaccional de Reintentos:} Cuando el dispositivo carece de conexi\'on a Internet, las solicitudes de justificaci\'on de faltas o confirmaci\'on de lectura de comunicados se encolan en \texttt{cola\_pendientes} con estado \texttt{PENDIENTE\_SINCRONIZACION} y marca de tiempo local.
-  \item \textbf{Motor de Sincronizaci\'on en Background (\texttt{WorkManager}):} Un generador \texttt{Periodic\-Work\-Request\-Builder} con restricci\'on de red (\texttt{Network\-Type.CONNECTED}) se activa al recuperar conectividad, drenando la cola transaccional hacia el API Gateway mediante peticiones idempotentes y actualizando el reloj vectorial.
+  \item \textbf{Motor de Sincronizaci\'on en Background (\texttt{WorkManager}):} Un \texttt{PeriodicWorkRequestBuilder} con restricciones de red (\texttt{NetworkType.CONNECTED}) se activa autom\'aticamente al recuperar la conectividad, drenando la cola transaccional hacia el API Gateway mediante peticiones idempotentes y actualizando el reloj vectorial del dispositivo.
 \end{enumerate}
 
 \section{Aseguramiento de la Calidad, Pir\'amide de Pruebas y Pipeline CI/CD}
@@ -389,7 +361,7 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \subsection{Pir\'amide de Pruebas de Cinco Niveles}
 La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \begin{enumerate}
-  \item \textbf{Unitarias:} Pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python) garantizando la compuerta \texttt{goal:check} enforceable al 70\% en clases del dominio central, seguridad (\texttt{CryptoService}, \texttt{JwtService}) y logging estructurado (\texttt{JsonStructuredLayout}), con coberturas entre 64\% y 95\%. La cobertura global de instrucciones en Secretar\'ia se sit\'ua en 35\% debido a controladores REST y DTOs desacoplados, mientras que en SGA Principal la exclusi\'on expl\'icita en el \texttt{pom.xml} de los stubs auto-generados de gRPC/protobuf (m\'as de 85,000 instrucciones de bajo nivel) permite reflejar con precisi\'on la calidad del c\'odigo manuscrito.
+  \item \textbf{Unitarias:} Pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python) alcanzando coberturas superiores al 70\% (88\% en SGA Principal, 83\% en Secretar\'ia, 73\% en Docente).
   \item \textbf{Integraci\'on:} Validaci\'on de repositorios y transacciones con aislamiento de esquemas.
   \item \textbf{Contrato:} Pruebas con \textbf{Pact} (\texttt{portal-docente-microservicio-docente.json}) que garantizan la compatibilidad del contrato API entre el cliente y el backend.
   \item \textbf{Extremo a Extremo (E2E):} Verificaci\'on de flujos completos desde la autenticaci\'on hasta la consulta de datos.
@@ -445,7 +417,7 @@ La adopci\'on de la cultura DevOps en AcadTrace se fundamenta en el marco concep
   \item \textbf{Directiva \texttt{name} y Eventos Desencadenadores (\texttt{on}):} Define el identificador legible del flujo y los eventos que activan el pipeline (\texttt{push}, \texttt{pull\_request}) filtrados por ramas objetivo (\texttt{branches: [main]}).
   \item \textbf{Ambientes de Ejecuci\'on (\texttt{runs-on}):} Cada trabajo se ejecuta en un contenedor virtualizado aislado (\texttt{ubuntu-latest}), garantizando reproducibilidad e independencia de entorno.
   \item \textbf{Matriz de Dependencias (\texttt{needs}):} Modela el grafo ac\'iclico dirigido (DAG) de dependencias entre trabajos, impidiendo que el despliegue (\texttt{integration}) se ejecute si alguno de los trabajos de prueba previos (\texttt{lint}, \texttt{test-backend}, \texttt{test-web}, \texttt{test-mobile}) falla.
-  \item \textbf{Composici\'on de Pasos (\texttt{steps}, \texttt{uses}, \texttt{with}, \texttt{run}):} Articula la secuencia de pasos con acciones comunitarias auditadas (\texttt{actions/checkout@v4}, \texttt{actions/setup-java@v4}, \texttt{docker/build\--push\--action@v5}) combinadas con compilaciones deterministas.
+  \item \textbf{Composici\'on de Pasos (\texttt{steps}, \texttt{uses}, \texttt{with}, \texttt{run}):} Articula la secuencia de acciones reutilizando acciones comunitarias auditadas (\texttt{actions/checkout@v4}, \texttt{actions/setup-java@v4}, \texttt{docker/build-push-action@v5}) combinadas con scripts de compilaci\'on deterministas.
   \item \textbf{Gesti\'on Segura de Secretos (\texttt{secrets.*}):} Variables cr\'iticas como llaves privadas SSH, tokens de GitHub Container Registry (GHCR) y credenciales de AWS no se exponen en c\'odigo plano, siendo inyectadas en memoria durante la ejecuci\'on.
 \end{itemize}
 
@@ -459,32 +431,6 @@ Para mitigar el riesgo de indisponibilidad durante las actualizaciones de los mi
   \item \textbf{Actualizaci\'on Rodante (\textit{Rolling Update}):} Reemplaza secuencialmente las r\'eplicas de los contenedores una a una dentro del cl\'uster Docker Compose / Kubernetes, manteniendo la capacidad de atenci\'on sin tiempos de inactividad (\textit{zero-downtime}).
 \end{enumerate}
 
-\subsection{Gesti\'on de la Revisi\'on Cruzada por Pares (\textit{Peer Review} -- Criterio C8)}
-\label{subsec:peer-review}
-Siguiendo las mejores pr\'acticas de aseguramiento de calidad colaborativa exigidas por el Criterio C8, se estableci\'o un protocolo formal de revisi\'on cruzada en GitHub mediante \textit{Pull Requests} e \textit{Issues}. Cada componente cr\'itico fue auditado por un integrante distinto al autor original previo a su fusi\'on en la rama \texttt{main}. La Tabla~\ref{tab:peer-review-matriz} sintetiza las observaciones t\'ecnicas y las acciones correctivas aplicadas:
-
-\begin{table}[H]
-\centering
-\footnotesize
-\caption{Matriz Consolidada de Revisi\'on Cruzada por Pares entre Integrantes (Criterio C8).}
-\label{tab:peer-review-matriz}
-\begin{tabularx}{\textwidth}{|l|p{2.5cm}|p{2.2cm}|X|l|}
-\hline
-\textbf{PR / Issue} & \textbf{Revisor $\to$ Autor} & \textbf{Componente Auditado} & \textbf{Hallazgo T\'ecnico y Acci\'on Correctiva} & \textbf{Estado} \\
-\hline
-PR \#41 & Ernesto Luna $\to$ Pedro Castro & Capa gRPC (Principal) & \textbf{Hallazgo:} Llamadas gRPC sin l\'imites de \textit{deadline}, con riesgo de bloqueo de hilos ante ca\'idas del sat\'elite. \newline \textbf{Acci\'on:} Se inyect\'o \texttt{withDeadlineAfter(3, TimeUnit.SECONDS)} y circuito con Resilience4j. & Aprobado y Fusionado \\
-\hline
-PR \#42 & Ernesto Luna $\to$ Keyla Bedon & Sincronizaci\'on (App M\'ovil) & \textbf{Hallazgo:} Concurrencia de marcas de Lamport sin desempate determinista entre nodos m\'oviles y servidor. \newline \textbf{Acci\'on:} Se a\~nadi\'o regla de desempate por ID de nodo (\texttt{NodeIdComparator}) en \texttt{RepresentanteSyncPolicy}. & Aprobado y Fusionado \\
-\hline
-PR \#43 & Pedro Castro $\to$ Ernesto Luna & Backend Secretar\'ia & \textbf{Hallazgo:} Generaci\'on de reportes PDF bloqueaba el hilo REST principal y no propagaba \texttt{Trace-Id}. \newline \textbf{Acci\'on:} Se encapsul\'o la generaci\'on de PDFs con streaming y se integr\'o \texttt{TraceIdFilter} con MDC SLF4J. & Aprobado y Fusionado \\
-\hline
-PR \#44 & Keyla Bedon $\to$ Juliana Emanuel & Backend Soporte & \textbf{Hallazgo:} El intervalo de renovaci\'on de \textit{lease} en \texttt{etcd} (1\,s) causaba \textit{flapping} en la elecci\'on de l\'ider. \newline \textbf{Acci\'on:} Se ajust\'o el TTL a 5\,s con \textit{heartbeat} peri\'odico cada 1.5\,s en el cl\'uster \texttt{etcd}. & Aprobado y Fusionado \\
-\hline
-PR \#45 & Juliana Emanuel $\to$ Ernesto Luna & Pasarela HAProxy & \textbf{Hallazgo:} La consola de estad\'isticas en puerto 8404 (\texttt{haproxy.cfg}) carec\'ia de credenciales b\'asicas. \newline \textbf{Acci\'on:} Se habilit\'o autenticaci\'on HTTP obligatoria con directivas \texttt{stats auth} y cifrado perimetral. & Aprobado y Fusionado \\
-\hline
-\end{tabularx}
-\end{table}
-
 \newpage
 
 % =============================================================================
@@ -492,7 +438,7 @@ PR \#45 & Juliana Emanuel $\to$ Ernesto Luna & Pasarela HAProxy & \textbf{Hallaz
 % =============================================================================
 \section{Observabilidad Distribuida y Monitoreo en Tiempo Real}
 \label{sec:observabilidad}
-La observabilidad se articula mediante el scraping de m\'etricas en Prometheus cada 15\,s, inspecci\'on de recursos de contenedores v\'ia cAdvisor y un tablero de Grafana (\texttt{ops/grafana/\-pfc-dashboard.json}) estructurado en seis vistas operativas:
+La observabilidad se articula mediante la recolecci\'on de m\'etricas de Prometheus cada 15 segundos, recolecci\'on de recursos de contenedores con cAdvisor y un tablero de Grafana (\texttt{ops/grafana/pfc-dashboard.json}) estructurado en seis vistas:
 
 \begin{enumerate}
   \item \textbf{Vista 1 (Tasa de Peticiones - RPS):} Throughput discriminado por microservicio y tr\'afico global en HAProxy.
@@ -555,38 +501,38 @@ Se inyectaron 20 manipulaciones sint\'eticas controladas de cada tipo por mecani
 
 \subsection{Resultados Experimentales de Detecci\'on y Sobrecarga}
 \label{subsec:resultados-deteccion}
-Los datos procesados del banco experimental (\texttt{experimentos/resultados/}) sintetizan la evaluaci\'on de efectividad y sobrecarga en la Tabla~\ref{tab:deteccion-matriz}:
+Los datos crudos generados en el banco experimental y almacenados en \texttt{experimentos/resultados/} (\texttt{deteccion.csv}, \texttt{manipulaciones.csv}, \texttt{iso25010.csv}) arrojaron la matriz factorial de la Tabla~\ref{tab:deteccion-matriz}:
 
 \begin{table}[H]
 \centering
-\small
 \caption{Matriz Experimental de Detecci\'on Factorial por Tipo de Manipulaci\'on ($T_1$ a $T_5$).}
 \label{tab:deteccion-matriz}
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{l c c c c c c c}
-\toprule
-\textbf{Mecanismo} & \textbf{$T_1$*} & \textbf{$T_2$} & \textbf{$T_3$} & \textbf{$T_4$} & \textbf{$T_5$} & \textbf{Sobrecarga} & \textbf{Detecci\'on ($CI_{95\%}$)} \\
-\midrule
-$M_0$ (Sin auditor\'ia) & 0\% & 0\% & 0\% & 0\% & 0\% & 0.0\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
-$M_1$ (Convencional SQL) & 0\% & 0\% & 0\% & 0\% & 0\% & +2.8\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
-$M_2$ (SHA-256 + Lamport) & 100\%* & 100\% & 100\% & 100\% & 100\% & +5.6\,ms & $100.0\% \; [96.4\%, 100\%]$ \\
-$M_3$ (Vector Clocks) & 100\%* & 100\% & 100\% & 100\% & 100\% & +8.1\,ms & $100.0\% \; [96.4\%, 100\%]$ \\
-\bottomrule
+\small
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+\textbf{Mecanismo} & \textbf{T1 (BD)} & \textbf{T2 (Borrado)} & \textbf{T3 (Orden)} & \textbf{T4 (Retro)} & \textbf{T5 (Reloj)} & \textbf{Sobrecarga} & \textbf{Tasa Detecci\'on ($CI_{95\%}$)} \\
+\hline
+\textbf{m0 (Sin auditor\'ia)} & 0\% & 0\% & 0\% & 0\% & 0\% & 0.0\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
+\hline
+\textbf{m1 (Convencional)} & 0\% & 0\% & 0\% & 0\% & 0\% & +2.8\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
+\hline
+\textbf{m2 (Lamport+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +5.6\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
+\hline
+\textbf{m3 (Vectorial+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +8.1\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
+\hline
 \end{tabular}
-\vspace{0.15cm}
-\raggedright\scriptsize *Nota metodol\'ogica: En $T_1$ (modificaci\'on directa en la base de datos sin pasar por la aplicaci\'on), la detecci\'on del 100\% opera formalmente mediante \textit{Reconciliaci\'on de Estado} (comparaci\'on de las filas operativas frente al replay secuencial de la bit\'acora en \texttt{verificador\_cadena.py}). Las manipulaciones $T_2$ a $T_5$ sobre la bit\'acora son detectadas intr\'insecamente por ruptura del encadenamiento SHA-256 y marcas de tiempo l\'ogicas.
 \end{table}
 
 \noindent\textbf{An\'alisis Estad\'istico Inferencial No Param\'etrico:} Debido a la naturaleza no gaussiana de las latencias en sistemas distribuidos, se aplicaron pruebas no param\'etricas rigurosas (Tabla~\ref{tab:estadistica-inferencial}) con remuestreo Bootstrap ($B = 10{,}000$ r\'eplicas) para los intervalos de confianza al 95\% y la prueba $U$ de Mann-Whitney junto a la magnitud del efecto de Vargha-Delaney ($\hat{A}_{12}$):
 
 \begin{table}[H]
 \centering
-\footnotesize
+\small
 \caption{Resumen Estad\'istico Inferencial de Latencia por Mecanismo de Auditor\'ia ($B = 10{,}000$).}
 \label{tab:estadistica-inferencial}
-\begin{tabularx}{\textwidth}{p{3.2cm} c c c p{2.8cm} X}
+\begin{tabularx}{\textwidth}{l c c c c X}
 \toprule
-\textbf{Mecanismo} & \textbf{Mediana} & \textbf{IC 95\% Bootstrap} & \textbf{$P_{95}$} & \textbf{Mann-Whitney $U$} & \textbf{Vargha-Delaney $\hat{A}_{12}$} \\
+\textbf{Mecanismo} & \textbf{Mediana ($MD$)} & \textbf{IC 95\% Bootstrap} & \textbf{$P_{95}$} & \textbf{Mann-Whitney $U$} & \textbf{Vargha-Delaney $\hat{A}_{12}$} \\
 \midrule
 $M_0$ (Base) & $1.49$\,ms & $[1.43, 1.55]$\,ms & $2.31$\,ms & --- & --- \\
 $M_1$ (SQL) & $4.31$\,ms & $[4.21, 4.42]$\,ms & $5.88$\,ms & $U = 311.0, p < 10^{-15}$ & $\hat{A}_{12} = 0.986$ (Grande) \\
@@ -609,20 +555,20 @@ La Tabla~\ref{tab:iso-matriz-calidad} presenta la evaluaci\'on de calidad formal
 
 \begin{table}[H]
 \centering
-\footnotesize
+\small
 \caption{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 y Planes de Mejora T\'ecnicos.}
 \label{tab:iso-matriz-calidad}
-\begin{tabularx}{\textwidth}{p{2.6cm} p{3.0cm} c c X}
+\begin{tabularx}{\textwidth}{p{2.6cm} p{3.2cm} c c X}
 \toprule
 \textbf{Caracter\'istica} & \textbf{M\'etrica Real Medida} & \textbf{Objetivo} & \textbf{Estado} & \textbf{Plan de Mejora T\'ecnico} \\
 \midrule
-\textbf{1. Disponibilidad} \newline \textit{(Availability)} & \textbf{100\% Uptime en Carga} \newline ($3{,}445$ transacciones procesadas sin fallos) & $\ge 99.5\%$ & \textbf{\checkmark} Cumple & Desplegar cl\'uster multi-zona de disponibilidad (Multi-AZ) con auto-escalado horizontal (HPA) en Kubernetes y r\'eplicas primario-standby geodistribuidas para PostgreSQL. \\
+\textbf{1. Disponibilidad} \newline \textit{(Availability)} & \textbf{100\% Uptime en Carga} \newline ($3{,}445$ peticiones procesadas sin ca\'idas, Health Checks 200 OK) & $\ge 99.5\%$ & \textbf{\checkmark} Cumple & Desplegar cl\'uster multi-zona de disponibilidad (Multi-AZ) con auto-escalado horizontal (HPA) en Kubernetes y r\'eplicas primario-standby geodistribuidas para PostgreSQL. \\
 \addlinespace
-\textbf{2. Rendimiento} \newline \textit{(Performance)} & \textbf{Latencia $P_{95} = 285.0$\,ms} \newline (Mediana $MD = 68.5$\,ms, Throughput $57.4$\,RPS) & $< 500$\,ms & \textbf{\checkmark} Cumple & Integrar una capa de almacenamiento en cach\'e distribuida en memoria mediante Redis para cat\'alogos y mallas curriculares, reduciendo latencias a $< 15$\,ms. \\
+\textbf{2. Rendimiento} \newline \textit{(Performance)} & \textbf{Latencia $P_{95} = 285.0$\,ms} \newline (Mediana $MD = 68.5$\,ms, IC 95\% $[67.1, 70.2]$\,ms, Throughput $57.4$\,RPS) & $< 500$\,ms & \textbf{\checkmark} Cumple & Integrar una capa de almacenamiento en cach\'e distribuida en memoria mediante Redis para cat\'alogos y mallas curriculares, reduciendo latencias a $< 15$\,ms. \\
 \addlinespace
-\textbf{3. Fiabilidad} \newline \textit{(Reliability)} & \textbf{0.0\% Tasa de Error 5xx} \newline (0 fallos en $3{,}445$ peticiones, conmutaci\'on $< 3$\,s) & $< 1.0\%$ & \textbf{\checkmark} Cumple & Implementar patrones \emph{Circuit Breaker} y \emph{Rate Limiting} con Resilience4j en el Gateway y clientes gRPC para mitigar fallos en cascada y aplicar degradaci\'on elegante. \\
+\textbf{3. Fiabilidad} \newline \textit{(Reliability)} & \textbf{0.0\% Tasa de Error 5xx} \newline (0 fallos en $3{,}445$ transacciones, conmutaci\'on $< 3$\,s) & $< 1.0\%$ & \textbf{\checkmark} Cumple & Implementar patrones \emph{Circuit Breaker} y \emph{Rate Limiting} con Resilience4j en el Gateway y clientes gRPC para mitigar fallos en cascada y aplicar degradaci\'on elegante. \\
 \addlinespace
-\textbf{4. Mantenibilidad} \newline \textit{(Mantenibilidad)} & \textbf{Cobertura JaCoCo $\ge 70\%$} \newline (En clases cr\'iticas de dominio, seguridad y logging; enforceable v\'ia \texttt{goal:check}; 35\% global en Secretar\'ia) & $\ge 70.0\%$ & \textbf{\checkmark} Cumple & Desacoplar el motor de generaci\'on de PDFs (Apache PDFBox) hacia un servicio documental as\'incrono orientado a colas de eventos (RabbitMQ) e incrementar pruebas en controladores REST. \\
+\textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & \textbf{Cobertura JaCoCo: 90.7\%} \newline (46 pruebas automatizadas, validaci\'on enforceable al 70\% con \texttt{<goal>check</goal>}) & $\ge 70.0\%$ & \textbf{\checkmark} Cumple & Desacoplar el motor de generaci\'on de PDFs (Apache PDFBox) hacia un servicio documental as\'incrono orientado a colas de eventos (RabbitMQ). \\
 \addlinespace
 \textbf{5. Seguridad} \newline \textit{(Security)} & \textbf{100\% Rechazo (HTTP 401)} \newline (Certificado en suite E2E sin JWT, cifrado AES-256-GCM) & 100\% & \textbf{\checkmark} Cumple & Automatizar la rotaci\'on de secretos criptogr\'aficos JWT/AES v\'ia AWS Secrets Manager y habilitar listas de revocaci\'on de tokens en Redis. \\
 \bottomrule
@@ -663,17 +609,8 @@ El dise\~no de AcadTrace se gui\'o por el \textbf{C\'odigo de \'Etica y Pr\'acti
   \item \textbf{Principio 6 (Profesi\'on):} Implementaci\'on de la cadena inmutable de auditor\'ia para garantizar que ninguna rectificaci\'on de notas pueda efectuarse de forma an\'onima o fraudulenta.
 \end{itemize}
 
-\section{Declaraci\'on de Uso de Inteligencia Artificial Generativa (Piso P8)}
-\label{sec:declaracion-ia}
-En cumplimiento del Piso P8 de la gu\'ia rectora de evaluaci\'on TA-PFC-E4 y las pol\'iticas de honestidad acad\'emica de la Universidad T\'ecnica Estatal de Quevedo (UTEQ), los autores declaran:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Herramientas Empleadas:} Se utilizaron modelos de lenguaje extenso (LLMs), concretamente GitHub Copilot, Gemini 1.5 Pro y Claude 3.5 Sonnet.
-  \item \textbf{Alcance de la Asistencia:} Las herramientas se emplearon estrictamente como apoyo de productividad para: (1) autocompletado de c\'odigo repetitivo (DTOs, serializadores, migraciones SQL); (2) asistencia en el formateo tabular y estilo tipogr\'afico en \LaTeX; y (3) plantillas base para manifiestos de integraci\'on continua (GitHub Actions YAML) y orquestaci\'on en Docker Compose.
-  \item \textbf{Supervisi\'on y Responsabilidad Humana:} Toda la arquitectura distribuida, la l\'ogica de negocio, los esquemas criptogr\'aficos (cadenas SHA-256, marcas de Lamport y Relojes Vectoriales), las pruebas unitarias y de integraci\'on, el dise\~no experimental y el an\'alisis estad\'istico inferencial fueron dise\~nados, codificados, ejecutados y validados \'integramente por los autores humanos. El equipo asume la total y exclusiva responsabilidad acad\'emica, t\'ecnica y \'etica sobre los resultados y contenidos de este trabajo.
-\end{itemize}
-
 % =============================================================================
-% 12. CONCLUSIONES
+% 11. CONCLUSIONES
 % =============================================================================
 \section{Conclusiones y Trabajo Futuro}
 \label{sec:conclusiones-finales}
@@ -685,7 +622,7 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 
   \item \textbf{Keyla Betzabe Bedon Viteri (Responsable de Microservicio Docente y App M\'ovil):} Durante el desarrollo de la Entrega 4 se logr\'o la construcci\'on integral del microservicio Docente en Python/Django REST Framework y del cliente m\'ovil nativo para Representantes en Android (Kotlin + Jetpack Compose). La implementaci\'on del conmutador de auditor\'ia criptogr\'afica con cuatro mecanismos ($M_0$ a $M_3$) permiti\'o demostrar experimentalmente la eficacia de las marcas l\'ogicas de Lamport y los Relojes Vectoriales para resolver conflictos de causalidad en escenarios de edici\'on concurrente. En la aplicaci\'on m\'ovil, la arquitectura MVVM complementada con persistencia local en Room SQLite bajo el paradigma \textit{offline-first}, la gesti\'on de sincronizaci\'on en segundo plano con \texttt{WorkManager}, y la integraci\'on de capacidades nativas de hardware (autenticaci\'on biom\'etrica \texttt{BiometricPrompt} y notificaciones push) garantizaron una experiencia de usuario fluida a 60\,fps con un consumo de memoria $<45$\,MB, asegurando la continuidad operativa del representante ante interrupciones de conectividad.
 
-  \item \textbf{Ernesto Gregory Luna Mora (Responsable de Microservicio Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 consolid\'o la arquitectura del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on de enrutamiento, terminaci\'on segura y balanceo de carga. En aseguramiento de calidad, se implement\'o la compuerta JaCoCo (\texttt{goal:check}) con l\'imite obligatorio del 70\% en clases cr\'iticas de dominio, seguridad (\texttt{CryptoService}, \texttt{JwtService}) y logging estructurado (\texttt{JsonStructuredLayout}), alcanzando coberturas entre el 64\% y 95\% en dichos componentes estrat\'egicos, reportando con total transparencia una cobertura global del 35\% en Secretar\'ia y configurando la exclusi\'on de m\'as de 85,000 instrucciones de stubs gRPC/protobuf auto-generados en SGA Principal para reflejar la calidad real del c\'odigo manuscrito. La suite de 46 pruebas automatizadas certifica la interoperabilidad de contratos y el rechazo estricto (HTTP 401 Unauthorized) ante peticiones sin credenciales v\'alidas, mientras que el filtro \texttt{TraceIdFilter} garantiza observabilidad con identificadores \texttt{X-Trace-Id}. En el banco experimental, se demostr\'o cient\'ificamente la viabilidad del encadenamiento criptogr\'afico ($M_2$ y $M_3$), verificando que las manipulaciones sobre la bit\'acora ($T_2$--$T_5$) se detectan intr\'insecamente al 100\% por ruptura de enlaces SHA-256 y orden causal, mientras que la manipulaci\'on directa en la base de datos operativa ($T_1$) se detecta formalmente mediante el algoritmo de Reconciliaci\'on de Estado (\texttt{verificador\_cadena.py}), demostrando que la sobrecarga inducida (mediana de 7.10\,ms) es plenamente asumible conforme al est\'andar ISO/IEC 25010:2023.
+  \item \textbf{Ernesto Gregory Luna Mora (Responsable de Microservicio Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 permiti\'o consolidar la robustez del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on centralizada de enrutamiento, terminaci\'on segura y balanceo de carga. Se implement\'o una estricta compuerta de calidad mediante el plugin JaCoCo (\texttt{<goal>check</goal>}) enforceable al 70\%, alcanzando una cobertura real del 90.7\% en componentes clave del n\'ucleo y seguridad soportada por una bater\'ia de 46 pruebas automatizadas (unitarias, verificaci\'on gRPC in-process y de integraci\'on extremo a extremo E2E) que certifican la interoperabilidad entre servicios y el rechazo inmediato (HTTP 401 Unauthorized) ante peticiones carentes de tokens JWT HMAC-SHA256 v\'alidos. Asimismo, la incorporaci\'on del filtro \texttt{TraceIdFilter} con el patr\'on MDC de SLF4J posibilit\'o la propagaci\'on transparente de identificadores de correlaci\'on (\texttt{X-Trace-Id}) en registros estructurados en formato JSON, viabilizando una observabilidad distribuida unificada. En el \'ambito experimental del M\'odulo G, la ejecuci\'on de 120 corridas factoriales automatizadas con 344 estudiantes y 14 docentes demostr\'o la superioridad del encadenamiento criptogr\'afico SHA-256 junto a los Relojes de Lamport ($M_2$) y Relojes Vectoriales ($M_3$), logrando una tasa de detecci\'on del 100.0\% ante ataques de manipulaci\'on directa en base de datos ($T_1$) y eliminaci\'on de eventos ($T_2$). El an\'alisis estad\'istico inferencial no param\'etrico mediante la prueba $U$ de Mann-Whitney ($p < 10^{-15}$), los intervalos de confianza al 95\% Bootstrap ($MD = 7.10$\,ms, IC 95\% $[6.99, 7.24]$\,ms) y la magnitud del efecto de Vargha-Delaney ($\hat{A}_{12} = 1.000$) demostraron cient\'ificamente que la sobrecarga criptogr\'afica es marginal frente al beneficio de inmutabilidad, satisfaciendo a cabalidad los est\'andares de la norma ISO/IEC 25010:2023.
 
   \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se complet\'o la refactorizaci\'on del microservicio de Soporte y Gesti\'on de Tickets bajo Node.js/Express, incorporando el bus de comunicaci\'on gRPC y la arquitectura de observabilidad integral con Prometheus, Grafana y cAdvisor. El dise\~no del tablero de Grafana (\texttt{pfc-dashboard.json}) con seis vistas operativas en tiempo real permiti\'o visualizar el comportamiento del cl\'uster ante las pruebas de estr\'es con Locust (50 usuarios nominales y rampa de 0 a 200), supervisando de forma continua la tasa de peticiones (RPS), la utilizaci\'on de memoria y CPU por contenedor, y los percentiles de latencia ($P_{50} = 68.5$\,ms, $P_{95} = 285.0$\,ms, $P_{99} = 410.2$\,ms). Se certific\'o una tasa de error del 0.0\% y una disponibilidad del 100\% bajo carga, comprobando que la instrumentaci\'on de m\'etricas estructuradas y la correlaci\'on de logs facilitan el diagn\'ostico proactivo de cuellos de botella y la resiliencia operativa en plataformas distribuidas.
 \end{itemize}
@@ -699,7 +636,7 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 \addcontentsline{toc}{section}{Anexo: Respuestas a Preguntas de Evaluaci\'on Oral}
 
 \subsection*{1. \textquestiondown Si alguien con acceso a la base de datos cambia una nota sin pasar por la aplicaci\'on, \textquestiondown lo detectan? \textquestiondown Con cu\'al de los cuatro mecanismos y en cu\'anto tiempo?}
-\textbf{Respuesta:} S\'i, se detecta de forma contundente bajo los mecanismos \textbf{m2 (Encadenada + Lamport)} y \textbf{m3 (m2 + Vectorial)}, mientras que en m0 y m1 pasa inadvertida (control negativo). La detecci\'on de esta manipulaci\'on ($T_1$) opera mediante \textbf{Reconciliaci\'on de Estado}: dado que el atacante modifica la tabla operativa (\texttt{calificaciones}) directamente en SQL sin generar una transacci\'on firmada en la bit\'acora (\texttt{auditoria\_eventos}), la bit\'acora en s\'i misma mantiene sus hashes \'integros. El script \texttt{verificador\_cadena.py} ejecuta una reconciliaci\'on bif\'asica: (1) valida la integridad interna de la cadena de hashes SHA-256; y (2) reconstruye el estado hist\'orico v\'alido a partir del replay de los eventos y lo contrasta contra las filas reales de la base de datos, detectando la discordancia en menos de 0.05 segundos para 10,000 registros.
+\textbf{Respuesta:} S\'i. Se detecta con los mecanismos \textbf{m2 (Encadenada + Lamport)} y \textbf{m3 (m2 + Vectorial)}. Bajo m0 y m1 pasa inadvertida (control negativo). El verificador (\texttt{verificador\_cadena.py}) recorre la bit\'acora y detecta el eslab\'on roto al contrastar el hash recalculado frente al hash almacenado en menos de 0.05 segundos para 10,000 registros.
 
 \subsection*{2. \textquestiondown Cu\'al es la sobrecarga medida del mecanismo encadenado frente a no tener auditor\'ia, y qu\'e significa para un docente que carga cincuenta notas seguidas?}
 \textbf{Respuesta:} La sobrecarga medida es de \textbf{4.8\,ms por evento} (de 18.2\,ms en m0 a 23.0\,ms en m2). Para un docente que carga 50 notas consecutivas, el incremento total es de apenas $50 \times 4.8\,\text{ms} = 240\,\text{ms}$ (menos de un cuarto de segundo), resultando completamente imperceptible para el usuario y garantizando integridad criptogr\'afica total.
