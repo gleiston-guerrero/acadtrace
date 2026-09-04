@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     data object BiometricFallback : Screen("biometric_fallback")
     data object Security : Screen("security")
     data object MisRepresentados : Screen("mis_representados")
+    data object Comunicados : Screen("comunicados")
     data object ResumenRepresentado : Screen("representado/{id}/{nombre}") {
         fun create(id: Long, nombre: String) = "representado/$id/${java.net.URLEncoder.encode(nombre, Charsets.UTF_8.name())}"
     }

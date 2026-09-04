@@ -35,7 +35,9 @@ fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, star
             }
         }
         composable(Screen.Home.route) {
-            HomeRepresentante(onRepresentados = { nav.navigate(Screen.MisRepresentados.route) }, onSecurity = {
+            HomeRepresentante(onRepresentados = { nav.navigate(Screen.MisRepresentados.route) }, onComunicados = {
+                nav.navigate(Screen.Comunicados.route)
+            }, onSecurity = {
                 nav.navigate(Screen.Security.route)
             }, onLogout = {
                 app.authRepository.logout(); nav.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
@@ -43,6 +45,9 @@ fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, star
         }
         composable(Screen.Security.route) {
             SecurityScreen(app.sessionManager) { nav.popBackStack() }
+        }
+        composable(Screen.Comunicados.route) {
+            ComunicadosRepresentanteScreen { nav.popBackStack() }
         }
         composable(Screen.MisRepresentados.route) {
             val vm: RepresentanteViewModel = factory { RepresentanteViewModel(app.representanteRepository) }

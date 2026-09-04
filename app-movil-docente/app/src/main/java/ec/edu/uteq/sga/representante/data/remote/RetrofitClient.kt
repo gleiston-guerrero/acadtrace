@@ -14,7 +14,9 @@ import java.util.concurrent.TimeUnit
 class RetrofitClient(private val sessionManager: SessionManager) {
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        // AuthInterceptor registra únicamente método, URL, idEstudiante y estado.
+        // No registrar cuerpos: pueden contener datos académicos personales.
+        level = HttpLoggingInterceptor.Level.NONE
         redactHeader("Authorization")
     }
 
