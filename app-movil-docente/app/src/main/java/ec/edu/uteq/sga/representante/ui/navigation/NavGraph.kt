@@ -13,6 +13,7 @@ import ec.edu.uteq.sga.representante.ui.screens.login.LoginScreen
 import ec.edu.uteq.sga.representante.ui.screens.login.LoginViewModel
 import ec.edu.uteq.sga.representante.ui.screens.representante.*
 import ec.edu.uteq.sga.representante.ui.screens.security.*
+import ec.edu.uteq.sga.representante.data.sync.SyncWorker
 
 @Composable
 fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, startDestination: String) {
@@ -57,13 +58,19 @@ fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, star
             val id = entry.arguments?.getLong("id") ?: return@composable
             val vm: RepresentanteViewModel = factory("calificaciones_$id") { RepresentanteViewModel(app.representanteRepository) }
             LaunchedEffect(id) { vm.cargarCalificaciones(id) }
-            ConsultaCalificacionesRepresentante(vm, { nav.popBackStack() }) { vm.cargarCalificaciones(id) }
+            ConsultaCalificacionesRepresentante(vm, { nav.popBackStack() }) {
+                vm.cargarCalificaciones(id)
+                SyncWorker.triggerImmediateSync(app)
+            }
         }
         composable(Screen.Asistencia.route, listOf(navArgument("id") { type = NavType.LongType })) { entry ->
             val id = entry.arguments?.getLong("id") ?: return@composable
             val vm: RepresentanteViewModel = factory("asistencia_$id") { RepresentanteViewModel(app.representanteRepository) }
             LaunchedEffect(id) { vm.cargarAsistencia(id) }
-            AsistenciaHijoScreen(vm, { nav.popBackStack() }) { vm.cargarAsistencia(id) }
+            AsistenciaHijoScreen(vm, { nav.popBackStack() }) {
+                vm.cargarAsistencia(id)
+                SyncWorker.triggerImmediateSync(app)
+            }
         }
     }
 }

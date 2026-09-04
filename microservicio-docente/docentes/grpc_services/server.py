@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.db import connection, transaction
 from . import docente_pb2
 from . import docente_pb2_grpc
-from .client import validate_teacher_assignment
+from docentes.grpc_clients.principal_client import validate_teacher_assignment
 from docentes.models import Actividad, Calificacion
 from micro_docente.middleware import registrar_calificacion_exitosa
 from docentes.auditoria import auditar_evento

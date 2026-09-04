@@ -6,7 +6,7 @@ Aplicación móvil de consulta para representantes de AcadTrace, construida con 
 
 `Login → HomeRepresentante → MisRepresentados → ResumenRepresentado → Calificaciones | Asistencia`
 
-- El login exige el valor backend exacto `ROLE_REPRESENTANTE`.
+- El login exige el valor backend exacto `REPRESENTANTE`.
 - Los estudiantes se obtienen exclusivamente desde `GET /api/representante/me/estudiantes`.
 - Calificaciones y asistencia pasan por la autorización usuario–representante–estudiante del backend.
 - Room conserva los últimos representados, calificaciones y asistencias consultados.

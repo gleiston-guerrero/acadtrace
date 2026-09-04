@@ -224,6 +224,7 @@ class CalificacionViewSet(viewsets.ModelViewSet):
         id_actividad = self.request.query_params.get("id_actividad")
         id_asignacion = self.request.query_params.get("id_asignacion")
         id_periodo = self.request.query_params.get("id_periodo")
+        id_paralelo = self.request.query_params.get("id_paralelo")
         if id_matricula:
             queryset = queryset.filter(id_matricula=id_matricula)
         if id_actividad:
@@ -232,6 +233,14 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(id_actividad__id_asignacion=id_asignacion)
         if id_periodo:
             queryset = queryset.filter(id_actividad__id_periodo_id=id_periodo)
+        if id_paralelo:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_matricula FROM sga_principal.matriculas WHERE id_paralelo = %s",
+                    [id_paralelo],
+                )
+                matriculas = [fila[0] for fila in cursor.fetchall()]
+            queryset = queryset.filter(id_matricula__in=matriculas)
         return queryset
 
     @action(detail=False, methods=["get"], url_path="promedio-formativo")

@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from time import perf_counter
+from uuid import uuid4
 
 from prometheus_client import Counter, Gauge
 
@@ -52,19 +53,23 @@ class StructuredRequestLoggingMiddleware:
 
     def __call__(self, request):
         inicio = perf_counter()
+        trace_id = request.headers.get("X-Trace-Id") or str(uuid4())
+        request.trace_id = trace_id
         active_requests.inc()
         try:
             response = self.get_response(request)
             _registrar_metricas_http(request, response)
             evento = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "servicio": "microservicio-docente",
-                "metodo": request.method,
-                "ruta": request.path,
-                "codigo_http": response.status_code,
-                "tiempo_respuesta_ms": round((perf_counter() - inicio) * 1000, 2),
+                "service": "microservicio-docente",
+                "trace_id": trace_id,
+                "method": request.method,
+                "path": request.path,
+                "status_code": response.status_code,
+                "latency_ms": round((perf_counter() - inicio) * 1000, 2),
             }
             logger.info(json.dumps(evento, ensure_ascii=False))
+            response["X-Trace-Id"] = trace_id
             return response
         finally:
             active_requests.dec()

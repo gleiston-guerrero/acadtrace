@@ -13,19 +13,31 @@ from micro_docente.middleware import (
 )
 
 
-def test_middleware_emite_json_con_campos_requeridos():
+def test_middleware_genera_trace_y_emite_json_con_campos_requeridos():
     request = RequestFactory().get("/health/")
     middleware = StructuredRequestLoggingMiddleware(lambda _request: HttpResponse(status=204))
     with patch("micro_docente.middleware.logger.info") as mock_info:
         response = middleware(request)
     evento = json.loads(mock_info.call_args.args[0])
     assert response.status_code == 204
-    assert evento["servicio"] == "microservicio-docente"
-    assert evento["metodo"] == "GET"
-    assert evento["ruta"] == "/health/"
-    assert evento["codigo_http"] == 204
+    assert evento["service"] == "microservicio-docente"
+    assert evento["method"] == "GET"
+    assert evento["path"] == "/health/"
+    assert evento["status_code"] == 204
     assert evento["timestamp"]
-    assert isinstance(evento["tiempo_respuesta_ms"], float)
+    assert isinstance(evento["latency_ms"], float)
+    assert evento["trace_id"] == response["X-Trace-Id"]
+
+
+def test_middleware_reutiliza_trace_recibido_en_log_y_respuesta():
+    request = RequestFactory().get("/health/", HTTP_X_TRACE_ID="trace-defensa-123")
+    middleware = StructuredRequestLoggingMiddleware(lambda _request: HttpResponse(status=200))
+    with patch("micro_docente.middleware.logger.info") as mock_info:
+        response = middleware(request)
+    evento = json.loads(mock_info.call_args.args[0])
+    assert request.trace_id == "trace-defensa-123"
+    assert evento["trace_id"] == "trace-defensa-123"
+    assert response["X-Trace-Id"] == "trace-defensa-123"
 
 
 def test_health_y_metrics_estan_expuestos():
