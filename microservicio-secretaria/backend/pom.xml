@@ -225,6 +225,8 @@
               <element>CLASS</element>
               <includes>
                 <include>ec.uteq.sga.secretaria.application.service.EstudianteService</include>
+                <include>ec.uteq.sga.secretaria.application.service.MatriculaService</include>
+                <include>ec.uteq.sga.secretaria.application.service.ReportesService</include>
                 <include>ec.uteq.sga.secretaria.application.service.LamportClock</include>
                 <include>ec.uteq.sga.secretaria.infrastructure.security.CryptoService</include>
                 <include>ec.uteq.sga.secretaria.infrastructure.security.JwtService</include>
