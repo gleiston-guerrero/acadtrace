@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from docentes.models import Actividad, PeriodoEvaluacion
 from . import actividades_pb2
 from . import actividades_pb2_grpc
-from .client import validate_teacher_assignment
+from docentes.grpc_clients.principal_client import validate_teacher_assignment
 from docentes.auditoria import auditar_evento
 from docentes.auditoria.payloads import payload_instancia
 

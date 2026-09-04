@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from docentes.models import Asistencia, ResumenAsistencia, PeriodoEvaluacion, EstadoAsistencia
 from . import asistencia_pb2
 from . import asistencia_pb2_grpc
-from .client import validate_teacher_assignment, get_students_by_assignment
+from docentes.grpc_clients.principal_client import validate_teacher_assignment, get_students_by_assignment
 
 
 def _usuario_de_persona(id_persona):

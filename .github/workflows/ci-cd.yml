@@ -23,6 +23,59 @@ env:
 
 jobs:
 
+  ci-docente:
+    name: CI Microservicio Docente
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Suite, cobertura y comprobaciones Django
+        run: |
+          cd microservicio-docente
+          python -m pip install -r requirements.txt
+          python -m pytest -q
+          python -m pytest --cov=docentes --cov-report=term-missing --cov-report=html:../docs/cobertura/docente
+          python manage.py check --settings=micro_docente.test_settings
+          python manage.py makemigrations --check --dry-run --settings=micro_docente.test_settings
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-microservicio-docente
+          path: docs/cobertura/docente/
+
+  ci-movil-representante:
+    name: CI Aplicación Móvil Representante
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Tests, JaCoCo, lint y APK debug
+        run: |
+          cd app-movil-docente
+          curl --fail --location --output gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest jacocoTestReport lintDebug assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-representante-debug
+          path: app-movil-docente/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-movil-representante
+          path: docs/cobertura/movil/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-movil-representante
+          path: app-movil-docente/app/build/reports/lint-results-debug.html
+
   # ─── 1. JOB LINT ───────────────────────────────────────────────────────────
   lint:
     name: 1. Lint y Análisis Estático
@@ -142,6 +195,7 @@ jobs:
       - name: Ejecutar Pruebas Unitarias JVM de Android
         run: |
           cd app-movil-docente
+          curl --fail --location --output gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
           ./gradlew testDebugUnitTest --no-daemon
 
@@ -196,6 +250,7 @@ jobs:
       - name: Compilar APK en modo Debug
         run: |
           cd app-movil-docente
+          curl --fail --location --output gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 

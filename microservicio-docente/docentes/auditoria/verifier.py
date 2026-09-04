@@ -2,6 +2,8 @@ import json
 from dataclasses import dataclass
 
 from .hashing import GENESIS_HASH, calcular_hash, contenido_evento
+from .hashing import json_canonico
+from .payloads import payload_instancia
 
 
 @dataclass(frozen=True)
@@ -47,3 +49,25 @@ def verificar_cadena(eventos, *, hash_cabeza=None, lamport_cabeza=None):
     if lamport_cabeza is not None and lamport_anterior != int(lamport_cabeza):
         return ResultadoVerificacion(False, verificados, None, "CABEZA_LAMPORT_INVALIDA")
     return ResultadoVerificacion(True, verificados)
+
+
+def verificar_estado_academico(instancia, eventos=None):
+    """Compara el estado persistido con la última evidencia legítima auditada.
+
+    Esto detecta T1 aunque la cadena criptográfica permanezca intacta, porque la
+    escritura directa cambia la tabla académica pero no el payload auditado.
+    """
+    if eventos is None:
+        from docentes.models import EventoAuditoria
+
+        eventos = EventoAuditoria.objects.filter(
+            entidad=instancia.__class__.__name__, entidad_id=str(instancia.pk)
+        ).exclude(operacion="ELIMINAR").order_by("-id_evento")
+    ultimo = next(iter(eventos), None)
+    if ultimo is None:
+        return ResultadoVerificacion(False, 0, None, "EVIDENCIA_AUDITORIA_AUSENTE")
+    esperado = _valor(ultimo, "payload_canonico")
+    actual = json_canonico(payload_instancia(instancia))
+    if actual != esperado:
+        return ResultadoVerificacion(False, 0, int(_valor(ultimo, "id_evento")), "ESTADO_ACADEMICO_DIVERGENTE")
+    return ResultadoVerificacion(True, 1)

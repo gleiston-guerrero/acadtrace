@@ -2,6 +2,9 @@ package ec.edu.uteq.sga.representante.data.sync
 
 import android.content.Context
 import androidx.work.*
+import ec.edu.uteq.sga.representante.SgaRepresentanteApp
+import ec.edu.uteq.sga.representante.core.Resource
+import kotlinx.coroutines.flow.first
 import java.util.concurrent.TimeUnit
 
 class SyncWorker(
@@ -10,7 +13,14 @@ class SyncWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        // La app de representante no genera escrituras académicas pendientes.
+        val app = applicationContext as SgaRepresentanteApp
+        val representados = app.representanteRepository.getRepresentados().first { it !is Resource.Loading }
+        if (representados !is Resource.Success) return Result.retry()
+        for (representado in representados.data) {
+            val notas = app.representanteRepository.getCalificaciones(representado.idEstudiante).first { it !is Resource.Loading }
+            val asistencia = app.representanteRepository.getAsistencia(representado.idEstudiante).first { it !is Resource.Loading }
+            if (notas !is Resource.Success || asistencia !is Resource.Success) return Result.retry()
+        }
         return Result.success()
     }
 
