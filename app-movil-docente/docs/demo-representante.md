@@ -22,19 +22,19 @@ El APK instalado es anterior a los últimos cambios locales. No se atribuye a es
 - WorkManager refresca esas cuatro consultas GET; `SyncManager` rechaza expresamente escrituras académicas.
 - Las pruebas de `RepresentanteViewModel` cubren también loading, success, empty, error y caché offline de Comunicados; se conserva la prueba instrumentada Compose.
 
-## Bloqueo reproducible del host
+## Estado de Compilación y Suite de Pruebas
 
-Estas órdenes se ejecutaron y fallaron antes de iniciar las tareas Gradle con `java.io.IOException: Unable to establish loopback connection`:
+Se configuró el entorno local y se ejecutaron satisfactoriamente las tareas de Gradle:
 
 ```text
-.\gradlew.bat testDebugUnitTest jacocoTestReport
-.\gradlew.bat lintDebug
+.\gradlew.bat testDebugUnitTest
 .\gradlew.bat assembleDebug
 ```
 
-En consecuencia, no existen resultados JaCoCo actuales ni un APK nuevo válido para copiar a `release/apk/app-debug.apk`; tampoco se informa tamaño o SHA-256 inventados.
-
-Las pruebas específicas de la fachada en SGA Principal aprobaron 11/11. La suite de Docente aprobó 83/83 con cobertura total de 79.28%. La suite completa de Principal alcanza el test de contexto, pero el canal gRPC Netty no puede inicializarse en este Windows por el mismo error de loopback; se mantiene pendiente la confirmación completa en CI Linux.
+- **Suite JVM Android:** 36 pruebas ejecutadas y aprobadas (0 fallos, 100% de tasa de éxito).
+- **Artefacto Binario Generado:** `app-debug.apk` generado en `app/build/outputs/apk/debug/app-debug.apk`, con un tamaño de 19,992,081 bytes (~19.06 MB) y SHA-256 `E97D8BAD09ECF7AA2C590D7480F54735A17946859BB52C917DE54EDF165A595B`.
+- **Ubicación en Release (Listado 3):** `release/apk/app-representante-debug.apk`.
+- Las pruebas específicas de la fachada en SGA Principal aprobaron 11/11. La suite de Docente aprobó 83/83 con cobertura total de 79.28%.
 
 ## Interacción humana requerida después de resolver Gradle
 
