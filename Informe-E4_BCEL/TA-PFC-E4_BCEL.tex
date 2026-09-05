@@ -497,6 +497,16 @@ El layout personalizado \texttt{JsonStructuredLayout} formatea los registros en 
 \section{Evaluaci\'on Experimental ISO/IEC 25010 y Capa de Cripto-Auditor\'ia}
 \label{sec:evaluacion-experimental}
 
+\subsection{Preguntas de Investigaci\'on Emp\'iricas (PI)}
+Para guiar la evaluaci\'on cuantitativa de rendimiento, resiliencia y comportamiento del sistema bajo cargas extremas, se formularon dos Preguntas de Investigaci\'on (PI) emp\'iricas dise\~nadas formalmente para admitir refutaci\'on (respuesta negativa):
+\begin{itemize}[leftmargin=*]
+  \item \textbf{PI-1:} \textit{\textquestiondown Puede el Microservicio de Soporte mantener una tasa de errores HTTP 5xx igual a 0\,\% y una latencia $P_{99}$ inferior a 500\,ms cuando la carga aumenta desde 50 hasta 200 usuarios concurrentes sin evidenciar agotamiento o contenci\'on significativa del pool de conexiones HikariCP?} \\
+  \textbf{Respuesta emp\'irica:} \textbf{No.} En el Escenario 1 de carga nominal sostenida (50 usuarios concurrentes durante 5 minutos), el sistema proces\'o 13{,}606 peticiones con un throughput promedio de 45.54\,RPS, registrando un Failure Count de 0 (0.0\,\% de errores), una mediana ($P_{50}$) de 6\,ms, $P_{95} = 440$\,ms y $P_{99} = 470$\,ms ($< 500$\,ms). Sin embargo, en el Escenario 2 de estr\'es (rampa progresiva de 0 a 200 usuarios durante 10 minutos, 12{,}735 peticiones a 36.85\,RPS), el sistema experiment\'o una degradaci\'on global del servicio bajo la carga extrema aplicada, alcanzando el umbral de timeout configurado con latencias $P_{50}$, $P_{95}$ y $P_{99}$ de 4100\,ms y un Failure Count de 12{,}735 (tasa de fallo del 100\,\%), incumpliendo el criterio de estabilidad. Si bien la contenci\'on o saturaci\'on del pool de conexiones HikariCP constituye una hip\'otesis plausible para explicar este comportamiento, los datos de telemetr\'ia provistos por Locust por s\'i solos no permiten determinar la causa ra\'iz con certeza, requiriendo confirmaci\'on cruzada mediante m\'etricas de Prometheus, Actuator y registros internos del pool.
+  
+  \item \textbf{PI-2:} \textit{\textquestiondown Mantienen los endpoints que requieren acceso a base de datos un comportamiento de latencia equivalente al de los endpoints stateless cuando el sistema es sometido al escenario de estr\'es de hasta 200 usuarios concurrentes?} \\
+  \textbf{Respuesta emp\'irica:} \textbf{Parcialmente.} En el Escenario 1 de carga nominal sostenida (50 usuarios concurrentes), se constata que no son equivalentes: mientras los endpoints stateless en memoria (\texttt{/health} y \texttt{/api/soporte/election/status}) respondieron con medianas ($P_{50}$) de 4\,ms y percentiles $P_{95}$ de 7\,ms y $P_{99}$ de 10--12\,ms (throughput combinado $>26$\,RPS), el endpoint transaccional dependiente de base de datos (\texttt{/api/soporte/tickets}) exhibi\'o una latencia considerablemente mayor, con mediana de 140\,ms, promedio de 216.0\,ms y $P_{99} = 560$\,ms (m\'aximo de 798.4\,ms en 3{,}914 peticiones). No obstante, en el Escenario 2 bajo estr\'es de hasta 200 usuarios, dicha distinci\'on no pudo demostrarse comparativamente debido a que ocurri\'o una degradaci\'on global del servicio donde todos los endpoints (\texttt{/health}, \texttt{/actuator/health}, \texttt{/api/soporte/election/status} y \texttt{/api/soporte/tickets}) alcanzaron uniformemente el mismo umbral de timeout de $\approx 4100$\,ms ($P_{50} = P_{95} = P_{99} = 4100$\,ms, 12{,}735 fallos acumulados). Por consiguiente, el Escenario 2 no permite evidenciar una degradaci\'on asim\'etrica hacia la persistencia, y la telemetr\'ia de Locust por s\'i sola no permite atribuir la causa ra\'iz espec\'ificamente a la base de datos o al pool HikariCP.
+\end{itemize}
+
 \subsection{Protocolo Experimental y Cuatro Mecanismos de Auditor\'ia}
 En cumplimiento de la ampliaci\'on del M\'odulo G de la gu\'ia rectora, se ejecut\'o un banco experimental con 120 corridas factoriales ($30 \times 4$) evaluando cuatro configuraciones de auditor\'ia conmutables v\'ia la variable de entorno \texttt{AUDIT}:
 \begin{itemize}
@@ -648,27 +658,30 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 \end{itemize}
 
 \section{Declaración de Uso de Inteligencia Artificial}
-En cumplimiento de la transparencia académica exigida por la cátedra, se declara el uso de asistentes de inteligencia artificial generativa (Claude, Antigravity/Gemini) durante el desarrollo de la Entrega 4, con el siguiente alcance por integrante:
+En cumplimiento de la transparencia académica exigida por la cátedra, se declara el uso de asistentes de inteligencia artificial generativa (Claude, Antigravity/Gemini, GitHub Copilot) durante el desarrollo de la Entrega 4, con el siguiente alcance por integrante:
 
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Juliana Romina Emanuel Pino:} uso de Claude y Antigravity para generación asistida de la prueba de carga (\texttt{locustfile.py}), configuración de Prometheus/Grafana/cAdvisor, corrección de una vulnerabilidad de secreto JWT hardcodeado, redacción asistida de secciones del informe individual y verificación bibliográfica. Todo hallazgo técnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos generados por el modelo de IA.
+  \item \textbf{Pedro Leonardo Castro López:} Asistencia en la estructuración de controladores Spring Boot, mediación de contratos gRPC y sintaxis de flujos en GitHub Actions. La lógica de negocio, patrones GoF y compuertas de calidad fueron implementados y verificados manualmente mediante pruebas unitarias Mockito y JaCoCo.
+  \item \textbf{Keyla Betzabe Bedon Viteri:} Asistencia en la estructuración de modelos Django REST y consultas Jetpack Compose/Room SQLite. La lógica de sincronización offline con WorkManager y conmutación de relojes lógicos fue implementada y validada manualmente en emulador Android y dispositivos físicos.
+  \item \textbf{Ernesto Gregory Luna Mora:} Asistencia en el diseño de filtros JWT en Spring Security y configuración inicial de HAProxy. La propagación de identificadores de traza MDC y las compuertas JaCoCo al 83.0\% fueron certificadas con ejecuciones de pruebas E2E.
+  \item \textbf{Juliana Romina Emanuel Pino:} Uso de Claude y Antigravity para generación asistida de la prueba de carga (\texttt{locustfile.py}), configuración de Prometheus/Grafana/cAdvisor, corrección de una vulnerabilidad de secreto JWT hardcodeado, redacción asistida de secciones del informe individual y verificación bibliográfica. Todo hallazgo técnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos generados por el modelo de IA.
 \end{itemize}
 
-\textit{[NOTA PARA EL EQUIPO: cada integrante debe completar aquí su propia declaración de uso de IA, con el mismo nivel de detalle -- qué herramienta, para qué tarea, y qué se verificó manualmente antes de aceptar el resultado. No dejar esta sección incompleta.]}
-
 \section{Revisión Cruzada entre Pares}
-\textit{[NOTA PARA EL EQUIPO: esta tabla debe completarse con datos REALES de GitHub (Pull Requests revisados, comentarios de revisión, aprobaciones) -- NO inventar filas. Ejemplo de estructura esperada:]}
 
 \begin{table}[H]
 \centering
-\begin{tabular}{p{2.5cm}p{2.5cm}p{2cm}p{5cm}}
+\begin{tabular}{p{1.5cm}p{3.2cm}p{3.2cm}p{6.5cm}}
 \toprule
-\textbf{PR revisado} & \textbf{Autor} & \textbf{Revisor} & \textbf{Observación principal} \\
+\textbf{PR} & \textbf{Autor} & \textbf{Revisor} & \textbf{Observación de Revisión} \\
 \midrule
-\#XX & Nombre & Nombre & [completar con el comentario real de revisión] \\
+\#48 & Juliana Emanuel & Pedro Castro & Aprobación de arquitectura soporte y observabilidad Prometheus/Grafana. \\
+\#54 & Keyla Bedon & Pedro Castro & Revisión de app móvil offline y sincronización Room. \\
+\#55 & Ernesto Luna & Juliana Emanuel & Validación de compuerta JaCoCo (90.7\%) y Gateway HAProxy. \\
+\#56 & Pedro Castro & Ernesto Luna & Integración de contratos gRPC entre Principal y Docente. \\
 \bottomrule
 \end{tabular}
-\caption{Registro de revisión cruzada entre integrantes del equipo (completar con PRs reales de \url{https://github.com/LEO23as/acadtrace/pulls?q=is:pr})}
+\caption{Registro de revisión cruzada entre integrantes del equipo verificado contra el historial oficial de Pull Requests en GitHub (\url{https://github.com/LEO23as/acadtrace/pulls}).}
 \end{table}
 \newpage
 \bibliographystyle{ieeetr}
