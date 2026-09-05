@@ -373,7 +373,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
   \item \textbf{Motor de Sincronizaci\'on en Background (\texttt{WorkManager}):} Un \texttt{PeriodicWorkRequestBuilder} con restricciones de red (\texttt{NetworkType.CONNECTED}) se activa autom\'aticamente al recuperar la conectividad, drenando la cola transaccional hacia el API Gateway mediante peticiones idempotentes y actualizando el reloj vectorial del dispositivo.
 \end{enumerate}
 
-\section{Aseguramiento de la Calidad, Pir\'amide de Pruebas y Pipeline CI/CD}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{movil_representante_evidencia.png}
+\caption{Interfaz de la Aplicaci\'on M\'ovil para Representantes (Kotlin + Jetpack Compose): (a) Desbloqueo seguro de sesi\'on mediante autenticaci\'on biom\'etrica nativa (\texttt{BiometricPrompt}), (b) Consulta acad\'emica con soporte de cach\'e desconectado \textit{offline-first} en SQLite Room, y (c) M\'odulo de asistencia y resumen escolar con reconciliaci\'on autom\'atica mediante \texttt{WorkManager}.}
+\label{fig:app_movil_representante}
+\end{figure}
+
+% =============================================================================
+% 6. PIRÁMIDE DE PRUEBAS Y PIPELINE CI/CD
+% =============================================================================
 \label{sec:pruebas-cicd}
 
 \subsection{Pir\'amide de Pruebas de Cinco Niveles}
