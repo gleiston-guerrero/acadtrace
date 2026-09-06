@@ -46,7 +46,7 @@ Este documento registra formalmente los metadatos de ejecuciÃ³n, especificacione
 | Archivo | Hash SHA-256 |
 |---|---|
 | `docs/locust/escenario1_nominal_stats.csv` | `D78900791C05745794BED0787AF8B3AE3EC4B0544453B96ABB8578B92666D9B1` |
-| `docs/locust/escenario2_estres_stats.csv` | `FE394DA7D3EC3F2172F97AEE02FF4699350F97CE091D27A65BF59D28F18B4CAC` |
+| `docs/locust/escenario2_estres_stats.csv` | `DF099D3AEB6030FB9730D0853594262F3FFCC318783B5EB3270B1092BE9CE8FA` |
 
 ---
 
@@ -63,3 +63,7 @@ Este documento registra formalmente los metadatos de ejecuciÃ³n, especificacione
 - **Escenario 2 (EstrÃ©s - Rampa 0 a 200 usuarios, 10 min):**
   - **Peticiones Totales:** 12,735 peticiones procesadas.
   - **Comportamiento ante saturaciÃ³n:** DegradaciÃ³n global por saturaciÃ³n severa y timeouts de conexiÃ³n HTTP en todos los endpoints bajo 200 usuarios concurrentes. Si bien la contenciÃ³n del pool de conexiones HikariCP o la sobrecarga en el pool de hilos de red constituyen hipÃ³tesis plausibles para explicar este comportamiento, los datos de telemetrÃ­a provistos por Locust (errores HTTP 0 por timeout de socket) por sÃ­ solos no permiten determinar la causa raÃ­z con certeza sin contrastar mÃ©tricas internas de Prometheus y Actuator.
+
+> **Nota:** El Escenario 2 (Estrés) se re-ejecutó el 2026-09-06 tras detectar que la primera corrida (2026-09-05) falló al 100% por el contenedor microservicio-soporte caído, no por estrés real. El hash de arriba corresponde a la corrida válida del 6 de septiembre.
+
+> **Nota:** El Escenario 2 (Estrés) se re-ejecutó el 2026-09-06 tras detectar que la primera corrida (2026-09-05) falló al 100% por el contenedor microservicio-soporte caído, no por estrés real. El hash de arriba corresponde a la corrida válida del 6 de septiembre.
