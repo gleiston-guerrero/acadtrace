@@ -1,5 +1,6 @@
 package ec.edu.uteq.sga.representante.core
 
+import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -16,7 +17,11 @@ class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor 
             requestBuilder.header("Authorization", "Bearer $token")
         }
 
-        val response = chain.proceed(requestBuilder.build())
+        val request = requestBuilder.build()
+        val studentId = Regex("/estudiantes/(\\d+)").find(request.url.encodedPath)?.groupValues?.get(1)
+        Log.i("RepresentanteHttp", "method=${request.method} url=${request.url} idEstudiante=${studentId ?: "n/a"}")
+        val response = chain.proceed(request)
+        Log.i("RepresentanteHttp", "method=${request.method} url=${request.url} idEstudiante=${studentId ?: "n/a"} status=${response.code}")
 
         // Si el token es inválido o expiró (401), se puede limpiar la sesión si no es la ruta de login
         if (response.code == 401 && !originalRequest.url.encodedPath.contains("/auth/login")) {

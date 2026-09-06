@@ -28,9 +28,10 @@ import ec.edu.uteq.sga.representante.data.local.entity.*
         PendingSyncEntity::class,
         RepresentadoCacheEntity::class,
         CalificacionesRepresentadoCacheEntity::class,
-        AsistenciaHijoCacheEntity::class
+        AsistenciaHijoCacheEntity::class,
+        ComunicadosRepresentanteCacheEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -61,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     Constants.DATABASE_NAME
                 )
-                .addMigrations(MIGRATION_3_4)
+                .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
                 .build()
                 INSTANCE = instance
                 instance
@@ -73,6 +74,11 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE TABLE IF NOT EXISTS representados_cache (idEstudiante INTEGER NOT NULL, json TEXT NOT NULL, lastUpdated INTEGER NOT NULL, PRIMARY KEY(idEstudiante))")
                 db.execSQL("CREATE TABLE IF NOT EXISTS calificaciones_representado_cache (idEstudiante INTEGER NOT NULL, json TEXT NOT NULL, lastUpdated INTEGER NOT NULL, PRIMARY KEY(idEstudiante))")
                 db.execSQL("CREATE TABLE IF NOT EXISTS asistencia_hijo_cache (idEstudiante INTEGER NOT NULL, json TEXT NOT NULL, lastUpdated INTEGER NOT NULL, PRIMARY KEY(idEstudiante))")
+            }
+        }
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS comunicados_representante_cache (id INTEGER NOT NULL, json TEXT NOT NULL, lastUpdated INTEGER NOT NULL, PRIMARY KEY(id))")
             }
         }
     }

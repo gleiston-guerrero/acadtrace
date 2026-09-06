@@ -16,31 +16,31 @@ public final class FichaEstudiantePdfBuilder {
     private FichaEstudiantePdfBuilder() {}
 
     public static byte[] build(Map&lt;String, Object&gt; estudiante, PdfTheme theme) throws IOException {
-<span class="nc" id="L19">        try (PDDocument document = new PDDocument()) {</span>
-<span class="nc" id="L20">            PDPage page = new PDPage(PDRectangle.A4);</span>
-<span class="nc" id="L21">            document.addPage(page);</span>
+<span class="fc" id="L19">        try (PDDocument document = new PDDocument()) {</span>
+<span class="fc" id="L20">            PDPage page = new PDPage(PDRectangle.A4);</span>
+<span class="fc" id="L21">            document.addPage(page);</span>
 
-<span class="nc" id="L23">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
-<span class="nc" id="L24">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Ficha del Estudiante&quot;, &quot;&quot;) + 10;</span>
+<span class="fc" id="L23">            try (PdfCanvas canvas = new PdfCanvas(document, page)) {</span>
+<span class="fc" id="L24">                float y = PdfLayout.drawHeader(canvas, theme, &quot;Ficha del Estudiante&quot;, &quot;&quot;) + 10;</span>
 
-<span class="nc" id="L26">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS PERSONALES&quot;, y);</span>
-<span class="nc" id="L27">                PdfLayout.drawField(canvas, &quot;Nombres&quot;, str(estudiante.get(&quot;nombres&quot;)), 40, y);</span>
-<span class="nc" id="L28">                PdfLayout.drawField(canvas, &quot;Apellidos&quot;, str(estudiante.get(&quot;apellidos&quot;)), 320, y);</span>
-<span class="nc" id="L29">                y += 18;</span>
-<span class="nc" id="L30">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(estudiante.get(&quot;cedula&quot;)), 40, y);</span>
-<span class="nc" id="L31">                PdfLayout.drawField(canvas, &quot;Código&quot;, str(estudiante.get(&quot;codigo_estudiante&quot;)), 320, y);</span>
-<span class="nc" id="L32">                y += 18;</span>
-<span class="nc" id="L33">                PdfLayout.drawField(canvas, &quot;Fecha nacimiento&quot;, formatFechaEc(estudiante.get(&quot;fecha_nacimiento&quot;)), 40, y);</span>
-<span class="nc" id="L34">                PdfLayout.drawField(canvas, &quot;Género&quot;, str(estudiante.get(&quot;genero&quot;)), 320, y);</span>
-<span class="nc" id="L35">                y += 18;</span>
-<span class="nc" id="L36">                PdfLayout.drawField(canvas, &quot;Teléfono&quot;, str(estudiante.get(&quot;telefono&quot;)), 40, y);</span>
-<span class="nc" id="L37">                PdfLayout.drawField(canvas, &quot;Correo&quot;, str(estudiante.get(&quot;correo&quot;)), 320, y);</span>
-<span class="nc" id="L38">                y += 18;</span>
-<span class="nc" id="L39">                PdfLayout.drawField(canvas, &quot;Dirección&quot;, str(estudiante.get(&quot;direccion&quot;)), 40, y, 100);</span>
-<span class="nc" id="L40">                y += 30;</span>
+<span class="fc" id="L26">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS PERSONALES&quot;, y);</span>
+<span class="fc" id="L27">                PdfLayout.drawField(canvas, &quot;Nombres&quot;, str(estudiante.get(&quot;nombres&quot;)), 40, y);</span>
+<span class="fc" id="L28">                PdfLayout.drawField(canvas, &quot;Apellidos&quot;, str(estudiante.get(&quot;apellidos&quot;)), 320, y);</span>
+<span class="fc" id="L29">                y += 18;</span>
+<span class="fc" id="L30">                PdfLayout.drawField(canvas, &quot;Cédula&quot;, str(estudiante.get(&quot;cedula&quot;)), 40, y);</span>
+<span class="fc" id="L31">                PdfLayout.drawField(canvas, &quot;Código&quot;, str(estudiante.get(&quot;codigo_estudiante&quot;)), 320, y);</span>
+<span class="fc" id="L32">                y += 18;</span>
+<span class="fc" id="L33">                PdfLayout.drawField(canvas, &quot;Fecha nacimiento&quot;, formatFechaEc(estudiante.get(&quot;fecha_nacimiento&quot;)), 40, y);</span>
+<span class="fc" id="L34">                PdfLayout.drawField(canvas, &quot;Género&quot;, str(estudiante.get(&quot;genero&quot;)), 320, y);</span>
+<span class="fc" id="L35">                y += 18;</span>
+<span class="fc" id="L36">                PdfLayout.drawField(canvas, &quot;Teléfono&quot;, str(estudiante.get(&quot;telefono&quot;)), 40, y);</span>
+<span class="fc" id="L37">                PdfLayout.drawField(canvas, &quot;Correo&quot;, str(estudiante.get(&quot;correo&quot;)), 320, y);</span>
+<span class="fc" id="L38">                y += 18;</span>
+<span class="fc" id="L39">                PdfLayout.drawField(canvas, &quot;Dirección&quot;, str(estudiante.get(&quot;direccion&quot;)), 40, y, 100);</span>
+<span class="fc" id="L40">                y += 30;</span>
 
-<span class="nc" id="L42">                String repNombres = str(estudiante.get(&quot;rep_nombres&quot;));</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">                if (!repNombres.isBlank()) {</span>
+<span class="fc" id="L42">                String repNombres = str(estudiante.get(&quot;rep_nombres&quot;));</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">                if (!repNombres.isBlank()) {</span>
 <span class="nc" id="L44">                    y = PdfLayout.drawSectionTitle(canvas, &quot;REPRESENTANTE LEGAL&quot;, y);</span>
 <span class="nc" id="L45">                    PdfLayout.drawField(canvas, &quot;Nombres&quot;, repNombres + &quot; &quot; + str(estudiante.get(&quot;rep_apellidos&quot;)), 40, y);</span>
 <span class="nc" id="L46">                    PdfLayout.drawField(canvas, &quot;Parentesco&quot;, str(estudiante.get(&quot;parentesco&quot;)), 320, y);</span>
@@ -52,9 +52,9 @@ public final class FichaEstudiantePdfBuilder {
 <span class="nc" id="L52">                    y += 30;</span>
                 }
 
-<span class="nc" id="L55">                String tipoSangre = str(estudiante.get(&quot;tipo_sangre&quot;));</span>
-<span class="nc" id="L56">                String alergias = str(estudiante.get(&quot;alergias&quot;));</span>
-<span class="nc bnc" id="L57" title="All 4 branches missed.">                if (!tipoSangre.isBlank() || !alergias.isBlank()) {</span>
+<span class="fc" id="L55">                String tipoSangre = str(estudiante.get(&quot;tipo_sangre&quot;));</span>
+<span class="fc" id="L56">                String alergias = str(estudiante.get(&quot;alergias&quot;));</span>
+<span class="pc bpc" id="L57" title="2 of 4 branches missed.">                if (!tipoSangre.isBlank() || !alergias.isBlank()) {</span>
 <span class="nc" id="L58">                    y = PdfLayout.drawSectionTitle(canvas, &quot;INFORMACIÓN MÉDICA&quot;, y);</span>
 <span class="nc" id="L59">                    PdfLayout.drawField(canvas, &quot;Tipo de sangre&quot;, tipoSangre, 40, y);</span>
 <span class="nc" id="L60">                    PdfLayout.drawField(canvas, &quot;Alergias&quot;, alergias, 320, y);</span>
@@ -66,8 +66,8 @@ public final class FichaEstudiantePdfBuilder {
 <span class="nc" id="L66">                    y += 30;</span>
                 }
 
-<span class="nc" id="L69">                Object discapacidad = estudiante.get(&quot;discapacidad&quot;);</span>
-<span class="nc bnc" id="L70" title="All 2 branches missed.">                if (Boolean.TRUE.equals(discapacidad)) {</span>
+<span class="fc" id="L69">                Object discapacidad = estudiante.get(&quot;discapacidad&quot;);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">                if (Boolean.TRUE.equals(discapacidad)) {</span>
 <span class="nc" id="L71">                    y = PdfLayout.drawSectionTitle(canvas, &quot;DISCAPACIDAD&quot;, y);</span>
 <span class="nc" id="L72">                    PdfLayout.drawField(canvas, &quot;Tipo&quot;, str(estudiante.get(&quot;tipo_discapacidad&quot;)), 40, y);</span>
 <span class="nc" id="L73">                    Object porcentaje = estudiante.get(&quot;porcentaje_disc&quot;);</span>
@@ -75,12 +75,12 @@ public final class FichaEstudiantePdfBuilder {
 <span class="nc" id="L75">                    y += 30;</span>
                 }
 
-<span class="nc" id="L78">                PdfLayout.drawFooter(canvas, theme);</span>
+<span class="fc" id="L78">                PdfLayout.drawFooter(canvas, theme);</span>
             }
 
-<span class="nc" id="L81">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
-<span class="nc" id="L82">            document.save(out);</span>
-<span class="nc" id="L83">            return out.toByteArray();</span>
+<span class="fc" id="L81">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="fc" id="L82">            document.save(out);</span>
+<span class="fc" id="L83">            return out.toByteArray();</span>
         }
     }
 }

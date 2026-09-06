@@ -16,6 +16,7 @@ services:
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
+      - AUDIT=${AUDIT:-m2}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
     volumes:
       - ./sga-principal/uploads:/app/uploads
@@ -58,6 +59,7 @@ services:
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
+      - AUDIT=${AUDIT:-m2}
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
     networks:
       - sga-distribuido-net
@@ -105,6 +107,7 @@ services:
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
+      - AUDIT=${AUDIT:-m2}
       - JWT_SECRET=***REMOVED***
       - AES_SECRET_KEY=***REMOVED-AES-SECRET***=
       - GRPC_PRINCIPAL_HOST=sga-principal
@@ -166,8 +169,9 @@ services:
       - ./sga-principal/sga-frontend:/app
       - /app/node_modules
     ports:
+      - "5173:5173"
       - "5174:5173"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm run dev -- --host 0.0.0.0"
     networks:
       - sga-distribuido-net
     depends_on:

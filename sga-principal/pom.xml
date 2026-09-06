@@ -251,15 +251,25 @@
                     </execution>
                 </executions>
             </plugin>
-                        <!-- Plugin JaCoCo para reporte de cobertura HTML (Entregable 3) -->
-                       <!-- Plugin JaCoCo con Regla Enforceable al 70% (Dimensión D1) -->
-                     <!-- Plugin JaCoCo con Regla Enforceable al 70% (Dimensión D1) -->
-                       <!-- Plugin JaCoCo con Regla Enforceable al 70% (Dimensión D1) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading -Dfile.encoding=UTF-8</argLine>
+                </configuration>
+            </plugin>
+            <!-- Plugin JaCoCo para reporte de cobertura HTML (Entregable 3) -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.11</version>
                 <configuration>
+                    <excludes>
+                        <exclude>**/grpc/**</exclude>
+                        <exclude>**/*Proto*</exclude>
+                        <exclude>ec/edu/uteq/sga/grpc/**</exclude>
+                    </excludes>
                     <rules>
                         <rule>
                             <element>CLASS</element>

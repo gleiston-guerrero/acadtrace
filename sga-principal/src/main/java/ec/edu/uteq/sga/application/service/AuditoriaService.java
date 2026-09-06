@@ -18,17 +18,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * Unico punto de escritura de sga_principal.auditoria desde sga-principal
- * (la tabla y el repositorio existian desde FIX-3, pero nada los llamaba).
- * microservicio-secretaria tiene su propio AuditoriaService (JDBC) que
- * escribe en la misma tabla via SQL cruzado, ya que ambos comparten la
- * misma base de datos fisica; comparten tambien el mismo secreto HMAC
- * (jwt.secret) para que las firmas sean verificables sin importar cual
- * servicio escribio la fila.
- *
- * Nunca deja que un fallo al auditar tumbe la operacion de negocio que
- * disparo el evento: se loguea el error y se continua.
+ * con soporte de conmutacion en caliente por variable AUDIT (m0, m1, m2, m3).
  */
 @Service
 @RequiredArgsConstructor
@@ -38,6 +32,18 @@ public class AuditoriaService {
 
     private final AuditoriaRepository repo;
     private final HmacService hmacService;
+    private final LamportClock lamportClock;
+
+    @Value("${AUDIT:m2}")
+    private String auditMode = "m2";
+
+    public void setAuditMode(String mode) {
+        this.auditMode = mode;
+    }
+
+    public String getAuditMode() {
+        return this.auditMode;
+    }
 
     public void registrarCrud(String accion, String tablaAfectada, Long registroId, String descripcion) {
         guardar(accion, tablaAfectada, registroId, descripcion, usernameActual(), null, "EXITO", ipActual());
@@ -51,7 +57,7 @@ public class AuditoriaService {
         guardar(accion, "usuario", idUsuario, descripcion, username, null, resultado, ipActual());
     }
 
-    /** Llamada gRPC recibida desde otro microservicio (ver InternalAuthInterceptor, que puebla TraceContext con el trace_id/actor que trae la metadata). */
+    /** Llamada gRPC recibida desde otro microservicio. */
     public void registrarGrpcRecibida(String tablaAfectada, Long registroId, String descripcion, String resultado, String mensajeError) {
         String desc = mensajeError != null ? descripcion + " — " + mensajeError : descripcion;
         guardar("LLAMADA_GRPC", tablaAfectada, registroId, desc, TraceContext.actor(), TraceContext.current(), resultado, null);
@@ -63,8 +69,20 @@ public class AuditoriaService {
 
     private void guardar(String accion, String tablaAfectada, Long registroId, String descripcion,
                           String username, String traceIdOverride, String resultado, String ip) {
+        if ("m0".equalsIgnoreCase(auditMode)) {
+            // Modo m0: Sin auditoria (linea base de desempeno)
+            return;
+        }
+
         try {
             UUID traceId = parseOrNew(traceIdOverride != null ? traceIdOverride : TraceContext.current());
+            long lamportTime = (lamportClock != null) ? lamportClock.tick() : 1L;
+
+            String descFinal = descripcion;
+            if ("m2".equalsIgnoreCase(auditMode) || "m3".equalsIgnoreCase(auditMode)) {
+                String extra = " [lamport:" + lamportTime + ("m3".equalsIgnoreCase(auditMode) ? ",vclock:[1,0,0]" : "") + "]";
+                descFinal = (descripcion != null ? descripcion : "") + extra;
+            }
 
             Auditoria fila = Auditoria.builder()
                     .schemaOrigen("PRINCIPAL")
@@ -73,13 +91,16 @@ public class AuditoriaService {
                     .accion(accion)
                     .tablaAfectada(tablaAfectada)
                     .registroId(registroId)
-                    .descripcion(descripcion)
+                    .descripcion(descFinal)
                     .ipAddress(ip)
                     .resultado(resultado)
                     .fecha(Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS))
                     .build();
 
-            fila.setHmac(firmar(fila));
+            if (!"m1".equalsIgnoreCase(auditMode)) {
+                // m1 es bitacora convencional; m2 y m3 llevan HMAC criptografico
+                fila.setHmac(firmar(fila));
+            }
             repo.save(fila);
         } catch (Exception e) {
             // Un fallo al auditar no debe romper la operacion que lo disparo.

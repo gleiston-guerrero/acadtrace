@@ -37,4 +37,19 @@ public class HmacService {
         for (byte b : digest) hex.append(String.format("%02x", b));
         return hex.toString();
     }
+
+    /**
+     * Verifica si el HMAC coincide con los campos computados.
+     * Utiliza MessageDigest.isEqual en tiempo constante para prevenir ataques de temporizacion.
+     */
+    public boolean verificar(String hmacEsperado, String... campos) {
+        if (hmacEsperado == null || hmacEsperado.isBlank()) {
+            return false;
+        }
+        String calculado = firmar(campos);
+        return java.security.MessageDigest.isEqual(
+                hmacEsperado.getBytes(StandardCharsets.UTF_8),
+                calculado.getBytes(StandardCharsets.UTF_8)
+        );
+    }
 }

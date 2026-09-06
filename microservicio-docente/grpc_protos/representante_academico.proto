@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package representante_academico;
+option java_package = "ec.edu.uteq.sga.grpc.representante";
+option java_multiple_files = true;
+
+service RepresentanteAcademicoService {
+  rpc ConsultarCalificaciones (MatriculasRequest) returns (CalificacionesResponse);
+  rpc ConsultarAsistencia (MatriculasRequest) returns (AsistenciaResponse);
+  rpc ConsultarComunicados (AsignacionesRequest) returns (ComunicadosResponse);
+}
+
+message MatriculasRequest { repeated int64 id_matriculas = 1; }
+message AsignacionesRequest { repeated int64 id_asignaciones = 1; }
+
+message CalificacionRepresentante {
+  int64 id_calificacion = 1;
+  int64 id_matricula = 2;
+  int64 id_actividad = 3;
+  string actividad = 4;
+  int64 id_asignacion = 5;
+  int64 id_periodo = 6;
+  string periodo = 7;
+  double nota = 8;
+  string nota_cualitativa = 9;
+}
+message PromedioRepresentante {
+  int64 id_matricula = 1;
+  int64 id_asignacion = 2;
+  int64 id_periodo = 3;
+  string periodo = 4;
+  double promedio_formativo = 5;
+  double nota_sumativa = 6;
+  double promedio_trimestral = 7;
+  string nota_cualitativa = 8;
+}
+message CalificacionesResponse {
+  repeated CalificacionRepresentante calificaciones = 1;
+  repeated PromedioRepresentante promedios = 2;
+}
+
+message AsistenciaRepresentante {
+  int64 id_asistencia = 1;
+  int64 id_matricula = 2;
+  int64 id_asignacion = 3;
+  int64 id_periodo = 4;
+  string periodo = 5;
+  string fecha = 6;
+  string estado = 7;
+}
+message ResumenAsistenciaRepresentante {
+  int32 total = 1;
+  int32 presentes = 2;
+  int32 ausentes = 3;
+  int32 justificados = 4;
+  int32 atrasos = 5;
+  double porcentaje_asistencia = 6;
+}
+message AsistenciaResponse {
+  repeated AsistenciaRepresentante asistencias = 1;
+  ResumenAsistenciaRepresentante resumen = 2;
+}
+
+message ComunicadoRepresentante {
+  int64 id = 1;
+  string titulo = 2;
+  string contenido = 3;
+  string fecha = 4;
+  bool fijado = 5;
+}
+message ComunicadosResponse { repeated ComunicadoRepresentante comunicados = 1; }

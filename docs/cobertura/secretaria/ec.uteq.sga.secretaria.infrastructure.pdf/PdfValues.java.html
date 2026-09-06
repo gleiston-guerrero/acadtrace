@@ -7,22 +7,22 @@ import java.time.format.DateTimeFormatter;
 /** Conversion de valores crudos del RowMapper (String/Number/LocalDate/null) a texto para el PDF. */
 public final class PdfValues {
 
-<span class="nc" id="L10">    private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern(&quot;d/M/yyyy&quot;);</span>
+<span class="fc" id="L10">    private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern(&quot;d/M/yyyy&quot;);</span>
 
     private PdfValues() {}
 
     public static String str(Object value) {
-<span class="nc bnc" id="L15" title="All 2 branches missed.">        return value == null ? &quot;&quot; : String.valueOf(value);</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        return value == null ? &quot;&quot; : String.valueOf(value);</span>
     }
 
     public static String formatFechaEc(Object value) {
-<span class="nc bnc" id="L19" title="All 4 branches missed.">        LocalDate date = switch (value) {</span>
+<span class="pc bpc" id="L19" title="3 of 4 branches missed.">        LocalDate date = switch (value) {</span>
 <span class="nc" id="L20">            case null -&gt; null;</span>
-<span class="nc" id="L21">            case LocalDate d -&gt; d;</span>
+<span class="fc" id="L21">            case LocalDate d -&gt; d;</span>
 <span class="nc" id="L22">            case LocalDateTime dt -&gt; dt.toLocalDate();</span>
-<span class="nc" id="L23">            default -&gt; null;</span>
+<span class="pc" id="L23">            default -&gt; null;</span>
         };
-<span class="nc bnc" id="L25" title="All 2 branches missed.">        return date == null ? &quot;&quot; : date.format(SHORT_DATE);</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">        return date == null ? &quot;&quot; : date.format(SHORT_DATE);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

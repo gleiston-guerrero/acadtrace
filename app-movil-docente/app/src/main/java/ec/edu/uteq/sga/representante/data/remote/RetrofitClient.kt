@@ -14,16 +14,14 @@ import java.util.concurrent.TimeUnit
 class RetrofitClient(private val sessionManager: SessionManager) {
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        // AuthInterceptor registra únicamente método, URL, idEstudiante y estado.
+        // No registrar cuerpos: pueden contener datos académicos personales.
+        level = HttpLoggingInterceptor.Level.NONE
         redactHeader("Authorization")
     }
 
     fun getRepresentantePrincipalApi(): RepresentanteApi = Retrofit.Builder()
         .baseUrl(sanitizeBaseUrl(sessionManager.getGatewayUrl())).client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create()).build().create(RepresentanteApi::class.java)
-
-    fun getRepresentanteDocenteApi(): RepresentanteApi = Retrofit.Builder()
-        .baseUrl(sanitizeBaseUrl(sessionManager.getDocenteUrl())).client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create()).build().create(RepresentanteApi::class.java)
 
     private val okHttpClient = OkHttpClient.Builder()
