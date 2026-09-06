@@ -1,4 +1,4 @@
-﻿# Entorno de Medición y Metadatos de Pruebas de Carga (Locust) — Entrega 4
+# Entorno de Medición y Metadatos de Pruebas de Carga (Locust) — Entrega 4
 
 Este documento registra formalmente los metadatos de ejecución, especificaciones del entorno de pruebas y las firmas criptográficas SHA-256 de los conjuntos de datos obtenidos durante la evaluación de rendimiento y resiliencia del sistema **AcadTrace**.
 
@@ -62,4 +62,4 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 
 - **Escenario 2 (Estrés - Rampa 0 a 200 usuarios, 10 min):**
   - **Peticiones Totales:** 12,735 peticiones procesadas.
-  - **Comportamiento ante saturación:** Degradación controlada por agotamiento de conexiones en endpoints de alta carga transaccional con contención de base de datos, evidenciando el límite de capacidad del pool HikariCP bajo saturación extrema.
+  - **Comportamiento ante saturación:** Degradación global por saturación severa y timeouts de conexión HTTP en todos los endpoints bajo 200 usuarios concurrentes. Si bien la contención del pool de conexiones HikariCP o la sobrecarga en el pool de hilos de red constituyen hipótesis plausibles para explicar este comportamiento, los datos de telemetría provistos por Locust (errores HTTP 0 por timeout de socket) por sí solos no permiten determinar la causa raíz con certeza sin contrastar métricas internas de Prometheus y Actuator.
