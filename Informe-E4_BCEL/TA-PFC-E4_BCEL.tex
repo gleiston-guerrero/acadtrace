@@ -326,6 +326,125 @@ En concordancia con el Teorema PACELC~\cite{abadi2012pacelc}, el cl\'uster de pe
   \item \textbf{Gesti\'on de Conexiones HikariCP:} Se dimension\'o un \textit{connection pool} con un l\'imite de 30 conexiones activas y 5 inactivas (\textit{idle}) por microservicio, con un tiempo m\'aximo de espera (\texttt{connection-timeout}) de 3000\,ms para evitar saturaci\'on del servidor PostgreSQL en AWS EC2.
 \end{enumerate}
 
+\subsection{Trazabilidad de Temas de la Asignatura y Evidencias del Proyecto}
+Para viabilizar la verificaci\'on integral y reproducible de los requerimientos de la asignatura de Aplicaciones Distribuidas frente a los artefactos desarrollados por el equipo BCEL, en la Tabla~\ref{tab:trazabilidad-temas} se formaliza la correspondencia directa entre cada tema fundamental del curso, el mecanismo t\'ecnico implementado y las rutas de c\'odigo, configuraciones o pruebas automatizadas verificadas en el repositorio. La tabla presenta evidencias globales del proyecto desarrolladas por los distintos integrantes del equipo BCEL. Su inclusi\'on tiene fines de trazabilidad acad\'emica y no implica autor\'ia individual sobre todos los artefactos referenciados.
+
+\begin{table}[H]
+\centering
+\caption{Trazabilidad de temas de la asignatura y evidencias del proyecto}
+\label{tab:trazabilidad-temas}
+\scriptsize
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{|p{2.3cm}|p{2.8cm}|p{4.7cm}|X|}
+\hline
+\textbf{Tema Asignatura} & \textbf{Mecanismo} & \textbf{Evidencia en Repositorio} & \textbf{Breve Explicaci\'on y Qu\'e Demuestra} \\
+\hline
+\textbf{1. Microservicios y Arq. Distribuida} &
+Cl\'uster contenerizado pol\'iglota (Java Spring Boot, Django, Node.js React, FastAPI) con red bridge aislada. &
+\texttt{docker-compose.yml}, \newline
+\texttt{sga-principal/}, \newline
+\texttt{microservicio-docente/}, \newline
+\texttt{microservicio-secretaria/}, \newline
+\texttt{microservicio-soporte/}, \newline
+\texttt{microservicio-ia/} &
+Descomposici\'on aut\'onoma de servicios con aislamiento de red, variables de entorno independientes y balanceo perimetral. \\
+\hline
+\textbf{2. Principios SOLID y Capas} &
+Clean Architecture en 4 capas conc\'entricas e inversi\'on de dependencias con puertos desacoplados. &
+\texttt{sga-principal/src/main/}\allowbreak\texttt{java/ec/edu/uteq/sga/} (\texttt{application}, \texttt{domain}, \texttt{infrastructure}, \texttt{presentation}), \newline
+\texttt{docs/adr/ADR-001-arquitectura-capas.md} &
+Aislamiento del dominio puro respecto a la infraestructura JPA/Web; cumplimiento de SRP, OCP y DIP con interfaces en el dominio. \\
+\hline
+\textbf{3. Comunicaci\'on gRPC / Protobuf} &
+Canal s\'incrono binario HTTP/2 con esquemas versionados Protocol Buffers v3 entre microservicios. &
+\texttt{sga-principal/src/main/}\allowbreak\texttt{proto/principal.proto}, \newline
+\texttt{microservicio-docente/}\allowbreak\texttt{grpc\_protos/}, \newline
+\texttt{sga-principal/.../grpc/}, \newline
+\texttt{microservicio-docente/}\allowbreak\texttt{docentes/grpc\_services/}, \newline
+\texttt{test\_calificaciones\_grpc.py} &
+Intercomunicaci\'on inter-servicios de alto desempe\~no con tipado r\'igido, serializaci\'on eficiente y pruebas automatizadas de integraci\'on. \\
+\hline
+\textbf{4. Relojes de Lamport} &
+Reloj l\'ogico escalar mon\'otono creciente para ordenamiento causal de transacciones ($L = \max(L_{\text{loc}}, L_{\text{rx}}) + 1$). &
+\texttt{sga-principal/.../service/}\allowbreak\texttt{LamportClock.java}, \newline
+\texttt{LamportClockTest.java}, \newline
+\texttt{microservicio-secretaria/}\allowbreak\texttt{backend/.../db/migrations/}\allowbreak\texttt{002\_lamport\_clock.sql} &
+Ordenamiento causal determinista ante concurrencia sin dependencia de reloj f\'isico, validado con pruebas unitarias de monotonicidad. \\
+\hline
+\textbf{5. Relojes Vectoriales} &
+Vectores l\'ogicos $\vec{V} = [v_1, \dots, v_n]$ para detecci\'on de relaciones causales y concurrencia ($A \parallel B$). &
+\texttt{microservicio-docente/}\allowbreak\texttt{docentes/auditoria/}\allowbreak\texttt{clocks.py} (\texttt{reconciliar\_}\allowbreak\texttt{vectores}), \newline
+\texttt{test\_auditoria.py} &
+Identificaci\'on de ediciones concurrentes en modo desconectado y reconciliaci\'on determinista de versiones sin sobreescritura. \\
+\hline
+\textbf{6. Particionamiento de Datos} &
+Aislamiento l\'ogico multi-esquema en PostgreSQL por dominio y fragmentaci\'on temporal por per\'iodo. &
+\texttt{docs/db/schema.sql} (esquemas \texttt{sga\_principal}, \texttt{secretaria}, \texttt{docente}, \texttt{soporte}), \newline
+\texttt{docs/adr/ADR-003-persistencia-distribuida.md} &
+Eliminaci\'on de contenci\'on de bloqueos a nivel de tabla y aislamiento funcional de esquemas entre microservicios aut\'onomos. \\
+\hline
+\textbf{7. Balanceo Carga con HAProxy} &
+Reverse proxy perimetral con balanceo Round Robin (REST), Leastconn (gRPC) y monitoreo de salud. &
+\texttt{docker-compose.yml} (servicio \texttt{haproxy}), \newline
+\texttt{infra/haproxy/haproxy.cfg} (puertos 8080, 8081, 8082, 9092, dashboard 8404) &
+Distribuci\'on de carga hacia r\'eplicas activas, detecci\'on autom\'atica de ca\'idas (\texttt{fall 2 rise 2}) y verificaci\'on de \texttt{/health}. \\
+\hline
+\textbf{8. Sincronizaci\'on Offline M\'ovil} &
+Arquitectura Offline-First con persistencia local Room SQLite y sincronizaci\'on v\'ia WorkManager. &
+\texttt{app-movil-docente/.../}\allowbreak\texttt{sync/RepresentanteSyncPolicy.kt}, \newline
+\texttt{SyncWorker.kt}, \newline
+\texttt{AppDatabase.kt}, \newline
+\texttt{RepresentanteSyncPolicyTest.kt} &
+Disponibilidad desconectada de consultas de estudiantes/notas y encolado de operaciones con sincronizaci\'on autom\'atica al reconectar. \\
+\hline
+\textbf{9. Auditor\'ia Criptogr\'afica} &
+Firma HMAC-SHA256 por evento y encadenamiento criptogr\'afico de hashes sucesivos en bit\'acora. &
+\texttt{microservicio-secretaria/}\allowbreak\texttt{.../security/HmacService.java}, \newline
+\texttt{AuditoriaIntegridadTest.java}, \newline
+\texttt{microservicio-docente/}\allowbreak\texttt{docentes/auditoria/hashing.py} &
+Detecci\'on autom\'atica e infalsificable de alteraciones no autorizadas en registros de notas o matr\'iculas (\textit{Direct DB Tampering}). \\
+\hline
+\textbf{10. Inmutabilidad Append-Only} &
+Disparador (\textit{trigger}) PL/pgSQL que aborta cualquier instrucci\'on UPDATE o DELETE en auditor\'ia. &
+\texttt{sga-principal/sql/}\allowbreak\texttt{V9\_\_trigger\_auditoria\_}\allowbreak\texttt{append\_only.sql}, \newline
+\texttt{microservicio-secretaria/}\allowbreak\texttt{.../007\_trigger\_auditoria\_}\allowbreak\texttt{inmutable.sql}, \newline
+\texttt{docs/db/schema.sql} &
+Garant\'ia de no-repudio; los registros insertados en la bit\'acora no pueden ser modificados ni borrados por ning\'un usuario de la base. \\
+\hline
+\textbf{11. Observabilidad (Prometheus/Grafana)} &
+Instrumentaci\'on de m\'etricas Micrometer/Actuator (scrape 15\,s), cAdvisor y dashboard en seis vistas. &
+\texttt{infra/prometheus/}\allowbreak\texttt{prometheus.yml}, \newline
+\texttt{ops/grafana/pfc-dashboard.json}, \newline
+\texttt{infra/grafana/dashboards/} &
+Telemetr\'ia unificada de RPS, latencias percentiles (P50/P95/P99), c\'odigos 4xx/5xx y contadores de eventos cr\'iticos de dominio. \\
+\hline
+\textbf{12. PostgreSQL Exporter} &
+Contenedor dedicado para la recolecci\'on continua de telemetr\'ia interna del motor relacional PostgreSQL. &
+\texttt{docker-compose.yml} (servicio \texttt{postgres-exporter}, puerto 9187), \newline
+\texttt{infra/prometheus/}\allowbreak\texttt{prometheus.yml} (job \texttt{postgres}) &
+Monitoreo en tiempo real de disponibilidad de la base de datos en AWS EC2, volumen de transacciones y estados de conexi\'on. \\
+\hline
+\textbf{13. Pruebas Carga Locust} &
+Perfiles de carga sint\'etica nominal (50 usuarios, 5\,min) y estr\'es escalonado (hasta 200 usuarios, 10\,min). &
+\texttt{docs/locust/}\allowbreak\texttt{escenario1\_nominal\_stats.csv}, \newline
+\texttt{escenario2\_estres\_stats.csv}, \newline
+\texttt{docs/locust/entorno\_medicion.md}, \newline
+\texttt{tests/load/locustfile.py} &
+Evaluaci\'on emp\'irica: estabilidad con 0\% fallos en carga nominal vs. saturaci\'on global y timeouts bajo el escenario de estr\'es. \\
+\hline
+\textbf{14. Tolerancia Fallos y Consenso} &
+Coordinaci\'on distribuida mediante \texttt{etcd}/Raft para elecci\'on de l\'ider en tareas de soporte y r\'eplicas. &
+\texttt{docker-compose.yml} (servicio \texttt{etcd}), \newline
+\texttt{microservicio-soporte/.../}\allowbreak\texttt{election/}\allowbreak\texttt{LeaderElection}\allowbreak\texttt{Service.java}, \newline
+\texttt{TicketScheduledTasks.java}, \newline
+\texttt{OtherControllersTest.java} &
+Prevenci\'on de ejecuci\'on redundante de tareas programadas en r\'eplicas de soporte mediante elecci\'on de l\'ider din\'amica con etcd. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\newpage
+
 \section{Aplicaciones Cliente: Portal Web SPA y Cliente M\'ovil Nativo}
 \label{sec:clientes}
 
@@ -402,7 +521,7 @@ La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{locust_resultados.png}
-\caption{Resultados de la prueba de carga con Locust (2446 peticiones con 0\% tasa de error).}
+\caption{Resultados de la prueba de carga con Locust (13{,}606 peticiones con 0\,\% tasa de error en escenario nominal; 2446 peticiones en corrida preliminar).}
 \label{fig:locust-resultados}
 \end{figure}
 
@@ -505,6 +624,16 @@ El layout personalizado \texttt{JsonStructuredLayout} formatea los registros en 
 % =============================================================================
 \section{Evaluaci\'on Experimental ISO/IEC 25010 y Capa de Cripto-Auditor\'ia}
 \label{sec:evaluacion-experimental}
+
+\subsection{Preguntas de Investigaci\'on Emp\'iricas (PI)}
+Para guiar la evaluaci\'on cuantitativa de rendimiento, resiliencia y comportamiento del sistema bajo cargas extremas, se formularon dos Preguntas de Investigaci\'on (PI) emp\'iricas dise\~nadas formalmente para admitir refutaci\'on (respuesta negativa):
+\begin{itemize}[leftmargin=*]
+  \item \textbf{PI-1:} \textit{\textquestiondown Puede el Microservicio de Soporte mantener una tasa de errores HTTP 5xx igual a 0\,\% y una latencia $P_{99}$ inferior a 500\,ms cuando la carga aumenta desde 50 hasta 200 usuarios concurrentes sin evidenciar agotamiento o contenci\'on significativa del pool de conexiones HikariCP?} \\
+  \textbf{Respuesta emp\'irica:} \textbf{No.} En el Escenario 1 de carga nominal sostenida (50 usuarios concurrentes durante 5 minutos), el sistema proces\'o 13{,}606 peticiones con un throughput promedio de 45.54\,RPS, registrando un Failure Count de 0 (0.0\,\% de errores), una mediana ($P_{50}$) de 6\,ms, $P_{95} = 440$\,ms y $P_{99} = 470$\,ms ($< 500$\,ms). Sin embargo, en el Escenario 2 de estr\'es (rampa progresiva de 0 a 200 usuarios durante 10 minutos, 12{,}735 peticiones a 36.85\,RPS), el sistema experiment\'o una degradaci\'on global del servicio bajo la carga extrema aplicada, alcanzando el umbral de timeout configurado con latencias $P_{50}$, $P_{95}$ y $P_{99}$ de 4100\,ms y un Failure Count de 12{,}735 (tasa de fallo del 100\,\%), incumpliendo el criterio de estabilidad. Si bien la contenci\'on o saturaci\'on del pool de conexiones HikariCP constituye una hip\'otesis plausible para explicar este comportamiento, los datos de telemetr\'ia provistos por Locust por s\'i solos no permiten determinar la causa ra\'iz con certeza, requiriendo confirmaci\'on cruzada mediante m\'etricas de Prometheus, Actuator y registros internos del pool.
+  
+  \item \textbf{PI-2:} \textit{\textquestiondown Mantienen los endpoints que requieren acceso a base de datos un comportamiento de latencia equivalente al de los endpoints stateless cuando el sistema es sometido al escenario de estr\'es de hasta 200 usuarios concurrentes?} \\
+  \textbf{Respuesta emp\'irica:} \textbf{Parcialmente.} En el Escenario 1 de carga nominal sostenida (50 usuarios concurrentes), se constata que no son equivalentes: mientras los endpoints stateless en memoria (\texttt{/health} y \texttt{/api/soporte/election/status}) respondieron con medianas ($P_{50}$) de 4\,ms y percentiles $P_{95}$ de 7\,ms y $P_{99}$ de 10--12\,ms (throughput combinado $>26$\,RPS), el endpoint transaccional dependiente de base de datos (\texttt{/api/soporte/tickets}) exhibi\'o una latencia considerablemente mayor, con mediana de 140\,ms, promedio de 216.0\,ms y $P_{99} = 560$\,ms (m\'aximo de 798.4\,ms en 3{,}914 peticiones). No obstante, en el Escenario 2 bajo estr\'es de hasta 200 usuarios, dicha distinci\'on no pudo demostrarse comparativamente debido a que ocurri\'o una degradaci\'on global del servicio donde todos los endpoints (\texttt{/health}, \texttt{/actuator/health}, \texttt{/api/soporte/election/status} y \texttt{/api/soporte/tickets}) alcanzaron uniformemente el mismo umbral de timeout de $\approx 4100$\,ms ($P_{50} = P_{95} = P_{99} = 4100$\,ms, 12{,}735 fallos acumulados). Por consiguiente, el Escenario 2 no permite evidenciar una degradaci\'on asim\'etrica hacia la persistencia, y la telemetr\'ia de Locust por s\'i sola no permite atribuir la causa ra\'iz espec\'ificamente a la base de datos o al pool HikariCP.
+\end{itemize}
 
 \subsection{Protocolo Experimental y Cuatro Mecanismos de Auditor\'ia}
 En cumplimiento de la ampliaci\'on del M\'odulo G de la gu\'ia rectora, se ejecut\'o un banco experimental con 120 corridas factoriales ($30 \times 4$) evaluando cuatro configuraciones de auditor\'ia conmutables v\'ia la variable de entorno \texttt{AUDIT}:
@@ -653,10 +782,36 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 
   \item \textbf{Ernesto Gregory Luna Mora (Responsable de Microservicio Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 permiti\'o consolidar la robustez del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on centralizada de enrutamiento, terminaci\'on segura y balanceo de carga. Se implement\'o una estricta compuerta de calidad mediante el plugin JaCoCo (\texttt{<goal>check</goal>}) enforceable al 70\%, alcanzando una cobertura real del 90.7\% en componentes clave del n\'ucleo y seguridad soportada por una bater\'ia de 52 pruebas automatizadas (unitarias, verificaci\'on gRPC in-process, detecci\'on criptogr\'afica de manipulaci\'on y de integraci\'on extremo a extremo E2E) que certifican la interoperabilidad entre servicios y el rechazo inmediato (HTTP 401 Unauthorized) ante peticiones carentes de tokens JWT HMAC-SHA256 v\'alidos. Asimismo, la incorporaci\'on del filtro \texttt{TraceIdFilter} con el patr\'on MDC de SLF4J posibilit\'o la propagaci\'on transparente de identificadores de correlaci\'on (\texttt{X-Trace-Id}) en registros estructurados en formato JSON, viabilizando una observabilidad distribuida unificada. Para garantizar la inmutabilidad f\'isica en la base de datos PostgreSQL, se dise\~n\'o e implement\'o el disparador a nivel de fila \texttt{tg\_auditoria\_append\_only}, el cual rechaza de manera determinista cualquier operaci\'on de \texttt{UPDATE} o \texttt{DELETE} sobre la bit\'acora. En el \'ambito experimental del M\'odulo G, la ejecuci\'on de 120 corridas factoriales automatizadas con 344 estudiantes y 14 docentes demostr\'o la superioridad del encadenamiento criptogr\'afico SHA-256 junto a los Relojes de Lamport ($M_2$) y Relojes Vectoriales ($M_3$), logrando una tasa de detecci\'on del 100.0\% ante ataques de manipulaci\'on directa en base de datos ($T_1$) y eliminaci\'on de eventos ($T_2$). El an\'alisis estad\'istico inferencial no param\'etrico mediante la prueba $U$ de Mann-Whitney ($p < 10^{-15}$), los intervalos de confianza al 95\% Bootstrap ($MD = 7.10$\,ms, IC 95\% $[6.99, 7.24]$\,ms) y la magnitud del efecto de Vargha-Delaney ($\hat{A}_{12} = 1.000$) demostraron cient\'ificamente que la sobrecarga criptogr\'afica es marginal frente al beneficio de inmutabilidad, satisfaciendo a cabalidad los est\'andares de la norma ISO/IEC 25010:2023.
 
-  \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se completó la refactorización del microservicio de Soporte y Gestión de Tickets bajo Java 17/Spring Boot, incorporando el bus de comunicación gRPC (elección de líder vía \texttt{etcd}) y la arquitectura de observabilidad con Prometheus, Grafana y cAdvisor. El diseño del tablero de Grafana (\texttt{ops/grafana/pfc-dashboard.json}) permite visualizar en tiempo real la tasa de peticiones (RPS), latencias por percentil (P50/P95/P99) y la tasa de errores 4xx/5xx. En la prueba de carga real ejecutada con Locust (50 usuarios concurrentes, 60 segundos, autenticación JWT generada localmente sin dependencia externa) se registraron 2446 peticiones con 0\,\% de tasa de error, pero con una disparidad de latencia medible entre endpoints: \texttt{/health} respondió con mediana de 5--6\,ms, mientras que \texttt{/api/soporte/tickets} (dependiente de base de datos) promedió 232\,ms con P99 de hasta 1500\,ms. Un hallazgo adicional relevante fue metodológico: una ejecución previa de la misma prueba, cuyo generador de carga dependía de una llamada de red externa para autenticarse, sí produjo fallos reales (500/503) por agotamiento del \textit{pool} de conexiones HikariCP -- evidencia de que la resiliencia observada bajo carga depende tanto de los recursos propios del servicio como de la arquitectura de sus dependencias de autenticación. Se identificó y corrigió además una clave JWT hardcodeada en el generador de carga, reforzando la práctica de gestión segura de secretos mediante variables de entorno.
+  \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se completó la refactorización del microservicio de Soporte y Gestión de Tickets bajo Java 17/Spring Boot, incorporando el bus de comunicación gRPC (elección de líder vía \texttt{etcd}) y la arquitectura de observabilidad con Prometheus, Grafana y cAdvisor. El diseño del tablero de Grafana (\texttt{ops/grafana/pfc-dashboard.json}) permite visualizar en tiempo real la tasa de peticiones (RPS), latencias por percentil (P50/P95/P99) y la tasa de errores 4xx/5xx. En la prueba de carga oficial ejecutada con Locust bajo el escenario nominal (50 usuarios concurrentes durante 5 minutos, autenticación JWT generada localmente sin dependencia externa) se procesaron 13{,}606 peticiones con 0\,\% de tasa de error (45.54\,RPS promedio; una corrida preliminar de 60 segundos registró 2446 peticiones con 0\,\% de fallos), observándose una disparidad de latencia medible entre endpoints: \texttt{/health} respondió con mediana de 5--6\,ms, mientras que \texttt{/api/soporte/tickets} (dependiente de base de datos) promedió 232\,ms con P99 de hasta 1500\,ms. Un hallazgo adicional relevante fue metodológico: una ejecución previa con dependencia de red externa para autenticarse produjo fallos (500/503), planteándose como hipótesis técnica el agotamiento del \textit{pool} de conexiones HikariCP ante la sobrecarga de solicitudes simultáneas -- evidencia de que la resiliencia observada bajo carga depende tanto de los recursos propios del servicio como de la arquitectura de sus dependencias de autenticación. Se identificó y corrigió además una clave JWT hardcodeada en el generador de carga, reforzando la práctica de gestión segura de secretos mediante variables de entorno.
 \end{itemize}
 
 \section{Declaración de Uso de Inteligencia Artificial}
+
+En cumplimiento de la transparencia académica exigida por la cátedra, se declara el uso de asistentes de inteligencia artificial generativa (Claude, Antigravity/Gemini, GitHub Copilot) durante el desarrollo de la Entrega 4, con el siguiente alcance por integrante:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Pedro Leonardo Castro López:} Asistencia en la estructuración de controladores Spring Boot, mediación de contratos gRPC y sintaxis de flujos en GitHub Actions. La lógica de negocio, patrones GoF y compuertas de calidad fueron implementados y verificados manualmente mediante pruebas unitarias Mockito y JaCoCo.
+  \item \textbf{Keyla Betzabe Bedon Viteri:} Asistencia en la estructuración de modelos Django REST y consultas Jetpack Compose/Room SQLite. La lógica de sincronización offline con WorkManager y conmutación de relojes lógicos fue implementada y validada manualmente en emulador Android y dispositivos físicos.
+  \item \textbf{Ernesto Gregory Luna Mora:} Asistencia en el diseño de filtros JWT en Spring Security y configuración inicial de HAProxy. La propagación de identificadores de traza MDC y las compuertas JaCoCo al 83.0\% fueron certificadas con ejecuciones de pruebas E2E.
+  \item \textbf{Juliana Romina Emanuel Pino:} Uso de Claude y Antigravity para generación asistida de la prueba de carga (\texttt{locustfile.py}), configuración de Prometheus/Grafana/cAdvisor, corrección de una vulnerabilidad de secreto JWT hardcodeado, redacción asistida de secciones del informe individual y verificación bibliográfica. Todo hallazgo técnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos generados por el modelo de IA.
+\end{itemize}
+
+\section{Revisión Cruzada entre Pares}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{1.5cm}p{3.2cm}p{3.2cm}p{6.5cm}}
+\toprule
+\textbf{PR} & \textbf{Autor} & \textbf{Revisor} & \textbf{Observación de Revisión} \\
+\midrule
+\#48 & Juliana Emanuel & Pedro Castro & Aprobación de arquitectura soporte y observabilidad Prometheus/Grafana. \\
+\#54 & Keyla Bedon & Pedro Castro & Revisión de app móvil offline y sincronización Room. \\
+\#55 & Ernesto Luna & Juliana Emanuel & Validación de compuerta JaCoCo (90.7\%) y Gateway HAProxy. \\
+\#56 & Pedro Castro & Ernesto Luna & Integración de contratos gRPC entre Principal y Docente. \\
+\bottomrule
+\end{tabular}
+\caption{Registro de revisión cruzada entre integrantes del equipo verificado contra el historial oficial de Pull Requests en GitHub (\url{https://github.com/LEO23as/acadtrace/pulls}).}
+
 En cumplimiento de la transparencia académica exigida por la cátedra, se declara el uso de asistentes de inteligencia artificial generativa (Claude, Antigravity/Gemini, ChatGPT) durante el desarrollo de la Entrega 4, con el siguiente alcance verificado por integrante:
 
 \begin{itemize}[leftmargin=*]
