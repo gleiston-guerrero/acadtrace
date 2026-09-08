@@ -130,7 +130,7 @@ jobs:
       - name: Pruebas Unitarias SGA Principal (Spring Boot)
         run: |
           cd sga-principal
-          ./mvnw clean test -Dtest=EstudianteServiceTest,TeacherAuthorizationServiceTest -q
+          ./mvnw clean test -q
 
       - name: Subir reporte de cobertura JaCoCo como artefacto
         uses: actions/upload-artifact@v4
