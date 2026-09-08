@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(&quot;/api/docente/asistencias&quot;)
-<span class="nc" id="L21">public class DocenteAsistenciaController {</span>
+<span class="fc" id="L21">public class DocenteAsistenciaController {</span>
 
     @Autowired
     private AsistenciaGrpcClient asistenciaClient;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 <span class="nc" id="L55">                    .setEstado((String) asis.get(&quot;estado&quot;))</span>
 <span class="nc bnc" id="L56" title="All 2 branches missed.">                    .setJustificacion(asis.get(&quot;justificacion&quot;) != null ? (String) asis.get(&quot;justificacion&quot;) : &quot;&quot;)</span>
 <span class="nc" id="L57">                    .build());</span>
-<span class="nc" id="L58">        }</span>
+        }
         
         try {
 <span class="nc" id="L61">            AsistenciaListResponse response = asistenciaClient.registrarAsistenciaGrupal(requestBuilder.build());</span>
@@ -135,7 +135,7 @@ import java.util.stream.Collectors;
             
 <span class="nc" id="L136">        return ResponseEntity.ok(Map.of(</span>
 <span class="nc" id="L137">            &quot;success&quot;, true,</span>
-            &quot;asistencias&quot;, asistencias
+<span class="nc" id="L138">            &quot;asistencias&quot;, asistencias</span>
         ));
     }
 
@@ -171,7 +171,7 @@ import java.util.stream.Collectors;
             
 <span class="nc" id="L172">        return ResponseEntity.ok(Map.of(</span>
 <span class="nc" id="L173">            &quot;success&quot;, true,</span>
-            &quot;resumenes&quot;, resumenes
+<span class="nc" id="L174">            &quot;resumenes&quot;, resumenes</span>
         ));
     }
 }

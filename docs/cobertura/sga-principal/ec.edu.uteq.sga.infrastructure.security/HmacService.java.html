@@ -22,14 +22,14 @@ public class HmacService {
 
     private final Mac mac;
 
-<span class="nc" id="L25">    public HmacService(@Value(&quot;${jwt.secret}&quot;) String secret) {</span>
+<span class="fc" id="L25">    public HmacService(@Value(&quot;${jwt.secret}&quot;) String secret) {</span>
         try {
-<span class="nc" id="L27">            this.mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
-<span class="nc" id="L28">            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;));</span>
-<span class="nc" id="L29">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
+<span class="fc" id="L27">            this.mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="fc" id="L28">            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;));</span>
+<span class="pc" id="L29">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
 <span class="nc" id="L30">            throw new IllegalStateException(&quot;No se pudo inicializar HmacSHA256&quot;, e);</span>
-<span class="nc" id="L31">        }</span>
-<span class="nc" id="L32">    }</span>
+        }
+<span class="fc" id="L32">    }</span>
 
     /** Firma la concatenacion de los campos clave de una fila de auditoria. Hex minuscula, 64 caracteres. */
     public synchronized String firmar(String... campos) {

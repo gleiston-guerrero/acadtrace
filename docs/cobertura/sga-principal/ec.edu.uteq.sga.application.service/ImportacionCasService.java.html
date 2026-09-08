@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * de codigo_estudiante y las validaciones de sga-secretaria. Pendiente
  * migrar a llamar a un endpoint de sga-secretaria en vez de escribir aqui.
  */
-<span class="nc" id="L32">@Slf4j</span>
+<span class="fc" id="L32">@Slf4j</span>
 @Service
 @RequiredArgsConstructor
 public class ImportacionCasService {
@@ -51,7 +51,7 @@ public class ImportacionCasService {
 <span class="nc" id="L51">            texto = stripper.getText(doc);</span>
 <span class="nc" id="L52">        } catch (IOException e) {</span>
 <span class="nc" id="L53">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;No se pudo leer el PDF: &quot; + e.getMessage());</span>
-<span class="nc" id="L54">        }</span>
+        }
 
 <span class="nc" id="L56">        log.info(&quot;=== TEXTO EXTRAÍDO DEL PDF ===\n{}&quot;, texto);</span>
 
@@ -71,17 +71,17 @@ public class ImportacionCasService {
 
         // Estrategia 1: línea completa con email
 <span class="nc" id="L73">        Pattern p1 = Pattern.compile(</span>
-            &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+(.+?)\\s+([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)\\s*$&quot;
+<span class="nc" id="L74">            &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+(.+?)\\s+([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)\\s*$&quot;</span>
         );
 
         // Estrategia 2: sin email (solo número + cédula + nombres)
 <span class="nc" id="L78">        Pattern p2 = Pattern.compile(</span>
-            &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,})\\s*$&quot;
+<span class="nc" id="L79">            &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,})\\s*$&quot;</span>
         );
 
         // Estrategia 3: buscar cédulas sueltas con nombres en la misma línea
 <span class="nc" id="L83">        Pattern p3 = Pattern.compile(</span>
-            &quot;(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,}?)\\s*([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)?\\s*$&quot;
+<span class="nc" id="L84">            &quot;(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,}?)\\s*([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)?\\s*$&quot;</span>
         );
 
 <span class="nc" id="L87">        int fila = 0;</span>
@@ -148,11 +148,11 @@ public class ImportacionCasService {
 <span class="nc" id="L148">                est.setEmail(emailsEncontrados.get(emailIdx));</span>
             }
 <span class="nc" id="L150">            emailIdx++;</span>
-<span class="nc" id="L151">        }</span>
+        }
 
 <span class="nc bnc" id="L153" title="All 2 branches missed.">        if (estudiantes.isEmpty())</span>
 <span class="nc" id="L154">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
-                    &quot;No se encontraron estudiantes en el PDF. Verifica que sea un listado CAS válido.&quot;);
+<span class="nc" id="L155">                    &quot;No se encontraron estudiantes en el PDF. Verifica que sea un listado CAS válido.&quot;);</span>
 
 <span class="nc" id="L157">        return CasPdfResultDTO.builder()</span>
 <span class="nc" id="L158">                .anoEscolar(anoEscolar)</span>
@@ -181,7 +181,7 @@ public class ImportacionCasService {
 <span class="nc bnc" id="L181" title="All 2 branches missed.">        } else if (partes.length == 2) {</span>
 <span class="nc" id="L182">            apellidos = partes[0];</span>
 <span class="nc" id="L183">            nombres = partes[1];</span>
-        } else {
+<span class="nc" id="L184">        } else {</span>
 <span class="nc" id="L185">            apellidos = nombresCompletos;</span>
 <span class="nc" id="L186">            nombres = &quot;&quot;;</span>
         }
@@ -220,7 +220,7 @@ public class ImportacionCasService {
 <span class="nc bnc" id="L220" title="All 2 branches missed.">            if (existente.isPresent()) {</span>
 <span class="nc" id="L221">                estudiante = existente.get();</span>
 <span class="nc" id="L222">                existentes++;</span>
-            } else {
+<span class="nc" id="L223">            } else {</span>
 <span class="nc" id="L224">                estudiante = Estudiante.builder()</span>
 <span class="nc" id="L225">                        .cedula(est.getCedula())</span>
 <span class="nc" id="L226">                        .apellidos(est.getApellidos())</span>
@@ -250,7 +250,7 @@ public class ImportacionCasService {
 <span class="nc" id="L250">                matriculaRepo.save(matricula);</span>
 <span class="nc" id="L251">                matriculados++;</span>
             }
-<span class="nc" id="L253">        }</span>
+        }
 
 <span class="nc" id="L255">        Map&lt;String, Object&gt; resultado = new LinkedHashMap&lt;&gt;();</span>
 <span class="nc" id="L256">        resultado.put(&quot;creados&quot;, creados);</span>

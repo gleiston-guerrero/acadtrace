@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GeneradorReporteAcademicoTemplate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.report</a> &gt; <span class="el_source">GeneradorReporteAcademicoTemplate.java</span></div><h1>GeneradorReporteAcademicoTemplate.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.report;
+
+import java.io.ByteArrayOutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
+/**
+ * Patrón GoF Template Method: Define el esqueleto invariable para la generación
+ * de reportes académicos oficiales en formato de texto/PDF.
+ */
+<span class="fc" id="L12">public abstract class GeneradorReporteAcademicoTemplate {</span>
+
+    /**
+     * MÉTODO PLANTILLA (Template Method): Define el algoritmo invariable.
+     */
+    public final byte[] generarReporte(String titulo, Map&lt;String, Object&gt; parametros) {
+<span class="nc" id="L18">        ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+
+<span class="nc" id="L20">        String cabecera = generarCabecera(titulo, parametros);</span>
+<span class="nc" id="L21">        String cuerpo = procesarCuerpo(parametros);</span>
+<span class="nc" id="L22">        String pie = generarPie(parametros);</span>
+<span class="nc" id="L23">        String pieConFirma = aplicarFirmaSeguridad(pie);</span>
+
+<span class="nc" id="L25">        StringBuilder documentoCompleto = new StringBuilder();</span>
+<span class="nc" id="L26">        documentoCompleto.append(cabecera).append(&quot;\n&quot;);</span>
+<span class="nc" id="L27">        documentoCompleto.append(cuerpo).append(&quot;\n&quot;);</span>
+<span class="nc" id="L28">        documentoCompleto.append(pieConFirma).append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L30">        return documentoCompleto.toString().getBytes();</span>
+    }
+
+    // Paso 1 común: Genera membrete institucional
+    protected String generarCabecera(String titulo, Map&lt;String, Object&gt; parametros) {
+<span class="nc" id="L35">        return &quot;========================================================\n&quot; +</span>
+               &quot; ESCUELA DE EDUCACIÓN BÁSICA PROVINCIAS UNIDAS\n&quot; +
+               &quot; SISTEMA DE GESTIÓN ACADÉMICA - ACADTRACE\n&quot; +
+<span class="nc" id="L38">               &quot; REPORTE: &quot; + titulo.toUpperCase() + &quot;\n&quot; +</span>
+<span class="nc" id="L39">               &quot; Fecha de emisión: &quot; + LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;)) + &quot;\n&quot; +</span>
+               &quot;========================================================&quot;;
+    }
+
+    // Paso 2 abstracto: Cada reporte define su propio contenido específico
+    protected abstract String procesarCuerpo(Map&lt;String, Object&gt; parametros);
+
+    // Paso 3 común: Pie de página con cláusula de confidencialidad
+    protected String generarPie(Map&lt;String, Object&gt; parametros) {
+<span class="nc" id="L48">        return &quot;--------------------------------------------------------\n&quot; +</span>
+               &quot; Documento emitido automáticamente por el sistema central.\n&quot; +
+               &quot; Validez oficial sujeta a verificación de firma digital.&quot;;
+    }
+
+    // Paso 4 (Hook opcional): Aplica hash de integridad
+    protected String aplicarFirmaSeguridad(String pie) {
+<span class="nc" id="L55">        return pie + &quot;\n [Sello de Integridad AcadTrace - Verificable SHA-256]&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

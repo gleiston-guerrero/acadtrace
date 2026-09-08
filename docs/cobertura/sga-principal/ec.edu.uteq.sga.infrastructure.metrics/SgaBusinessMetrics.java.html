@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SgaBusinessMetrics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.metrics</a> &gt; <span class="el_source">SgaBusinessMetrics.java</span></div><h1>SgaBusinessMetrics.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.metrics;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Módulo F: Métricas de Negocio personalizadas para Prometheus / Grafana.
+ * Registra los 4 contadores obligatorios asignados al equipo BCEL.
+ */
+@Component
+public class SgaBusinessMetrics {
+
+    private final Counter notasRegistradasCounter;
+    private final Counter notasModificadasCounter;
+    private final Counter matriculasConfirmadasCounter;
+    private final Counter notificacionesEnviadasCounter;
+    private final Timer tiempoTransaccionTimer;
+<span class="fc" id="L23">    private final AtomicInteger estudiantesActivosGauge = new AtomicInteger(344);</span>
+
+<span class="fc" id="L25">    public SgaBusinessMetrics(MeterRegistry registry) {</span>
+        // 1. Contador de notas registradas
+<span class="fc" id="L27">        this.notasRegistradasCounter = Counter.builder(&quot;sga_notas_registradas_total&quot;)</span>
+<span class="fc" id="L28">                .description(&quot;Total de calificaciones asentadas en el sistema&quot;)</span>
+<span class="fc" id="L29">                .tag(&quot;servicio&quot;, &quot;sga-principal&quot;)</span>
+<span class="fc" id="L30">                .register(registry);</span>
+
+        // 2. Contador de notas modificadas (auditoría)
+<span class="fc" id="L33">        this.notasModificadasCounter = Counter.builder(&quot;sga_notas_modificadas_total&quot;)</span>
+<span class="fc" id="L34">                .description(&quot;Total de modificaciones de notas sujetas a trazabilidad criptográfica&quot;)</span>
+<span class="fc" id="L35">                .tag(&quot;servicio&quot;, &quot;sga-principal&quot;)</span>
+<span class="fc" id="L36">                .register(registry);</span>
+
+        // 3. Contador de matrículas confirmadas
+<span class="fc" id="L39">        this.matriculasConfirmadasCounter = Counter.builder(&quot;sga_matriculas_confirmadas_total&quot;)</span>
+<span class="fc" id="L40">                .description(&quot;Total de matrículas legalizadas en el período lectivo&quot;)</span>
+<span class="fc" id="L41">                .tag(&quot;servicio&quot;, &quot;sga-principal&quot;)</span>
+<span class="fc" id="L42">                .register(registry);</span>
+
+        // 4. Contador de notificaciones enviadas a representantes
+<span class="fc" id="L45">        this.notificacionesEnviadasCounter = Counter.builder(&quot;sga_notificaciones_enviadas_total&quot;)</span>
+<span class="fc" id="L46">                .description(&quot;Total de notificaciones push despachadas a representantes&quot;)</span>
+<span class="fc" id="L47">                .tag(&quot;servicio&quot;, &quot;sga-principal&quot;)</span>
+<span class="fc" id="L48">                .register(registry);</span>
+
+        // 5. Timer para medir la latencia de transacciones de notas
+<span class="fc" id="L51">        this.tiempoTransaccionTimer = Timer.builder(&quot;sga_transaccion_duracion_seconds&quot;)</span>
+<span class="fc" id="L52">                .description(&quot;Duración de las operaciones académicas transaccionales&quot;)</span>
+<span class="fc" id="L53">                .publishPercentiles(0.5, 0.95, 0.99)</span>
+<span class="fc" id="L54">                .tag(&quot;servicio&quot;, &quot;sga-principal&quot;)</span>
+<span class="fc" id="L55">                .register(registry);</span>
+
+        // 6. Gauge para medir estudiantes activos concurrentes
+<span class="fc" id="L58">        Gauge.builder(&quot;sga_estudiantes_activos_total&quot;, estudiantesActivosGauge, AtomicInteger::get)</span>
+<span class="fc" id="L59">                .description(&quot;Cantidad de estudiantes con estado activo en el sistema&quot;)</span>
+<span class="fc" id="L60">                .tag(&quot;servicio&quot;, &quot;sga-principal&quot;)</span>
+<span class="fc" id="L61">                .register(registry);</span>
+<span class="fc" id="L62">    }</span>
+
+<span class="nc" id="L64">    public void registrarNota() { notasRegistradasCounter.increment(); }</span>
+<span class="nc" id="L65">    public void modificarNota() { notasModificadasCounter.increment(); }</span>
+<span class="nc" id="L66">    public void confirmarMatricula() { matriculasConfirmadasCounter.increment(); }</span>
+<span class="nc" id="L67">    public void enviarNotificacion() { notificacionesEnviadasCounter.increment(); }</span>
+<span class="nc" id="L68">    public Timer getTimer() { return tiempoTransaccionTimer; }</span>
+<span class="nc" id="L69">    public void setEstudiantesActivos(int cantidad) { estudiantesActivosGauge.set(cantidad); }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

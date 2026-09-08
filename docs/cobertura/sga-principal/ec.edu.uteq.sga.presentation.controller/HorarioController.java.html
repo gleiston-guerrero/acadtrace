@@ -32,11 +32,11 @@ public class HorarioController {
     private final PeriodoHorarioRepository periodoRepo;
     private final AsignacionRepository asignacionRepo;
 
-<span class="nc" id="L35">    public HorarioController(HorarioRepository h, PeriodoHorarioRepository p, AsignacionRepository a) {</span>
-<span class="nc" id="L36">        this.horarioRepo = h;</span>
-<span class="nc" id="L37">        this.periodoRepo = p;</span>
-<span class="nc" id="L38">        this.asignacionRepo = a;</span>
-<span class="nc" id="L39">    }</span>
+<span class="fc" id="L35">    public HorarioController(HorarioRepository h, PeriodoHorarioRepository p, AsignacionRepository a) {</span>
+<span class="fc" id="L36">        this.horarioRepo = h;</span>
+<span class="fc" id="L37">        this.periodoRepo = p;</span>
+<span class="fc" id="L38">        this.asignacionRepo = a;</span>
+<span class="fc" id="L39">    }</span>
 
     // ── Franjas horarias ──────────────────────────────────────
     @GetMapping(&quot;/periodos&quot;)
@@ -116,7 +116,7 @@ public class HorarioController {
 <span class="nc" id="L116">            Horario saved = horarioRepo.save(h);</span>
 <span class="nc" id="L117">            return ResponseEntity.ok(Map.of(</span>
 <span class="nc" id="L118">                &quot;idHorario&quot;, saved.getIdHorario(),</span>
-                &quot;mensaje&quot;, &quot;Slot asignado.&quot;
+<span class="nc" id="L119">                &quot;mensaje&quot;, &quot;Slot asignado.&quot;</span>
             ));
 <span class="nc" id="L121">        } catch (DataIntegrityViolationException e) {</span>
 <span class="nc" id="L122">            String msg = e.getMostSpecificCause().getMessage();</span>
