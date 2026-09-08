@@ -1,0 +1,16 @@
+======================================================================
+ACADTRACE — CERTIFICADO DE REPRODUCIBILIDAD CIENTÍFICA (ISO/IEC 25010)
+======================================================================
+Fecha de Generación: 2026-09-08T02:57:46Z
+Intérprete Python:   Python 3.14.4
+Sistema Operativo:   Linux 7.0.0-31-generic (x86_64)
+Semilla Aleatoria:   SEED = 20260831
+
+ARCHIVOS CSV Y ARTEFACTOS GENERADOS (CHECKSUMS SHA-256):
+----------------------------------------------------------------------
+785bf77ed866d9815cf8dfb22dea5018313022d476d3be3e0b2488304b6e6fa5  deteccion.csv
+7374b60273b5cc2c85a83cf9ab3e8a335db5fb8457a1facbd4cf446eea099deb  manipulaciones.csv
+0b7af6f50e27b7ed73d37b3f29f95001772eef76248ed17375dc570a78dd1190  exp1_concurrencia.csv
+1b8e33d3bbe176998f12871db126f1649c95695695f0d14bb0a68c81a23cd62e  exp3_reconciliacion.csv
+cfcba78a41d7944aa7e69ebb3f8305d1cb339e136b7928a396abd9d445091557  iso25010.csv
+e63c1a72c3b6f97d077c52b35ca437e0e09b092e5508350215d28ded035e26f9  boxplot_latencia.png
