@@ -17,6 +17,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
       - AUDIT=${AUDIT:-m2}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
     volumes:
       - ./sga-principal/uploads:/app/uploads
@@ -60,6 +61,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
       - AUDIT=${AUDIT:-m2}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
     networks:
       - sga-distribuido-net
