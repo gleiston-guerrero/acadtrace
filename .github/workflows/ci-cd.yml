@@ -290,10 +290,13 @@ jobs:
       - name: Despliegue Seguro por SSH a AWS EC2
         uses: appleboy/ssh-action@v1.0.3
         continue-on-error: true
+        env:
+          GRPC_INTERNAL_TOKEN: ${{ secrets.GRPC_INTERNAL_TOKEN }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: GRPC_INTERNAL_TOKEN
           script: |
             cd ~/acadtrace || cd ~/sga-sistema-distribuido || git clone https://github.com/LEO23as/acadtrace.git ~/acadtrace
             cd ~/acadtrace || cd ~/sga-sistema-distribuido
