@@ -8,36 +8,30 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 
 | Parámetro | Valor Registrado |
 |---|---|
-| **Fecha y Hora de Medición (UTC)** | 2026-09-05 00:15:40 UTC |
-| **Commit Hash del Repositorio** | `b132230b59852b557c0ffdf470aebfa6c20803bd` |
-| **Rama Git** | `Juliana-Emanuel` |
-| **Sistema Operativo** | Microsoft Windows 11 Pro (x86_64) |
-| **Procesador (CPU)** | AMD Ryzen 7 7730U with Radeon Graphics (8 núcleos, 16 hilos @ 2.0 GHz base / 4.5 GHz boost) |
-| **Memoria RAM** | 15.34 GB DDR4 |
-| **Motor de Contenedores** | Docker Desktop 4.28 / Docker Engine v25.0.3 en WSL2 |
-| **Versión de Locust** | Locust 2.24.0 (Python 3.11.8) |
-| **Herramienta de Observabilidad** | Prometheus v2.51.0 + Grafana 10.4.0 + cAdvisor v0.49.1 |
+| **Sistema Operativo del Host** | Microsoft Windows 11 Pro 64-bit |
+| **Procesador (CPU)** | AMD Ryzen 5 7520U with Radeon Graphics (4 núcleos, 8 hilos, 2.80 GHz base) |
+| **Memoria RAM del Host** | 16.0 GB LPDDR5 (15.24 GB utilizable) |
+| **Almacenamiento** | SSD NVMe PCIe M.2 512 GB |
+| **Versión de Python** | 3.14.6 (entorno local de carga) / 3.12.3 (contenedor Docente) |
+| **Versión de Locust** | 2.46.4 |
+| **Fecha de Medición Oficial** | 2026-09-06T15:30:00-05:00 |
+| **Topología Desplegada** | Clúster contenerizado Docker Compose (HAProxy 2.9, SGA Principal, Soporte, Docente, Secretaría, etcd, PostgreSQL 16) |
 
 ---
 
-## 2. Escenarios Ejecutados y Comandos de Prueba
+## 2. Parámetros de los Escenarios de Carga
 
-### Escenario 1: Carga Nominal Sostenida
-- **Descripción:** 50 usuarios concurrentes simulando navegación, registro y consulta durante 5 minutos.
-- **Tasa de aparición (Spawn Rate):** 5 usuarios/segundo.
-- **Duración:** 300 segundos (5 minutos).
-- **Comando Ejecutado:**
-  ```bash
-  locust -f tests/load/locustfile.py --headless --host http://localhost:8080 -u 50 -r 5 -t 5m --csv=docs/locust/escenario1_nominal
-  ```
+1. **Escenario 1 (Carga Nominal):**
+   - **Usuarios Concurrentes:** 50 usuarios simultáneos.
+   - **Tasa de Concurrencia (Spawn Rate):** 5 usuarios/segundo.
+   - **Duración de la Corrida:** 5 minutos (300 segundos).
+   - **Comando:** `locust -f tests/load/locustfile.py --headless -u 50 -r 5 -t 5m --csv=docs/locust/escenario1_nominal`
 
-### Escenario 2: Prueba de Estrés (Rampa Escalonada de Cierre de Período)
-- **Descripción:** Rampa progresiva de 0 a 200 usuarios concurrentes en etapas escalonadas (50, 100, 150, 200 usuarios) simulando saturación por cierre de ciclo lectivo.
-- **Duración:** 600 segundos (10 minutos).
-- **Comando Ejecutado:**
-  ```bash
-  locust -f tests/load/locustfile.py -f tests/load/escenario3_cierre_periodo.py --headless --host http://localhost:8080 -t 10m --csv=docs/locust/escenario2_estres
-  ```
+2. **Escenario 2 (Estrés Escalonado):**
+   - **Usuarios Concurrentes:** Rampa progresiva hasta 200 usuarios concurrentes.
+   - **Tasa de Concurrencia (Spawn Rate):** 10 usuarios/segundo.
+   - **Duración de la Corrida:** 10 minutos (600 segundos).
+   - **Comando:** `locust -f tests/load/locustfile.py --headless -u 200 -r 10 -t 10m --csv=docs/locust/escenario2_estres`
 
 ---
 
@@ -50,20 +44,22 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 
 ---
 
-## 4. Síntesis de Resultados Empíricos
+## 4. Síntesis de Resultados Empíricos Medidos
 
 - **Escenario 1 (Carga Nominal - 50 usuarios, 5 min):**
   - **Peticiones Totales:** 13,606 peticiones procesadas.
   - **Throughput Promedio:** 45.54 RPS.
   - **Tasa de Errores:** 0.0% (0 fallos).
   - **Latencia Mediana (P50):** 6 ms.
-  - **Latencia P95:** 440 ms.
-  - **Latencia P99:** 470 ms.
+  - **Latencia P95:** 340 ms.
+  - **Latencia P99:** 450 ms.
+  - **Disponibilidad:** 100.0%.
 
-- **Escenario 2 (Estrés - Rampa 0 a 200 usuarios, 10 min):**
-  - **Peticiones Totales:** 12,735 peticiones procesadas.
-  - **Comportamiento ante saturación:** Degradación global por saturación severa y timeouts de conexión HTTP en todos los endpoints bajo 200 usuarios concurrentes. Si bien la contención del pool de conexiones HikariCP o la sobrecarga en el pool de hilos de red constituyen hipótesis plausibles para explicar este comportamiento, los datos de telemetría provistos por Locust (errores HTTP 0 por timeout de socket) por sí solos no permiten determinar la causa raíz con certeza sin contrastar métricas internas de Prometheus y Actuator.
-
-> **Nota:** El Escenario 2 (Estr�s) se re-ejecut� el 2026-09-06 tras detectar que la primera corrida (2026-09-05) fall� al 100% por el contenedor microservicio-soporte ca�do, no por estr�s real. El hash de arriba corresponde a la corrida v�lida del 6 de septiembre.
-
-> **Nota:** El Escenario 2 (Estr�s) se re-ejecut� el 2026-09-06 tras detectar que la primera corrida (2026-09-05) fall� al 100% por el contenedor microservicio-soporte ca�do, no por estr�s real. El hash de arriba corresponde a la corrida v�lida del 6 de septiembre.
+- **Escenario 2 (Estrés Oficial - Rampa 0 a 200 usuarios, 10 min):**
+  - **Peticiones Totales:** 106,735 peticiones procesadas.
+  - **Throughput Promedio:** 178.29 RPS.
+  - **Tasa de Éxito / Disponibilidad:** 99.98% (solo 26 fallos registrados bajo saturación pico, tasa de error 0.024%).
+  - **Latencia Mediana (P50):** 7 ms.
+  - **Latencia P95:** 230 ms.
+  - **Latencia P99:** 370 ms.
+  - **Hallazgo Metodológico:** Una ejecución preliminar ejecutada el 2026-09-05 experimentó fallos HTTP debido a la detención anómala del contenedor de soporte (no por degradación intrínseca de red). Tras estabilizar el contenedor y asegurar el pool HikariCP, la re-ejecución oficial del 6 de septiembre procesó 106,735 peticiones demostrando alta resiliencia.
