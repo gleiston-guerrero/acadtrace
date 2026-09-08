@@ -34,20 +34,27 @@ Existen dos alternativas para poner en marcha el sistema:
 
 ---
 
-### Opcion A: Ejecucion mediante Docker Compose (Recomendado)
+### Opcion A: Ejecucion Automatizada con Un Solo Comando (Piso P3 - Recomendado)
 
-Pone en marcha todos los contenedores de backend y microservicios con un solo comando:
+Pone en marcha todos los contenedores de backend, gateway y microservicios con un solo comando:
 
 ```bash
-# 1. Clonar el repositorio unificado
-git clone https://github.com/LEO23as/sga-sistema-distribuido.git
-cd sga-sistema-distribuido
+# 1. Clonar el repositorio
+git clone https://github.com/LEO23as/acadtrace.git
+cd acadtrace
 
-# 2. Levantar todos los servicios en contenedores aislados
-docker-compose up --build
+# 2. Levantar el stack completo (valida entorno, .env y levanta los servicios)
+./scripts/start.sh
+```
+
+Alternativamente con Docker Compose directo:
+```bash
+docker compose up --build -d
 ```
 
 * Acceso Frontend Principal: http://localhost:5173
+* Acceso API Gateway HAProxy: http://localhost:8080
+* Observabilidad Grafana: http://localhost:3001 (admin / admin)
 
 ---
 
