@@ -16,15 +16,18 @@ import ec.edu.uteq.sga.representante.ui.screens.security.*
 import ec.edu.uteq.sga.representante.data.sync.SyncWorker
 
 @Composable
-fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, startDestination: String) {
+fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, startDestination: String, notificationRoute: String? = null) {
     NavHost(nav, startDestination) {
         composable(Screen.Login.route) {
             val vm: LoginViewModel = factory { LoginViewModel(app.authRepository) }
-            LoginScreen(vm, onLoginSuccess = { nav.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } } })
+            LoginScreen(vm, onLoginSuccess = {
+                ec.edu.uteq.sga.representante.notifications.DeviceTokenRegistrar.refreshAndRegister(app)
+                nav.navigate(notificationRoute ?: Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } }
+            })
         }
         composable(Screen.BiometricUnlock.route) {
             BiometricUnlockScreen(app.sessionManager, onUnlocked = {
-                nav.navigate(Screen.Home.route) { popUpTo(Screen.BiometricUnlock.route) { inclusive = true } }
+                nav.navigate(notificationRoute ?: Screen.Home.route) { popUpTo(Screen.BiometricUnlock.route) { inclusive = true } }
             }, onUseLogin = {
                 nav.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
             })

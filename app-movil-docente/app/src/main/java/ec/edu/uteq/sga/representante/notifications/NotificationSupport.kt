@@ -37,6 +37,21 @@ object NotificationSupport {
         }
     }
 
+    fun createAcademicChannels(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(NotificationManager::class.java)
+            listOf(
+                NotificationChannel(CHANNEL_COMUNICADOS, "Comunicados", NotificationManager.IMPORTANCE_DEFAULT),
+                NotificationChannel(CHANNEL_ASISTENCIA, "Asistencia", NotificationManager.IMPORTANCE_HIGH),
+                NotificationChannel(CHANNEL_CALIFICACIONES, "Calificaciones", NotificationManager.IMPORTANCE_DEFAULT)
+            ).forEach { it.lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE; manager.createNotificationChannel(it) }
+        }
+    }
+
+    const val CHANNEL_COMUNICADOS = "comunicados"
+    const val CHANNEL_ASISTENCIA = "asistencia"
+    const val CHANNEL_CALIFICACIONES = "calificaciones"
+
     fun hasPermission(context: Context): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED

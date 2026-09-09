@@ -96,8 +96,11 @@ class RepresentanteRepositoryImpl(private val db: AppDatabase, private val clien
 
     private fun RepresentadoDTO.domain() = Representado(idEstudiante, nombres, apellidos, curso, paralelo, matriculas)
     private fun CalificacionesRepresentadoDTO.domain() = CalificacionesRepresentado(
-        calificaciones.map { NotaRepresentado(it.actividad, it.periodo, it.nota, it.notaCualitativa) },
-        promedios.map { PromedioRepresentado(it.periodo, it.promedioFormativo, it.notaSumativa, it.promedioTrimestral, it.notaCualitativa) })
+        calificaciones.map { NotaRepresentado(it.idActividad, it.idAsignacion, it.idPeriodo, it.asignatura, it.actividad, it.periodo, it.nota, it.notaCualitativa) },
+        promedios.map { PromedioRepresentado(it.idAsignacion, it.idPeriodo, it.asignatura, it.periodo, it.promedioFormativo, it.notaSumativa, it.promedioTrimestral, it.notaCualitativa) },
+        periodos.map { PeriodoCalificaciones(it.idPeriodo, it.nombre, it.activo, it.fechaInicio) },
+        promediosAnuales.map { PromedioAnualRepresentado(it.idAsignacion, it.asignatura, it.promedioAnual, it.notaCualitativa) },
+        mostrarPromediosAnuales)
     private fun AsistenciaRepresentadoDTO.domain() = AsistenciaRepresentado(
         asistencias.map { AsistenciaHijo(it.fecha, it.periodo, it.estado) },
         ResumenAsistenciaHijo(resumen.total, resumen.presentes, resumen.ausentes, resumen.justificados, resumen.atrasos, resumen.porcentajeAsistencia))

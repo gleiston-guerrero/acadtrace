@@ -57,13 +57,32 @@ import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
 
 @Composable fun ConsultaCalificacionesRepresentante(vm: RepresentanteViewModel, back: () -> Unit, retry: () -> Unit) {
     val state by vm.calificaciones.collectAsState()
+    val selected by vm.periodoSeleccionado.collectAsState()
     Page("Calificaciones", back) { StateContent(state, retry) { data ->
-        if (data.calificaciones.isEmpty() && data.promedios.isEmpty()) Text("No existen calificaciones disponibles")
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(data.promedios) { p -> Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) {
-                Text(p.periodo, fontWeight = FontWeight.Bold); Text("Formativo: ${p.promedioFormativo} · Sumativo: ${p.notaSumativa}"); Text("Promedio: ${p.promedioTrimestral} (${p.notaCualitativa})")
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(data.periodos, key = { it.idPeriodo }) { p -> FilterChip(
+                selected = selected == p.idPeriodo, onClick = { vm.seleccionarPeriodo(p.idPeriodo) }, label = { Text(p.nombre) }) }
+        }
+        val blocks = selected?.let(data::asignaturas).orEmpty()
+        if (blocks.isEmpty()) Text("No existen calificaciones para este período")
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(blocks, key = { it.idAsignacion }) { block -> Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(block.asignatura, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(block.promedio?.periodo ?: block.actividades.firstOrNull()?.periodo.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                block.promedio?.let { p ->
+                    Text("Formativo: ${p.promedioFormativo} · Sumativo: ${p.notaSumativa}")
+                    Text("Promedio: ${p.promedioTrimestral} (${p.notaCualitativa.etiquetaCualitativa()})")
+                }
+                block.actividades.forEach { n -> ListItem(
+                    headlineContent = { Text(n.actividad) },
+                    trailingContent = { Text(n.nota?.toString() ?: "Pendiente de calificación", fontWeight = FontWeight.Bold) }) }
             } } }
-            items(data.calificaciones) { n -> ListItem(headlineContent = { Text(n.actividad) }, supportingContent = { Text(n.periodo) }, trailingContent = { Text(n.nota.toString(), fontWeight = FontWeight.Bold) }) }
+            if (data.mostrarPromediosAnuales && data.promediosAnuales.isNotEmpty()) {
+                item { Text("Promedios finales", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
+                items(data.promediosAnuales, key = { it.idAsignacion }) { p -> ListItem(
+                    headlineContent = { Text(p.asignatura) },
+                    trailingContent = { Text("${p.promedioAnual} (${p.notaCualitativa.etiquetaCualitativa()})", fontWeight = FontWeight.Bold) }) }
+            }
         }
     } }
 }

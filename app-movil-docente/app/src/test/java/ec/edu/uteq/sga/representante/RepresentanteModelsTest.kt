@@ -75,7 +75,7 @@ class RepresentanteModelsTest {
         val result = gson.fromJson(json, CalificacionesRepresentadoDTO::class.java)
 
         assertEquals(680L, result.calificaciones.single().idMatricula)
-        assertEquals(9.5, result.calificaciones.single().nota, 0.0)
+        assertEquals(9.5, requireNotNull(result.calificaciones.single().nota), 0.0)
     }
 
     @Test fun deserializaContratoRealDeAsistencia() {
