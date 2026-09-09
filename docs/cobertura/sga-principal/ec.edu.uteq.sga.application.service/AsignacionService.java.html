@@ -73,8 +73,8 @@ public class AsignacionService {
 
     @Transactional
     public AsignacionResponseDTO crear(AsignacionRequestDTO dto, String username) {
-<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (asignacionRepo.existsByAsignatura_IdAsignaturaAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivo(</span>
-<span class="nc" id="L77">                dto.getIdAsignatura(), dto.getIdParalelo(), dto.getIdAnoLectivo())) {</span>
+<span class="nc" id="L76">        if (asignacionRepo.existsByAsignatura_IdAsignaturaAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivo(</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                dto.getIdAsignatura(), dto.getIdParalelo(), dto.getIdAnoLectivo())) {</span>
 <span class="nc" id="L78">            throw new ResponseStatusException(HttpStatus.CONFLICT, &quot;Esta asignatura ya fue asignada a este curso y paralelo en el año lectivo seleccionado.&quot;);</span>
         }
 
@@ -107,7 +107,7 @@ public class AsignacionService {
 
 <span class="nc bnc" id="L108" title="All 2 branches missed.">        if (horasActualesGrado + horasNuevas &gt; 30) {</span>
 <span class="nc" id="L109">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
-                    &quot;Exceso de carga horaria: El curso ya suma &quot; + horasActualesGrado + &quot;h. Asignar &quot; + horasNuevas + &quot;h superaría el límite máximo de 30 horas semanales.&quot;);
+<span class="nc" id="L110">                    &quot;Exceso de carga horaria: El curso ya suma &quot; + horasActualesGrado + &quot;h. Asignar &quot; + horasNuevas + &quot;h superaría el límite máximo de 30 horas semanales.&quot;);</span>
         }
 
 <span class="nc" id="L113">        Asignacion asignacion = Asignacion.builder()</span>
@@ -154,7 +154,7 @@ public class AsignacionService {
 <span class="nc" id="L154">        } catch (Exception ex) {</span>
 <span class="nc" id="L155">            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,</span>
 <span class="nc" id="L156">                    &quot;No se pudo eliminar la asignación: &quot; + ex.getMessage());</span>
-<span class="nc" id="L157">        }</span>
+        }
 <span class="nc" id="L158">    }</span>
 
     @Transactional

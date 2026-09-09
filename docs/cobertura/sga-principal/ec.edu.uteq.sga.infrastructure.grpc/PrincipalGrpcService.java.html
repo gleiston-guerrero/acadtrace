@@ -85,7 +85,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L85">            responseObserver.onCompleted();</span>
 <span class="nc" id="L86">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L87">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L88">        }</span>
+        }
 <span class="nc" id="L89">    }</span>
 
     @Override
@@ -96,7 +96,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L96">            responseObserver.onCompleted();</span>
 <span class="nc" id="L97">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L98">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L99">        }</span>
+        }
 <span class="nc" id="L100">    }</span>
 
     @Override
@@ -107,7 +107,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L107">            responseObserver.onCompleted();</span>
 <span class="nc" id="L108">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L109">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L110">        }</span>
+        }
 <span class="nc" id="L111">    }</span>
 
     @Override
@@ -118,7 +118,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L118">            responseObserver.onCompleted();</span>
 <span class="nc" id="L119">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L120">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L121">        }</span>
+        }
 <span class="nc" id="L122">    }</span>
 
     @Override
@@ -129,7 +129,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L129">            responseObserver.onCompleted();</span>
 <span class="nc" id="L130">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L131">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L132">        }</span>
+        }
 <span class="nc" id="L133">    }</span>
 
     private GradoRequestDTO fromProto(GuardarGradoRequest r) {
@@ -196,14 +196,14 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
         try {
 <span class="nc" id="L197">            EstudianteDetalleDTO creado = estudianteService.crear(fromProto(request));</span>
 <span class="nc" id="L198">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, creado.getIdEstudiante(),</span>
-                    &quot;Llamada gRPC recibida: crearEstudiante&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L199">                    &quot;Llamada gRPC recibida: crearEstudiante&quot;, &quot;EXITO&quot;, null);</span>
 <span class="nc" id="L200">            responseObserver.onNext(toProto(creado));</span>
 <span class="nc" id="L201">            responseObserver.onCompleted();</span>
 <span class="nc" id="L202">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L203">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, null,</span>
 <span class="nc" id="L204">                    &quot;Llamada gRPC recibida: crearEstudiante&quot;, &quot;FALLO&quot;, e.getReason());</span>
 <span class="nc" id="L205">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L206">        }</span>
+        }
 <span class="nc" id="L207">    }</span>
 
     @Override
@@ -211,14 +211,14 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
         try {
 <span class="nc" id="L212">            EstudianteDetalleDTO actualizado = estudianteService.actualizar(request.getIdEstudiante(), fromProto(request));</span>
 <span class="nc" id="L213">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, actualizado.getIdEstudiante(),</span>
-                    &quot;Llamada gRPC recibida: actualizarEstudiante&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L214">                    &quot;Llamada gRPC recibida: actualizarEstudiante&quot;, &quot;EXITO&quot;, null);</span>
 <span class="nc" id="L215">            responseObserver.onNext(toProto(actualizado));</span>
 <span class="nc" id="L216">            responseObserver.onCompleted();</span>
 <span class="nc" id="L217">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L218">            auditoriaService.registrarGrpcRecibida(&quot;estudiante&quot;, request.getIdEstudiante(),</span>
 <span class="nc" id="L219">                    &quot;Llamada gRPC recibida: actualizarEstudiante&quot;, &quot;FALLO&quot;, e.getReason());</span>
 <span class="nc" id="L220">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L221">        }</span>
+        }
 <span class="nc" id="L222">    }</span>
 
     @Override
@@ -237,7 +237,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L237">            responseObserver.onCompleted();</span>
 <span class="nc" id="L238">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L239">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L240">        }</span>
+        }
 <span class="nc" id="L241">    }</span>
 
     @Override
@@ -248,7 +248,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L248">            responseObserver.onCompleted();</span>
 <span class="nc" id="L249">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L250">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L251">        }</span>
+        }
 <span class="nc" id="L252">    }</span>
 
     // ---------------- Matriculas (gRPC) ----------------
@@ -259,14 +259,14 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc bnc" id="L259" title="All 2 branches missed.">            Long idUsuarioRegistro = request.getIdUsuarioRegistro() &gt; 0 ? request.getIdUsuarioRegistro() : null;</span>
 <span class="nc" id="L260">            MatriculaResponseDTO creada = matriculaService.crear(fromProto(request), idUsuarioRegistro);</span>
 <span class="nc" id="L261">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, creada.getIdMatricula(),</span>
-                    &quot;Llamada gRPC recibida: crearMatricula&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L262">                    &quot;Llamada gRPC recibida: crearMatricula&quot;, &quot;EXITO&quot;, null);</span>
 <span class="nc" id="L263">            responseObserver.onNext(toProto(creada));</span>
 <span class="nc" id="L264">            responseObserver.onCompleted();</span>
 <span class="nc" id="L265">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L266">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, null,</span>
 <span class="nc" id="L267">                    &quot;Llamada gRPC recibida: crearMatricula&quot;, &quot;FALLO&quot;, e.getReason());</span>
 <span class="nc" id="L268">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L269">        }</span>
+        }
 <span class="nc" id="L270">    }</span>
 
     @Override
@@ -276,7 +276,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L276">            responseObserver.onCompleted();</span>
 <span class="nc" id="L277">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L278">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L279">        }</span>
+        }
 <span class="nc" id="L280">    }</span>
 
     @Override
@@ -284,7 +284,7 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
 <span class="nc" id="L284">        MatriculaService.PaginaMatriculas pagina = matriculaService.listar(</span>
 <span class="nc bnc" id="L285" title="All 2 branches missed.">                request.getIdAnoLectivo() &gt; 0 ? request.getIdAnoLectivo() : null,</span>
 <span class="nc bnc" id="L286" title="All 2 branches missed.">                request.getIdEstudiante() &gt; 0 ? request.getIdEstudiante() : null,</span>
-                null,
+<span class="nc" id="L287">                null,</span>
 <span class="nc" id="L288">                request.getQ(), request.getPage(), request.getLimit());</span>
 <span class="nc" id="L289">        ListarMatriculasResponse.Builder response = ListarMatriculasResponse.newBuilder().setTotal(pagina.total());</span>
 <span class="nc" id="L290">        pagina.items().forEach(d -&gt; response.addMatriculas(toProto(d)));</span>
@@ -297,14 +297,14 @@ public class PrincipalGrpcService extends PrincipalServiceGrpc.PrincipalServiceI
         try {
 <span class="nc" id="L298">            matriculaService.cambiarEstado(request.getIdMatricula(), request.getEstado());</span>
 <span class="nc" id="L299">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, request.getIdMatricula(),</span>
-                    &quot;Llamada gRPC recibida: cambiarEstadoMatricula&quot;, &quot;EXITO&quot;, null);
+<span class="nc" id="L300">                    &quot;Llamada gRPC recibida: cambiarEstadoMatricula&quot;, &quot;EXITO&quot;, null);</span>
 <span class="nc" id="L301">            responseObserver.onNext(Empty.newBuilder().build());</span>
 <span class="nc" id="L302">            responseObserver.onCompleted();</span>
 <span class="nc" id="L303">        } catch (ResponseStatusException e) {</span>
 <span class="nc" id="L304">            auditoriaService.registrarGrpcRecibida(&quot;matricula&quot;, request.getIdMatricula(),</span>
 <span class="nc" id="L305">                    &quot;Llamada gRPC recibida: cambiarEstadoMatricula&quot;, &quot;FALLO&quot;, e.getReason());</span>
 <span class="nc" id="L306">            responseObserver.onError(toGrpcStatus(e).asRuntimeException());</span>
-<span class="nc" id="L307">        }</span>
+        }
 <span class="nc" id="L308">    }</span>
 
     private MatriculaRequestDTO fromProto(GuardarMatriculaRequest r) {

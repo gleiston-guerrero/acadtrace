@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstudianteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">EstudianteService.java</span></div><h1>EstudianteService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstudianteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">EstudianteService.java</span></div><h1>EstudianteService.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">package ec.edu.uteq.sga.application.service;</span>
 
 import ec.edu.uteq.sga.domain.dto.CrearEstudianteDTO;
 import ec.edu.uteq.sga.domain.dto.EstudianteDetalleDTO;
@@ -46,7 +46,7 @@ public class EstudianteService {
     public PaginaEstudiantes listarPaginado(String q, int page, int limit) {
 <span class="pc bpc" id="L47" title="3 of 4 branches missed.">        List&lt;Estudiante&gt; todos = (q == null || q.isBlank())</span>
 <span class="fc" id="L48">                ? estudianteRepo.findAllWithRepresentante()</span>
-<span class="pc" id="L49">                : estudianteRepo.searchWithRepresentante(q.trim());</span>
+<span class="nc" id="L49">                : estudianteRepo.searchWithRepresentante(q.trim());</span>
 
 <span class="pc bpc" id="L51" title="1 of 2 branches missed.">        int limiteReal = limit &gt; 0 ? limit : 15;</span>
 <span class="pc bpc" id="L52" title="1 of 2 branches missed.">        int paginaReal = page &gt; 0 ? page : 1;</span>
@@ -57,7 +57,7 @@ public class EstudianteService {
 <span class="fc" id="L57">        return new PaginaEstudiantes(items, todos.size());</span>
     }
 
-<span class="fc" id="L60">    public record PaginaEstudiantes(List&lt;EstudianteDetalleDTO&gt; items, long total) {}</span>
+    public record PaginaEstudiantes(List&lt;EstudianteDetalleDTO&gt; items, long total) {}
 
     @Transactional
     public void cambiarEstado(Long id, boolean activo) {
@@ -179,7 +179,7 @@ public class EstudianteService {
 
 <span class="nc bnc" id="L180" title="All 6 branches missed.">        if (nombres.isEmpty() || apellidos.isEmpty() || telefono.isEmpty())</span>
 <span class="nc" id="L181">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
-                    &quot;Para registrar un representante nuevo se requiere nombres, apellidos y teléfono principal&quot;);
+<span class="nc" id="L182">                    &quot;Para registrar un representante nuevo se requiere nombres, apellidos y teléfono principal&quot;);</span>
 
 <span class="nc" id="L184">        Representante nuevo = Representante.builder()</span>
 <span class="nc bnc" id="L185" title="All 2 branches missed.">                .cedula(cedula.isEmpty() ? null : cedula)</span>
@@ -206,9 +206,9 @@ public class EstudianteService {
 <span class="fc" id="L206">                .correo(e.getCorreo())</span>
 <span class="fc" id="L207">                .estado(e.getEstado())</span>
 <span class="fc" id="L208">                .origenListado(e.getOrigenListado())</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">                .representante(e.getRepresentante() != null</span>
+<span class="pc bpc" id="L209" title="1 of 2 branches missed.">                .representante(e.getRepresentante() != null</span>
 <span class="fc" id="L210">                        ? e.getRepresentante().getNombres() + &quot; &quot; + e.getRepresentante().getApellidos()</span>
-<span class="fc" id="L211">                        : null)</span>
+<span class="nc" id="L211">                        : null)</span>
 <span class="fc" id="L212">                .fotoUrl(e.getFotoUrl())</span>
 <span class="fc" id="L213">                .build();</span>
     }

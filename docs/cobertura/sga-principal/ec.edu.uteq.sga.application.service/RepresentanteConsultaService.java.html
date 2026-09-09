@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepresentanteConsultaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">RepresentanteConsultaService.java</span></div><h1>RepresentanteConsultaService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import ec.edu.uteq.sga.domain.dto.representante.RepresentadoResponseDTO;
+import ec.edu.uteq.sga.domain.entity.Matricula;
+import ec.edu.uteq.sga.domain.entity.Representante;
+import ec.edu.uteq.sga.infrastructure.repository.EstudianteRepository;
+import ec.edu.uteq.sga.infrastructure.repository.MatriculaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.RepresentanteRepository;
+import ec.edu.uteq.sga.infrastructure.repository.AsignacionRepository;
+import ec.edu.uteq.sga.infrastructure.grpc.RepresentanteAcademicoGrpcClient;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class RepresentanteConsultaService {
+    private final RepresentanteRepository representantes;
+    private final EstudianteRepository estudiantes;
+    private final MatriculaRepository matriculas;
+    private final AsignacionRepository asignaciones;
+    private final RepresentanteAcademicoGrpcClient docente;
+
+    public List&lt;RepresentadoResponseDTO&gt; listar(String username) {
+<span class="fc" id="L30">        Representante representante = representante(username);</span>
+<span class="fc" id="L31">        Map&lt;Long, RepresentadoResponseDTO&gt; resultado = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        for (Matricula matricula : matriculas.findActivasByRepresentante(representante.getIdRepresentante())) {</span>
+<span class="fc" id="L33">            var estudiante = matricula.getEstudiante();</span>
+<span class="fc" id="L34">            resultado.computeIfAbsent(estudiante.getIdEstudiante(), ignored -&gt; RepresentadoResponseDTO.builder()</span>
+<span class="fc" id="L35">                    .idEstudiante(estudiante.getIdEstudiante())</span>
+<span class="fc" id="L36">                    .nombres(estudiante.getNombres())</span>
+<span class="fc" id="L37">                    .apellidos(estudiante.getApellidos())</span>
+<span class="fc" id="L38">                    .curso(matricula.getGrado().getNombre())</span>
+<span class="fc" id="L39">                    .paralelo(matricula.getParalelo().getLetra())</span>
+<span class="fc" id="L40">                    .matriculas(new java.util.ArrayList&lt;&gt;())</span>
+<span class="fc" id="L41">                    .build()).getMatriculas().add(matricula.getIdMatricula());</span>
+        }
+<span class="fc" id="L43">        return List.copyOf(resultado.values());</span>
+    }
+
+    public RepresentadoResponseDTO autorizar(String username, Long idEstudiante) {
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (!estudiantes.existsById(idEstudiante)) {</span>
+<span class="fc" id="L48">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Estudiante no encontrado&quot;);</span>
+        }
+<span class="fc" id="L50">        return listar(username).stream()</span>
+<span class="fc" id="L51">                .filter(item -&gt; item.getIdEstudiante().equals(idEstudiante))</span>
+<span class="fc" id="L52">                .findFirst()</span>
+<span class="fc" id="L53">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;Estudiante no asociado al representante&quot;));</span>
+    }
+
+    public Map&lt;String, Object&gt; calificaciones(String username, Long idEstudiante) {
+<span class="fc" id="L57">        var ids = matriculasAutorizadas(username, idEstudiante).stream().map(Matricula::getIdMatricula).toList();</span>
+<span class="fc" id="L58">        var response = docente.consultarCalificaciones(ids);</span>
+<span class="fc" id="L59">        return Map.of(</span>
+<span class="fc" id="L60">                &quot;calificaciones&quot;, response.getCalificacionesList().stream().map(item -&gt; Map.of(</span>
+<span class="fc" id="L61">                        &quot;id_calificacion&quot;, item.getIdCalificacion(), &quot;id_matricula&quot;, item.getIdMatricula(),</span>
+<span class="fc" id="L62">                        &quot;id_actividad&quot;, item.getIdActividad(), &quot;actividad&quot;, item.getActividad(),</span>
+<span class="fc" id="L63">                        &quot;id_asignacion&quot;, item.getIdAsignacion(), &quot;id_periodo&quot;, item.getIdPeriodo(),</span>
+<span class="fc" id="L64">                        &quot;periodo&quot;, item.getPeriodo(), &quot;nota&quot;, item.getNota(),</span>
+<span class="fc" id="L65">                        &quot;nota_cualitativa&quot;, item.getNotaCualitativa())).toList(),</span>
+<span class="pc" id="L66">                &quot;promedios&quot;, response.getPromediosList().stream().map(item -&gt; Map.of(</span>
+<span class="nc" id="L67">                        &quot;id_matricula&quot;, item.getIdMatricula(), &quot;id_asignacion&quot;, item.getIdAsignacion(),</span>
+<span class="nc" id="L68">                        &quot;id_periodo&quot;, item.getIdPeriodo(), &quot;periodo&quot;, item.getPeriodo(),</span>
+<span class="nc" id="L69">                        &quot;promedio_formativo&quot;, item.getPromedioFormativo(), &quot;nota_sumativa&quot;, item.getNotaSumativa(),</span>
+<span class="pc" id="L70">                        &quot;promedio_trimestral&quot;, item.getPromedioTrimestral(), &quot;nota_cualitativa&quot;, item.getNotaCualitativa())).toList());</span>
+    }
+
+    public Map&lt;String, Object&gt; asistencia(String username, Long idEstudiante) {
+<span class="fc" id="L74">        var ids = matriculasAutorizadas(username, idEstudiante).stream().map(Matricula::getIdMatricula).toList();</span>
+<span class="fc" id="L75">        var response = docente.consultarAsistencia(ids);</span>
+<span class="fc" id="L76">        var resumen = response.getResumen();</span>
+<span class="fc" id="L77">        return Map.of(</span>
+<span class="pc" id="L78">                &quot;asistencias&quot;, response.getAsistenciasList().stream().map(item -&gt; Map.of(</span>
+<span class="nc" id="L79">                        &quot;id_asistencia&quot;, item.getIdAsistencia(), &quot;id_matricula&quot;, item.getIdMatricula(),</span>
+<span class="nc" id="L80">                        &quot;id_asignacion&quot;, item.getIdAsignacion(), &quot;id_periodo&quot;, item.getIdPeriodo(),</span>
+<span class="pc" id="L81">                        &quot;periodo&quot;, item.getPeriodo(), &quot;fecha&quot;, item.getFecha(), &quot;estado&quot;, item.getEstado())).toList(),</span>
+<span class="fc" id="L82">                &quot;resumen&quot;, Map.of(&quot;total&quot;, resumen.getTotal(), &quot;presentes&quot;, resumen.getPresentes(),</span>
+<span class="fc" id="L83">                        &quot;ausentes&quot;, resumen.getAusentes(), &quot;justificados&quot;, resumen.getJustificados(),</span>
+<span class="fc" id="L84">                        &quot;atrasos&quot;, resumen.getAtrasos(), &quot;porcentaje_asistencia&quot;, resumen.getPorcentajeAsistencia()));</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; comunicados(String username) {
+<span class="fc" id="L88">        var matriculasActivas = matriculas.findActivasByRepresentante(representante(username).getIdRepresentante());</span>
+<span class="fc" id="L89">        var idsAsignacion = matriculasActivas.stream().flatMap(m -&gt; asignaciones</span>
+<span class="fc" id="L90">                .findByGrado_IdGradoAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivoAndActivoTrue(</span>
+<span class="fc" id="L91">                        m.getGrado().getIdGrado(), m.getParalelo().getIdParalelo(), m.getAnoLectivo().getIdAnoLectivo())</span>
+<span class="fc" id="L92">                .stream()).map(a -&gt; a.getIdAsignacion()).distinct().toList();</span>
+<span class="fc" id="L93">        return docente.consultarComunicados(idsAsignacion).getComunicadosList().stream().map(item -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L94">                &quot;id&quot;, item.getId(), &quot;titulo&quot;, item.getTitulo(), &quot;contenido&quot;, item.getContenido(),</span>
+<span class="fc" id="L95">                &quot;fecha&quot;, item.getFecha(), &quot;fijado&quot;, item.getFijado())).toList();</span>
+    }
+
+    private List&lt;Matricula&gt; matriculasAutorizadas(String username, Long idEstudiante) {
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (!estudiantes.existsById(idEstudiante)) {</span>
+<span class="nc" id="L100">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Estudiante no encontrado&quot;);</span>
+        }
+<span class="fc" id="L102">        var result = matriculas.findActivasByRepresentanteAndEstudiante(</span>
+<span class="fc" id="L103">                representante(username).getIdRepresentante(), idEstudiante);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (result.isEmpty()) {</span>
+<span class="fc" id="L105">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;Estudiante no asociado al representante&quot;);</span>
+        }
+<span class="fc" id="L107">        return result;</span>
+    }
+
+    private Representante representante(String username) {
+<span class="fc" id="L111">        return representantes.findByUsuario_Username(username)</span>
+<span class="fc" id="L112">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;Usuario sin representante asociado&quot;));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

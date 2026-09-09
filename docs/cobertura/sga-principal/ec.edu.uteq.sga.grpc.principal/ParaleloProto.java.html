@@ -16,9 +16,9 @@ private static final long serialVersionUID = 0L;
   private ParaleloProto(com.google.protobuf.GeneratedMessageV3.Builder&lt;?&gt; builder) {
 <span class="nc" id="L17">    super(builder);</span>
 <span class="nc" id="L18">  }</span>
-<span class="nc" id="L19">  private ParaleloProto() {</span>
-<span class="nc" id="L20">    letra_ = &quot;&quot;;</span>
-<span class="nc" id="L21">  }</span>
+<span class="fc" id="L19">  private ParaleloProto() {</span>
+<span class="fc" id="L20">    letra_ = &quot;&quot;;</span>
+<span class="fc" id="L21">  }</span>
 
   @java.lang.Override
   @SuppressWarnings({&quot;unused&quot;})
@@ -41,7 +41,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_PARALELO_FIELD_NUMBER = 1;
-<span class="nc" id="L44">  private long idParalelo_ = 0L;</span>
+<span class="pc" id="L44">  private long idParalelo_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_paralelo = 1;&lt;/code&gt;
    * @return The idParalelo.
@@ -52,7 +52,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_GRADO_FIELD_NUMBER = 2;
-<span class="nc" id="L55">  private long idGrado_ = 0L;</span>
+<span class="pc" id="L55">  private long idGrado_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_grado = 2;&lt;/code&gt;
    * @return The idGrado.
@@ -63,7 +63,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int LETRA_FIELD_NUMBER = 3;
-<span class="nc" id="L66">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L66">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object letra_ = &quot;&quot;;
   /**
    * &lt;code&gt;string letra = 3;&lt;/code&gt;
@@ -102,7 +102,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ACTIVO_FIELD_NUMBER = 4;
-<span class="nc" id="L105">  private boolean activo_ = false;</span>
+<span class="pc" id="L105">  private boolean activo_ = false;</span>
   /**
    * &lt;code&gt;bool activo = 4;&lt;/code&gt;
    * @return The activo.
@@ -113,7 +113,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int TOTAL_ESTUDIANTES_FIELD_NUMBER = 5;
-<span class="nc" id="L116">  private long totalEstudiantes_ = 0L;</span>
+<span class="pc" id="L116">  private long totalEstudiantes_ = 0L;</span>
   /**
    * &lt;code&gt;int64 total_estudiantes = 5;&lt;/code&gt;
    * @return The totalEstudiantes.
@@ -123,7 +123,7 @@ private static final long serialVersionUID = 0L;
 <span class="nc" id="L123">    return totalEstudiantes_;</span>
   }
 
-<span class="nc" id="L126">  private byte memoizedIsInitialized = -1;</span>
+<span class="pc" id="L126">  private byte memoizedIsInitialized = -1;</span>
   @java.lang.Override
   public final boolean isInitialized() {
 <span class="nc" id="L129">    byte isInitialized = memoizedIsInitialized;</span>
@@ -763,15 +763,15 @@ private static final long serialVersionUID = 0L;
   // @@protoc_insertion_point(class_scope:sga.principal.ParaleloProto)
   private static final ec.edu.uteq.sga.grpc.principal.ParaleloProto DEFAULT_INSTANCE;
   static {
-<span class="nc" id="L766">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.ParaleloProto();</span>
+<span class="fc" id="L766">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.ParaleloProto();</span>
   }
 
   public static ec.edu.uteq.sga.grpc.principal.ParaleloProto getDefaultInstance() {
-<span class="nc" id="L770">    return DEFAULT_INSTANCE;</span>
+<span class="fc" id="L770">    return DEFAULT_INSTANCE;</span>
   }
 
   private static final com.google.protobuf.Parser&lt;ParaleloProto&gt;
-<span class="nc" id="L774">      PARSER = new com.google.protobuf.AbstractParser&lt;ParaleloProto&gt;() {</span>
+<span class="fc" id="L774">      PARSER = new com.google.protobuf.AbstractParser&lt;ParaleloProto&gt;() {</span>
     @java.lang.Override
     public ParaleloProto parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
@@ -798,7 +798,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Override
   public com.google.protobuf.Parser&lt;ParaleloProto&gt; getParserForType() {
-<span class="nc" id="L801">    return PARSER;</span>
+<span class="fc" id="L801">    return PARSER;</span>
   }
 
   @java.lang.Override

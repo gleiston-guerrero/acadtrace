@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PromedioPonderado7030Strategy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.domain.strategy</a> &gt; <span class="el_source">PromedioPonderado7030Strategy.java</span></div><h1>PromedioPonderado7030Strategy.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.domain.strategy;
+
+import org.springframework.stereotype.Component;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+/**
+ * Estrategia oficial: 70% Evaluaciones Formativas / 30% Examen Quimestral.
+ */
+@Component(&quot;promedio7030Strategy&quot;)
+<span class="fc" id="L12">public class PromedioPonderado7030Strategy implements CalculoPromedioStrategy {</span>
+
+    @Override
+    public BigDecimal calcularPromedio(List&lt;BigDecimal&gt; calificaciones) {
+<span class="nc bnc" id="L16" title="All 4 branches missed.">        if (calificaciones == null || calificaciones.isEmpty()) {</span>
+<span class="nc" id="L17">            return BigDecimal.ZERO;</span>
+        }
+        // Si hay al menos 2 notas: la última es examen (30%) y las anteriores son actividades (70%)
+<span class="nc bnc" id="L20" title="All 2 branches missed.">        if (calificaciones.size() == 1) {</span>
+<span class="nc" id="L21">            return calificaciones.get(0).setScale(2, RoundingMode.HALF_UP);</span>
+        }
+
+<span class="nc" id="L24">        BigDecimal sumaActividades = BigDecimal.ZERO;</span>
+<span class="nc" id="L25">        int totalActividades = calificaciones.size() - 1;</span>
+
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        for (int i = 0; i &lt; totalActividades; i++) {</span>
+<span class="nc" id="L28">            sumaActividades = sumaActividades.add(calificaciones.get(i));</span>
+        }
+
+<span class="nc" id="L31">        BigDecimal promedioActividades = sumaActividades.divide(BigDecimal.valueOf(totalActividades), 4, RoundingMode.HALF_UP);</span>
+<span class="nc" id="L32">        BigDecimal notaExamen = calificaciones.get(calificaciones.size() - 1);</span>
+
+        // Promedio = (Actividades * 0.70) + (Examen * 0.30)
+<span class="nc" id="L35">        BigDecimal componenteFormativo = promedioActividades.multiply(BigDecimal.valueOf(0.70));</span>
+<span class="nc" id="L36">        BigDecimal componenteExamen = notaExamen.multiply(BigDecimal.valueOf(0.30));</span>
+
+<span class="nc" id="L38">        return componenteFormativo.add(componenteExamen).setScale(2, RoundingMode.HALF_UP);</span>
+    }
+
+    @Override
+    public String getIdentificador() {
+<span class="nc" id="L43">        return &quot;PONDERADO_70_30&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -37,12 +37,12 @@ import java.util.regex.Pattern;
  * Se acepta a proposito para este flujo de carga masiva inicial; ver el
  * comentario de ImportacionCasService para el detalle completo.
  */
-<span class="nc" id="L40">@Slf4j</span>
+<span class="fc" id="L40">@Slf4j</span>
 @Service
 @RequiredArgsConstructor
 public class ImportacionExcelService {
 
-<span class="nc" id="L45">    private static final Set&lt;String&gt; COLUMNAS_REQUERIDAS = Set.of(&quot;CEDULA&quot;, &quot;NOMBRES&quot;, &quot;APELLIDOS&quot;);</span>
+<span class="fc" id="L45">    private static final Set&lt;String&gt; COLUMNAS_REQUERIDAS = Set.of(&quot;CEDULA&quot;, &quot;NOMBRES&quot;, &quot;APELLIDOS&quot;);</span>
 
     private final EstudianteRepository estudianteRepo;
     private final GradoRepository gradoRepo;
@@ -64,13 +64,13 @@ public class ImportacionExcelService {
 <span class="nc" id="L64">                filas = leerExcel(archivo);</span>
 <span class="nc bnc" id="L65" title="All 2 branches missed.">            } else if (nombreArchivo.endsWith(&quot;.pdf&quot;)) {</span>
 <span class="nc" id="L66">                filas = leerPdf(archivo);</span>
-            } else {
+<span class="nc" id="L67">            } else {</span>
 <span class="nc" id="L68">                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
-                        &quot;Formato no soportado. Sube un archivo .csv, .xlsx, .xls o .pdf&quot;);
+<span class="nc" id="L69">                        &quot;Formato no soportado. Sube un archivo .csv, .xlsx, .xls o .pdf&quot;);</span>
             }
 <span class="nc" id="L71">        } catch (IOException e) {</span>
 <span class="nc" id="L72">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;No se pudo leer el archivo: &quot; + e.getMessage());</span>
-<span class="nc" id="L73">        }</span>
+        }
 
 <span class="nc bnc" id="L75" title="All 2 branches missed.">        if (filas.isEmpty())</span>
 <span class="nc" id="L76">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;El archivo no contiene filas de datos&quot;);</span>
@@ -108,7 +108,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L108">                    .yaExiste(yaExiste)</span>
 <span class="nc" id="L109">                    .error(error)</span>
 <span class="nc" id="L110">                    .build());</span>
-<span class="nc" id="L111">        }</span>
+        }
 
 <span class="nc bnc" id="L113" title="All 2 branches missed.">        if (estudiantes.isEmpty())</span>
 <span class="nc" id="L114">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;El archivo no contiene filas de datos&quot;);</span>
@@ -141,7 +141,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L141">                Map&lt;String, String&gt; fila = new HashMap&lt;&gt;();</span>
 <span class="nc" id="L142">                mapaEncabezados.forEach((original, canonico) -&gt; fila.put(canonico, record.get(original)));</span>
 <span class="nc" id="L143">                filas.add(fila);</span>
-<span class="nc" id="L144">            }</span>
+            }
         }
 <span class="nc" id="L146">        return filas;</span>
     }
@@ -175,7 +175,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L175">                    String canonico = mapaEncabezados.get(col.getValue());</span>
 <span class="nc bnc" id="L176" title="All 2 branches missed.">                    if (canonico == null) continue;</span>
 <span class="nc" id="L177">                    fila.put(canonico, formatter.formatCellValue(row.getCell(col.getKey())).trim());</span>
-<span class="nc" id="L178">                }</span>
+                }
 <span class="nc" id="L179">                filas.add(fila);</span>
             }
         }
@@ -203,11 +203,11 @@ public class ImportacionExcelService {
 <span class="nc" id="L203">        List&lt;Map&lt;String, String&gt;&gt; filas = new ArrayList&lt;&gt;();</span>
 
 <span class="nc" id="L205">        Pattern p1 = Pattern.compile(</span>
-                &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+(.+?)\\s+([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)\\s*$&quot;);
+<span class="nc" id="L206">                &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+(.+?)\\s+([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)\\s*$&quot;);</span>
 <span class="nc" id="L207">        Pattern p2 = Pattern.compile(</span>
-                &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,})\\s*$&quot;);
+<span class="nc" id="L208">                &quot;^\\s*(\\d{1,3})\\s+(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,})\\s*$&quot;);</span>
 <span class="nc" id="L209">        Pattern p3 = Pattern.compile(</span>
-                &quot;(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,}?)\\s*([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)?\\s*$&quot;);
+<span class="nc" id="L210">                &quot;(\\d{10})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]{5,}?)\\s*([a-zA-Z0-9._]+@[a-zA-Z0-9._]+\\.edu\\.ec)?\\s*$&quot;);</span>
 
 <span class="nc bnc" id="L212" title="All 2 branches missed.">        for (String linea : lineas) {</span>
 <span class="nc bnc" id="L213" title="All 2 branches missed.">            if (linea.trim().isEmpty()) continue;</span>
@@ -254,7 +254,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L254">                fila.put(&quot;CORREO&quot;, emailsEncontrados.get(emailIdx));</span>
             }
 <span class="nc" id="L256">            emailIdx++;</span>
-<span class="nc" id="L257">        }</span>
+        }
 
 <span class="nc" id="L259">        return filas;</span>
     }
@@ -273,7 +273,7 @@ public class ImportacionExcelService {
 <span class="nc bnc" id="L273" title="All 2 branches missed.">        } else if (partes.length == 2) {</span>
 <span class="nc" id="L274">            apellidos = partes[0];</span>
 <span class="nc" id="L275">            nombres = partes[1];</span>
-        } else {
+<span class="nc" id="L276">        } else {</span>
 <span class="nc" id="L277">            apellidos = nombresCompletos;</span>
 <span class="nc" id="L278">            nombres = &quot;&quot;;</span>
         }
@@ -299,7 +299,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L299">                default -&gt; null;</span>
             };
 <span class="nc bnc" id="L301" title="All 2 branches missed.">            if (canonico != null) mapa.put(original, canonico);</span>
-<span class="nc" id="L302">        }</span>
+        }
 <span class="nc" id="L303">        return mapa;</span>
     }
 
@@ -307,7 +307,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L307">        Set&lt;String&gt; encontrados = new HashSet&lt;&gt;(mapaEncabezados.values());</span>
 <span class="nc bnc" id="L308" title="All 2 branches missed.">        if (!encontrados.containsAll(COLUMNAS_REQUERIDAS))</span>
 <span class="nc" id="L309">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,</span>
-                    &quot;El archivo debe tener las columnas CEDULA, NOMBRES y APELLIDOS&quot;);
+<span class="nc" id="L310">                    &quot;El archivo debe tener las columnas CEDULA, NOMBRES y APELLIDOS&quot;);</span>
 <span class="nc" id="L311">    }</span>
 
     private String normalizar(String texto) {
@@ -345,7 +345,7 @@ public class ImportacionExcelService {
 <span class="nc bnc" id="L345" title="All 2 branches missed.">            if (existente.isPresent()) {</span>
 <span class="nc" id="L346">                estudiante = existente.get();</span>
 <span class="nc" id="L347">                existentes++;</span>
-            } else {
+<span class="nc" id="L348">            } else {</span>
 <span class="nc" id="L349">                estudiante = Estudiante.builder()</span>
 <span class="nc" id="L350">                        .cedula(est.getCedula())</span>
 <span class="nc" id="L351">                        .apellidos(est.getApellidos())</span>
@@ -375,7 +375,7 @@ public class ImportacionExcelService {
 <span class="nc" id="L375">                matriculaRepo.save(matricula);</span>
 <span class="nc" id="L376">                matriculados++;</span>
             }
-<span class="nc" id="L378">        }</span>
+        }
 
 <span class="nc" id="L380">        Map&lt;String, Object&gt; resultado = new LinkedHashMap&lt;&gt;();</span>
 <span class="nc" id="L381">        resultado.put(&quot;creados&quot;, creados);</span>

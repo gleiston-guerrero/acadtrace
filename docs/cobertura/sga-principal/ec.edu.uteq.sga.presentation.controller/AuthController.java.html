@@ -37,7 +37,7 @@ public class AuthController {
         Authentication auth;
         try {
 <span class="nc" id="L39">            auth = authenticationManager.authenticate(</span>
-                    new UsernamePasswordAuthenticationToken(
+<span class="nc" id="L40">                    new UsernamePasswordAuthenticationToken(</span>
 <span class="nc" id="L41">                            request.getUsername(),</span>
 <span class="nc" id="L42">                            request.getPassword()</span>
                     )
@@ -46,7 +46,7 @@ public class AuthController {
 <span class="nc" id="L46">            auditoriaService.registrarAuth(&quot;LOGIN_FALLIDO&quot;, request.getUsername(), null, &quot;FALLO&quot;,</span>
 <span class="nc" id="L47">                    &quot;Credenciales invalidas: &quot; + e.getMessage());</span>
 <span class="nc" id="L48">            throw e;</span>
-<span class="nc" id="L49">        }</span>
+        }
 
 <span class="nc" id="L51">        Usuario usuario = usuarioRepository.findByUsername(request.getUsername())</span>
 <span class="nc" id="L52">                .orElseThrow();</span>
