@@ -19,7 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-enum class AcademicNotificationType { COMUNICADO, AUSENCIA, ATRASO, CIERRE_CALIFICACIONES, UNKNOWN }
+enum class AcademicNotificationType { COMUNICADO, AUSENTE, ATRASO, CIERRE_CALIFICACIONES, UNKNOWN }
 
 data class AcademicNotificationPayload(val type: AcademicNotificationType, val studentId: Long?, val periodId: Long?, val announcementId: Long?) {
     companion object {
@@ -35,7 +35,7 @@ object NotificationDestination {
         val payload = AcademicNotificationPayload.from(data)
         return when (payload.type) {
             AcademicNotificationType.COMUNICADO -> Screen.Comunicados.route
-            AcademicNotificationType.AUSENCIA, AcademicNotificationType.ATRASO -> payload.studentId?.let(Screen.Asistencia::create)
+            AcademicNotificationType.AUSENTE, AcademicNotificationType.ATRASO -> payload.studentId?.let(Screen.Asistencia::create)
             AcademicNotificationType.CIERRE_CALIFICACIONES -> payload.studentId?.let(Screen.Calificaciones::create)
             AcademicNotificationType.UNKNOWN -> null
         }
@@ -83,7 +83,7 @@ class SgaFirebaseMessagingService : FirebaseMessagingService() {
         }
         val channel = when (payload.type) {
             AcademicNotificationType.COMUNICADO -> NotificationSupport.CHANNEL_COMUNICADOS
-            AcademicNotificationType.AUSENCIA, AcademicNotificationType.ATRASO -> NotificationSupport.CHANNEL_ASISTENCIA
+            AcademicNotificationType.AUSENTE, AcademicNotificationType.ATRASO -> NotificationSupport.CHANNEL_ASISTENCIA
             AcademicNotificationType.CIERRE_CALIFICACIONES -> NotificationSupport.CHANNEL_CALIFICACIONES
             else -> return
         }

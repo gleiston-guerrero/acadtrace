@@ -105,4 +105,9 @@ public class ConfiguracionCalificacionController {
             @PathVariable Long id, @Valid @RequestBody PeriodoEvaluacionDTO dto) {
         return ResponseEntity.ok(service.actualizarPeriodo(id, dto));
     }
+
+    @PostMapping("/periodos/{id}/cerrar")
+    public ResponseEntity<PeriodoEvaluacionDTO> cerrarPeriodo(@PathVariable Long id) {
+        return ResponseEntity.ok(service.cerrarPeriodo(id));
+    }
 }

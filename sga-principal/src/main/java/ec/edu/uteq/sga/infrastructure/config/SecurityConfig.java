@@ -87,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/docente/**").hasAnyAuthority("ROLE_DOCENTE")
                         .requestMatchers("/api/docentes/**").hasAnyAuthority("ROLE_DOCENTE")
                         .requestMatchers("/api/rpc/**").permitAll()
+                        .requestMatchers("/api/internal/notificaciones/eventos").permitAll()
                         .requestMatchers("/api/notificaciones/masivo").permitAll()
                         .requestMatchers("/api/notificaciones/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
