@@ -28,7 +28,7 @@ class WebConfigTest {
         assertThat(corsRegistry.configurations().get("/**").getAllowedMethods())
                 .containsExactly("GET", "POST", "PUT", "PATCH", "DELETE");
         assertThat(resolvers).hasSize(1);
-        assertThat(resolvers.getFirst().getClass().getSimpleName()).isEqualTo("CurrentUserArgumentResolver");
+        assertThat(resolvers.get(0).getClass().getSimpleName()).isEqualTo("CurrentUserArgumentResolver");
     }
 
     private static class TestCorsRegistry extends CorsRegistry {
