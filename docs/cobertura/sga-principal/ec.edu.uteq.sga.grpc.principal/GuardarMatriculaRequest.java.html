@@ -24,10 +24,10 @@ private static final long serialVersionUID = 0L;
   private GuardarMatriculaRequest(com.google.protobuf.GeneratedMessageV3.Builder&lt;?&gt; builder) {
 <span class="nc" id="L25">    super(builder);</span>
 <span class="nc" id="L26">  }</span>
-<span class="nc" id="L27">  private GuardarMatriculaRequest() {</span>
-<span class="nc" id="L28">    estado_ = &quot;&quot;;</span>
-<span class="nc" id="L29">    observaciones_ = &quot;&quot;;</span>
-<span class="nc" id="L30">  }</span>
+<span class="fc" id="L27">  private GuardarMatriculaRequest() {</span>
+<span class="fc" id="L28">    estado_ = &quot;&quot;;</span>
+<span class="fc" id="L29">    observaciones_ = &quot;&quot;;</span>
+<span class="fc" id="L30">  }</span>
 
   @java.lang.Override
   @SuppressWarnings({&quot;unused&quot;})
@@ -50,7 +50,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_ESTUDIANTE_FIELD_NUMBER = 1;
-<span class="nc" id="L53">  private long idEstudiante_ = 0L;</span>
+<span class="pc" id="L53">  private long idEstudiante_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_estudiante = 1;&lt;/code&gt;
    * @return The idEstudiante.
@@ -61,7 +61,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_GRADO_FIELD_NUMBER = 2;
-<span class="nc" id="L64">  private long idGrado_ = 0L;</span>
+<span class="pc" id="L64">  private long idGrado_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_grado = 2;&lt;/code&gt;
    * @return The idGrado.
@@ -72,7 +72,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_PARALELO_FIELD_NUMBER = 3;
-<span class="nc" id="L75">  private long idParalelo_ = 0L;</span>
+<span class="pc" id="L75">  private long idParalelo_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_paralelo = 3;&lt;/code&gt;
    * @return The idParalelo.
@@ -83,7 +83,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_ANO_LECTIVO_FIELD_NUMBER = 4;
-<span class="nc" id="L86">  private long idAnoLectivo_ = 0L;</span>
+<span class="pc" id="L86">  private long idAnoLectivo_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_ano_lectivo = 4;&lt;/code&gt;
    * @return The idAnoLectivo.
@@ -94,7 +94,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ESTADO_FIELD_NUMBER = 5;
-<span class="nc" id="L97">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L97">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object estado_ = &quot;&quot;;
   /**
    * &lt;pre&gt;
@@ -141,7 +141,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int OBSERVACIONES_FIELD_NUMBER = 6;
-<span class="nc" id="L144">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L144">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object observaciones_ = &quot;&quot;;
   /**
    * &lt;code&gt;string observaciones = 6;&lt;/code&gt;
@@ -180,7 +180,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_USUARIO_REGISTRO_FIELD_NUMBER = 7;
-<span class="nc" id="L183">  private long idUsuarioRegistro_ = 0L;</span>
+<span class="pc" id="L183">  private long idUsuarioRegistro_ = 0L;</span>
   /**
    * &lt;pre&gt;
    * 0 = ninguno
@@ -194,7 +194,7 @@ private static final long serialVersionUID = 0L;
 <span class="nc" id="L194">    return idUsuarioRegistro_;</span>
   }
 
-<span class="nc" id="L197">  private byte memoizedIsInitialized = -1;</span>
+<span class="pc" id="L197">  private byte memoizedIsInitialized = -1;</span>
   @java.lang.Override
   public final boolean isInitialized() {
 <span class="nc" id="L200">    byte isInitialized = memoizedIsInitialized;</span>
@@ -1026,15 +1026,15 @@ private static final long serialVersionUID = 0L;
   // @@protoc_insertion_point(class_scope:sga.principal.GuardarMatriculaRequest)
   private static final ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest DEFAULT_INSTANCE;
   static {
-<span class="nc" id="L1029">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest();</span>
+<span class="fc" id="L1029">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest();</span>
   }
 
   public static ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest getDefaultInstance() {
-<span class="nc" id="L1033">    return DEFAULT_INSTANCE;</span>
+<span class="fc" id="L1033">    return DEFAULT_INSTANCE;</span>
   }
 
   private static final com.google.protobuf.Parser&lt;GuardarMatriculaRequest&gt;
-<span class="nc" id="L1037">      PARSER = new com.google.protobuf.AbstractParser&lt;GuardarMatriculaRequest&gt;() {</span>
+<span class="fc" id="L1037">      PARSER = new com.google.protobuf.AbstractParser&lt;GuardarMatriculaRequest&gt;() {</span>
     @java.lang.Override
     public GuardarMatriculaRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
@@ -1061,7 +1061,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Override
   public com.google.protobuf.Parser&lt;GuardarMatriculaRequest&gt; getParserForType() {
-<span class="nc" id="L1064">    return PARSER;</span>
+<span class="fc" id="L1064">    return PARSER;</span>
   }
 
   @java.lang.Override

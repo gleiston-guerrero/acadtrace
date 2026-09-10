@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,[GET] /api/secretario/matriculas,CatchResponseError('Status HTTP 500'),2477,2026-09-10T14:11:06Z,2026-09-10T14:16:04Z
+GET,[GET] /api/soporte/tickets,CatchResponseError('Status HTTP 500'),2504,2026-09-10T14:11:06Z,2026-09-10T14:16:04Z
+GET,[GET] /health,CatchResponseError('Status HTTP 401'),4978,2026-09-10T14:11:07Z,2026-09-10T14:16:04Z
+GET,[GET] /api/secretario/estudiantes,CatchResponseError('Status HTTP 500'),3619,2026-09-10T14:11:06Z,2026-09-10T14:16:04Z

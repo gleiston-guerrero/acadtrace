@@ -23,6 +23,7 @@ message CalificacionRepresentante {
   string periodo = 7;
   double nota = 8;
   string nota_cualitativa = 9;
+  string asignatura = 10;
 }
 message PromedioRepresentante {
   int64 id_matricula = 1;
@@ -33,10 +34,26 @@ message PromedioRepresentante {
   double nota_sumativa = 6;
   double promedio_trimestral = 7;
   string nota_cualitativa = 8;
+  string asignatura = 9;
+}
+message PeriodoRepresentante {
+  int64 id_periodo = 1;
+  string nombre = 2;
+  bool activo = 3;
+  string fecha_inicio = 4;
+}
+message PromedioAnualRepresentante {
+  int64 id_asignacion = 1;
+  string asignatura = 2;
+  double promedio_anual = 3;
+  string nota_cualitativa = 4;
 }
 message CalificacionesResponse {
   repeated CalificacionRepresentante calificaciones = 1;
   repeated PromedioRepresentante promedios = 2;
+  repeated PeriodoRepresentante periodos = 3;
+  repeated PromedioAnualRepresentante promedios_anuales = 4;
+  bool mostrar_promedios_anuales = 5;
 }
 
 message AsistenciaRepresentante {

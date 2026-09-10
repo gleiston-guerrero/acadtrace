@@ -29,26 +29,26 @@ public class TeacherAuthorizationService {
      * Resuelve el docente autenticado a partir del SecurityContext.
      */
     public Persona getAuthenticatedTeacher() {
-<span class="nc" id="L32">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
-<span class="nc bnc" id="L33" title="All 6 branches missed.">        if (auth == null || !auth.isAuthenticated() || &quot;anonymousUser&quot;.equals(auth.getPrincipal())) {</span>
-<span class="nc" id="L34">            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, &quot;No hay usuario autenticado en el contexto&quot;);</span>
+<span class="fc" id="L32">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="pc bpc" id="L33" title="2 of 6 branches missed.">        if (auth == null || !auth.isAuthenticated() || &quot;anonymousUser&quot;.equals(auth.getPrincipal())) {</span>
+<span class="fc" id="L34">            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, &quot;No hay usuario autenticado en el contexto&quot;);</span>
         }
 
-<span class="nc" id="L37">        String username = auth.getName();</span>
-<span class="nc" id="L38">        Usuario usuario = usuarioRepository.findByUsername(username)</span>
-<span class="nc" id="L39">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Usuario no encontrado&quot;));</span>
+<span class="fc" id="L37">        String username = auth.getName();</span>
+<span class="fc" id="L38">        Usuario usuario = usuarioRepository.findByUsername(username)</span>
+<span class="pc" id="L39">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Usuario no encontrado&quot;));</span>
 
-<span class="nc" id="L41">        boolean isDocente = usuario.getRoles().stream()</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">                .anyMatch(r -&gt; r.getNombre().toUpperCase().contains(&quot;DOCENTE&quot;) ||</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">                               r.getNombre().toUpperCase().contains(&quot;DIRECTOR&quot;) ||</span>
-<span class="nc bnc" id="L44" title="All 2 branches missed.">                               r.getNombre().toUpperCase().contains(&quot;ADMIN&quot;));</span>
+<span class="fc" id="L41">        boolean isDocente = usuario.getRoles().stream()</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">                .anyMatch(r -&gt; r.getNombre().toUpperCase().contains(&quot;DOCENTE&quot;) ||</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">                               r.getNombre().toUpperCase().contains(&quot;DIRECTOR&quot;) ||</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">                               r.getNombre().toUpperCase().contains(&quot;ADMIN&quot;));</span>
 
-<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (!isDocente) {</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (!isDocente) {</span>
 <span class="nc" id="L47">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;El usuario autenticado no tiene rol autorizado&quot;);</span>
         }
 
-<span class="nc" id="L50">        return personaRepository.findByUsuario_IdUsuario(usuario.getIdUsuario())</span>
-<span class="nc" id="L51">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;No existe un perfil de Persona (Docente) asociado a este usuario&quot;));</span>
+<span class="fc" id="L50">        return personaRepository.findByUsuario_IdUsuario(usuario.getIdUsuario())</span>
+<span class="fc" id="L51">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;No existe un perfil de Persona (Docente) asociado a este usuario&quot;));</span>
     }
 
     /**
@@ -62,22 +62,22 @@ public class TeacherAuthorizationService {
      * Valida que una asignación pertenezca al docente o que el solicitante sea Director/Admin y esté activa.
      */
     public Asignacion validateTeacherAssignment(Long idDocente, Long idAsignacion) {
-<span class="nc" id="L65">        Asignacion asignacion = asignacionRepository.findById(idAsignacion)</span>
-<span class="nc" id="L66">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
+<span class="fc" id="L65">        Asignacion asignacion = asignacionRepository.findById(idAsignacion)</span>
+<span class="pc" id="L66">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Asignación no encontrada&quot;));</span>
 
-<span class="nc" id="L68">        Persona persona = personaRepository.findById(idDocente).orElse(null);</span>
-<span class="nc bnc" id="L69" title="All 4 branches missed.">        boolean isDirectorOrAdmin = persona != null &amp;&amp; persona.getUsuario() != null &amp;&amp; persona.getUsuario().getRoles().stream()</span>
+<span class="fc" id="L68">        Persona persona = personaRepository.findById(idDocente).orElse(null);</span>
+<span class="pc bpc" id="L69" title="3 of 4 branches missed.">        boolean isDirectorOrAdmin = persona != null &amp;&amp; persona.getUsuario() != null &amp;&amp; persona.getUsuario().getRoles().stream()</span>
 <span class="nc bnc" id="L70" title="All 6 branches missed.">                .anyMatch(r -&gt; r.getNombre().toUpperCase().contains(&quot;DIRECTOR&quot;) || r.getNombre().toUpperCase().contains(&quot;ADMIN&quot;));</span>
 
-<span class="nc bnc" id="L72" title="All 4 branches missed.">        if (!isDirectorOrAdmin &amp;&amp; !asignacion.getDocente().getIdPersona().equals(idDocente)) {</span>
-<span class="nc" id="L73">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;La asignación no pertenece al docente indicado&quot;);</span>
+<span class="pc bpc" id="L72" title="1 of 4 branches missed.">        if (!isDirectorOrAdmin &amp;&amp; !asignacion.getDocente().getIdPersona().equals(idDocente)) {</span>
+<span class="fc" id="L73">            throw new ResponseStatusException(HttpStatus.FORBIDDEN, &quot;La asignación no pertenece al docente indicado&quot;);</span>
         }
 
-<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (!asignacion.isActivo()) {</span>
-<span class="nc" id="L77">            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, &quot;La asignación está inactiva&quot;);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (!asignacion.isActivo()) {</span>
+<span class="fc" id="L77">            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, &quot;La asignación está inactiva&quot;);</span>
         }
 
-<span class="nc" id="L80">        return asignacion;</span>
+<span class="fc" id="L80">        return asignacion;</span>
     }
 
     /**

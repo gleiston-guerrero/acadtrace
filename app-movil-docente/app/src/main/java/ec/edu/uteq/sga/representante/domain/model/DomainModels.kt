@@ -13,10 +13,33 @@ data class Representado(val idEstudiante: Long, val nombres: String, val apellid
     val curso: String?, val paralelo: String?, val matriculas: List<Long>) {
     val nombreCompleto get() = "$nombres $apellidos"
 }
-data class NotaRepresentado(val actividad: String, val periodo: String, val nota: Double, val notaCualitativa: String?)
-data class PromedioRepresentado(val periodo: String, val promedioFormativo: Double,
+data class NotaRepresentado(val idActividad: Long, val idAsignacion: Long, val idPeriodo: Long,
+    val asignatura: String, val actividad: String, val periodo: String, val nota: Double?, val notaCualitativa: String?)
+data class PromedioRepresentado(val idAsignacion: Long, val idPeriodo: Long, val asignatura: String, val periodo: String, val promedioFormativo: Double,
     val notaSumativa: Double, val promedioTrimestral: Double, val notaCualitativa: String)
-data class CalificacionesRepresentado(val calificaciones: List<NotaRepresentado>, val promedios: List<PromedioRepresentado>)
+data class PeriodoCalificaciones(val idPeriodo: Long, val nombre: String, val activo: Boolean, val fechaInicio: String)
+data class PromedioAnualRepresentado(val idAsignacion: Long, val asignatura: String, val promedioAnual: Double, val notaCualitativa: String)
+data class AsignaturaCalificaciones(val idAsignacion: Long, val asignatura: String, val promedio: PromedioRepresentado?, val actividades: List<NotaRepresentado>)
+data class CalificacionesRepresentado(val calificaciones: List<NotaRepresentado>, val promedios: List<PromedioRepresentado>,
+    val periodos: List<PeriodoCalificaciones> = emptyList(), val promediosAnuales: List<PromedioAnualRepresentado> = emptyList(),
+    val mostrarPromediosAnuales: Boolean = false) {
+    fun periodoInicial(): Long? = periodos.firstOrNull { it.activo }?.idPeriodo
+        ?: periodos.maxByOrNull { it.fechaInicio }?.idPeriodo
+    fun asignaturas(idPeriodo: Long): List<AsignaturaCalificaciones> {
+        val periodPromedios = promedios.filter { it.idPeriodo == idPeriodo }.associateBy { it.idAsignacion }
+        val periodNotas = calificaciones.filter { it.idPeriodo == idPeriodo }.groupBy { it.idAsignacion }
+        return (periodPromedios.keys + periodNotas.keys).distinct().map { id ->
+            val promedio = periodPromedios[id]
+            val notas = periodNotas[id].orEmpty()
+            AsignaturaCalificaciones(id, promedio?.asignatura ?: notas.firstOrNull()?.asignatura ?: "Asignatura $id", promedio, notas)
+        }.sortedBy { it.asignatura }
+    }
+}
+
+fun String.etiquetaCualitativa(): String = when (this) {
+    "A_MAS" -> "A+"; "A_MENOS" -> "A-"; "B_MAS" -> "B+"; "B_MENOS" -> "B-"
+    "C_MAS" -> "C+"; "C_MENOS" -> "C-"; else -> this
+}
 data class AsistenciaHijo(val fecha: String, val periodo: String, val estado: String)
 data class ResumenAsistenciaHijo(val total: Int, val presentes: Int, val ausentes: Int,
     val justificados: Int, val atrasos: Int, val porcentajeAsistencia: Double)

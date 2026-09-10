@@ -25,7 +25,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 <span class="nc" id="L26">        Usuario usuario = usuarioRepository.findByUsername(username)</span>
 <span class="nc" id="L27">                .orElseThrow(() -&gt; new UsernameNotFoundException(</span>
-                        &quot;Usuario no encontrado: &quot; + username));
+<span class="nc" id="L28">                        &quot;Usuario no encontrado: &quot; + username));</span>
 
 <span class="nc" id="L30">        List&lt;SimpleGrantedAuthority&gt; authorities = usuario.getRoles().stream()</span>
 <span class="nc" id="L31">                .map(rol -&gt; {</span>
@@ -37,7 +37,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 <span class="nc" id="L37">        return new User(</span>
 <span class="nc" id="L38">                usuario.getUsername(),</span>
 <span class="nc" id="L39">                usuario.getPasswordHash(),</span>
-                authorities
+<span class="nc" id="L40">                authorities</span>
         );
     }
 }
