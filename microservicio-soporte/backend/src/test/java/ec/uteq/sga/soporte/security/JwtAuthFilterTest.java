@@ -3,45 +3,57 @@ package ec.uteq.sga.soporte.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockFilterChain;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 class JwtAuthFilterTest {
 
-    private final JwtService jwtService = mock(JwtService.class);
-    private final JwtAuthFilter filter = new JwtAuthFilter(jwtService, new ObjectMapper());
-
     @Test
-    void rechazaCabeceraAusenteYTokensInvalidos() throws Exception {
-        MockHttpServletResponse missingResponse = new MockHttpServletResponse();
-        filter.doFilter(new MockHttpServletRequest(), missingResponse, new MockFilterChain());
-        assertThat(missingResponse.getStatus()).isEqualTo(401);
-        assertThat(missingResponse.getContentAsString()).contains("Token no proporcionado");
+    void sinBearer_rechazaAntesDeInvocarLaCadena() throws Exception {
+        JwtAuthFilter filter = new JwtAuthFilter(mock(JwtService.class), new ObjectMapper());
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-        MockHttpServletRequest invalidRequest = new MockHttpServletRequest();
-        invalidRequest.addHeader("Authorization", "Bearer invalido");
-        doThrow(new JwtException("expirado")).when(jwtService).parse("invalido");
-        MockHttpServletResponse invalidResponse = new MockHttpServletResponse();
-        filter.doFilter(invalidRequest, invalidResponse, new MockFilterChain());
-        assertThat(invalidResponse.getStatus()).isEqualTo(401);
-        assertThat(invalidResponse.getContentAsString()).contains("Token invalido o expirado");
+        filter.doFilter(new MockHttpServletRequest(), response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(401);
+        assertThat(response.getContentAsString()).contains("Token no proporcionado");
     }
 
     @Test
-    void agregaUsuarioAutenticadoYContinuaLaCadena() throws Exception {
+    void tokenInvalido_retorna401ConJson() throws Exception {
+        JwtService jwtService = mock(JwtService.class);
+        given(jwtService.parse("invalido")).willThrow(new JwtException("firma"));
+        JwtAuthFilter filter = new JwtAuthFilter(jwtService, new ObjectMapper());
         MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer invalido");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(401);
+        assertThat(response.getContentAsString()).contains("Token invalido o expirado");
+    }
+
+    @Test
+    void tokenValido_guardaUsuarioYContinuaLaCadena() throws Exception {
+        JwtService jwtService = mock(JwtService.class);
+        AuthenticatedUser user = new AuthenticatedUser("ana", List.of("SOPORTE_TECNICO"));
+        given(jwtService.parse("valido")).willReturn(user);
+        JwtAuthFilter filter = new JwtAuthFilter(jwtService, new ObjectMapper());
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/soporte/tickets");
         request.addHeader("Authorization", "Bearer valido");
-        AuthenticatedUser user = new AuthenticatedUser("ana", List.of("DOCENTE"));
-        when(jwtService.parse("valido")).thenReturn(user);
+        MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 
-        filter.doFilter(request, new MockHttpServletResponse(), chain);
+        filter.doFilter(request, response, chain);
 
         assertThat(request.getAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE)).isEqualTo(user);
         assertThat(chain.getRequest()).isSameAs(request);
