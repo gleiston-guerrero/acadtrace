@@ -7,18 +7,18 @@ data class RepresentadoDTO(val idEstudiante: Long, val nombres: String, val apel
 data class CalificacionRepresentadoDTO(@SerializedName("id_calificacion") val idCalificacion: Long,
     @SerializedName("id_matricula") val idMatricula: Long, @SerializedName("id_actividad") val idActividad: Long,
     val actividad: String, @SerializedName("id_asignacion") val idAsignacion: Long,
-    @SerializedName("id_periodo") val idPeriodo: Long, val periodo: String, val asignatura: String, val nota: Double?,
+    @SerializedName("id_periodo") val idPeriodo: Long, val periodo: String, val asignatura: String?, val nota: Double?,
     @SerializedName("nota_cualitativa") val notaCualitativa: String?)
 data class PromedioRepresentadoDTO(@SerializedName("id_matricula") val idMatricula: Long,
     @SerializedName("id_asignacion") val idAsignacion: Long, @SerializedName("id_periodo") val idPeriodo: Long,
-    val periodo: String, val asignatura: String, @SerializedName("promedio_formativo") val promedioFormativo: Double,
+    val periodo: String, val asignatura: String?, @SerializedName("promedio_formativo") val promedioFormativo: Double,
     @SerializedName("nota_sumativa") val notaSumativa: Double,
     @SerializedName("promedio_trimestral") val promedioTrimestral: Double,
     @SerializedName("nota_cualitativa") val notaCualitativa: String)
 data class PeriodoCalificacionesDTO(@SerializedName("id_periodo") val idPeriodo: Long, val nombre: String,
     val activo: Boolean, @SerializedName("fecha_inicio") val fechaInicio: String)
 data class PromedioAnualRepresentadoDTO(@SerializedName("id_asignacion") val idAsignacion: Long,
-    val asignatura: String, @SerializedName("promedio_anual") val promedioAnual: Double,
+    val asignatura: String?, @SerializedName("promedio_anual") val promedioAnual: Double,
     @SerializedName("nota_cualitativa") val notaCualitativa: String)
 data class CalificacionesRepresentadoDTO(val calificaciones: List<CalificacionRepresentadoDTO> = emptyList(),
     val promedios: List<PromedioRepresentadoDTO> = emptyList(), val periodos: List<PeriodoCalificacionesDTO> = emptyList(),
