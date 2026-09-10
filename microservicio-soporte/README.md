@@ -82,3 +82,28 @@ O manualmente:
 locust -f locustfile.py --headless -u 50 -r 10 --run-time 60s --host http://localhost:8083 --html reporte_soporte.html --csv resultados_soporte
 ```
 
+Antes de iniciar Locust debe existir `JWT_SECRET` en el entorno y debe ser el
+mismo secreto configurado para el backend. El script genera un JWT HS256 con
+los claims `sub` y `roles` compatibles con el filtro del servicio; si la
+variable falta, termina antes de enviar peticiones para no producir una
+medicion invalida de respuestas 401. No se debe versionar ese valor ni incluirlo
+en informes o comandos compartidos.
+
+## Observabilidad
+
+El backend publica trazas mediante Micrometer Tracing/Brave hacia Zipkin. En
+Docker Compose, Zipkin queda disponible en `http://localhost:9411` y el backend
+usa `ZIPKIN_ENDPOINT` (por defecto `http://zipkin:9411/api/v2/spans`). Fuera de
+Compose, el valor por defecto es `http://localhost:9411/api/v2/spans`.
+
+La probabilidad de muestreo se controla con `TRACING_SAMPLING_PROBABILITY` y
+por defecto es `1.0` para facilitar la validacion de esta entrega. Instrumentar
+Soporte permite observar sus trazas locales, pero una traza distribuida completa
+requiere que cada microservicio participante propague e instrumente el contexto
+por medio de su propio responsable.
+
+La configuracion actual de HikariCP conserva un maximo de 10 conexiones. No se
+ha aumentado: no hay evidencia de agotamiento del pool. Debe revisarse con las
+metricas de Hikari despues de repetir Locust con JWT valido, antes de proponer
+cualquier ajuste de capacidad.
+

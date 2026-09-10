@@ -137,15 +137,24 @@ services:
       - DB_NAME=sga
       - DB_USER=postgres
       - DB_PASSWORD=***REMOVED***
-      - JWT_SECRET=***REMOVED***
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse en el entorno}
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
       - GRPC_PORT=9094
       - ETCD_ENDPOINTS=http://etcd:2379
+      - ZIPKIN_ENDPOINT=${ZIPKIN_ENDPOINT:-http://zipkin:9411/api/v2/spans}
     networks:
       - sga-distribuido-net
     depends_on:
       - etcd
+
+  zipkin:
+    image: openzipkin/zipkin:2.24.3
+    container_name: sga-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - sga-distribuido-net
 
   # ─── 4b. ETCD (coordinacion / eleccion de lider entre replicas de soporte) ───
   etcd:
