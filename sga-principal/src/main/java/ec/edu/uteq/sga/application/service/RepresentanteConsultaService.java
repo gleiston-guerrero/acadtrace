@@ -61,13 +61,20 @@ public class RepresentanteConsultaService {
                         "id_calificacion", item.getIdCalificacion(), "id_matricula", item.getIdMatricula(),
                         "id_actividad", item.getIdActividad(), "actividad", item.getActividad(),
                         "id_asignacion", item.getIdAsignacion(), "id_periodo", item.getIdPeriodo(),
-                        "periodo", item.getPeriodo(), "nota", item.getNota(),
+                        "periodo", item.getPeriodo(), "asignatura", item.getAsignatura(), "nota", item.getNota(),
                         "nota_cualitativa", item.getNotaCualitativa())).toList(),
                 "promedios", response.getPromediosList().stream().map(item -> Map.of(
                         "id_matricula", item.getIdMatricula(), "id_asignacion", item.getIdAsignacion(),
-                        "id_periodo", item.getIdPeriodo(), "periodo", item.getPeriodo(),
+                        "id_periodo", item.getIdPeriodo(), "periodo", item.getPeriodo(), "asignatura", item.getAsignatura(),
                         "promedio_formativo", item.getPromedioFormativo(), "nota_sumativa", item.getNotaSumativa(),
-                        "promedio_trimestral", item.getPromedioTrimestral(), "nota_cualitativa", item.getNotaCualitativa())).toList());
+                        "promedio_trimestral", item.getPromedioTrimestral(), "nota_cualitativa", item.getNotaCualitativa())).toList(),
+                "periodos", response.getPeriodosList().stream().map(item -> Map.of(
+                        "id_periodo", item.getIdPeriodo(), "nombre", item.getNombre(), "activo", item.getActivo(),
+                        "fecha_inicio", item.getFechaInicio())).toList(),
+                "promedios_anuales", response.getPromediosAnualesList().stream().map(item -> Map.of(
+                        "id_asignacion", item.getIdAsignacion(), "asignatura", item.getAsignatura(),
+                        "promedio_anual", item.getPromedioAnual(), "nota_cualitativa", item.getNotaCualitativa())).toList(),
+                "mostrar_promedios_anuales", response.getMostrarPromediosAnuales());
     }
 
     public Map<String, Object> asistencia(String username, Long idEstudiante) {

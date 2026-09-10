@@ -10,6 +10,7 @@ import ec.edu.uteq.sga.representante.domain.repository.AuthRepository
 import ec.edu.uteq.sga.representante.domain.repository.RepresentanteRepository
 import ec.edu.uteq.sga.representante.notifications.NotificationSupport
 import ec.edu.uteq.sga.representante.data.sync.SyncWorker
+import ec.edu.uteq.sga.representante.notifications.DeviceTokenRegistrar
 
 class SgaRepresentanteApp : Application() {
     lateinit var database: AppDatabase private set
@@ -24,6 +25,8 @@ class SgaRepresentanteApp : Application() {
         authRepository = AuthRepositoryImpl(client, sessionManager)
         representanteRepository = RepresentanteRepositoryImpl(database, client)
         NotificationSupport.createChannel(this)
+        NotificationSupport.createAcademicChannels(this)
+        DeviceTokenRegistrar.refreshAndRegister(this)
         if (sessionManager.areNotificationsEnabled()) NotificationSupport.schedule(this)
         SyncWorker.schedulePeriodicSync(this)
     }

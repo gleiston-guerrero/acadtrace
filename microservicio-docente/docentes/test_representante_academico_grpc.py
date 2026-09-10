@@ -39,9 +39,16 @@ def test_calificaciones_existentes(notas_filter, promedios_filter):
         id_calificacion=1, id_matricula=21, id_actividad_id=3, id_actividad=actividad,
         nota=9.5, nota_cualitativa="A_MAS")]
     promedios_filter.return_value.select_related.return_value = []
-    response = RepresentanteAcademicoServiceServicer().ConsultarCalificaciones(
-        pb2.MatriculasRequest(id_matriculas=[21]), Contexto())
+    with patch("docentes.grpc_services.representante_academico_service.connection.cursor") as cursor, \
+         patch("docentes.grpc_services.representante_academico_service.PeriodoEvaluacion.objects.filter") as periodos, \
+         patch("docentes.grpc_services.representante_academico_service.PromedioAnual.objects.filter") as anuales:
+        cursor.return_value.__enter__.return_value.fetchall.side_effect = [[(2026,)], [(4, "Matemática")]]
+        periodos.return_value.order_by.return_value = []
+        anuales.return_value = []
+        response = RepresentanteAcademicoServiceServicer().ConsultarCalificaciones(
+            pb2.MatriculasRequest(id_matriculas=[21]), Contexto())
     assert response.calificaciones[0].actividad == "Tarea"
+    assert response.calificaciones[0].asignatura == "Matemática"
 
 
 @override_settings(GRPC_INTERNAL_TOKEN="test-token")
@@ -50,8 +57,12 @@ def test_calificaciones_existentes(notas_filter, promedios_filter):
 def test_calificaciones_vacias(notas_filter, promedios_filter):
     notas_filter.return_value.select_related.return_value = []
     promedios_filter.return_value.select_related.return_value = []
-    response = RepresentanteAcademicoServiceServicer().ConsultarCalificaciones(
-        pb2.MatriculasRequest(id_matriculas=[21]), Contexto())
+    with patch("docentes.grpc_services.representante_academico_service.connection.cursor") as cursor, \
+         patch("docentes.grpc_services.representante_academico_service.PeriodoEvaluacion.objects.filter") as periodos:
+        cursor.return_value.__enter__.return_value.fetchall.return_value = []
+        periodos.return_value.order_by.return_value = []
+        response = RepresentanteAcademicoServiceServicer().ConsultarCalificaciones(
+            pb2.MatriculasRequest(id_matriculas=[21]), Contexto())
     assert list(response.calificaciones) == [] and list(response.promedios) == []
 
 

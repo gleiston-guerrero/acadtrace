@@ -96,8 +96,27 @@ class RepresentanteRepositoryImpl(private val db: AppDatabase, private val clien
 
     private fun RepresentadoDTO.domain() = Representado(idEstudiante, nombres, apellidos, curso, paralelo, matriculas)
     private fun CalificacionesRepresentadoDTO.domain() = CalificacionesRepresentado(
-        calificaciones.map { NotaRepresentado(it.actividad, it.periodo, it.nota, it.notaCualitativa) },
-        promedios.map { PromedioRepresentado(it.periodo, it.promedioFormativo, it.notaSumativa, it.promedioTrimestral, it.notaCualitativa) })
+        calificaciones.orEmpty().map { calificacion ->
+            val asignatura = calificacion.asignatura
+                ?: promedios.orEmpty()
+                    .firstOrNull { it.idAsignacion == calificacion.idAsignacion }
+                    ?.asignatura
+                ?: "Asignatura"
+            NotaRepresentado(
+                calificacion.idActividad,
+                calificacion.idAsignacion,
+                calificacion.idPeriodo,
+                asignatura,
+                calificacion.actividad,
+                calificacion.periodo,
+                calificacion.nota,
+                calificacion.notaCualitativa
+            )
+        },
+        promedios.orEmpty().map { PromedioRepresentado(it.idAsignacion, it.idPeriodo, it.asignatura ?: calificaciones.orEmpty().firstOrNull { nota -> nota.idAsignacion == it.idAsignacion }?.asignatura ?: "Asignatura " + it.idAsignacion, it.periodo, it.promedioFormativo, it.notaSumativa, it.promedioTrimestral, it.notaCualitativa) },
+        periodos.orEmpty().map { PeriodoCalificaciones(it.idPeriodo, it.nombre, it.activo, it.fechaInicio) },
+        promediosAnuales.orEmpty().map { PromedioAnualRepresentado(it.idAsignacion, it.asignatura ?: promedios.orEmpty().firstOrNull { p -> p.idAsignacion == it.idAsignacion }?.asignatura ?: calificaciones.orEmpty().firstOrNull { nota -> nota.idAsignacion == it.idAsignacion }?.asignatura ?: "Asignatura " + it.idAsignacion, it.promedioAnual, it.notaCualitativa) },
+        mostrarPromediosAnuales)
     private fun AsistenciaRepresentadoDTO.domain() = AsistenciaRepresentado(
         asistencias.map { AsistenciaHijo(it.fecha, it.periodo, it.estado) },
         ResumenAsistenciaHijo(resumen.total, resumen.presentes, resumen.ausentes, resumen.justificados, resumen.atrasos, resumen.porcentajeAsistencia))
