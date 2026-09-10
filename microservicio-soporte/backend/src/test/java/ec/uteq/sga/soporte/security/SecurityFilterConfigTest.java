@@ -10,11 +10,9 @@ import static org.mockito.Mockito.mock;
 class SecurityFilterConfigTest {
 
     @Test
-    void registraElFiltroJwtSoloParaLaApiDeSoporte() {
+    void registraFiltroJwtSoloParaLaApiDeSoporte() {
         SecurityFilterConfig config = new SecurityFilterConfig();
-
-        FilterRegistrationBean<JwtAuthFilter> registration = config.jwtAuthFilterRegistration(
-                mock(JwtService.class), new ObjectMapper());
+        FilterRegistrationBean<JwtAuthFilter> registration = config.jwtAuthFilterRegistration(mock(JwtService.class), new ObjectMapper());
 
         assertThat(registration.getFilter()).isInstanceOf(JwtAuthFilter.class);
         assertThat(registration.getUrlPatterns()).containsExactly("/api/soporte/*");
