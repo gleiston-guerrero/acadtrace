@@ -8,6 +8,11 @@ plugins {
     jacoco
 }
 
+// Permite mantener compilable el proyecto antes de recibir el archivo real de Firebase.
+if (file("google-services.json").isFile) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 val localSigningProperties = Properties()
 
 val propertiesFile = rootProject.file("keystore.properties")
@@ -152,6 +157,8 @@ dependencies {
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.fragment.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     // Testing
     testImplementation(libs.junit)

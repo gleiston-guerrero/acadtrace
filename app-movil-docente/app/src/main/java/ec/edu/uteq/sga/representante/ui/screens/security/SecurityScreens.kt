@@ -120,7 +120,7 @@ fun SecurityScreen(session: SessionManager, back: () -> Unit) {
                     NotificationSupport.schedule(activity)
                 }
             }
-            Text("Son notificaciones locales de seguridad. FCM no está configurado en este proyecto.")
+            Text("Las alertas de expiración son locales. Las notificaciones académicas push se reciben mediante Firebase Cloud Messaging (FCM).")
             message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
         }
     }

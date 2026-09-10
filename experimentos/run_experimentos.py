@@ -574,8 +574,8 @@ def obtener_cobertura_jacoco_real() -> Dict[str, float]:
 def ejecutar_metricas_iso25010() -> List[Dict[str, Any]]:
     print("[4/5] Registrando metricas de calidad ISO/IEC 25010 (Valores reales medidos de Locust y JaCoCo)...")
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    h1 = os.path.join(repo_root, "docs", "locust", "escenario1_nominal_stats_history.csv")
-    h2 = os.path.join(repo_root, "docs", "locust", "escenario2_estres_stats_history.csv")
+    h1 = os.path.join(repo_root, "experimentos", "resultados", "locust_esc1_stats_history.csv")
+    h2 = os.path.join(repo_root, "experimentos", "resultados", "locust_esc3_stats_history.csv")
 
     coberturas = obtener_cobertura_jacoco_real()
     jacoco_global = coberturas["sga_principal_global_pct"]

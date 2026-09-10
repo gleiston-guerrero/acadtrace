@@ -16,6 +16,8 @@ class RepresentanteViewModel(private val repository: RepresentanteRepository) : 
     val representados = _representados.asStateFlow()
     private val _calificaciones = MutableStateFlow(ConsultaUiState<CalificacionesRepresentado>())
     val calificaciones = _calificaciones.asStateFlow()
+    private val _periodoSeleccionado = MutableStateFlow<Long?>(null)
+    val periodoSeleccionado = _periodoSeleccionado.asStateFlow()
     private val _asistencia = MutableStateFlow(ConsultaUiState<AsistenciaRepresentado>())
     val asistencia = _asistencia.asStateFlow()
     private val _comunicados = MutableStateFlow(ConsultaUiState<List<Comunicado>>())
@@ -23,7 +25,20 @@ class RepresentanteViewModel(private val repository: RepresentanteRepository) : 
 
     init { cargarRepresentados() }
     fun cargarRepresentados() = collect(repository.getRepresentados(), _representados)
-    fun cargarCalificaciones(id: Long) = collect(repository.getCalificaciones(id), _calificaciones)
+    fun cargarCalificaciones(id: Long) = viewModelScope.launch {
+        var terminal = false
+        repository.getCalificaciones(id)
+            .catch { emit(Resource.Error("Error local inesperado (${it::class.java.simpleName})", it)) }
+            .collect { result ->
+                _calificaciones.value = ConsultaStateReducer.reduce(result)
+                terminal = result !is Resource.Loading
+                if (result is Resource.Success && _periodoSeleccionado.value !in result.data.periodos.map { it.idPeriodo }) {
+                    _periodoSeleccionado.value = result.data.periodoInicial()
+                }
+            }
+        if (!terminal && _calificaciones.value.loading) _calificaciones.value = ConsultaUiState(error = "La consulta terminó sin respuesta del servicio")
+    }
+    fun seleccionarPeriodo(idPeriodo: Long) { _periodoSeleccionado.value = idPeriodo }
     fun cargarAsistencia(id: Long) = collect(repository.getAsistencia(id), _asistencia)
     fun cargarComunicados() = collect(repository.getComunicados(), _comunicados)
 

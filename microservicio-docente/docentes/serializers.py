@@ -23,6 +23,7 @@ from .models import (
 from .services import convertir_nota_cualitativa
 from .auditoria import auditar_evento
 from .auditoria.payloads import payload_instancia
+from .notifications import enqueue_attendance, enqueue_announcement
 
 
 class PeriodoEvaluacionSerializer(serializers.ModelSerializer):
@@ -141,9 +142,11 @@ class AsistenciaSerializer(serializers.ModelSerializer):
                 entidad_id=instancia.pk, operacion="CREAR",
                 actor_id=instancia.registrado_por, payload=payload_instancia(instancia),
             )
+            enqueue_attendance(instancia)
             return instancia
 
     def update(self, instance, validated_data):
+        estado_anterior = instance.estado
         with transaction.atomic():
             instancia = super().update(instance, validated_data)
             auditar_evento(
@@ -151,6 +154,8 @@ class AsistenciaSerializer(serializers.ModelSerializer):
                 entidad_id=instancia.pk, operacion="ACTUALIZAR",
                 actor_id=instancia.registrado_por, payload=payload_instancia(instancia),
             )
+            if instancia.estado != estado_anterior:
+                enqueue_attendance(instancia)
             return instancia
 
 
@@ -222,6 +227,12 @@ class AnuncioSerializer(serializers.ModelSerializer):
         model = Anuncio
         fields = "__all__"
         read_only_fields = ["id_anuncio", "fecha"]
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            instancia = super().create(validated_data)
+            enqueue_announcement(instancia)
+            return instancia
 
 
 class MaterialSerializer(serializers.ModelSerializer):

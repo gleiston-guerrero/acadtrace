@@ -33,6 +33,7 @@ public class ConfiguracionCalificacionService {
     private final PeriodoEvaluacionRepository periodoRepo;
     private final AnoLectivoRepository anoLectivoRepo;
     private final NivelEducativoRepository nivelRepo;
+    private final PushNotificationService pushNotificationService;
 
     private AnoLectivo anoActual() {
         return anoLectivoRepo.findByEsActualTrue()
@@ -215,6 +216,18 @@ public class ConfiguracionCalificacionService {
         periodo.setFechaFin(dto.getFechaFin());
         if (dto.getActivo() != null) periodo.setActivo(dto.getActivo());
         return aDto(periodoRepo.save(periodo));
+    }
+
+    /** Cierre academico explicito. No se infiere de fechaFin ni de una edicion generica. */
+    @Transactional
+    public PeriodoEvaluacionDTO cerrarPeriodo(Long id) {
+        PeriodoEvaluacion periodo = periodoRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Periodo no encontrado"));
+        if (!periodo.isActivo()) return aDto(periodo);
+        periodo.setActivo(false);
+        periodoRepo.save(periodo);
+        pushNotificationService.cierre(periodo);
+        return aDto(periodo);
     }
 
     // -------------------------------------------------------------- helpers
