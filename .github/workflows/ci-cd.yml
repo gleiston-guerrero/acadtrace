@@ -319,7 +319,6 @@ jobs:
     steps:
       - name: Despliegue Seguro por SSH a AWS EC2
         uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
         env:
           GRPC_INTERNAL_TOKEN: ${{ secrets.GRPC_INTERNAL_TOKEN }}
         with:

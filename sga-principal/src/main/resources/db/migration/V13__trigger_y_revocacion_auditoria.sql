@@ -26,3 +26,5 @@ EXECUTE FUNCTION sga_principal.prohibir_modificacion_auditoria();
 
 COMMENT ON TRIGGER tg_auditoria_append_only ON sga_principal.auditoria IS 
 'Garantiza la inmutabilidad y no-repudio bloqueando cualquier intento de UPDATE o DELETE sobre los registros de auditoria.';
+-- Criterio E6: Restriccion estricta de privilegios a nivel de motor de BD
+REVOKE UPDATE, DELETE ON TABLE sga_principal.auditoria FROM PUBLIC;
