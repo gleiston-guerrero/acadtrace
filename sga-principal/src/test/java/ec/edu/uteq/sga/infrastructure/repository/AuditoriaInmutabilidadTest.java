@@ -21,9 +21,7 @@ class AuditoriaInmutabilidadTest {
     @DisplayName("Criterio E4 y E6: Verificar que la bitacora rechaza eliminaciones y modificaciones")
     @Transactional
     void verificarInmutabilidad_bloqueaDeleteYUpdate() {
-        if (auditoriaRepository == null) {
-            return;
-        }
+        assertNotNull(auditoriaRepository, "El repositorio de auditoria debe estar inyectado y disponible");
 
         // 1. Inserción permitida (Append-only)
         Auditoria nuevo = Auditoria.builder()
@@ -36,14 +34,8 @@ class AuditoriaInmutabilidadTest {
                 .resultado("EXITO")
                 .build();
 
-        Auditoria guardado;
-        try {
-            guardado = auditoriaRepository.saveAndFlush(nuevo);
-        } catch (Exception e) {
-            return;
-        }
-
-        assertNotNull(guardado.getIdAuditoria(), "El registro debe persistirse en insercion append-only");
+        Auditoria guardado = auditoriaRepository.saveAndFlush(nuevo);
+        assertNotNull(guardado.getIdAuditoria(), "El registro debe persistirse exitosamente en insercion append-only");
 
         // 2. Comprobar que UPDATE es rechazado por el trigger
         guardado.setDescripcion("Intento de modificacion fraudulenta");
