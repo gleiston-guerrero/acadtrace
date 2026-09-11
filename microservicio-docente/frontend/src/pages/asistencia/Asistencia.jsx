@@ -29,13 +29,16 @@ const totalSemanas = (per) => {
   return Math.max(1, Math.ceil((fin - ini) / MS_SEMANA));
 };
 const lunesSemana = (per, n) => {
+  if (!per) return null;
   const ini = parseFecha(per.fecha_inicio);
+  if (!ini) return null;
   const offsetLunes = (ini.getDay() + 6) % 7;
   const lunes1 = new Date(ini.getTime() - offsetLunes * 24 * 3600 * 1000);
   return new Date(lunes1.getTime() + (n - 1) * MS_SEMANA);
 };
 const diasSemana = (per, n) => {
   const lunes = lunesSemana(per, n);
+  if (!lunes) return [];
   return Array.from({ length: 5 }, (_, i) => new Date(lunes.getTime() + i * 24 * 3600 * 1000));
 };
 const NOMBRE_DIA = ["Lun", "Mar", "Mié", "Jue", "Vie"];
