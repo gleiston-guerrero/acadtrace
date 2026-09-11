@@ -21,7 +21,7 @@ public class HmacService {
 
     private final Mac mac;
 
-    public HmacService(@Value("${app.jwt.secret:***REMOVED***}") String secret) {
+    public HmacService(@Value("${app.jwt.secret}") String secret) {
         try {
             this.mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
