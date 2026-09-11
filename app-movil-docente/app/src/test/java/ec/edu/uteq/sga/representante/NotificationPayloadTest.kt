@@ -7,8 +7,14 @@ import org.junit.Test
 
 class NotificationPayloadTest {
     @Test fun comunicadoNavegaAComunicados() = assertEquals(Screen.Comunicados.route, NotificationDestination.route(mapOf("type" to "COMUNICADO", "announcementId" to "9")))
-    @Test fun ausenciaNavegaAAsistencia() = assertEquals(Screen.Asistencia.create(12), NotificationDestination.route(mapOf("type" to "AUSENTE", "studentId" to "12")))
-    @Test fun atrasoNavegaAAsistencia() = assertEquals(Screen.Asistencia.create(12), NotificationDestination.route(mapOf("type" to "ATRASO", "studentId" to "12")))
+    @Test fun ausenciaNavegaAAsistenciaDelIdEstudiante() = assertEquals(
+        Screen.Asistencia.create(12),
+        NotificationDestination.route(mapOf("type" to "AUSENTE", "idEstudiante" to "12"))
+    )
+    @Test fun atrasoNavegaAAsistenciaDelIdEstudiante() = assertEquals(
+        Screen.Asistencia.create(12),
+        NotificationDestination.route(mapOf("type" to "ATRASO", "idEstudiante" to "12"))
+    )
     @Test fun cierreNavegaACalificaciones() = assertEquals(Screen.Calificaciones.create(12), NotificationDestination.route(mapOf("type" to "CIERRE_CALIFICACIONES", "studentId" to "12", "periodId" to "3")))
     @Test fun incompletoODesconocidoNoNavega() {
         assertNull(NotificationDestination.route(mapOf("type" to "AUSENTE")))
