@@ -10,6 +10,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Valida el internal_token de las llamadas gRPC entrantes (de secretaria,
@@ -24,13 +25,15 @@ public class InternalAuthInterceptor implements ServerInterceptor {
     private static final String INTERNAL_TOKEN_KEY = "internal_token";
     private static final String TRACE_ID_KEY = "trace_id";
     private static final String ACTOR_KEY = "actor_username";
-    // TODO: Usar variable de entorno para producción, hardcodeado por ahora como "***REMOVED***"
-    private static final String EXPECTED_TOKEN = "***REMOVED***";
 
     private final AuditoriaService auditoriaService;
+    private final String expectedToken;
 
-    public InternalAuthInterceptor(AuditoriaService auditoriaService) {
+    public InternalAuthInterceptor(
+            AuditoriaService auditoriaService,
+            @Value("${app.grpc.internal-token}") String expectedToken) {
         this.auditoriaService = auditoriaService;
+        this.expectedToken = expectedToken;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class InternalAuthInterceptor implements ServerInterceptor {
         String actor = headers.get(Metadata.Key.of(ACTOR_KEY, Metadata.ASCII_STRING_MARSHALLER));
         String token = headers.get(Metadata.Key.of(INTERNAL_TOKEN_KEY, Metadata.ASCII_STRING_MARSHALLER));
 
-        if (token == null || !token.equals(EXPECTED_TOKEN)) {
+        if (token == null || !token.equals(expectedToken)) {
             Context ctxFallo = Context.current().withValue(TraceContext.GRPC_TRACE, traceId);
             Context previo = ctxFallo.attach();
             try {
