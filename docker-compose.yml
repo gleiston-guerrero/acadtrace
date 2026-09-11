@@ -21,6 +21,7 @@ services:
       - FCM_ENABLED=${FCM_ENABLED:-false}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     volumes:
       - ./sga-principal/uploads:/app/uploads
     networks:
