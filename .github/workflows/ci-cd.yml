@@ -128,6 +128,14 @@ jobs:
           python -m pytest -v --cov=docentes --cov-report=term-missing --cov-fail-under=70
 
       - name: Pruebas Unitarias SGA Principal (Spring Boot)
+        env:
+          DB_HOST: 192.0.2.1
+          DB_PORT: 5433
+          DB_NAME: sga
+          DB_USER: postgres
+          DB_PASSWORD: ***REMOVED***
+          JWT_SECRET: ***REMOVED***
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD || 'dummy_test_pass' }}
         run: |
           cd sga-principal
           ./mvnw clean test -q
