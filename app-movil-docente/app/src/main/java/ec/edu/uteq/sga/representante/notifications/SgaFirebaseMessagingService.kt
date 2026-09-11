@@ -21,13 +21,33 @@ import kotlinx.coroutines.launch
 
 enum class AcademicNotificationType { COMUNICADO, AUSENTE, ATRASO, CIERRE_CALIFICACIONES, UNKNOWN }
 
-data class AcademicNotificationPayload(val type: AcademicNotificationType, val studentId: Long?, val periodId: Long?, val announcementId: Long?) {
+data class AttendanceNotificationContext(val studentId: Long, val type: AcademicNotificationType, val studentName: String, val date: String, val attendanceId: Long?) {
+    val title: String get() = if (type == AcademicNotificationType.ATRASO) "Atraso registrado" else "Ausencia registrada"
+    val message: String get() = if (type == AcademicNotificationType.ATRASO) "$studentName llegó atrasado el $date" else "$studentName registró una ausencia el $date"
+}
+
+internal fun formatAttendanceNotificationDate(value: String?): String? {
+    val match = value?.let { Regex("^(\\d{4})-(\\d{2})-(\\d{2})$").matchEntire(it) } ?: return null
+    val (year, month, day) = match.destructured
+    return "$day/$month/$year"
+}
+
+data class AcademicNotificationPayload(val type: AcademicNotificationType, val studentId: Long?, val periodId: Long?, val announcementId: Long?, val studentName: String?, val date: String?, val attendanceId: Long?) {
     companion object {
         fun from(data: Map<String, String>) = AcademicNotificationPayload(
             runCatching { AcademicNotificationType.valueOf(data["type"].orEmpty()) }.getOrDefault(AcademicNotificationType.UNKNOWN),
             (data["idEstudiante"] ?: data["studentId"])?.toLongOrNull(),
-            data["periodId"]?.toLongOrNull(), data["announcementId"]?.toLongOrNull()
+            data["periodId"]?.toLongOrNull(), data["announcementId"]?.toLongOrNull(),
+            data["studentName"], data["date"], data["attendanceId"]?.toLongOrNull()
         )
+    }
+
+    fun attendanceContext(): AttendanceNotificationContext? {
+        if (type != AcademicNotificationType.AUSENTE && type != AcademicNotificationType.ATRASO) return null
+        val id = studentId?.takeIf { it > 0 } ?: return null
+        val name = studentName?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val formattedDate = formatAttendanceNotificationDate(date) ?: return null
+        return AttendanceNotificationContext(id, type, name, formattedDate, attendanceId)
     }
 }
 
@@ -44,7 +64,7 @@ object NotificationDestination {
 
     fun startRoute(sessionValid: Boolean, accessStart: String, data: Map<String, String>): String {
         if (!sessionValid) return Screen.Login.route
-        return if (accessStart == Screen.Home.route) route(data) ?: accessStart else accessStart
+        return accessStart
     }
 }
 

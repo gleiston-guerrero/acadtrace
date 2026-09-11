@@ -11,6 +11,7 @@ import ec.edu.uteq.sga.representante.ui.navigation.RepresentanteNavGraph
 import ec.edu.uteq.sga.representante.ui.navigation.Screen
 import ec.edu.uteq.sga.representante.ui.theme.SgaRepresentanteAppTheme
 import ec.edu.uteq.sga.representante.notifications.NotificationDestination
+import ec.edu.uteq.sga.representante.notifications.AcademicNotificationPayload
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,8 +26,10 @@ class MainActivity : FragmentActivity() {
             BiometricStartDecision.BIOMETRIC_UNLOCK -> Screen.BiometricUnlock.route
             BiometricStartDecision.BIOMETRIC_FALLBACK -> Screen.BiometricFallback.route
         }
-        val notificationRoute = NotificationDestination.route(intent.extras?.keySet()?.associateWith { intent.extras?.get(it)?.toString().orEmpty() }.orEmpty())
-        val effectiveStart = NotificationDestination.startRoute(sessionValid, start, intent.extras?.keySet()?.associateWith { intent.extras?.get(it)?.toString().orEmpty() }.orEmpty())
-        setContent { SgaRepresentanteAppTheme { RepresentanteNavGraph(rememberNavController(), app, effectiveStart, notificationRoute) } }
+        val notificationData = intent.extras?.keySet()?.associateWith { intent.extras?.get(it)?.toString().orEmpty() }.orEmpty()
+        val notificationRoute = NotificationDestination.route(notificationData)
+        val effectiveStart = NotificationDestination.startRoute(sessionValid, start, notificationData)
+        val attendanceContext = AcademicNotificationPayload.from(notificationData).attendanceContext()
+        setContent { SgaRepresentanteAppTheme { RepresentanteNavGraph(rememberNavController(), app, effectiveStart, notificationRoute, attendanceContext) } }
     }
 }

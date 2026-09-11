@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ec.edu.uteq.sga.representante.domain.model.*
 import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
+import ec.edu.uteq.sga.representante.notifications.AttendanceNotificationContext
 
 @Composable fun HomeRepresentante(onRepresentados: () -> Unit, onComunicados: () -> Unit, onSecurity: () -> Unit, onLogout: () -> Unit) = Scaffold(
     topBar = { TopAppBar(title = { Text("Portal del Representante") }, actions = { IconButton(onClick = onLogout) { Icon(Icons.Default.Logout, "Cerrar sesión") } }) }
@@ -95,9 +96,11 @@ import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
     } }
 }
 
-@Composable fun AsistenciaHijoScreen(vm: RepresentanteViewModel, back: () -> Unit, retry: () -> Unit) {
+@Composable fun AsistenciaHijoScreen(vm: RepresentanteViewModel, back: () -> Unit, notificationContext: AttendanceNotificationContext? = null, retry: () -> Unit) {
     val state by vm.asistencia.collectAsState()
-    Page("Asistencia", back) { StateContent(state, retry) { data ->
+    Page("Asistencia", back) {
+        notificationContext?.let { AttendanceNotificationCard(it) }
+        StateContent(state, retry) { data ->
         var trimestre by rememberSaveable { mutableStateOf(TrimestreAsistencia.T1) }
         var filtro by rememberSaveable { mutableStateOf(FiltroAsistencia.TODOS) }
         val registrosTrimestre = remember(data.asistencias, trimestre) {
@@ -144,6 +147,15 @@ import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
             }
         }
     } }
+}
+
+@Composable private fun AttendanceNotificationCard(context: AttendanceNotificationContext) {
+    ElevatedCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(context.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(context.message, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
 }
 
 internal enum class TrimestreAsistencia(val label: String) { T1("T1"), T2("T2"), T3("T3") }

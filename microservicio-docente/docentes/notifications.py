@@ -52,6 +52,8 @@ def enqueue_attendance(instance):
         "type": instance.estado,
         "matriculaId": instance.id_matricula,
         "periodId": instance.id_periodo_id,
+        "studentName": student,
+        "attendanceId": instance.pk,
         "date": instance.fecha.isoformat(),
         "body": f"{student} registro un {label} el {instance.fecha.isoformat()}",
     }
