@@ -22,8 +22,12 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+
+
     volumes:
       - ./sga-principal/uploads:/app/uploads
+      - ${FIREBASE_CREDENTIALS_PATH:-/home/ubuntu/.secrets/acadtrace/firebase-admin.json}:/run/secrets/firebase-admin.json:ro
+
     networks:
       - sga-distribuido-net
     deploy:

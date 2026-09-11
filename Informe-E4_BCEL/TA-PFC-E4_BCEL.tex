@@ -792,7 +792,7 @@ La Tabla~\ref{tab:iso-matriz-calidad} presenta la evaluaci\'on de calidad formal
 \hline
 \textbf{3. Fiabilidad} \newline \textit{(Reliability)} & \textbf{0.0\% Error 5xx Nominal} \newline (0.024\% tasa de error bajo rampa máxima de 200 usuarios concurrentes) & $< 1.0\%$ & \textbf{\checkmark} Cumple & Implementar patrones \emph{Circuit Breaker} y \emph{Rate Limiting} con Resilience4j en el Gateway y clientes gRPC para mitigar fallos en cascada y aplicar degradación elegante. \\
 \hline
-\textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & \textbf{100\% Core / 34.52\% Sec / 0.51\% Global} \newline (100\% en \texttt{AuditoriaService} y \texttt{LamportClock}; 34.52\% Secretaría, 0.51\% SGA Principal) & $\ge 70.0\%$ (Core) & \textbf{\checkmark} Cumple & Ampliar la cobertura de pruebas unitarias hacia controladores REST y adaptadores de infraestructura para elevar progresivamente la métrica global del monolito base. \\
+\textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & \textbf{30.31\% SGA Principal / 34.52\% Sec} \newline (100\% en lógica de negocio \texttt{AuditoriaService} y \texttt{LamportClock}; 30.31\% global del módulo) & $\ge 70.0\%$ & Parcial (30.31\%) & Ampliar progresivamente la suite de pruebas unitarias hacia controladores REST y adaptadores de infraestructura para alcanzar la meta global del 70\%. \\
 \hline
 \textbf{5. Seguridad} \newline \textit{(Security)} & \textbf{100\% Rechazo 401 / FPR = 0.0\%} \newline (Certificado en suite E2E sin JWT; FPR $0.0\% \; [0.0\%, 11.6\%]$ en 30 cadenas limpias) & 100\% / 0\% & \textbf{\checkmark} Cumple & Automatizar la rotación de secretos criptográficos JWT/AES vía AWS Secrets Manager y habilitar listas de revocación de tokens en Redis. \\
 \hline
