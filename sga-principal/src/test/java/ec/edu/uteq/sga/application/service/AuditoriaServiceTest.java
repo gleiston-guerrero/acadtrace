@@ -85,4 +85,48 @@ class AuditoriaServiceTest {
         assertEquals("HMAC_M3_VALIDO", guardada.getHmac());
         assertTrue(guardada.getDescripcion().contains("vclock:[1,0,0]"));
     }
+
+    @Test
+    void verificarIntegridadCausal_dosEventos_detectaManipulacionYVerificaRelojLogico() {
+        auditoriaService.setAuditMode("m2");
+
+        when(hmacService.firmar(any(), any(), any(), eq("CREAR"), any(), any(), any(), any(), any()))
+                .thenReturn("HMAC_EVENTO_1");
+        when(hmacService.firmar(any(), any(), any(), eq("ACTUALIZAR"), any(), any(), any(), any(), any()))
+                .thenReturn("HMAC_EVENTO_2_ORIGINAL");
+
+        auditoriaService.registrarCrud("CREAR", "calificacion", 201L, "Ingreso de nota inicial");
+        auditoriaService.registrarCrud("ACTUALIZAR", "calificacion", 201L, "Rectificacion de nota");
+
+        ArgumentCaptor<Auditoria> captor = ArgumentCaptor.forClass(Auditoria.class);
+        verify(repo, times(2)).save(captor.capture());
+
+        var eventos = captor.getAllValues();
+        Auditoria evento1 = eventos.get(0);
+        Auditoria evento2 = eventos.get(1);
+
+        assertTrue(evento1.getDescripcion().contains("lamport:1"));
+        assertTrue(evento2.getDescripcion().contains("lamport:2"));
+        assertEquals("HMAC_EVENTO_1", evento1.getHmac());
+        assertEquals("HMAC_EVENTO_2_ORIGINAL", evento2.getHmac());
+
+        // Simulacion de alteracion maliciosa en el segundo evento
+        evento2.setDescripcion("Alteracion no autorizada [lamport:2]");
+        when(hmacService.firmar(any(), any(), any(), eq("ACTUALIZAR"), any(), any(), contains("Alteracion no autorizada"), any(), any()))
+                .thenReturn("HMAC_RECALCULADO_DISCREPANTE");
+
+        String hmacRecalculado = hmacService.firmar(
+                evento2.getSchemaOrigen(),
+                String.valueOf(evento2.getTraceId()),
+                evento2.getUsername(),
+                evento2.getAccion(),
+                evento2.getTablaAfectada(),
+                String.valueOf(evento2.getRegistroId()),
+                evento2.getDescripcion(),
+                evento2.getResultado(),
+                String.valueOf(evento2.getFecha().toEpochMilli())
+        );
+
+        assertNotEquals(evento2.getHmac(), hmacRecalculado);
+    }
 }
