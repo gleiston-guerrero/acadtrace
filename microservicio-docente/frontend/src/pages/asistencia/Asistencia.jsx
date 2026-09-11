@@ -7,8 +7,9 @@ import {
   getAsistenciaPorAsignacion,
   getResumenAsistencia,
   registrarAsistenciaGrupal,
-  getPeriodos,
+  getPeriodosAsistencia,
 } from "../../services/api";
+import { diasSemana, toInput, totalSemanas } from "./asistenciaFechas";
 
 const PRIMARY = "#243A76";
 
@@ -19,28 +20,6 @@ const ESTADOS = [
   { valor: "ATRASO", label: "T", clase: "bg-amber-100 text-amber-700 border-amber-300" },
 ];
 
-const MS_SEMANA = 7 * 24 * 3600 * 1000;
-const parseFecha = (s) => { if (!s) return null; const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
-const toInput = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const totalSemanas = (per) => {
-  if (!per) return 0;
-  const ini = parseFecha(per.fecha_inicio), fin = parseFecha(per.fecha_fin);
-  if (!ini || !fin) return 0;
-  return Math.max(1, Math.ceil((fin - ini) / MS_SEMANA));
-};
-const lunesSemana = (per, n) => {
-  if (!per) return null;
-  const ini = parseFecha(per.fecha_inicio);
-  if (!ini) return null;
-  const offsetLunes = (ini.getDay() + 6) % 7;
-  const lunes1 = new Date(ini.getTime() - offsetLunes * 24 * 3600 * 1000);
-  return new Date(lunes1.getTime() + (n - 1) * MS_SEMANA);
-};
-const diasSemana = (per, n) => {
-  const lunes = lunesSemana(per, n);
-  if (!lunes) return [];
-  return Array.from({ length: 5 }, (_, i) => new Date(lunes.getTime() + i * 24 * 3600 * 1000));
-};
 const NOMBRE_DIA = ["Lun", "Mar", "Mié", "Jue", "Vie"];
 
 const menuAsistencia = [
@@ -99,7 +78,7 @@ export default function Asistencia() {
       if (e.response?.status === 401) setMensaje({ tipo: "error", texto: "Tu sesión expiró. Vuelve a iniciar sesión." });
     }
     try {
-      const per = await getPeriodos();
+      const per = await getPeriodosAsistencia();
       const pers = per.data || [];
       setPeriodos(pers);
       const activo = pers.find((p) => p.activo) || pers[0];
