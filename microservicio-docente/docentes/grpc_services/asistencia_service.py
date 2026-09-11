@@ -6,6 +6,7 @@ from docentes.auditoria import auditar_evento
 from docentes.auditoria.payloads import payload_instancia
 from django.core.exceptions import ObjectDoesNotExist
 from docentes.models import Asistencia, ResumenAsistencia, PeriodoEvaluacion, EstadoAsistencia
+from docentes.notifications import enqueue_attendance
 from . import asistencia_pb2
 from . import asistencia_pb2_grpc
 from docentes.grpc_clients.principal_client import validate_teacher_assignment, get_students_by_assignment
@@ -166,10 +167,14 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
             with transaction.atomic():
                 # Reemplazo del día en bloque: borrar lo previo y crear todo de una
                 # (evita cientos de idas y vueltas a la BD por estudiante).
-                Asistencia.objects.filter(
+                asistencias_anteriores = Asistencia.objects.filter(
                     id_asignacion=request.id_asignacion, id_periodo=periodo,
                     fecha=request.fecha, id_matricula__in=matriculas,
-                ).delete()
+                )
+                estados_anteriores = dict(
+                    asistencias_anteriores.values_list("id_matricula", "estado")
+                )
+                asistencias_anteriores.delete()
 
                 # Se usa INSERT raw con cast explicito a estado_asistencia_t porque
                 # la columna es un ENUM nativo de Postgres y Django bulk_create genera
@@ -213,6 +218,11 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                         actor_id=usuario_registra, payload=payload_instancia(asistencia),
                         nodo=f"docente-{id_docente}",
                     )
+                    if (
+                        asistencia.estado in ("AUSENTE", "ATRASO")
+                        and estados_anteriores.get(asistencia.id_matricula) != asistencia.estado
+                    ):
+                        enqueue_attendance(asistencia)
 
             asistencias_creadas = [
                 asistencia_pb2.AsistenciaDTO(

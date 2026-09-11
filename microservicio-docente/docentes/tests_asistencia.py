@@ -62,13 +62,18 @@ def test_docente_sin_acceso(mock_validate):
 @patch("django.db.connection.cursor")
 @patch("docentes.grpc_services.asistencia_service.Asistencia.objects")
 @patch("docentes.grpc_services.asistencia_service.PeriodoEvaluacion.objects.get")
-def test_registro_grupal_todos_estados_y_reemplazo(mock_periodo, mock_objects, mock_connection,
+@patch("docentes.grpc_services.asistencia_service.enqueue_attendance")
+def test_registro_grupal_todos_estados_y_reemplazo(mock_enqueue, mock_periodo, mock_objects, mock_connection,
         mock_resumen, mock_auth, mock_students, mock_assignment, mock_user, mock_atomic):
     metric_before = asistencias_total._value.get()
     periodo = SimpleNamespace(id_periodo=3)
     mock_periodo.return_value = periodo
     mock_students.return_value = [{"id_matricula": value} for value in range(101, 105)]
     existentes = MagicMock()
+    existentes.values_list.return_value = [
+        (101, "PRESENTE"), (102, "PRESENTE"),
+        (103, "PRESENTE"), (104, "PRESENTE"),
+    ]
     creadas = [SimpleNamespace(id_asistencia=i, id_matricula=100+i, id_asignacion=50,
         id_periodo_id=3, fecha="2026-07-15", estado=estado, justificacion=None)
         for i, estado in enumerate(("PRESENTE", "AUSENTE", "JUSTIFICADO", "ATRASO"), 1)]
@@ -86,7 +91,51 @@ def test_registro_grupal_todos_estados_y_reemplazo(mock_periodo, mock_objects, m
     existentes.delete.assert_called_once()
     assert cursor.execute.call_count == 4
     mock_resumen.assert_called_once_with(50, periodo, [101, 102, 103, 104])
+    assert [call.args[0].estado for call in mock_enqueue.call_args_list] == ["AUSENTE", "ATRASO"]
     assert asistencias_total._value.get() == metric_before + 4
+
+
+@patch("docentes.grpc_services.asistencia_service.transaction.atomic", return_value=nullcontext())
+@patch("docentes.grpc_services.asistencia_service._usuario_de_persona", return_value=77)
+@patch("docentes.grpc_services.asistencia_service._asegurar_asignacion")
+@patch("docentes.grpc_services.asistencia_service.get_students_by_assignment")
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch.object(AsistenciaServiceServicer, "_recalcular_resumen_bulk")
+@patch("django.db.connection.cursor")
+@patch("docentes.grpc_services.asistencia_service.Asistencia.objects")
+@patch("docentes.grpc_services.asistencia_service.PeriodoEvaluacion.objects.get")
+@patch("docentes.grpc_services.asistencia_service.enqueue_attendance")
+def test_registro_grupal_no_duplica_notificacion_del_mismo_estado(mock_enqueue, mock_periodo,
+        mock_objects, mock_connection, mock_resumen, mock_auth, mock_students, mock_assignment,
+        mock_user, mock_atomic):
+    periodo = SimpleNamespace(id_periodo=3)
+    mock_periodo.return_value = periodo
+    mock_students.return_value = [{"id_matricula": 101}, {"id_matricula": 102}]
+    existentes = MagicMock()
+    existentes.values_list.return_value = [(101, "AUSENTE"), (102, "ATRASO")]
+    creadas = [
+        SimpleNamespace(id_asistencia=1, id_matricula=101, id_asignacion=50,
+            id_periodo_id=3, fecha="2026-07-15", estado="AUSENTE", justificacion=None),
+        SimpleNamespace(id_asistencia=2, id_matricula=102, id_asignacion=50,
+            id_periodo_id=3, fecha="2026-07-15", estado="ATRASO", justificacion=None),
+    ]
+    creadas_query = MagicMock()
+    creadas_query.order_by.return_value = creadas
+    mock_objects.filter.side_effect = [existentes, creadas_query]
+    cursor = mock_connection.return_value.__enter__.return_value
+    cursor.fetchone.side_effect = [(1,), (2,)]
+    request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
+        id_asignacion=50, id_periodo=3, fecha="2026-07-15",
+        asistencias=[
+            asistencia_pb2.AsistenciaItemRequest(id_matricula=101, estado="AUSENTE"),
+            asistencia_pb2.AsistenciaItemRequest(id_matricula=102, estado="ATRASO"),
+        ],
+    )
+
+    response = AsistenciaServiceServicer().RegistrarAsistenciaGrupal(request, auth_context())
+
+    assert response.success
+    mock_enqueue.assert_not_called()
 
 
 @pytest.mark.parametrize(("students", "item"), [
