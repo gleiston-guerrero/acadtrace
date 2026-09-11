@@ -7,7 +7,7 @@ import axios from "axios";
 const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
 export const API_GATEWAY_BASE = `http://${host}:8080/api`;
 export const DOCENTE_API_BASE = `http://${host}:8081/api/docente`;
-export const PRINCIPAL_LOGIN_URL = `http://${host}:5174/login`;
+export const PRINCIPAL_LOGIN_URL = `http://${host}:5173/login`;
 const API = API_GATEWAY_BASE;
 const API_DOCENTE_REST = DOCENTE_API_BASE;
 
