@@ -93,6 +93,9 @@ export const guardarCalificacion = (data, idCalificacion) => idCalificacion
 export const getPeriodos = () =>
   axios.get(`${API}/docente/actividades/periodos`, { headers: authHeaders() });
 
+export const getPeriodosAsistencia = () =>
+  axios.get(`${API_DOCENTE_REST}/periodos-evaluacion/`, { headers: authHeaders() });
+
 export const getAulaVirtualResumen = (asignaciones) => {
   const params = new URLSearchParams();
   asignaciones.forEach((idAsignacion) => params.append("id_asignacion", idAsignacion));
