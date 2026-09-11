@@ -25,7 +25,8 @@ data class AcademicNotificationPayload(val type: AcademicNotificationType, val s
     companion object {
         fun from(data: Map<String, String>) = AcademicNotificationPayload(
             runCatching { AcademicNotificationType.valueOf(data["type"].orEmpty()) }.getOrDefault(AcademicNotificationType.UNKNOWN),
-            data["studentId"]?.toLongOrNull(), data["periodId"]?.toLongOrNull(), data["announcementId"]?.toLongOrNull()
+            (data["idEstudiante"] ?: data["studentId"])?.toLongOrNull(),
+            data["periodId"]?.toLongOrNull(), data["announcementId"]?.toLongOrNull()
         )
     }
 }
