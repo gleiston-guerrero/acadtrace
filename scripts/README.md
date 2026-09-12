@@ -1,5 +1,19 @@
 # Scripts de poblado E3
 
+## Validación de finales de línea (E17)
+
+`python scripts/verificar_finales_linea.py` examina los blobs de `HEAD` mediante
+`git cat-file`, sin depender de los finales del checkout de Windows. Revisa
+CSV, TSV, SQL, MD, YML, YAML, PY, JAVA, JS, JSX, JSON, XML, PROPERTIES, SH y TEX
+cuando los atributos efectivos exigen LF y no declaran el archivo binario.
+Imprime cada ruta con CRLF y termina con 1 si encuentra alguna o falla la lectura;
+devuelve 0 si todas cumplen. CI lo ejecuta en el job `lint` antes de E7.
+
+`--source worktree` comprueba las copias locales de esas mismas rutas para
+revisar una normalización todavía sin commit. No sustituye la comprobación de
+HEAD: mientras los cambios no se confirmen, los blobs antiguos siguen presentes.
+El script no modifica archivos, índice ni certificados.
+
 ## `seed_e3_500k.sql`
 
 Poblado masivo del dataset para cumplir el requisito de Entrega 3

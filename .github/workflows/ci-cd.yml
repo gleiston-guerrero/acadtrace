@@ -94,6 +94,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verificar finales LF en contenido confirmado (E17)
+        run: python scripts/verificar_finales_linea.py
+
       - name: Pruebas del verificador E7 en copias temporales
         run: python -m unittest discover -s experimentos -p test_reproducibilidad.py -v
 
