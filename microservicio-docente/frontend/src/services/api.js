@@ -90,8 +90,34 @@ export const guardarCalificacion = (data, idCalificacion) => idCalificacion
 
 // ─── PERÍODOS DE EVALUACIÓN (aún solo REST en Django) ────────
 // TODO: exponer como endpoint en el gateway Java cuando exista.
-export const getPeriodos = () =>
-  axios.get(`${API}/docente/actividades/periodos`, { headers: authHeaders() });
+export const getPeriodos = async () => {
+  const response = await axios.get(
+    `${API}/docente/actividades/periodos`,
+    { headers: authHeaders() }
+  );
+
+  if (Array.isArray(response.data)) {
+    response.data = response.data.map((periodo) => ({
+      ...periodo,
+
+      // Compatibilidad entre el contrato Java (camelCase)
+      // y los consumidores históricos del frontend (snake_case).
+      id_periodo:
+        periodo.id_periodo ??
+        periodo.idPeriodo,
+
+      fecha_inicio:
+        periodo.fecha_inicio ??
+        periodo.fechaInicio,
+
+      fecha_fin:
+        periodo.fecha_fin ??
+        periodo.fechaFin,
+    }));
+  }
+
+  return response;
+};
 
 export const getPeriodosAsistencia = () =>
   axios.get(`${API_DOCENTE_REST}/periodos-evaluacion/`, { headers: authHeaders() });
