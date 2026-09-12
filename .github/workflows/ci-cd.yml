@@ -247,13 +247,32 @@ jobs:
 
   # ─── 5. JOB BUILD-IMAGES (GHCR) ────────────────────────────────────────────
   build-images:
-    name: 5. Construcción y Publicación de Imágenes (GHCR)
+    name: 5. Imagen GHCR (${{ matrix.image }})
     runs-on: ubuntu-latest
     needs:
       - test-backend
       - test-soporte-backend
       - test-web
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: sga-principal
+            context: sga-principal
+            dockerfile: sga-principal/Dockerfile
+          - image: microservicio-docente
+            context: microservicio-docente
+            dockerfile: microservicio-docente/Dockerfile
+          - image: microservicio-secretaria
+            context: microservicio-secretaria
+            dockerfile: microservicio-secretaria/backend/Dockerfile
+          - image: microservicio-soporte
+            context: microservicio-soporte
+            dockerfile: microservicio-soporte/backend/Dockerfile
+          - image: microservicio-ia
+            context: microservicio-ia
+            dockerfile: microservicio-ia/Dockerfile
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
@@ -265,19 +284,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Construir y Etiquetar Imagen SGA Principal
+      - name: Construir y publicar imagen propia
+        env:
+          IMAGE_MODULE: ${{ matrix.image }}
+          BUILD_CONTEXT: ${{ matrix.context }}
+          DOCKERFILE: ${{ matrix.dockerfile }}
         run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ghcr.io/${REPO_LOWER}/sga-principal:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/sga-principal:latest sga-principal/
-          docker push ghcr.io/${REPO_LOWER}/sga-principal:${{ github.sha }}
-          docker push ghcr.io/${REPO_LOWER}/sga-principal:latest
-
-      - name: Construir y Etiquetar Imagen Microservicio Docente
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ghcr.io/${REPO_LOWER}/microservicio-docente:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-docente:latest microservicio-docente/
-          docker push ghcr.io/${REPO_LOWER}/microservicio-docente:${{ github.sha }}
-          docker push ghcr.io/${REPO_LOWER}/microservicio-docente:latest
+          set -euo pipefail
+          OWNER_LOWER=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          IMAGE="${REGISTRY}/${OWNER_LOWER}/${IMAGE_MODULE}"
+          docker build --file "$DOCKERFILE" --tag "${IMAGE}:${GITHUB_SHA}" "$BUILD_CONTEXT"
+          docker push "${IMAGE}:${GITHUB_SHA}"
+          if [ "$GITHUB_REF" = 'refs/heads/main' ]; then
+            docker tag "${IMAGE}:${GITHUB_SHA}" "${IMAGE}:latest"
+            docker push "${IMAGE}:latest"
+          fi
 
   # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
   build-mobile-apk:

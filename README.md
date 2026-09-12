@@ -180,6 +180,36 @@ LIMIT 20;
 
 ---
 
+## Publicación de imágenes Docker (E14)
+
+El job `build-images` de `.github/workflows/ci-cd.yml` publica imágenes propias
+en `ghcr.io/<repository_owner-en-minúsculas>/<imagen>`, mediante `GITHUB_TOKEN`.
+Conserva las dependencias `test-backend`, `test-soporte-backend` y `test-web`.
+
+| Imagen | Contexto de construcción | Dockerfile desde la raíz |
+|---|---|---|
+| `sga-principal` | `sga-principal` | `sga-principal/Dockerfile` |
+| `microservicio-docente` | `microservicio-docente` | `microservicio-docente/Dockerfile` |
+| `microservicio-secretaria` | `microservicio-secretaria` | `microservicio-secretaria/backend/Dockerfile` |
+| `microservicio-soporte` | `microservicio-soporte` | `microservicio-soporte/backend/Dockerfile` |
+| `microservicio-ia` | `microservicio-ia` | `microservicio-ia/Dockerfile` |
+
+Solo publica en `main`, tras un evento `push` o `workflow_dispatch` y cuando
+sus dependencias terminan correctamente. Cada imagen recibe el SHA completo
+del commit como tag y `latest`; este último se aplica exclusivamente a `main`.
+Las ramas feature y los pull requests no publican ni sobrescriben `latest`.
+
+Las imágenes externas usadas por el Compose raíz (HAProxy, Spark, Zipkin, etcd,
+Node para frontends de desarrollo, Prometheus, Grafana, cAdvisor y
+postgres-exporter) no se republican. PostgreSQL en el Compose de Principal
+también es externo. Las imágenes base de los Dockerfiles son dependencias,
+no módulos propios a publicar.
+
+Esta configuración publica paquetes; no cambia el despliegue existente, que
+continúa construyendo mediante Compose. La construcción y publicación efectiva
+de las cinco imágenes deberá confirmarse en GitHub Actions/GHCR después de
+integrar y enviar los cambios. La modificación local no acredita publicación.
+
 ## Requisitos del Sistema
 
 * **Java JDK:** 17 o superior
