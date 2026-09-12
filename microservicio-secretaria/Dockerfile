@@ -31,7 +31,7 @@ RUN mvn -B -q package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Crear usuario sin privilegios para ejecución segura (no-root - E14)
+# Crear usuario sin privilegios para ejecución segura (no-root)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copiar artefactos empaquetados desde las etapas previas
@@ -41,15 +41,15 @@ COPY --from=frontend-build /src/client/dist client/dist
 # Asegurar propiedad de archivos para el usuario no privilegiado
 RUN chown -R appuser:appgroup /app
 
-# Variables de entorno por defecto (sin secretos quemados)
+# Exponer el puerto del microservicio
 ENV PORT=5176
 EXPOSE 5176
 
-# Healthcheck nativo consultando Actuator Health (E14)
+# Healthcheck nativo consultando Actuator Health
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:5176/actuator/health || exit 1
 
-# Cambiar al usuario no-root (E14)
+# Cambiar al usuario no-root
 USER appuser
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

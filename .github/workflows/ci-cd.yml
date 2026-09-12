@@ -199,6 +199,40 @@ jobs:
           path: microservicio-soporte/backend/target/site/jacoco/
           retention-days: 7
 
+  test-secretaria-backend:
+    name: CI Backend Microservicio Secretaría
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      DB_PASSWORD: test_secret_pass
+      JWT_SECRET: test-container-jwt-secret-key-32-chars-long-minimum
+      AES_SECRET_KEY: ***REMOVED***
+      GRPC_INTERNAL_TOKEN: test-internal-token
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Ejecutar pruebas y cobertura JaCoCo de Secretaría
+        working-directory: microservicio-secretaria/backend
+        run: |
+          chmod +x mvnw
+          ./mvnw clean verify
+
+      - name: Subir reporte JaCoCo de Secretaría
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-microservicio-secretaria
+          path: microservicio-secretaria/backend/target/site/jacoco/
+          retention-days: 7
+
   # ─── 3. JOB TEST-WEB ───────────────────────────────────────────────────────
   test-web:
     name: 3. Construcción y Validación Frontend Web
@@ -231,6 +265,12 @@ jobs:
           npm install --no-audit --legacy-peer-deps
           npm run build
 
+      - name: Compilar Frontend Secretaría (E12 con npm ci)
+        run: |
+          cd microservicio-secretaria/client
+          npm ci --no-audit
+          npm run build
+
       - name: Ejecutar Pruebas E2E de Navegador Real (Playwright / Chromium) E10
         run: |
           python -m pip install playwright pytest-playwright
@@ -239,7 +279,7 @@ jobs:
 
       - name: Empaquetar distribución web como artefacto (.tar.gz)
         run: |
-          tar -czf release-web.tar.gz sga-principal/sga-frontend/dist microservicio-docente/frontend/dist microservicio-soporte/dist
+          tar -czf release-web.tar.gz sga-principal/sga-frontend/dist microservicio-docente/frontend/dist microservicio-soporte/dist microservicio-secretaria/client/dist
 
       - name: Subir artefacto web versionado
         uses: actions/upload-artifact@v4
@@ -335,6 +375,7 @@ jobs:
     needs:
       - test-backend
       - test-soporte-backend
+      - test-secretaria-backend
       - test-web
     if: github.ref == 'refs/heads/main'
     steps:
@@ -361,6 +402,13 @@ jobs:
           docker build -t ghcr.io/${REPO_LOWER}/microservicio-docente:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-docente:latest microservicio-docente/
           docker push ghcr.io/${REPO_LOWER}/microservicio-docente:${{ github.sha }}
           docker push ghcr.io/${REPO_LOWER}/microservicio-docente:latest
+
+      - name: Construir y Etiquetar Imagen Microservicio Secretaría (E14 GHCR)
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest -f microservicio-secretaria/backend/Dockerfile microservicio-secretaria/
+          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }}
+          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest
 
   # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
   build-mobile-apk:

@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JwtServiceTest {
 
     private JwtService jwtService;
-    private final String secret = "test-only-jwt-secret";
+    private final String secret = "test-only-jwt-secret-key-32-chars-long-minimum";
 
     @BeforeEach
     void setUp() {
