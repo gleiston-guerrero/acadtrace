@@ -17,6 +17,8 @@ services:
       - DB_USER=${DB_USER:-postgres}
       - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
+      - JWT_SECRET=${JWT_SECRET}
+      - AES_SECRET_KEY=${AES_SECRET_KEY}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - FCM_ENABLED=${FCM_ENABLED:-false}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
@@ -143,6 +145,7 @@ services:
       - DB_USER=${DB_USER:-postgres}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse en el entorno}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
       - GRPC_PORT=9094
