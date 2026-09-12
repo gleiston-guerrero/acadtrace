@@ -233,10 +233,15 @@ jobs:
           npm run build
 
       - name: Ejecutar Pruebas E2E de Navegador Real (Playwright / Chromium) E10
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || 'http://127.0.0.1:8000' }}
+          E2E_LOGIN_URL: ${{ secrets.E2E_LOGIN_URL || 'http://127.0.0.1:8000/login' }}
+          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER || 'docente_test' }}
+          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD || 'password123' }}
         run: |
-          python -m pip install playwright pytest-playwright
-          python -m playwright install chromium
-          python -m pytest tests/browser/test_sga_navegador.py -v
+          cd microservicio-docente/frontend
+          npx playwright install --with-deps chromium
+          npm run test:e2e
 
       - name: Empaquetar distribución web como artefacto (.tar.gz)
         run: |

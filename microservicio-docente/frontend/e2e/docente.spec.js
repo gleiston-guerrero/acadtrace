@@ -9,11 +9,6 @@ import {
 
 test.describe("Frontend Docente conectado al entorno real", () => {
   test.beforeEach(async ({ page }) => {
-    test.skip(
-      !hasLoginConfiguration,
-      "Requiere las variables E2E de acceso al entorno real"
-    );
-
     await loginDocente(page);
   });
 
