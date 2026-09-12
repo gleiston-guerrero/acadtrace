@@ -60,11 +60,6 @@ test.describe("Frontend Docente conectado al entorno real", () => {
   test("registro de calificación restaura la nota original", async ({
     page,
   }) => {
-    test.skip(
-      !e2e.actividad,
-      "Requiere E2E_ACTIVIDAD con una actividad que tenga notas restaurables"
-    );
-
     await abrirModulo(page, "Calificaciones");
     await seleccionarCurso(page, "Calificar");
 
@@ -74,80 +69,154 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     const maxSemanas =
       Number(await semana.getAttribute("max")) || 1;
 
-    const actividad = page
-      .getByRole("main")
-      .getByRole("button")
-      .filter({ hasText: e2e.actividad });
+    let nota = null;
+    let original = "";
 
-    let encontrada = false;
-
-    for (let numero = 1; numero <= maxSemanas; numero += 1) {
+    for (
+      let numero = 1;
+      numero <= maxSemanas && !nota;
+      numero += 1
+    ) {
       await semana.fill(String(numero));
 
-      await expect(
-        page.getByText(`Actividades de la semana ${numero}`, {
-          exact: true,
-        })
-      ).toBeVisible();
+      const encabezadoSemana = page.getByText(
+        `Actividades de la semana ${numero}`,
+        { exact: true }
+      );
 
-      if ((await actividad.count()) > 0) {
-        encontrada = true;
-        break;
+      await expect(encabezadoSemana).toBeVisible();
+
+      const tarjetas = encabezadoSemana
+        .locator("..")
+        .getByRole("button");
+
+      const totalTarjetas = await tarjetas.count();
+
+      for (
+        let indice = 0;
+        indice < totalTarjetas && !nota;
+        indice += 1
+      ) {
+        const tarjeta = tarjetas.nth(indice);
+
+        const nombreActividad = (
+          await tarjeta.locator("p").first().textContent()
+        )?.trim();
+
+        await tarjeta.click();
+
+        if (nombreActividad) {
+          await expect(
+            page.getByRole("heading", {
+              name: nombreActividad,
+              exact: true,
+            })
+          ).toBeVisible();
+        }
+
+        const cargando = page.getByText(
+          "Cargando estudiantes y notas...",
+          { exact: true }
+        );
+
+        await cargando
+          .waitFor({
+            state: "visible",
+            timeout: 1000,
+          })
+          .catch(() => {});
+
+        await cargando
+          .waitFor({
+            state: "hidden",
+            timeout: 15000,
+          })
+          .catch(() => {});
+
+        const candidatas =
+          page.getByPlaceholder("—");
+
+        const totalNotas =
+          await candidatas.count();
+
+        for (
+          let i = 0;
+          i < totalNotas;
+          i += 1
+        ) {
+          const candidata =
+            candidatas.nth(i);
+
+          if (!(await candidata.isVisible())) {
+            continue;
+          }
+
+          const valor =
+            await candidata.inputValue();
+
+          if (valor.trim() !== "") {
+            nota = candidata;
+            original = valor;
+            break;
+          }
+        }
       }
     }
 
     expect(
-      encontrada,
-      `No se encontró la actividad "${e2e.actividad}" en las semanas del trimestre`
-    ).toBeTruthy();
-
-    await actividad.first().click();
-
-    const nota = page.getByPlaceholder("—").first();
-
-    await expect(nota).toBeVisible();
-
-    const original = await nota.inputValue();
-
-    test.skip(
-      original === "",
-      "La actividad no tiene una nota previa que pueda restaurarse con seguridad"
-    );
+      nota,
+      "No se encontró ninguna actividad con una nota previa restaurable"
+    ).not.toBeNull();
 
     const maximo =
       Number(await nota.getAttribute("max")) || 10;
 
-    const actual = Number(original);
+    const actual =
+      Number(original);
 
     const temporal =
       actual >= 0.01
         ? actual - 0.01
-        : Math.min(maximo, actual + 0.01);
+        : Math.min(
+            maximo,
+            actual + 0.01
+          );
 
     const guardarYEsperar = async () => {
-      const respuesta = page.waitForResponse(
-        (response) =>
-          /\/calificaciones\//.test(response.url()) &&
-          ["POST", "PATCH"].includes(
-            response.request().method()
-          ) &&
-          response.ok()
-      );
+      const respuesta =
+        page.waitForResponse(
+          (response) =>
+            /\/calificaciones\//.test(
+              response.url()
+            ) &&
+            ["POST", "PATCH"].includes(
+              response
+                .request()
+                .method()
+            ) &&
+            response.ok()
+        );
 
       await page
-        .getByRole("button", { name: "Guardar notas" })
+        .getByRole("button", {
+          name: "Guardar notas",
+        })
         .click();
 
       await respuesta;
     };
 
     try {
-      await nota.fill(temporal.toFixed(2));
+      await nota.fill(
+        temporal.toFixed(2)
+      );
 
       await guardarYEsperar();
 
       await expect(
-        page.getByText(/Se guardaron \d+ calificaciones/)
+        page.getByText(
+          /Se guardaron \d+ calificaciones/
+        )
       ).toBeVisible();
     } finally {
       await nota.fill(original);
@@ -155,7 +224,9 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       await guardarYEsperar();
 
       await expect(
-        page.getByText(/Se guardaron \d+ calificaciones/)
+        page.getByText(
+          /Se guardaron \d+ calificaciones/
+        )
       ).toBeVisible();
     }
   });
@@ -168,7 +239,9 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       .click();
 
     await page
-      .getByRole("button", { name: "Cerrar sesión" })
+      .getByRole("button", {
+        name: "Cerrar sesión",
+      })
       .click();
 
     await expect(page).toHaveURL(
@@ -186,24 +259,39 @@ test(
   "acceso sin autenticación a Asistencia es rechazado o redirigido al Login",
   async ({ page }) => {
     test.skip(
-      !e2e.baseURL || !e2e.loginURL,
+      !e2e.baseURL ||
+        !e2e.loginURL,
       "Requiere E2E_BASE_URL y E2E_LOGIN_URL"
     );
 
     await page.goto(
-      new URL("/asistencia", e2e.baseURL).toString()
+      new URL(
+        "/asistencia",
+        e2e.baseURL
+      ).toString()
     );
 
-    const loginOrigin = new URL(e2e.loginURL).origin;
+    const loginOrigin =
+      new URL(
+        e2e.loginURL
+      ).origin;
 
     await expect
-      .poll(() => new URL(page.url()).origin, {
-        timeout: 15_000,
-      })
+      .poll(
+        () =>
+          new URL(
+            page.url()
+          ).origin,
+        {
+          timeout: 15_000,
+        }
+      )
       .toBe(loginOrigin);
 
     await expect(
-      page.getByPlaceholder(/ingresa tu usuario/i)
+      page.getByPlaceholder(
+        /ingresa tu usuario/i
+      )
     ).toBeVisible();
   }
 );
