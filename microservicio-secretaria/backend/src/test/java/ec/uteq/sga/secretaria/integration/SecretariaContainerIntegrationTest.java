@@ -42,7 +42,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *    NO puede actualizar ni borrar filas incluso si el trigger es desactivado temporalmente.
  * 6. Arranque limpio del backend y validación de endpoints Actuator.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+    "spring.flyway.enabled=false"
+})
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
 @org.junit.jupiter.api.condition.EnabledIf("isDockerAvailable")
@@ -71,6 +73,7 @@ public class SecretariaContainerIntegrationTest {
             if (!postgres.isRunning()) {
                 postgres.start();
             }
+            initDatabaseSchema();
             registry.add("db.host", postgres::getHost);
             registry.add("db.port", postgres::getFirstMappedPort);
             registry.add("db.name", postgres::getDatabaseName);
@@ -86,6 +89,7 @@ public class SecretariaContainerIntegrationTest {
             registry.add("db.user", () -> "postgres");
             registry.add("db.password", () -> "dummy");
         }
+        registry.add("spring.flyway.enabled", () -> "false");
         registry.add("app.jwt.secret", () -> "test-container-jwt-secret-key-32-chars-long-minimum");
         registry.add("app.crypto.secret-key", () -> "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
         registry.add("app.grpc.internal-token", () -> "test-grpc-token");
@@ -100,10 +104,8 @@ public class SecretariaContainerIntegrationTest {
     @Autowired(required = false)
     private MockMvc mockMvc;
 
-    @BeforeAll
-    static void initDatabase() {
-        Assumptions.assumeTrue(DOCKER_DISPONIBLE, "Docker daemon no disponible; se ejecuta en entorno CI");
-        assertTrue(postgres.isRunning(), "El contenedor PostgreSQL debe estar en ejecucion");
+    static void initDatabaseSchema() {
+        if (!postgres.isRunning()) return;
 
         try (Connection conn = DriverManager.getConnection(
                 postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
@@ -114,13 +116,24 @@ public class SecretariaContainerIntegrationTest {
             stmt.execute("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";");
             stmt.execute("CREATE SCHEMA IF NOT EXISTS sga_principal;");
             stmt.execute("CREATE SCHEMA IF NOT EXISTS secretaria;");
+            stmt.execute("CREATE SCHEMA IF NOT EXISTS sga_secretaria;");
 
-            // Crear tipo de auditoria si no existe
+            // Crear tipo de auditoria y estado_matricula_t si no existen
             stmt.execute("""
                 DO $$ BEGIN
                     CREATE TYPE sga_principal.accion_auditoria_t AS ENUM (
                         'CREAR', 'MODIFICAR', 'ELIMINAR', 'LOGIN_EXITOSO', 'LOGIN_FALLIDO',
                         'ROL_ASIGNADO', 'LLAMADA_GRPC', 'CONSULTAR'
+                    );
+                EXCEPTION
+                    WHEN duplicate_object THEN null;
+                END $$;
+                """);
+
+            stmt.execute("""
+                DO $$ BEGIN
+                    CREATE TYPE sga_principal.estado_matricula_t AS ENUM (
+                        'ACTIVA', 'INACTIVA', 'RETIRADA', 'FINALIZADA', 'ANULADA'
                     );
                 EXCEPTION
                     WHEN duplicate_object THEN null;
@@ -142,6 +155,45 @@ public class SecretariaContainerIntegrationTest {
                 CREATE TABLE IF NOT EXISTS sga_principal.matriculas (
                     id                  SERIAL PRIMARY KEY,
                     id_estudiante       INT
+                );
+                CREATE TABLE IF NOT EXISTS sga_principal.grados (
+                    id_grado            SERIAL PRIMARY KEY,
+                    nombre              VARCHAR(100)
+                );
+                CREATE TABLE IF NOT EXISTS sga_principal.historial_promocion (
+                    id_historial        SERIAL PRIMARY KEY,
+                    id_estudiante       INT,
+                    id_matricula        INT,
+                    fecha_registro      TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS sga_principal.fichas_estudiante (
+                    id_ficha            SERIAL PRIMARY KEY,
+                    id_estudiante       INT
+                );
+                CREATE TABLE IF NOT EXISTS sga_principal.documentos_matricula (
+                    id_documento        SERIAL PRIMARY KEY,
+                    id_matricula        INT
+                );
+                CREATE TABLE IF NOT EXISTS sga_secretaria.estudiantes (
+                    id_estudiante       SERIAL PRIMARY KEY,
+                    id_representante    INT,
+                    cedula              VARCHAR(20),
+                    codigo_estudiante   VARCHAR(50),
+                    direccion           TEXT,
+                    telefono            TEXT,
+                    tipo_discapacidad   TEXT
+                );
+                CREATE TABLE IF NOT EXISTS sga_secretaria.representantes (
+                    id_representante    SERIAL PRIMARY KEY,
+                    cedula              VARCHAR(20),
+                    telefono_principal  VARCHAR(20)
+                );
+                CREATE TABLE IF NOT EXISTS sga_secretaria.matriculas (
+                    id_matricula        SERIAL PRIMARY KEY,
+                    id_estudiante       INT,
+                    id_grado            INT,
+                    id_paralelo         INT,
+                    estado              sga_principal.estado_matricula_t DEFAULT 'ACTIVA'
                 );
                 """);
 
@@ -191,7 +243,7 @@ public class SecretariaContainerIntegrationTest {
                         .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
                         .locations("classpath:db/migrations")
                         .baselineOnMigrate(true)
-                        .schemas("sga_principal", "secretaria")
+                        .schemas("sga_principal", "secretaria", "sga_secretaria")
                         .load();
                 flyway.migrate();
             } catch (Exception fe) {
