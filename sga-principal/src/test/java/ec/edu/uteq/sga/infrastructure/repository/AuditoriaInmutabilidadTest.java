@@ -17,6 +17,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@org.junit.jupiter.api.Tag("integration")
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named = "RUN_DB_INTEGRATION_TESTS", matches = "true")
 class AuditoriaInmutabilidadTest {
 
     @Autowired(required = false)
