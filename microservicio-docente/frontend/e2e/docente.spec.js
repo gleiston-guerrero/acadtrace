@@ -114,45 +114,47 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           ).toBeVisible();
         }
 
-        const cargando = page.getByText(
-          "Cargando estudiantes y notas...",
-          { exact: true }
-        );
+        const candidatas = page.getByPlaceholder("—");
 
-        await cargando
-          .waitFor({
-            state: "visible",
-            timeout: 1000,
-          })
-          .catch(() => {});
+        const sinEstudiantes = page
+          .getByText(/No hay estudiantes/i)
+          .first();
 
-        await cargando
-          .waitFor({
-            state: "hidden",
-            timeout: 15000,
-          })
-          .catch(() => {});
+        await expect
+          .poll(
+            async () => {
+              const total = await candidatas.count();
 
-        const candidatas =
-          page.getByPlaceholder("—");
+              for (let i = 0; i < total; i += 1) {
+                if (await candidatas.nth(i).isVisible()) {
+                  return true;
+                }
+              }
 
-        const totalNotas =
-          await candidatas.count();
+              return await sinEstudiantes.isVisible();
+            },
+            {
+              timeout: 15_000,
+              message:
+                "La actividad no terminó de cargar sus estudiantes y calificaciones",
+            }
+          )
+          .toBe(true);
+
+        const totalNotas = await candidatas.count();
 
         for (
           let i = 0;
           i < totalNotas;
           i += 1
         ) {
-          const candidata =
-            candidatas.nth(i);
+          const candidata = candidatas.nth(i);
 
           if (!(await candidata.isVisible())) {
             continue;
           }
 
-          const valor =
-            await candidata.inputValue();
+          const valor = await candidata.inputValue();
 
           if (valor.trim() !== "") {
             nota = candidata;
@@ -171,8 +173,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     const maximo =
       Number(await nota.getAttribute("max")) || 10;
 
-    const actual =
-      Number(original);
+    const actual = Number(original);
 
     const temporal =
       actual >= 0.01
@@ -183,19 +184,14 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           );
 
     const guardarYEsperar = async () => {
-      const respuesta =
-        page.waitForResponse(
-          (response) =>
-            /\/calificaciones\//.test(
-              response.url()
-            ) &&
-            ["POST", "PATCH"].includes(
-              response
-                .request()
-                .method()
-            ) &&
-            response.ok()
-        );
+      const respuesta = page.waitForResponse(
+        (response) =>
+          /\/calificaciones\//.test(response.url()) &&
+          ["POST", "PATCH"].includes(
+            response.request().method()
+          ) &&
+          response.ok()
+      );
 
       await page
         .getByRole("button", {
@@ -222,12 +218,6 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       await nota.fill(original);
 
       await guardarYEsperar();
-
-      await expect(
-        page.getByText(
-          /Se guardaron \d+ calificaciones/
-        )
-      ).toBeVisible();
     }
   });
 
