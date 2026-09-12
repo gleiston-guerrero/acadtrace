@@ -248,6 +248,59 @@ jobs:
           path: release-web.tar.gz
           retention-days: 7
 
+  e2e-docente:
+    name: E10 - Playwright Frontend Docente
+    runs-on: ubuntu-latest
+    needs: test-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.0"
+          cache: npm
+          cache-dependency-path: microservicio-docente/frontend/package-lock.json
+      - name: Validar configuración E2E
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_LOGIN_URL: ${{ vars.E2E_LOGIN_URL }}
+          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
+          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
+          E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
+        run: |
+          test -n "$E2E_BASE_URL"
+          test -n "$E2E_LOGIN_URL"
+          test -n "$E2E_DOCENTE_USER"
+          test -n "$E2E_DOCENTE_PASSWORD"
+          test -n "$E2E_ACTIVIDAD"
+      - name: Instalar frontend y Chromium
+        working-directory: microservicio-docente/frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Ejecutar recorridos E2E
+        working-directory: microservicio-docente/frontend
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_LOGIN_URL: ${{ vars.E2E_LOGIN_URL }}
+          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
+          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
+          E2E_GRADO: ${{ vars.E2E_GRADO }}
+          E2E_CURSO: ${{ vars.E2E_CURSO }}
+          E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-docente
+          path: microservicio-docente/frontend/playwright-report/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-test-results-docente
+          path: microservicio-docente/frontend/test-results/
+          retention-days: 7
+
   # ─── 4. JOB TEST-MOBILE ────────────────────────────────────────────────────
   test-mobile:
     name: 4. Pruebas Unitarias App Móvil

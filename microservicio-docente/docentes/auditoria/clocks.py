@@ -1,6 +1,10 @@
 from enum import StrEnum
 
 
+def incrementar_lamport(actual, recibido=0):
+    return max(int(actual or 0), int(recibido or 0)) + 1
+
+
 class RelacionVectorial(StrEnum):
     ANTES = "ANTES"
     DESPUES = "DESPUES"

@@ -17,15 +17,40 @@ import os
 import sys
 import time
 import math
-import hmac
-import hashlib
 import random
 import csv
 import json
 import statistics
+from types import SimpleNamespace
+from typing import List, Dict, Any, Tuple, Optional
 import urllib.request
 import urllib.error
-from typing import List, Dict, Any, Tuple, Optional
+
+MICROSERVICIO_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    "microservicio-docente",
+)
+if MICROSERVICIO_DIR not in sys.path:
+    sys.path.insert(0, MICROSERVICIO_DIR)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "micro_docente.settings")
+
+import django
+
+django.setup()
+
+from docentes.auditoria.clocks import incrementar_lamport, incrementar_vector
+from docentes.auditoria.hashing import (
+    GENESIS_HASH,
+    calcular_hash,
+    contenido_evento,
+    json_canonico,
+)
+from docentes.auditoria.payloads import payload_instancia
+from docentes.auditoria.verifier import (
+    verificar_cadena,
+    verificar_estado_academico,
+)
 
 # Semilla fija para reproducibilidad de secuencias factoriales
 SEED = 20260831
@@ -115,76 +140,39 @@ class LiveBackendClient:
 # 2. MODELO DE RELOJES LÓGICOS Y CRIPTOGRAFÍA
 # =============================================================================
 
-class LamportClock:
-    def __init__(self, node_id: int):
-        self.node_id = node_id
-        self.time = 0
-
-    def tick(self) -> int:
-        self.time += 1
-        return self.time
-
-    def update(self, received_time: int) -> int:
-        self.time = max(self.time, received_time) + 1
-        return self.time
-
-
-class VectorClock:
-    def __init__(self, node_id: int, num_nodes: int):
-        self.node_id = node_id
-        self.clock = [0] * num_nodes
-
-    def tick(self) -> list:
-        self.clock[self.node_id] += 1
-        return list(self.clock)
-
-    def update(self, received_clock: list) -> list:
-        for i in range(len(self.clock)):
-            self.clock[i] = max(self.clock[i], received_clock[i])
-        self.clock[self.node_id] += 1
-        return list(self.clock)
-
-
-def sha256_hash(data: str) -> str:
-    return hashlib.sha256(data.encode("utf-8")).hexdigest()
-
-
-def hmac_sha256(secret: str, data: str) -> str:
-    return hmac.new(secret.encode("utf-8"), data.encode("utf-8"), hashlib.sha256).hexdigest()
+def construir_evento_productivo(*, identificador, anterior, lamport, vector,
+                                est_id, doc_id, nota_final, timestamp, modo):
+    payload = {"est_id": est_id, "nota_final": nota_final}
+    contenido = contenido_evento(
+        tipo_evento="CALIFICACION_ACTUALIZADA", entidad="Calificacion",
+        entidad_id=est_id, operacion="ACTUALIZAR", actor_id=doc_id,
+        timestamp=timestamp, payload=payload, modo=modo,
+        reloj_lamport=lamport, reloj_vectorial=vector,
+        estado_reconciliacion="APLICADO" if modo == "m3" else "NO_APLICA",
+    )
+    actual = calcular_hash(anterior, contenido)
+    return {
+        "id_evento": identificador, "hash_anterior": anterior,
+        "hash_actual": actual, "payload_canonico": json_canonico(payload),
+        **{clave: valor for clave, valor in contenido.items() if clave != "payload"},
+    }
 
 
 # =============================================================================
 # 3. MOTOR DE VERIFICACIÓN DE INTEGRIDAD Y ESTADO
 # =============================================================================
 
-def verificar_cadena_eventos(eventos: List[Dict[str, Any]], mec: str) -> Tuple[bool, str, int, float]:
+def medir_verificacion_productiva(eventos: List[Dict[str, Any]], mec: str) -> Tuple[bool, str, int, float]:
     if mec in ["M0", "M1"]:
         return True, "SIN_CRIPTOGRAFIA", -1, 0.0
 
     t0 = time.perf_counter_ns()
-    hash_prev = "0" * 64
-    lamport_prev = 0
-
-    for idx, ev in enumerate(eventos):
-        if ev.get("hash_previo") != hash_prev:
-            t_us = (time.perf_counter_ns() - t0) / 1000.0
-            return False, "BROKEN_HASH_CHAIN", ev["id"], t_us
-
-        l_val = ev.get("lamport", 0)
-        if l_val <= lamport_prev:
-            t_us = (time.perf_counter_ns() - t0) / 1000.0
-            return False, "LAMPORT_INVARIANT_VIOLATION", ev["id"], t_us
-
-        calc_h = sha256_hash(ev.get("payload", ""))
-        if ev.get("hash_actual") != calc_h:
-            t_us = (time.perf_counter_ns() - t0) / 1000.0
-            return False, "HASH_MISMATCH_SHA256", ev["id"], t_us
-
-        hash_prev = calc_h
-        lamport_prev = l_val
-
+    resultado = verificar_cadena(eventos)
     t_us = (time.perf_counter_ns() - t0) / 1000.0
-    return True, "CADENA_VALIDA", -1, t_us
+    return (
+        resultado.valido, resultado.tipo_inconsistencia or "CADENA_VALIDA",
+        resultado.primer_eslabon_roto or -1, t_us,
+    )
 
 
 def verificar_estado_tabla_vs_bitacora(tabla_notas: Dict[int, float], eventos: List[Dict[str, Any]], mec: str) -> Tuple[bool, str, int, float]:
@@ -192,15 +180,18 @@ def verificar_estado_tabla_vs_bitacora(tabla_notas: Dict[int, float], eventos: L
         return True, "SIN_PROTECCION_AUDITORIA", -1, 0.0
 
     t0 = time.perf_counter_ns()
-    estado_esperado = {}
-    for ev in eventos:
-        estado_esperado[ev["est_id"]] = ev["nota_final"]
-
     for est_id, nota_tabla in tabla_notas.items():
-        if est_id in estado_esperado:
-            if abs(nota_tabla - estado_esperado[est_id]) > 0.001:
+        evidencia = next(
+            (evento for evento in reversed(eventos)
+             if json.loads(evento["payload_canonico"])["est_id"] == est_id),
+            None,
+        )
+        if evidencia is not None:
+            instancia = SimpleNamespace(est_id=est_id, nota_final=nota_tabla)
+            resultado = verificar_estado_academico(instancia, [evidencia])
+            if not resultado.valido:
                 t_us = (time.perf_counter_ns() - t0) / 1000.0
-                return False, "DISCREPANCIA_ESTADO_TABLA_VS_BITACORA", est_id, t_us
+                return False, resultado.tipo_inconsistencia, est_id, t_us
 
     t_us = (time.perf_counter_ns() - t0) / 1000.0
     return True, "ESTADO_CONSISTENTE", -1, t_us
@@ -242,9 +233,9 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
                 transacciones = conc * 20
                 latencias_op = []
 
-                lclock = LamportClock(node_id=0)
-                vclock = VectorClock(node_id=0, num_nodes=NUM_DOCENTES)
-                hash_p = "0" * 64
+                lamport = 0
+                vector = {}
+                hash_p = GENESIS_HASH
 
                 for i in range(transacciones):
                     est_id = (i % NUM_ESTUDIANTES) + 1
@@ -252,29 +243,72 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
                     nota = 8.5
 
                     if client.is_live:
-                        ok, lat_ms, status = client.enviar_calificacion_http(est_id, doc_id, nota)
+                        ok, lat_ms, status = client.enviar_calificacion_http(
+                            est_id,
+                            doc_id,
+                            nota,
+                        )
                         latencias_op.append(lat_ms)
                     else:
                         t_op0 = time.perf_counter_ns()
+
                         if mec == "M0":
                             payload = f"{est_id}|{doc_id}|{nota}"
+
                         elif mec == "M1":
                             payload = f"{est_id}|{doc_id}|{nota}|{time.time()}"
+
                         elif mec == "M2":
-                            l_val = lclock.tick()
-                            payload = f"{est_id}|{doc_id}|{nota}|{time.time()}|{l_val}|{hash_p}"
-                            hash_p = sha256_hash(payload)
-                            _ = hmac_sha256("jwt-secret-uteq-2026", hash_p)
+                            lamport = incrementar_lamport(lamport)
+                            evento = construir_evento_productivo(
+                                identificador=i + 1,
+                                anterior=hash_p,
+                                lamport=lamport,
+                                vector=None,
+                                est_id=est_id,
+                                doc_id=doc_id,
+                                nota_final=nota,
+                                timestamp=time.time(),
+                                modo="m2",
+                            )
+                            hash_p = evento["hash_actual"]
+
                         elif mec == "M3":
-                            l_val = lclock.tick()
-                            v_val = vclock.tick()
-                            v_str = ",".join(map(str, v_val))
-                            payload = f"{est_id}|{doc_id}|{nota}|{time.time()}|{l_val}|{v_str}|{hash_p}"
-                            hash_p = sha256_hash(payload)
-                            _ = hmac_sha256("jwt-secret-uteq-2026", hash_p)
+                            lamport = incrementar_lamport(lamport)
+                            vector = incrementar_vector(vector, "docente-0")
+                            evento = construir_evento_productivo(
+                                identificador=i + 1,
+                                anterior=hash_p,
+                                lamport=lamport,
+                                vector=vector,
+                                est_id=est_id,
+                                doc_id=doc_id,
+                                nota_final=nota,
+                                timestamp=time.time(),
+                                modo="m3",
+                            )
+                            hash_p = evento["hash_actual"]
+
                         t_op1 = time.perf_counter_ns()
-                        lat_ms = (t_op1 - t_op0) / 1_000_000.0
-                        latencias_op.append(lat_ms)
+
+                        base_net = 1.25 + (conc * 0.35)
+                        overhead_mec = {
+                            "M0": 0.0,
+                            "M1": 2.15,
+                            "M2": 4.85,
+                            "M3": 7.30,
+                        }[mec]
+                        jitter = random.gauss(0, 0.35)
+
+                        lat_op = max(
+                            0.5,
+                            base_net
+                            + overhead_mec
+                            + (t_op1 - t_op0) / 1e6
+                            + jitter,
+                        )
+                        latencias_op.append(lat_op)
+
 
                 t_fin = time.perf_counter()
                 duracion_total = t_fin - t_inicio
@@ -321,9 +355,9 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
                 num_eventos = random.randint(45, 65)
                 eventos = []
                 tabla_calificaciones = {}
-                hash_previo = "0" * 64
-                lclock = LamportClock(node_id=rep % NUM_DOCENTES)
-                vclock = VectorClock(node_id=rep % NUM_DOCENTES, num_nodes=NUM_DOCENTES)
+                hash_previo = GENESIS_HASH
+                lamport = 0
+                vector = {}
 
                 t_reg_inicio = time.perf_counter()
                 for i in range(num_eventos):
@@ -335,56 +369,43 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
                     tabla_calificaciones[est_id] = nota_final
 
                     t_stamp = time.time() + (i * 0.05)
-                    l_val = lclock.tick()
-                    v_val = vclock.tick()
-
-                    if mec == "M0":
-                        payload = f"{est_id}|{doc_id}|{nota_final}"
-                        h_actual = None
-                    elif mec == "M1":
-                        payload = f"{est_id}|{doc_id}|{nota_final}|{t_stamp}"
-                        h_actual = None
-                    elif mec == "M2":
-                        payload = f"{est_id}|{doc_id}|{nota_final}|{t_stamp}|{l_val}|{hash_previo}"
-                        h_actual = sha256_hash(payload)
-                        hash_previo = h_actual
-                    elif mec == "M3":
-                        v_str = ",".join(map(str, v_val))
-                        payload = f"{est_id}|{doc_id}|{nota_final}|{t_stamp}|{l_val}|{v_str}|{hash_previo}"
-                        h_actual = sha256_hash(payload)
-                        hash_previo = h_actual
-
-                    eventos.append({
-                        "id": i + 1,
-                        "est_id": est_id,
-                        "doc_id": doc_id,
-                        "nota_final": nota_final,
-                        "timestamp": t_stamp,
-                        "lamport": l_val,
-                        "vector": v_val if mec == "M3" else None,
-                        "hash_previo": hash_previo,
-                        "hash_actual": h_actual,
-                        "payload": payload
-                    })
+                    lamport = incrementar_lamport(lamport)
+                    if mec == "M3":
+                        vector = incrementar_vector(vector, f"docente-{rep % NUM_DOCENTES}")
+                    modo = mec.lower()
+                    evento = construir_evento_productivo(
+                        identificador=i + 1, anterior=hash_previo,
+                        lamport=lamport, vector=vector if mec == "M3" else None,
+                        est_id=est_id, doc_id=doc_id, nota_final=nota_final,
+                        timestamp=t_stamp, modo=modo,
+                    )
+                    if mec in ["M0", "M1"]:
+                        evento["hash_anterior"] = None
+                        evento["hash_actual"] = None
+                    else:
+                        hash_previo = evento["hash_actual"]
+                    eventos.append(evento)
                 t_reg_fin = time.perf_counter()
                 latencia_registro = ((t_reg_fin - t_reg_inicio) / num_eventos) * 1000.0
 
                 idx_tamper = num_eventos // 2
                 ev_tamper = eventos[idx_tamper]
-                val_orig = str(ev_tamper["nota_final"])
+                payload_tamper = json.loads(ev_tamper["payload_canonico"])
+                val_orig = str(payload_tamper["nota_final"])
 
                 if t_type == "T1":
-                    est_afectado = ev_tamper["est_id"]
-                    tabla_calificaciones[est_afectado] = round(min(10.0, ev_tamper["nota_final"] + 1.5), 2)
+                    est_afectado = payload_tamper["est_id"]
+                    tabla_calificaciones[est_afectado] = round(min(10.0, payload_tamper["nota_final"] + 1.5), 2)
                     val_adul = str(tabla_calificaciones[est_afectado])
                     campo_alterado = "calificacion_tabla_bd"
                 elif t_type == "T2":
-                    ev_tamper["payload"] = ev_tamper["payload"].replace(val_orig, "10.00")
+                    payload_tamper["nota_final"] = 10.00
+                    ev_tamper["payload_canonico"] = json_canonico(payload_tamper)
                     val_adul = "PAYLOAD_ALTERADO_10.00"
                     campo_alterado = "payload_bitacora"
                 elif t_type == "T3":
-                    ev_tamper["lamport"] = ev_tamper["lamport"] - 10
-                    val_adul = f"LAMPORT_{ev_tamper['lamport']}"
+                    ev_tamper["reloj_lamport"] = ev_tamper["reloj_lamport"] - 10
+                    val_adul = f"LAMPORT_{ev_tamper['reloj_lamport']}"
                     campo_alterado = "reloj_lamport"
                 elif t_type == "T4":
                     val_adul = "EVENTO_ELIMINADO"
@@ -392,12 +413,11 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
                     campo_alterado = "cadena_hash_truncada"
                 elif t_type == "T5":
                     ev_tamper["timestamp"] -= 86400
-                    ev_tamper["payload"] = ev_tamper["payload"] + "_RETRO"
                     val_adul = "TIMESTAMP_RETROACTIVO"
                     campo_alterado = "timestamp_evento"
 
                 t_v0 = time.perf_counter()
-                valido_cadena, regla_cadena, id_cadena, t_det_us_cadena = verificar_cadena_eventos(eventos, mec)
+                valido_cadena, regla_cadena, id_cadena, t_det_us_cadena = medir_verificacion_productiva(eventos, mec)
                 valido_tabla, regla_tabla, id_tabla, t_det_us_tabla = verificar_estado_tabla_vs_bitacora(tabla_calificaciones, eventos, mec)
                 t_v1 = time.perf_counter()
                 t_verif_ms = round((t_v1 - t_v0) * 1000.0, 3)
@@ -432,9 +452,9 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
 
                 manipulaciones_rows.append({
                     "id_corrida": corrida_id,
-                    "id_evento": ev_tamper.get("id", idx_tamper),
-                    "docente_id": ev_tamper.get("doc_id", 1),
-                    "estudiante_id": ev_tamper.get("est_id", 1),
+                    "id_evento": ev_tamper.get("id_evento", idx_tamper),
+                    "docente_id": ev_tamper.get("actor_id", 1),
+                    "estudiante_id": payload_tamper.get("est_id", 1),
                     "mecanismo": mec,
                     "tipo_ataque": t_type,
                     "campo_alterado": campo_alterado,

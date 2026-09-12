@@ -7,24 +7,16 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE_DIR))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "micro_docente.settings")
 
-from docentes.auditoria.hashing import calcular_hash
+from docentes.auditoria.verifier import verificar_cadena
 
 
 def verificar_registros(registros):
-    hash_anterior = "0" * 64
-    for registro in registros:
-        if registro["hash_anterior"] != hash_anterior:
-            return False
-        if calcular_hash(hash_anterior, registro["contenido"]) != registro["hash"]:
-            return False
-        hash_anterior = registro["hash"]
-    return True
+    return verificar_cadena(registros).valido
 
 
 def main():
     import django
     django.setup()
-    from docentes.auditoria.verifier import verificar_cadena
     from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
 
     estado = EstadoCadenaAuditoria.objects.get(id_estado=1)
