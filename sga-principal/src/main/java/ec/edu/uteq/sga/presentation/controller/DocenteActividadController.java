@@ -30,6 +30,8 @@ public class DocenteActividadController {
             map.put("nombre", p.getNombre());
             map.put("tipo", p.getTipo());
             map.put("activo", p.isActivo());
+            map.put("fecha_inicio", p.getFechaInicio());
+            map.put("fecha_fin", p.getFechaFin());
             return map;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(response);
