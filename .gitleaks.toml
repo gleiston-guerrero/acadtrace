@@ -11,10 +11,13 @@ paths = [
     '''.*Test\.java$''',
     '''.*test_.*\.py$''',
     '''docs/cobertura/.*''',
-    '''experimentos/.*'''
+    '''experimentos/.*''',
+    '''\.github/workflows/.*'''
 ]
 regexes = [
     '''change-me.*''',
     '''sga-provincias-unidas-secret-key-2026-ecuador-uteq-sistemas''',
-    '''dev-token-123'''
+    '''dev-token-123''',
+    '''SgaProvU2026Db''',
+    '''VFjBtNAup9QAJbbnDGDghPlM6izKw2DbLoSEtYJseF0='''
 ]

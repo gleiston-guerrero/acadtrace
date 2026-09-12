@@ -67,12 +67,18 @@ public class SecretariaContainerIntegrationTest {
 
     @DynamicPropertySource
     static void dynamicProperties(DynamicPropertyRegistry registry) {
-        if (DOCKER_DISPONIBLE && postgres.isRunning()) {
+        if (DOCKER_DISPONIBLE) {
+            if (!postgres.isRunning()) {
+                postgres.start();
+            }
             registry.add("db.host", postgres::getHost);
             registry.add("db.port", postgres::getFirstMappedPort);
             registry.add("db.name", postgres::getDatabaseName);
             registry.add("db.user", postgres::getUsername);
             registry.add("db.password", postgres::getPassword);
+            registry.add("spring.datasource.url", postgres::getJdbcUrl);
+            registry.add("spring.datasource.username", postgres::getUsername);
+            registry.add("spring.datasource.password", postgres::getPassword);
         } else {
             registry.add("db.host", () -> "localhost");
             registry.add("db.port", () -> 5432);
@@ -81,7 +87,7 @@ public class SecretariaContainerIntegrationTest {
             registry.add("db.password", () -> "dummy");
         }
         registry.add("app.jwt.secret", () -> "test-container-jwt-secret-key-32-chars-long-minimum");
-        registry.add("app.crypto.secret-key", () -> "VFjBtNAup9QAJbbnDGDghPlM6izKw2DbLoSEtYJseF0=");
+        registry.add("app.crypto.secret-key", () -> "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
         registry.add("app.grpc.internal-token", () -> "test-grpc-token");
     }
 
