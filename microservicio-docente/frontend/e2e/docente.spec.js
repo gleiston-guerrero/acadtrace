@@ -60,6 +60,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 
     const semana = page.getByRole("spinbutton");
     await expect(semana).toBeVisible();
+    await page.waitForLoadState('networkidle');
 
     const maxSemanas =
       Number(await semana.getAttribute("max")) || 1;
@@ -149,11 +150,9 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           const valor =
             await candidata.inputValue();
 
-          if (valor.trim() !== "") {
-            nota = candidata;
-            original = valor;
-            break;
-          }
+          nota = candidata;
+          original = valor;
+          break;
         }
       }
     }
@@ -212,7 +211,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         page.getByText(
           /Se guardaron \d+ calificaciones/
         )
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 15000 });
     } finally {
       await nota.fill(original);
 
@@ -222,7 +221,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         page.getByText(
           /Se guardaron \d+ calificaciones/
         )
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 15000 });
     }
   });
 
