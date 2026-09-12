@@ -204,10 +204,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     env:
-      DB_HOST: localhost
-      DB_PORT: 5433
-      DB_NAME: sga
-      DB_USER: postgres
       DB_PASSWORD: test_secret_pass
       JWT_SECRET: test-container-jwt-secret-key-32-chars-long-minimum
       AES_SECRET_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
@@ -227,7 +223,7 @@ jobs:
         working-directory: microservicio-secretaria/backend
         run: |
           chmod +x mvnw
-          ./mvnw clean test
+          ./mvnw clean test -Dsurefire.useFile=false || { echo "=== DUMPING FAILED LOGS ==="; for f in target/surefire-reports/*; do echo "=== $f ==="; cat "$f"; done; exit 1; }
 
       - name: Subir reporte JaCoCo de Secretaría
         uses: actions/upload-artifact@v4
@@ -235,6 +231,14 @@ jobs:
         with:
           name: cobertura-microservicio-secretaria
           path: microservicio-secretaria/backend/target/site/jacoco/
+          retention-days: 7
+
+      - name: Subir reportes de prueba Surefire
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: surefire-reports-secretaria
+          path: microservicio-secretaria/backend/target/surefire-reports/
           retention-days: 7
 
   # ─── 3. JOB TEST-WEB ───────────────────────────────────────────────────────
