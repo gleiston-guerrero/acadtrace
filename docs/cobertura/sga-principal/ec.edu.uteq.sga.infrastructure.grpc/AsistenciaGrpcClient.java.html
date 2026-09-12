@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 <span class="nc" id="L22">        io.grpc.Metadata metadata = new io.grpc.Metadata();</span>
 <span class="nc" id="L23">        metadata.put(io.grpc.Metadata.Key.of(&quot;docente_id&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), docenteId);</span>
-<span class="nc" id="L24">        metadata.put(io.grpc.Metadata.Key.of(&quot;internal_token&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), &quot;***REMOVED***&quot;);</span>
+<span class="nc" id="L24">        metadata.put(io.grpc.Metadata.Key.of(&quot;internal_token&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), &quot;test-internal-token&quot;);</span>
 <span class="nc" id="L25">        return stub.withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(metadata));</span>
     }
 

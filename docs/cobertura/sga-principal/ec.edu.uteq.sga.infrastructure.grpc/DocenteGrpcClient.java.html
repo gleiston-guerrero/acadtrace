@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
         
 <span class="nc" id="L31">        io.grpc.Metadata metadata = new io.grpc.Metadata();</span>
 <span class="nc" id="L32">        metadata.put(io.grpc.Metadata.Key.of(&quot;docente_id&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), docenteId);</span>
-<span class="nc" id="L33">        metadata.put(io.grpc.Metadata.Key.of(&quot;internal_token&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), &quot;***REMOVED***&quot;);</span>
+<span class="nc" id="L33">        metadata.put(io.grpc.Metadata.Key.of(&quot;internal_token&quot;, io.grpc.Metadata.ASCII_STRING_MARSHALLER), &quot;test-internal-token&quot;);</span>
 <span class="nc" id="L34">        return stub.withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(metadata));</span>
     }
 

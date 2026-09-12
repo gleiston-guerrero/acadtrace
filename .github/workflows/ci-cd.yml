@@ -23,6 +23,18 @@ env:
 
 jobs:
 
+  secret-scan:
+    name: Deteccion de secretos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout completo del historial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ejecutar Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ci-docente:
     name: CI Microservicio Docente
     runs-on: ubuntu-latest
@@ -129,13 +141,13 @@ jobs:
 
       - name: Pruebas Unitarias SGA Principal (Spring Boot)
         env:
-          DB_HOST: 192.0.2.1
-          DB_PORT: 5433
-          DB_NAME: sga
-          DB_USER: postgres
-          DB_PASSWORD: ***REMOVED***
-          JWT_SECRET: ***REMOVED***
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD || 'dummy_test_pass' }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
           cd sga-principal
           ./mvnw clean test -q

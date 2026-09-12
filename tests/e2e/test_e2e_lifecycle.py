@@ -42,7 +42,7 @@ class TestSecurityE2E:
 
     def test_jwt_hmac_sha256_creation_and_verification(self):
         """Verifica la generación y validación de firmas criptográficas HMAC-SHA256 en tokens JWT."""
-        secret_key = b"***REMOVED***"
+        secret_key = b"test-only-jwt-secret"
         header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip("=")
         payload = base64.urlsafe_b64encode(json.dumps({"sub": "admin", "rol": "DOCENTE", "exp": int(time.time()) + 3600}).encode()).decode().rstrip("=")
 
@@ -159,7 +159,7 @@ class TestCryptographicAuditE2E:
 
         # Detección de concurrencia: ni vA <= vB ni vB <= vA
         es_concurrente = not (
-            all(x >= y for x, y in zip(v_docA, v_docB)) or 
+            all(x >= y for x, y in zip(v_docA, v_docB)) or
             all(x <= y for x, y in zip(v_docA, v_docB))
         )
         assert es_concurrente, "Debe identificarse conflicto causal concurrente (A || B)"
@@ -187,7 +187,7 @@ class TestFrontendRutasE2E:
     10. Comportamiento y rechazo ante expiración de JWT.
     """
 
-    SECRET_KEY = b"***REMOVED***"
+    SECRET_KEY = b"test-only-jwt-secret"
 
     def _generar_token(self, usuario="admin", rol="ADMIN", expirado=False):
         header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip("=")
@@ -268,4 +268,3 @@ class TestFrontendRutasE2E:
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
-

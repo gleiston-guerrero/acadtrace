@@ -86,7 +86,7 @@ public class PrincipalGrpcClient {
     @GrpcClient("principal-service")
     private PrincipalServiceGrpc.PrincipalServiceBlockingStub stub;
 
-    @Value("${app.grpc.internal-token:***REMOVED***}")
+    @Value("${app.grpc.internal-token}")
     private String internalToken;
 
     /**

@@ -24,8 +24,8 @@ public class InternalAuthInterceptor implements ServerInterceptor {
     private static final String INTERNAL_TOKEN_KEY = &quot;internal_token&quot;;
     private static final String TRACE_ID_KEY = &quot;trace_id&quot;;
     private static final String ACTOR_KEY = &quot;actor_username&quot;;
-    // TODO: Usar variable de entorno para producción, hardcodeado por ahora como &quot;***REMOVED***&quot;
-    private static final String EXPECTED_TOKEN = &quot;***REMOVED***&quot;;
+    // TODO: Usar variable de entorno para producción, hardcodeado por ahora como &quot;test-internal-token&quot;
+    private static final String EXPECTED_TOKEN = &quot;test-internal-token&quot;;
 
     private final AuditoriaService auditoriaService;
 

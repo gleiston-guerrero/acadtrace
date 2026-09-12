@@ -6,6 +6,7 @@ import io.grpc.StatusRuntimeException;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -18,12 +19,15 @@ public class ActividadGrpcClient {
     @Autowired
     private TeacherAuthorizationService authService;
 
+    @Value("")
+    private String internalToken;
+
     private ActividadServiceGrpc.ActividadServiceBlockingStub getStubWithMetadata() {
         String docenteId = authService.getAuthenticatedTeacher().getIdPersona().toString();
 
         io.grpc.Metadata metadata = new io.grpc.Metadata();
         metadata.put(io.grpc.Metadata.Key.of("docente_id", io.grpc.Metadata.ASCII_STRING_MARSHALLER), docenteId);
-        metadata.put(io.grpc.Metadata.Key.of("internal_token", io.grpc.Metadata.ASCII_STRING_MARSHALLER), "***REMOVED***");
+        metadata.put(io.grpc.Metadata.Key.of("internal_token", io.grpc.Metadata.ASCII_STRING_MARSHALLER), internalToken);
         return stub.withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(metadata));
     }
 
