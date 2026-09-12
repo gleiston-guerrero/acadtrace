@@ -19,7 +19,7 @@ public class ActividadGrpcClient {
     @Autowired
     private TeacherAuthorizationService authService;
 
-    @Value("")
+    @Value("${app.grpc.internal-token}")
     private String internalToken;
 
     private ActividadServiceGrpc.ActividadServiceBlockingStub getStubWithMetadata() {
