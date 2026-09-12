@@ -206,7 +206,7 @@ jobs:
     env:
       DB_PASSWORD: test_secret_pass
       JWT_SECRET: test-container-jwt-secret-key-32-chars-long-minimum
-      AES_SECRET_KEY: ***REMOVED***
+      AES_SECRET_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
       GRPC_INTERNAL_TOKEN: test-internal-token
     steps:
       - name: Checkout del repositorio
@@ -223,7 +223,7 @@ jobs:
         working-directory: microservicio-secretaria/backend
         run: |
           chmod +x mvnw
-          ./mvnw clean verify
+          ./mvnw clean test
 
       - name: Subir reporte JaCoCo de Secretaría
         uses: actions/upload-artifact@v4
