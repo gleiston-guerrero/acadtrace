@@ -86,7 +86,32 @@ Para eliminar el sesgo estocástico y permitir la replicación exacta de los exp
 
 ---
 
-## 5. Escenarios Formales de Pruebas de Carga con Locust
+## 5. Resultados de carga E5
+
+**OFICIAL NOMINAL de Soporte:** `microservicio-soporte/locust_esc1_stats.csv`, junto con sus archivos `_stats_history.csv`, `_failures.csv` y `_exceptions.csv`. La clasificación y las rutas están en [el registro E5](resultados/corridas-e5.md).
+
+Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. El perfil de `microservicio-soporte/run_locust.py` configura 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. El historial registra 50 usuarios máximos y 299 segundos entre muestras. Se consultan `/health`, `/actuator/health`, `/api/soporte/tickets` y `/api/soporte/election/status`; los endpoints protegidos reciben JWT.
+
+| Métrica oficial (Aggregated) | Valor |
+|---|---|
+| Peticiones | 12.994 |
+| Fallos | 0; sin HTTP 401 ni HTTP 500 registrados |
+| RPS | 43,537580 req/s |
+| Promedio | 109,113664 ms |
+| P50 | 6 ms |
+| P95 | 440 ms |
+| P99 | 850 ms |
+| Máximo | 2.037,104700 ms |
+
+Inicio registrado: 2026-09-11 03:59:05 UTC. Commit de conservación: `956cafcb`; normalización posterior: `c5c0e6f5`. Commit del código ejecutado: **No disponible en la evidencia conservada**. Las especificaciones de hardware, software y AWS anteriores corresponden a la descripción histórica del banco, no certifican el entorno efectivo de esta corrida local.
+
+**Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio** de cero fallos. El conjunto D conserva 106.735 peticiones con 26 fallos (15 HTTP 500 y 11 HTTP 503) y es FALLIDA/HISTÓRICA. El conjunto E conserva 565 HTTP 401 y solo un usuario máximo observado. Ninguno se presenta como estrés oficial válido.
+
+La captura `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png` es histórica/complementaria: muestra 13.031 peticiones en terminal y no coincide con las 12.994 del CSV oficial. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su fila `Aggregated`.
+
+### Perfiles y cifras históricas (sin carácter oficial E5)
+
+Lo siguiente conserva el protocolo anterior como antecedente. Sus cifras no deben usarse como resultados oficiales; su asociación a CSV y el estado de cada conjunto se describen en el registro E5.
 
 Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para someter el sistema completo (a través del API Gateway HAProxy en puerto 80/8080/5176) a tres perfiles operativos:
 
@@ -95,20 +120,20 @@ Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para s
 - **Tasa de aparición (Spawn rate):** 5 usuarios/segundo.
 - **Duración total:** 5 minutos (300 segundos).
 - **Endpoints evaluados:** `/health`, `/actuator/health`, `/api/soporte/tickets`, `/api/secretario/estudiantes`, `/api/v1/auth/login`.
-- **Métricas obtenidas:** Throughput medio de **57.4 RPS**, latencia mediana $MD = 68.5$\,ms, latencia $P_{95} = 285.0$\,ms, tasa de fallos HTTP 5xx = **0.0\%**.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput medio de **57.4 RPS**, latencia mediana $MD = 68.5$\,ms, latencia $P_{95} = 285.0$\,ms, tasa de fallos HTTP 5xx = **0.0\%**.
 
 ### Escenario 2: Carga Crítica de Calificaciones
 - **Usuarios concurrentes ($U$):** 14 docentes titulares simultáneos.
 - **Tasa de aparición (Spawn rate):** 14 usuarios/segundo (ingreso instantáneo).
 - **Duración total:** 3 minutos (180 segundos).
 - **Endpoints evaluados:** Transacciones de registro de notas formativas (70\%) y sumativas (30\%) con encadenamiento SHA-256.
-- **Métricas obtenidas:** Throughput de **24.8 RPS**, latencia mediana $MD = 42.0$\,ms, latencia $P_{95} = 165.0$\,ms, 0 fallos transaccionales.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput de **24.8 RPS**, latencia mediana $MD = 42.0$\,ms, latencia $P_{95} = 165.0$\,ms, 0 fallos transaccionales.
 
 ### Escenario 3: Cierre de Período Académico (Rampa de Estrés)
 - **Usuarios concurrentes ($U$):** Rampa escalonada de 0 a 200 usuarios concurrentes.
 - **Tasa de aparición (Spawn rate):** 1 usuario/segundo durante 200 segundos + 400 segundos de sostenimiento (10 minutos totales = 600\,s).
 - **Endpoints evaluados:** Consulta masiva de actas de secretaría, descarga de libretas PDF, consulta de asistencias y auditoría.
-- **Métricas obtenidas:** Throughput pico de **142.6 RPS**, latencia $P_{95} \le 412.0$\,ms ($< 500$\,ms SLA), 0.0\% errores 5xx.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput pico de **142.6 RPS**, latencia $P_{95} \le 412.0$\,ms ($< 500$\,ms SLA), 0.0\% errores 5xx.
 
 ---
 
@@ -151,6 +176,6 @@ python experimentos/run_experimentos.py
 ls experimentos/resultados/
 # deteccion.csv, manipulaciones.csv, iso25010.csv, boxplot_latencia.png
 
-# 5. Ejecutar pruebas de carga Locust (modo headless)
-locust -f tests/load/locustfile.py --headless -u 50 -r 5 -t 5m --csv=experimentos/resultados/locust_esc1
+# 5. Comando histórico de carga; NO ejecutar sobre evidencias conservadas
+locust -f tests/load/locustfile.py --headless -u 50 -r 5 -t 5m --csv=<directorio-nuevo>/locust_esc1
 ```
