@@ -24,12 +24,16 @@ class AuditoriaServiceTest {
     private HmacService hmacService;
 
     private LamportClock lamportClock;
+    private VectorClock vectorClock;
+    private AuditHashService auditHashService;
     private AuditoriaService auditoriaService;
 
     @BeforeEach
     void setUp() {
         lamportClock = new LamportClock();
-        auditoriaService = new AuditoriaService(repo, hmacService, lamportClock);
+        vectorClock = new VectorClock();
+        auditHashService = new AuditHashService();
+        auditoriaService = new AuditoriaService(repo, hmacService, lamportClock, vectorClock, auditHashService);
     }
 
     @Test
@@ -52,6 +56,7 @@ class AuditoriaServiceTest {
         assertEquals("CREAR", guardada.getAccion());
         assertEquals("calificacion", guardada.getTablaAfectada());
         assertNull(guardada.getHmac());
+        assertNull(guardada.getHashActual());
     }
 
     @Test
@@ -68,6 +73,10 @@ class AuditoriaServiceTest {
         Auditoria guardada = captor.getValue();
         assertEquals("HMAC_M2_VALIDO", guardada.getHmac());
         assertTrue(guardada.getDescripcion().contains("lamport:1"));
+        assertEquals(1L, guardada.getRelojLamport());
+        assertEquals(AuditHashService.GENESIS_HASH, guardada.getHashAnterior());
+        assertNotNull(guardada.getHashActual());
+        assertEquals(64, guardada.getHashActual().length());
     }
 
     @Test
@@ -83,7 +92,11 @@ class AuditoriaServiceTest {
 
         Auditoria guardada = captor.getValue();
         assertEquals("HMAC_M3_VALIDO", guardada.getHmac());
-        assertTrue(guardada.getDescripcion().contains("vclock:[1,0,0]"));
+        assertTrue(guardada.getDescripcion().contains("vclock:"));
+        assertNotNull(guardada.getVectorReloj());
+        assertTrue(guardada.getVectorReloj().contains("\"principal\":1"));
+        assertNotNull(guardada.getHashActual());
+        assertEquals(64, guardada.getHashActual().length());
     }
 
     @Test
