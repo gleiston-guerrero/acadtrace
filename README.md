@@ -131,8 +131,16 @@ npm run dev
 python -m pytest tests/contract tests/integration tests/e2e -v
 
 # 2. Banco Experimental Cuantitativo (Modulo G) y Metricas ISO 25010:
-python experimentos/run_experimentos.py
+python -m pip install -r experimentos/requirements.txt
+python experimentos/run_experimentos.py --mode local
+python experimentos/verificar_reproducibilidad.py
 ```
+
+E7: [alcance, dependencias y verificación](experimentos/REPRODUCIBILIDAD.md).
+La generación local usa datos sintéticos y mediciones temporales variables;
+SHA-256 verifica integridad de una ejecución concreta, no hashes idénticos entre
+ejecuciones. El modo HTTP requiere selección explícita. La regeneración y las
+pruebas del proceso corregido siguen pendientes de un entorno con Python.
 
 ---
 
