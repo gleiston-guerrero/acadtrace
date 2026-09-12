@@ -675,7 +675,7 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
         num_eventos = 50
         eventos = []
         tabla = {}
-        hash_p = "0" * 64
+        hash_p = GENESIS_HASH
         lclock = LamportClock(node_id=0)
 
         for i in range(num_eventos):
@@ -683,18 +683,22 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
             nota = 8.5
             tabla[est_id] = nota
             l_val = lclock.tick()
-            payload = f"{est_id}|1|{nota}|{time.time()}|{l_val}|{hash_p}"
-            h_actual = sha256_hash(payload)
-            eventos.append({
-                "id": i + 1,
-                "est_id": est_id,
-                "nota_final": nota,
-                "lamport": l_val,
-                "hash_previo": hash_p,
-                "hash_actual": h_actual,
-                "payload": payload
-            })
-            hash_p = h_actual
+            
+            # Usar la funcion productiva real en lugar de la formula falsa
+            evento = construir_evento_productivo(
+                identificador=i + 1,
+                anterior=hash_p,
+                lamport=l_val,
+                vector=None,
+                est_id=est_id,
+                doc_id=1,
+                nota_final=nota,
+                timestamp=time.time(),
+                modo="m2"
+            )
+            
+            eventos.append(evento)
+            hash_p = evento["hash_actual"]
 
         t0 = time.perf_counter_ns()
         valido_cad, _, _, _ = verificar_cadena_eventos(eventos, "M2")
