@@ -291,6 +291,11 @@ jobs:
   e2e-docente:
     name: E10 - Playwright Frontend Docente
     runs-on: ubuntu-latest
+
+    concurrency:
+     group: e10-docente-entorno-real
+     cancel-in-progress: false
+
     needs: test-web
     steps:
       - uses: actions/checkout@v4
