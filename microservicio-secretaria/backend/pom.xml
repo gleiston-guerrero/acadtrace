@@ -222,6 +222,34 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Asegurar que las fuentes generadas de protobuf estén en el classpath de pruebas -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>add-protobuf-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/protobuf/java</source>
+                <source>${project.build.directory}/generated-sources/protobuf/grpc-java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
+        </configuration>
+      </plugin>
       <!-- Configuración Surefire para JaCoCo y JUnit 5 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
