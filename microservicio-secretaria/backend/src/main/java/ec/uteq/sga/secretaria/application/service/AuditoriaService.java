@@ -6,6 +6,7 @@ import ec.uteq.sga.secretaria.infrastructure.security.HmacService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class AuditoriaService {
         this(jdbc, hmacService, new LamportClock());
     }
 
+    @Autowired
     public AuditoriaService(NamedParameterJdbcTemplate jdbc, HmacService hmacService, LamportClock lamportClock) {
         this.jdbc = jdbc;
         this.hmacService = hmacService;
