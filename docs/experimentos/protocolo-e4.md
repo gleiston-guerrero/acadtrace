@@ -41,7 +41,7 @@ Para garantizar la reproducibilidad científica estricta de las mediciones, se d
 | **Java JDK** | `OpenJDK 21.0.11 LTS` (Eclipse Temurin) | Runtime para Secretaría, Principal y Soporte |
 | **Spring Boot** | `3.2.5` | Framework backend en microservicios Java |
 | **Python** | `3.14.6` (Local) / `3.12.3` (Docente) | Ejecución de Locust, análisis estadístico y Django |
-| **JaCoCo Plugin** | `0.8.11` | Compuerta de calidad de cobertura de código ($\ge 70\%$) |
+| **JaCoCo Plugin** | `0.8.11` | Umbral mínimo de 70 % de cobertura de líneas (LINE) para módulos Java configurados; no es un resultado medido |
 | **Locust** | `2.46.4` | Generador de carga distribuida y estrés |
 | **SciPy** | `1.18.1` | Pruebas estadísticas (Mann-Whitney U, Bootstrap) |
 | **Pandas** | `3.0.5` | Procesamiento y persistencia de CSVs de telemetría |
@@ -51,6 +51,8 @@ Para garantizar la reproducibilidad científica estricta de las mediciones, se d
 ---
 
 ## 2. Parámetros y Semillas Fijas del Banco Experimental
+
+El umbral mínimo de cobertura es **70 % de líneas (LINE), medido por JaCoCo, para los módulos Java donde esté configurado**. Esta regla de calidad no debe interpretarse como una cifra obtenida en esta ejecución experimental.
 
 Para eliminar el sesgo estocástico y permitir la replicación exacta de los experimentos factoriales:
 

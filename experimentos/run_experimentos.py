@@ -44,10 +44,11 @@ NUM_DOCENTES = 14
 REPETICIONES_FACTORIALES = 30
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080")
 
-# Coberturas reales reportadas por JaCoCo HTML estático
-JACOCO_SGA_PRINCIPAL_GLOBAL_PCT = 0.51   # Cobertura global de instrucciones reportada por JaCoCo
-JACOCO_CRIPTO_AUDITORIA_CORE_PCT = 100.0 # Cobertura de pruebas unitarias en AuditoriaService y LamportClock
-JACOCO_SECRETARIA_GLOBAL_PCT = 34.52    # Cobertura en microservicio de secretaría
+# Referencias históricas conservadas para trazabilidad documental; no son
+# métricas vigentes ni se usan para calcular los resultados experimentales.
+JACOCO_SGA_PRINCIPAL_GLOBAL_PCT = 0.51   # Histórico: instrucciones de SGA Principal
+JACOCO_CRIPTO_AUDITORIA_CORE_PCT = 100.0 # Histórico: núcleo de auditoría y LamportClock
+JACOCO_SECRETARIA_GLOBAL_PCT = 34.52    # Histórico: CSV agregado de Secretaría, no XML global
 
 # =============================================================================
 # 1. CLIENTE HTTP REAL PARA MEDICIÓN DE LATENCIA CONTRA BACKEND VIVO

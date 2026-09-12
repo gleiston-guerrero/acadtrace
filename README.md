@@ -45,6 +45,10 @@ En cumplimiento con el Listado 3 de la guía de consolidación, a continuación 
 
 ---
 
+## Cobertura documentada (E8)
+
+La tabla central de cobertura, con la separación entre el último reporte local conservado de Soporte y las cifras históricas no regeneradas de otros módulos, está en [`docs/cobertura/README.md`](docs/cobertura/README.md). No se presenta ninguna cifra histórica como cobertura actual.
+
 ## Guia de Ejecucion
 
 Existen dos alternativas para poner en marcha el sistema:
