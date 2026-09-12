@@ -70,7 +70,7 @@ class ApiGatewayAndSecurityE2EIntegrationTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        jwtService = new JwtService("test-only-jwt-secret");
+        jwtService = new JwtService("test-only-jwt-secret-key-32-chars-long-minimum");
 
         validSecretariaToken = jwtService.generateToken("secretaria.user", List.of("SECRETARIA"));
         validDirectorToken = jwtService.generateToken("director.user", List.of("DIRECTOR"));

@@ -133,6 +133,25 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Testcontainers & Flyway para Pruebas de Integración en Contenedores (E13) -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>1.19.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>1.19.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Cliente gRPC hacia sga-principal (principal.proto, ver src/main/proto) -->
     <dependency>
       <groupId>net.devh</groupId>
