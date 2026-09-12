@@ -299,7 +299,6 @@ jobs:
      group: e10-docente-entorno-real
      cancel-in-progress: false
 
-    needs: test-web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
