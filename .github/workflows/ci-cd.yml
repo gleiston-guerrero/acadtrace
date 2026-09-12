@@ -8,6 +8,7 @@ on:
       - devBedon
       - Ernesto-Luna
       - Juliana-Emanuel
+      - Leonardo-Castro
   pull_request:
     branches:
       - main
