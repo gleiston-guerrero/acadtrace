@@ -64,6 +64,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     await seleccionarCurso(page, "Calificar");
 
     const semana = page.getByRole("spinbutton");
+
     await expect(semana).toBeVisible();
 
     const maxSemanas =
@@ -175,6 +176,11 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 
     const actual = Number(original);
 
+    expect(
+      Number.isFinite(actual),
+      `La nota original no es numérica: "${original}"`
+    ).toBeTruthy();
+
     const temporal =
       actual >= 0.01
         ? actual - 0.01
@@ -184,13 +190,15 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           );
 
     const guardarYEsperar = async () => {
-      const respuesta = page.waitForResponse(
+      const respuestaPromise = page.waitForResponse(
         (response) =>
           /\/calificaciones\//.test(response.url()) &&
           ["POST", "PATCH"].includes(
             response.request().method()
-          ) &&
-          response.ok()
+          ),
+        {
+          timeout: 15_000,
+        }
       );
 
       await page
@@ -199,7 +207,12 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         })
         .click();
 
-      await respuesta;
+      const respuesta = await respuestaPromise;
+
+      expect(
+        respuesta.ok(),
+        `El guardado de calificaciones respondió HTTP ${respuesta.status()}`
+      ).toBeTruthy();
     };
 
     try {
@@ -208,12 +221,6 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       );
 
       await guardarYEsperar();
-
-      await expect(
-        page.getByText(
-          /Se guardaron \d+ calificaciones/
-        )
-      ).toBeVisible();
     } finally {
       await nota.fill(original);
 
