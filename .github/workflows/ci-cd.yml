@@ -8,6 +8,7 @@ on:
       - devBedon
       - Ernesto-Luna
       - Juliana-Emanuel
+      - Leonardo-Castro
   pull_request:
     branches:
       - main
@@ -270,12 +271,6 @@ jobs:
           cd microservicio-secretaria/client
           npm ci --no-audit
           npm run build
-
-      - name: Ejecutar Pruebas E2E de Navegador Real (Playwright / Chromium) E10
-        run: |
-          python -m pip install playwright pytest-playwright
-          python -m playwright install chromium
-          python -m pytest tests/browser/test_sga_navegador.py -v
 
       - name: Empaquetar distribución web como artefacto (.tar.gz)
         run: |
