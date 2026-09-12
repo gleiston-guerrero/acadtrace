@@ -18,6 +18,7 @@ import os
 import time
 import json
 import pytest
+import secrets
 from playwright.sync_api import sync_playwright
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5173")
@@ -90,7 +91,7 @@ def test_03_navegacion_modulos_con_sesion_activa(browser_context):
     page = browser_context.new_page()
     
     # Inyectar sesión simulada válida en localStorage
-    token_simulado = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    token_simulado = secrets.token_urlsafe(32)
     roles_simulados = json.dumps(["ADMIN", "DIRECTOR"])
     
     modulos = [
