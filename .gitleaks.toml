@@ -1,0 +1,20 @@
+# Gitleaks Configuration for AcadTrace
+title = "AcadTrace Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Permitir placeholders de ejemplo, fixtures de prueba y documentacion"
+paths = [
+    '''\.env\.example$''',
+    '''.*Test\.java$''',
+    '''.*test_.*\.py$''',
+    '''docs/cobertura/.*''',
+    '''experimentos/.*'''
+]
+regexes = [
+    '''change-me.*''',
+    '''sga-provincias-unidas-secret-key-2026-ecuador-uteq-sistemas''',
+    '''dev-token-123'''
+]
