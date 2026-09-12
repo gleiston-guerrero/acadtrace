@@ -24,6 +24,7 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SPRING_FLYWAY_VALIDATE_ON_MIGRATE=false
 
 
     volumes:
