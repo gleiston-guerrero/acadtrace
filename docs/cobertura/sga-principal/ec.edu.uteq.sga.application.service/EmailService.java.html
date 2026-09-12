@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 
 @Service
 @RequiredArgsConstructor
-<span class="nc" id="L12">@Slf4j</span>
+<span class="fc" id="L12">@Slf4j</span>
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -31,7 +31,7 @@ public class EmailService {
 <span class="nc" id="L31">        } catch (Exception e) {</span>
 <span class="nc" id="L32">            log.error(&quot;✗ Error crítico al enviar correo a {}: {}&quot;, correo, e.getMessage(), e);</span>
 <span class="nc" id="L33">            throw new RuntimeException(&quot;Error enviando correo: &quot; + e.getMessage(), e);</span>
-<span class="nc" id="L34">        }</span>
+        }
 <span class="nc" id="L35">    }</span>
 
     private String construirHtml(String nombre, String username, String password) {

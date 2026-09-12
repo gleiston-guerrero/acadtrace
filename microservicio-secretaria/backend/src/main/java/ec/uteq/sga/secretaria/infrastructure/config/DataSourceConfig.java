@@ -27,7 +27,7 @@ public class DataSourceConfig {
     @Value("${db.user:postgres}")
     private String user;
 
-    @Value("${db.password:***REMOVED***}")
+    @Value("${db.password}")
     private String password;
 
     @Value("${db.ssl:false}")

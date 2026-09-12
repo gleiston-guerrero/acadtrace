@@ -13,10 +13,10 @@ import io.grpc.Context;
  */
 public final class TraceContext {
 
-<span class="nc" id="L16">    public static final Context.Key&lt;String&gt; GRPC_TRACE = Context.key(&quot;trace_id&quot;);</span>
-<span class="nc" id="L17">    public static final Context.Key&lt;String&gt; GRPC_ACTOR = Context.key(&quot;actor_username&quot;);</span>
+<span class="fc" id="L16">    public static final Context.Key&lt;String&gt; GRPC_TRACE = Context.key(&quot;trace_id&quot;);</span>
+<span class="fc" id="L17">    public static final Context.Key&lt;String&gt; GRPC_ACTOR = Context.key(&quot;actor_username&quot;);</span>
 
-<span class="nc" id="L19">    private static final ThreadLocal&lt;String&gt; HTTP_TRACE = new ThreadLocal&lt;&gt;();</span>
+<span class="fc" id="L19">    private static final ThreadLocal&lt;String&gt; HTTP_TRACE = new ThreadLocal&lt;&gt;();</span>
 
     private TraceContext() {}
 
@@ -26,8 +26,8 @@ public final class TraceContext {
 
     /** Trace id del request actual: prioriza el de gRPC (io.grpc.Context) y cae al HTTP (ThreadLocal) si no aplica. */
     public static String current() {
-<span class="nc" id="L29">        String grpcTrace = GRPC_TRACE.get();</span>
-<span class="nc bnc" id="L30" title="All 2 branches missed.">        return grpcTrace != null ? grpcTrace : HTTP_TRACE.get();</span>
+<span class="fc" id="L29">        String grpcTrace = GRPC_TRACE.get();</span>
+<span class="pc bpc" id="L30" title="1 of 2 branches missed.">        return grpcTrace != null ? grpcTrace : HTTP_TRACE.get();</span>
     }
 
     /** Username que origino la llamada en el servicio de arrastre (ej. secretaria), solo presente en llamadas gRPC entrantes. */

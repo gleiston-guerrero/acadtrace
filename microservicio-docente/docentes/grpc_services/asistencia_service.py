@@ -1,4 +1,5 @@
 import grpc
+from django.conf import settings
 from django.db import transaction, connection
 from django.db.models import Count
 from micro_docente.middleware import registrar_asistencias_exitosas
@@ -48,22 +49,22 @@ def _asegurar_asignacion(id_asignacion, id_docente=None):
         """, [id_asignacion, doc_usuario])
 
 class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
-    
+
     def _validate_auth(self, context, id_asignacion):
         metadata = dict(context.invocation_metadata())
         id_docente = metadata.get('docente_id')
         internal_token = metadata.get('internal_token')
-        
-        if internal_token != '***REMOVED***':
+
+        if internal_token != settings.GRPC_INTERNAL_TOKEN:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "Token interno inválido o ausente")
 
         if not id_docente:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "docente_id requerido en metadatos")
-            
+
         validation = validate_teacher_assignment(int(id_docente), id_asignacion)
         if not validation or not validation.get('is_valid'):
             context.abort(grpc.StatusCode.PERMISSION_DENIED, "El docente no tiene acceso a esta asignación")
-            
+
         return int(id_docente)
 
     def _actualizar_resumen(self, id_matricula, id_asignacion, periodo):
@@ -73,12 +74,12 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
             id_asignacion=id_asignacion,
             id_periodo=periodo
         )
-        
+
         total_presentes = 0
         total_ausentes = 0
         total_justificados = 0
         total_atrasos = 0
-        
+
         for a in asistencias:
             if a.estado == EstadoAsistencia.PRESENTE:
                 total_presentes += 1
@@ -88,7 +89,7 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 total_justificados += 1
             elif a.estado == EstadoAsistencia.ATRASO:
                 total_atrasos += 1
-                
+
         # Upsert del resumen
         resumen, created = ResumenAsistencia.objects.get_or_create(
             id_matricula=id_matricula,
@@ -101,7 +102,7 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 'total_atrasos': total_atrasos
             }
         )
-        
+
         if not created:
             resumen.total_presentes = total_presentes
             resumen.total_ausentes = total_ausentes
@@ -141,12 +142,12 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
         try:
             id_docente = self._validate_auth(context, request.id_asignacion)
             _asegurar_asignacion(request.id_asignacion, id_docente)
-            
+
             try:
                 periodo = PeriodoEvaluacion.objects.get(id_periodo=request.id_periodo)
             except ObjectDoesNotExist:
                 context.abort(grpc.StatusCode.NOT_FOUND, "Periodo de evaluación no encontrado")
-                
+
             # Evitar N+1 y llamadas a gRPC individuales obteniendo los estudiantes válidos
             estudiantes = get_students_by_assignment(request.id_asignacion)
             matriculas_validas = {est['id_matricula'] for est in estudiantes}
@@ -243,7 +244,7 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
             )
             registrar_asistencias_exitosas(len(asistencias_creadas))
             return response
-            
+
         except grpc.RpcError:
             raise
         except Exception as e:
@@ -255,17 +256,17 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 asistencia = Asistencia.objects.get(id_asistencia=request.id_asistencia)
             except ObjectDoesNotExist:
                 context.abort(grpc.StatusCode.NOT_FOUND, "Registro de asistencia no encontrado")
-                
+
             self._validate_auth(context, asistencia.id_asignacion)
-            
+
             if request.estado not in [e.value for e in EstadoAsistencia]:
                 context.abort(grpc.StatusCode.INVALID_ARGUMENT, f"Estado {request.estado} inválido")
-                
+
             with transaction.atomic():
                 asistencia.estado = request.estado
                 asistencia.justificacion = request.justificacion
                 asistencia.save()
-                
+
                 self._actualizar_resumen(asistencia.id_matricula, asistencia.id_asignacion, asistencia.id_periodo)
                 auditar_evento(
                     tipo_evento="ASISTENCIA_ACTUALIZADA", entidad="Asistencia",
@@ -273,7 +274,7 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                     actor_id=asistencia.registrado_por,
                     payload=payload_instancia(asistencia),
                 )
-                
+
             dto = asistencia_pb2.AsistenciaDTO(
                 id_asistencia=asistencia.id_asistencia,
                 id_matricula=asistencia.id_matricula,
@@ -283,13 +284,13 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 estado=asistencia.estado,
                 justificacion=asistencia.justificacion or ""
             )
-            
+
             return asistencia_pb2.AsistenciaResponse(
                 success=True,
                 message="Asistencia actualizada exitosamente",
                 asistencia=dto
             )
-            
+
         except grpc.RpcError:
             raise
         except Exception as e:
@@ -298,16 +299,16 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
     def ConsultarAsistencia(self, request, context):
         try:
             self._validate_auth(context, request.id_asignacion)
-            
+
             query = Asistencia.objects.filter(id_asignacion=request.id_asignacion)
-            
+
             if request.fecha:
                 query = query.filter(fecha=request.fecha)
             if request.id_periodo > 0:
                 query = query.filter(id_periodo_id=request.id_periodo)
             if request.id_matricula > 0:
                 query = query.filter(id_matricula=request.id_matricula)
-                
+
             resultados = []
             for a in query:
                 resultados.append(
@@ -321,13 +322,13 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                         justificacion=a.justificacion or ""
                     )
                 )
-                
+
             return asistencia_pb2.AsistenciaListResponse(
                 success=True,
                 message=f"{len(resultados)} registros encontrados",
                 asistencias=resultados
             )
-            
+
         except grpc.RpcError:
             raise
         except Exception as e:
@@ -336,27 +337,27 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
     def ConsultarResumenAsistencia(self, request, context):
         try:
             self._validate_auth(context, request.id_asignacion)
-            
+
             estudiantes = get_students_by_assignment(request.id_asignacion)
             matriculas_validas = [est['id_matricula'] for est in estudiantes]
-            
+
             query = ResumenAsistencia.objects.filter(
                 id_asignacion=request.id_asignacion,
                 id_matricula__in=matriculas_validas
             )
-            
+
             if request.id_periodo > 0:
                 query = query.filter(id_periodo_id=request.id_periodo)
             if request.id_matricula > 0:
                 query = query.filter(id_matricula=request.id_matricula)
-                
+
             resultados = []
             for r in query:
                 total = r.total_presentes + r.total_ausentes + r.total_justificados + r.total_atrasos
                 porcentaje = 0.0
                 if total > 0:
                     porcentaje = ((r.total_presentes + r.total_justificados + r.total_atrasos) / total) * 100.0
-                    
+
                 resultados.append(
                     asistencia_pb2.ResumenAsistenciaDTO(
                         id_resumen=r.id_resumen,
@@ -370,13 +371,13 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                         porcentaje_asistencia=porcentaje
                     )
                 )
-                
+
             return asistencia_pb2.ResumenAsistenciaListResponse(
                 success=True,
                 message=f"{len(resultados)} resúmenes encontrados",
                 resumenes=resultados
             )
-            
+
         except grpc.RpcError:
             raise
         except Exception as e:

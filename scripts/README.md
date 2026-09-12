@@ -22,7 +22,7 @@ Poblado masivo del dataset para cumplir el requisito de Entrega 3
 ### Como correrlo
 
 ```bash
-PGPASSWORD=***REMOVED*** psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
+PGPASSWORD="$env:DB_PASSWORD" psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
   -v ON_ERROR_STOP=1 -f scripts/seed_e3_500k.sql
 ```
 

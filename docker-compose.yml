@@ -11,18 +11,25 @@ services:
       - "8080"
       - "9092"
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
+      - JWT_SECRET=${JWT_SECRET}
+      - AES_SECRET_KEY=${AES_SECRET_KEY}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - FCM_ENABLED=${FCM_ENABLED:-false}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+
+
     volumes:
       - ./sga-principal/uploads:/app/uploads
+      - ${FIREBASE_CREDENTIALS_PATH:-/home/ubuntu/.secrets/acadtrace/firebase-admin.json}:/run/secrets/firebase-admin.json:ro
+
     networks:
       - sga-distribuido-net
     deploy:
@@ -57,11 +64,11 @@ services:
       - "8000"
       - "9091"
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - SGA_PRINCIPAL_URL=http://sga-principal:8080
@@ -86,11 +93,11 @@ services:
       - "8090:8080"
     environment:
       - SPARK_NO_DAEMONIZE=true
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./scripts/spark:/scripts
       - ./scripts/spark/jars:/jars
@@ -107,14 +114,14 @@ services:
       - "5176:5176"   # REST & Frontend integrado en Spring Boot
       # - "8082:5176"  # REST Backend alias compatible
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
-      - JWT_SECRET=***REMOVED***
-      - AES_SECRET_KEY=***REMOVED-AES-SECRET***=
+      - JWT_SECRET=${JWT_SECRET}
+      - AES_SECRET_KEY=${AES_SECRET_KEY}
       - GRPC_PRINCIPAL_HOST=sga-principal
       - GRPC_PRINCIPAL_PORT=9092
     networks:
@@ -132,20 +139,30 @@ services:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
       - "9094:9094"   # gRPC Servidor (IncidenciaService)
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
-      - JWT_SECRET=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse en el entorno}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
       - GRPC_PORT=9094
       - ETCD_ENDPOINTS=http://etcd:2379
+      - ZIPKIN_ENDPOINT=${ZIPKIN_ENDPOINT:-http://zipkin:9411/api/v2/spans}
     networks:
       - sga-distribuido-net
     depends_on:
       - etcd
+
+  zipkin:
+    image: openzipkin/zipkin:2.24.3
+    container_name: sga-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - sga-distribuido-net
 
   # ─── 4b. ETCD (coordinacion / eleccion de lider entre replicas de soporte) ───
   etcd:
@@ -175,8 +192,7 @@ services:
       - /app/node_modules
     ports:
       - "5173:5173"
-      - "5174:5173"
-    command: sh -c "npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     networks:
       - sga-distribuido-net
     depends_on:
@@ -221,7 +237,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=***REMOVED-GRAFANA-SECRET***
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD debe definirse}
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
@@ -268,7 +284,7 @@ services:
     image: prometheuscommunity/postgres-exporter:v0.15.0
     container_name: sga-postgres-exporter
     environment:
-      - DATA_SOURCE_NAME=postgresql://postgres:***REMOVED***@192.0.2.1:5433/sga?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@${DB_HOST:-192.0.2.1}:${DB_PORT:-5433}/${DB_NAME:-sga}?sslmode=disable
     ports:
       - "9187:9187"
     networks:

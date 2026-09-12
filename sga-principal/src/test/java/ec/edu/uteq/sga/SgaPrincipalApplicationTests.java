@@ -11,19 +11,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-    "spring.flyway.enabled=false",
-    "grpc.server.port=-1",
-    "spring.main.banner-mode=off"
-})
 class SgaPrincipalApplicationTests {
-
-    @MockBean
-    private DataSource dataSource;
-
-    @MockBean
-    private Flyway flyway;
 
     @Test
     void contextLoads() {

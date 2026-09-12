@@ -32,7 +32,7 @@ public class CryptoService {
     private final SecretKeySpec key;
 <span class="fc" id="L33">    private final SecureRandom random = new SecureRandom();</span>
 
-<span class="fc" id="L35">    public CryptoService(@Value(&quot;${app.crypto.secret-key:***REMOVED-AES-SECRET***=}&quot;) String base64Key) {</span>
+<span class="fc" id="L35">    public CryptoService(@Value(&quot;${app.crypto.secret-key:test-only-aes-key}&quot;) String base64Key) {</span>
 <span class="fc" id="L36">        byte[] keyBytes = Base64.getDecoder().decode(base64Key);</span>
 <span class="fc bfc" id="L37" title="All 2 branches covered.">        if (keyBytes.length != 32) {</span>
 <span class="fc" id="L38">            throw new IllegalStateException(</span>

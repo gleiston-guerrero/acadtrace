@@ -41,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
 <span class="nc" id="L41">                        .collect(Collectors.toList());</span>
 
 <span class="nc" id="L43">                UsernamePasswordAuthenticationToken auth =</span>
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
+<span class="nc" id="L44">                        new UsernamePasswordAuthenticationToken(username, null, authorities);</span>
 
 <span class="nc" id="L46">                SecurityContextHolder.getContext().setAuthentication(auth);</span>
             }

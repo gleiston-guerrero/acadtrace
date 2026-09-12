@@ -8,18 +8,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.nio.file.Paths;
 
 @Configuration
-<span class="nc" id="L11">public class WebConfig implements WebMvcConfigurer {</span>
+<span class="fc" id="L11">public class WebConfig implements WebMvcConfigurer {</span>
 
     @Value(&quot;${app.uploads.dir:uploads}&quot;)
     private String baseDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-<span class="nc" id="L18">        String ruta = Paths.get(baseDir).toAbsolutePath().toUri().toString();</span>
-<span class="nc bnc" id="L19" title="All 2 branches missed.">        if (!ruta.endsWith(&quot;/&quot;)) {</span>
+<span class="fc" id="L18">        String ruta = Paths.get(baseDir).toAbsolutePath().toUri().toString();</span>
+<span class="pc bpc" id="L19" title="1 of 2 branches missed.">        if (!ruta.endsWith(&quot;/&quot;)) {</span>
 <span class="nc" id="L20">            ruta += &quot;/&quot;;</span>
         }
-<span class="nc" id="L22">        registry.addResourceHandler(&quot;/uploads/**&quot;).addResourceLocations(ruta);</span>
-<span class="nc" id="L23">    }</span>
+<span class="fc" id="L22">        registry.addResourceHandler(&quot;/uploads/**&quot;).addResourceLocations(ruta);</span>
+<span class="fc" id="L23">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

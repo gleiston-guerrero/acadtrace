@@ -16,11 +16,11 @@ private static final long serialVersionUID = 0L;
   private GradoProto(com.google.protobuf.GeneratedMessageV3.Builder&lt;?&gt; builder) {
 <span class="nc" id="L17">    super(builder);</span>
 <span class="nc" id="L18">  }</span>
-<span class="nc" id="L19">  private GradoProto() {</span>
-<span class="nc" id="L20">    nombre_ = &quot;&quot;;</span>
-<span class="nc" id="L21">    nivelEducativo_ = &quot;&quot;;</span>
-<span class="nc" id="L22">    tipoEscala_ = &quot;&quot;;</span>
-<span class="nc" id="L23">  }</span>
+<span class="fc" id="L19">  private GradoProto() {</span>
+<span class="fc" id="L20">    nombre_ = &quot;&quot;;</span>
+<span class="fc" id="L21">    nivelEducativo_ = &quot;&quot;;</span>
+<span class="fc" id="L22">    tipoEscala_ = &quot;&quot;;</span>
+<span class="fc" id="L23">  }</span>
 
   @java.lang.Override
   @SuppressWarnings({&quot;unused&quot;})
@@ -43,7 +43,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_GRADO_FIELD_NUMBER = 1;
-<span class="nc" id="L46">  private long idGrado_ = 0L;</span>
+<span class="pc" id="L46">  private long idGrado_ = 0L;</span>
   /**
    * &lt;code&gt;int64 id_grado = 1;&lt;/code&gt;
    * @return The idGrado.
@@ -54,7 +54,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int NOMBRE_FIELD_NUMBER = 2;
-<span class="nc" id="L57">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L57">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object nombre_ = &quot;&quot;;
   /**
    * &lt;code&gt;string nombre = 2;&lt;/code&gt;
@@ -93,7 +93,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ORDEN_FIELD_NUMBER = 3;
-<span class="nc" id="L96">  private int orden_ = 0;</span>
+<span class="pc" id="L96">  private int orden_ = 0;</span>
   /**
    * &lt;code&gt;int32 orden = 3;&lt;/code&gt;
    * @return The orden.
@@ -104,7 +104,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ACTIVO_FIELD_NUMBER = 4;
-<span class="nc" id="L107">  private boolean activo_ = false;</span>
+<span class="pc" id="L107">  private boolean activo_ = false;</span>
   /**
    * &lt;code&gt;bool activo = 4;&lt;/code&gt;
    * @return The activo.
@@ -115,7 +115,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int CAPACIDAD_MAX_FIELD_NUMBER = 5;
-<span class="nc" id="L118">  private int capacidadMax_ = 0;</span>
+<span class="pc" id="L118">  private int capacidadMax_ = 0;</span>
   /**
    * &lt;code&gt;int32 capacidad_max = 5;&lt;/code&gt;
    * @return The capacidadMax.
@@ -126,7 +126,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_NIVEL_FIELD_NUMBER = 6;
-<span class="nc" id="L129">  private long idNivel_ = 0L;</span>
+<span class="pc" id="L129">  private long idNivel_ = 0L;</span>
   /**
    * &lt;pre&gt;
    * 0 = sin nivel asignado
@@ -141,7 +141,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int NIVEL_EDUCATIVO_FIELD_NUMBER = 7;
-<span class="nc" id="L144">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L144">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object nivelEducativo_ = &quot;&quot;;
   /**
    * &lt;code&gt;string nivel_educativo = 7;&lt;/code&gt;
@@ -180,7 +180,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int TIPO_ESCALA_FIELD_NUMBER = 8;
-<span class="nc" id="L183">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L183">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object tipoEscala_ = &quot;&quot;;
   /**
    * &lt;code&gt;string tipo_escala = 8;&lt;/code&gt;
@@ -218,7 +218,7 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-<span class="nc" id="L221">  private byte memoizedIsInitialized = -1;</span>
+<span class="pc" id="L221">  private byte memoizedIsInitialized = -1;</span>
   @java.lang.Override
   public final boolean isInitialized() {
 <span class="nc" id="L224">    byte isInitialized = memoizedIsInitialized;</span>
@@ -1116,15 +1116,15 @@ private static final long serialVersionUID = 0L;
   // @@protoc_insertion_point(class_scope:sga.principal.GradoProto)
   private static final ec.edu.uteq.sga.grpc.principal.GradoProto DEFAULT_INSTANCE;
   static {
-<span class="nc" id="L1119">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.GradoProto();</span>
+<span class="fc" id="L1119">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.GradoProto();</span>
   }
 
   public static ec.edu.uteq.sga.grpc.principal.GradoProto getDefaultInstance() {
-<span class="nc" id="L1123">    return DEFAULT_INSTANCE;</span>
+<span class="fc" id="L1123">    return DEFAULT_INSTANCE;</span>
   }
 
   private static final com.google.protobuf.Parser&lt;GradoProto&gt;
-<span class="nc" id="L1127">      PARSER = new com.google.protobuf.AbstractParser&lt;GradoProto&gt;() {</span>
+<span class="fc" id="L1127">      PARSER = new com.google.protobuf.AbstractParser&lt;GradoProto&gt;() {</span>
     @java.lang.Override
     public GradoProto parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
@@ -1151,7 +1151,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Override
   public com.google.protobuf.Parser&lt;GradoProto&gt; getParserForType() {
-<span class="nc" id="L1154">    return PARSER;</span>
+<span class="fc" id="L1154">    return PARSER;</span>
   }
 
   @java.lang.Override

@@ -13,18 +13,35 @@ El sistema esta compuesto por un modulo principal y tres microservicios autonomo
 
 | Servicio | Tecnologia Backend | Puerto REST | Puerto gRPC | Puerto Frontend | Responsabilidad Principal |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **SGA Principal** | Java 17 (Spring Boot) | 8080 | 9092 | 5173 | Core Academico, Usuarios, Autenticacion y Modulos |
+| **SGA Principal** | Java 21 (Spring Boot) | 8080 | 9092 | 5173 | Core Academico, Usuarios, Autenticacion y Modulos |
 | **Microservicio Docente** | Python 3.12 (Django REST) | 8081 | 9091 | 5174 | Gestion de Asistencia, Evaluaciones y Calificaciones |
-| **Microservicio Secretaria** | Node.js / Express | 8082 | 9093 | 5175 | Control de Tramites, Certificados y Admisiones |
-| **Microservicio Soporte** | Node.js / Express | 8083 | 9094 | 5176 | Tickets de Incidencias y Atencion Tecnica |
+| **Microservicio Secretaria** | Java 21 (Spring Boot) | 8082 | 9093 | 5176 | Control de Tramites, Certificados, Matricula y Auditoria HMAC |
+| **Microservicio Soporte** | Java 17 (Spring Boot) | 8083 | 9094 | 8083 | Tickets de Incidencias, Eleccion de Lider etcd y Actuator |
 
 ---
 ## 🔐 Seguridad y Gestión de Variables de Entorno
 
 En cumplimiento con los estándares de seguridad y la norma **ISO/IEC 25010:2023**:
 * Las credenciales de acceso a bases de datos y llaves criptográficas JWT/AES se gestionan exclusivamente mediante **variables de entorno** (`.env`) y secretos de GitHub Actions (`secrets.EC2_SSH_KEY`).
-* Se provee la plantilla formal [`.env.example`](.env.example) con la estructura requerida para el despliegue del clúster distribuido en AWS.
+* Se provee la plantilla formal [`.env.example`](.env.example) con la estructura requerida para el despliegue del clúster distribuido en AWS o en local.
 * Por higiene de seguridad en repositorios públicos, las contraseñas no se almacenan en texto plano.
+
+---
+## 🗺️ Mapa de Estructura del Repositorio y Trazabilidad (Criterio E16)
+
+En cumplimiento con el Listado 3 de la guía de consolidación, a continuación se detalla el mapeo entre la estructura prescrita y los módulos del proyecto:
+
+| Estructura Prescrita | Carpeta en AcadTrace | Contenido y Responsabilidad | Comando de Reproducción |
+| :--- | :--- | :--- | :--- |
+| `src/core` | `sga-principal/` | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
+| `src/docente` | `microservicio-docente/` | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && pytest` |
+| `src/secretaria` | `microservicio-secretaria/` | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria && ./mvnw test` |
+| `src/soporte` | `microservicio-soporte/` | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte && ./mvnw test` |
+| `apps/mobile` | `app-movil-docente/` | Cliente nativo Android (Kotlin/Jetpack Compose) con persistencia offline Room | `cd app-movil-docente && ./gradlew test` |
+| `apps/web` | `sga-principal/sga-frontend/` | Portal web reactivo en React + TypeScript y Vite | `npm run build` |
+| `infra/gateway` | `infra/haproxy/` | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
+| `infra/observability`| `infra/prometheus/`, `infra/grafana/` | Métricas Prometheus (:9090) y tableros Grafana (:3001) | `docker compose up prometheus grafana -d`|
+| `docs/experiments` | `experimentos/`, `docs/experimentos/` | Scripts de verificación de bitácora y datasets de reproducibilidad | `python experimentos/verificador_cadena.py` |
 
 ---
 
@@ -34,20 +51,27 @@ Existen dos alternativas para poner en marcha el sistema:
 
 ---
 
-### Opcion A: Ejecucion mediante Docker Compose (Recomendado)
+### Opcion A: Ejecucion Automatizada con Un Solo Comando (Piso P3 - Recomendado)
 
-Pone en marcha todos los contenedores de backend y microservicios con un solo comando:
+Pone en marcha todos los contenedores de backend, gateway y microservicios con un solo comando:
 
+# 1. Clonar el repositorio
+git clone https://github.com/LEO23as/acadtrace.git
+cd acadtrace
+
+# 2. Levantar el stack completo (valida entorno, .env y levanta los servicios)
+./scripts/start.sh
+```
+
+Alternativamente con Docker Compose directo:
 ```bash
-# 1. Clonar el repositorio unificado
-git clone https://github.com/LEO23as/sga-sistema-distribuido.git
-cd sga-sistema-distribuido
-
-# 2. Levantar todos los servicios en contenedores aislados
-docker-compose up --build
+docker compose up --build -d
 ```
 
 * Acceso Frontend Principal: http://localhost:5173
+* Acceso API Gateway HAProxy: http://localhost:8080 (Dashboard: http://localhost:8404)
+* Acceso Monitoreo Prometheus: http://localhost:9090
+* Acceso Tableros Grafana: http://localhost:3001 (credenciales: admin / admin)
 
 ---
 
@@ -58,11 +82,7 @@ Si se requiere ejecutar los componentes de manera individual en consolas indepen
 #### 1. SGA Principal (Spring Boot)
 ```bash
 cd sga-principal
-# En Windows (PowerShell):
-.\mvnw spring-boot:run
-
-# En Linux/Mac:
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 * Servidor activo en: http://localhost:8080
 
@@ -80,19 +100,17 @@ Abrir dos consolas en la carpeta `microservicio-docente`:
   python manage.py rungrpcserver
   ```
 
-#### 3. Microservicio Secretaria
+#### 3. Microservicio Secretaria (Spring Boot)
 ```bash
 cd microservicio-secretaria/backend
-npm install
-npm start
+mvn spring-boot:run
 ```
-* Servidor activo en: http://localhost:8082
+* Servidor activo en: http://localhost:8082 (o 5176)
 
-#### 4. Microservicio Soporte
+#### 4. Microservicio Soporte (Spring Boot)
 ```bash
 cd microservicio-soporte/backend
-npm install
-npm start
+mvn spring-boot:run
 ```
 * Servidor activo en: http://localhost:8083
 
@@ -103,6 +121,18 @@ npm install
 npm run dev
 ```
 * Aplicacion web lista en: http://localhost:5173
+
+---
+
+## Ejecucion de Suites de Pruebas Automatizadas
+
+```bash
+# 1. Pruebas de Contratos (gRPC y OpenAPI), Integracion y E2E:
+python -m pytest tests/contract tests/integration tests/e2e -v
+
+# 2. Banco Experimental Cuantitativo (Modulo G) y Metricas ISO 25010:
+python experimentos/run_experimentos.py
+```
 
 ---
 

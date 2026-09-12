@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuditoriaIntegridadTest {
 
-    private static final String SECRET = "***REMOVED***";
+    private static final String SECRET = "test-only-jwt-secret";
     private HmacService hmacService;
 
     @Mock

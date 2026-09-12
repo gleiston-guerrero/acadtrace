@@ -16,9 +16,9 @@ private static final long serialVersionUID = 0L;
   private GuardarGradoRequest(com.google.protobuf.GeneratedMessageV3.Builder&lt;?&gt; builder) {
 <span class="nc" id="L17">    super(builder);</span>
 <span class="nc" id="L18">  }</span>
-<span class="nc" id="L19">  private GuardarGradoRequest() {</span>
-<span class="nc" id="L20">    nombre_ = &quot;&quot;;</span>
-<span class="nc" id="L21">  }</span>
+<span class="fc" id="L19">  private GuardarGradoRequest() {</span>
+<span class="fc" id="L20">    nombre_ = &quot;&quot;;</span>
+<span class="fc" id="L21">  }</span>
 
   @java.lang.Override
   @SuppressWarnings({&quot;unused&quot;})
@@ -41,7 +41,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_GRADO_FIELD_NUMBER = 1;
-<span class="nc" id="L44">  private long idGrado_ = 0L;</span>
+<span class="pc" id="L44">  private long idGrado_ = 0L;</span>
   /**
    * &lt;pre&gt;
    * 0 en creacion, ignorado por CrearGrado
@@ -56,7 +56,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int NOMBRE_FIELD_NUMBER = 2;
-<span class="nc" id="L59">  @SuppressWarnings(&quot;serial&quot;)</span>
+<span class="pc" id="L59">  @SuppressWarnings(&quot;serial&quot;)</span>
   private volatile java.lang.Object nombre_ = &quot;&quot;;
   /**
    * &lt;code&gt;string nombre = 2;&lt;/code&gt;
@@ -95,7 +95,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ORDEN_FIELD_NUMBER = 3;
-<span class="nc" id="L98">  private int orden_ = 0;</span>
+<span class="pc" id="L98">  private int orden_ = 0;</span>
   /**
    * &lt;code&gt;int32 orden = 3;&lt;/code&gt;
    * @return The orden.
@@ -106,7 +106,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int CAPACIDAD_MAX_FIELD_NUMBER = 4;
-<span class="nc" id="L109">  private int capacidadMax_ = 0;</span>
+<span class="pc" id="L109">  private int capacidadMax_ = 0;</span>
   /**
    * &lt;code&gt;int32 capacidad_max = 4;&lt;/code&gt;
    * @return The capacidadMax.
@@ -117,7 +117,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ID_NIVEL_FIELD_NUMBER = 5;
-<span class="nc" id="L120">  private long idNivel_ = 0L;</span>
+<span class="pc" id="L120">  private long idNivel_ = 0L;</span>
   /**
    * &lt;pre&gt;
    * 0 = sin nivel
@@ -131,7 +131,7 @@ private static final long serialVersionUID = 0L;
 <span class="nc" id="L131">    return idNivel_;</span>
   }
 
-<span class="nc" id="L134">  private byte memoizedIsInitialized = -1;</span>
+<span class="pc" id="L134">  private byte memoizedIsInitialized = -1;</span>
   @java.lang.Override
   public final boolean isInitialized() {
 <span class="nc" id="L137">    byte isInitialized = memoizedIsInitialized;</span>
@@ -793,15 +793,15 @@ private static final long serialVersionUID = 0L;
   // @@protoc_insertion_point(class_scope:sga.principal.GuardarGradoRequest)
   private static final ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest DEFAULT_INSTANCE;
   static {
-<span class="nc" id="L796">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest();</span>
+<span class="fc" id="L796">    DEFAULT_INSTANCE = new ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest();</span>
   }
 
   public static ec.edu.uteq.sga.grpc.principal.GuardarGradoRequest getDefaultInstance() {
-<span class="nc" id="L800">    return DEFAULT_INSTANCE;</span>
+<span class="fc" id="L800">    return DEFAULT_INSTANCE;</span>
   }
 
   private static final com.google.protobuf.Parser&lt;GuardarGradoRequest&gt;
-<span class="nc" id="L804">      PARSER = new com.google.protobuf.AbstractParser&lt;GuardarGradoRequest&gt;() {</span>
+<span class="fc" id="L804">      PARSER = new com.google.protobuf.AbstractParser&lt;GuardarGradoRequest&gt;() {</span>
     @java.lang.Override
     public GuardarGradoRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
@@ -828,7 +828,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Override
   public com.google.protobuf.Parser&lt;GuardarGradoRequest&gt; getParserForType() {
-<span class="nc" id="L831">    return PARSER;</span>
+<span class="fc" id="L831">    return PARSER;</span>
   }
 
   @java.lang.Override

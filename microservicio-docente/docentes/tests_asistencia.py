@@ -22,7 +22,7 @@ class DummyContext:
         raise grpc.RpcError(details)
 
 
-def auth_context(token="***REMOVED***", docente="10"):
+def auth_context(token="test-internal-token", docente="10"):
     return DummyContext((("docente_id", docente), ("internal_token", token)))
 
 
@@ -34,7 +34,7 @@ def test_autenticacion_valida(mock_validate):
     assert mock_validate.call_args.args == (10, 50)
 
 
-@pytest.mark.parametrize("context", [auth_context(token="malo"), DummyContext((("internal_token", "***REMOVED***"),))])
+@pytest.mark.parametrize("context", [auth_context(token="malo"), DummyContext((("internal_token", "test-internal-token"),))])
 def test_autenticacion_rechaza_credenciales_invalidas(context):
     with pytest.raises(grpc.RpcError) as exc:
         AsistenciaServiceServicer()._validate_auth(context, 50)

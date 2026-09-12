@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 @Component
 @Order(1)
-<span class="nc" id="L22">public class TraceIdFilter extends OncePerRequestFilter {</span>
+<span class="fc" id="L22">public class TraceIdFilter extends OncePerRequestFilter {</span>
 
     public static final String HEADER = &quot;X-Trace-Id&quot;;
 
@@ -34,7 +34,7 @@ import java.util.UUID;
 <span class="nc" id="L34">            TraceContext.set(traceId);</span>
 <span class="nc" id="L35">            response.setHeader(HEADER, traceId);</span>
 <span class="nc" id="L36">            chain.doFilter(request, response);</span>
-        } finally {
+<span class="nc" id="L37">        } finally {</span>
 <span class="nc" id="L38">            TraceContext.clear();</span>
         }
 <span class="nc" id="L40">    }</span>

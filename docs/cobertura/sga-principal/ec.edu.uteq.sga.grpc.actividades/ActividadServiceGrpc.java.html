@@ -193,10 +193,10 @@ public final class ActividadServiceGrpc {
   public static ActividadServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceBlockingStub&gt; factory =
-<span class="nc" id="L196">      new io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceBlockingStub&gt;() {</span>
+<span class="fc" id="L196">      new io.grpc.stub.AbstractStub.StubFactory&lt;ActividadServiceBlockingStub&gt;() {</span>
         @java.lang.Override
         public ActividadServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
-<span class="nc" id="L199">          return new ActividadServiceBlockingStub(channel, callOptions);</span>
+<span class="fc" id="L199">          return new ActividadServiceBlockingStub(channel, callOptions);</span>
         }
       };
     return ActividadServiceBlockingStub.newStub(factory, channel);
@@ -344,8 +344,8 @@ public final class ActividadServiceGrpc {
       extends io.grpc.stub.AbstractBlockingStub&lt;ActividadServiceBlockingStub&gt; {
     private ActividadServiceBlockingStub(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
-<span class="nc" id="L347">      super(channel, callOptions);</span>
-<span class="nc" id="L348">    }</span>
+<span class="fc" id="L347">      super(channel, callOptions);</span>
+<span class="fc" id="L348">    }</span>
 
     @java.lang.Override
     protected ActividadServiceBlockingStub build(

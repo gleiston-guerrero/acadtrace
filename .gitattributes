@@ -1,0 +1,11 @@
+# Forzar normalizacion de finales de linea LF (Criterio E17 - ISO/IEC 25010)
+* text=auto eol=lf
+*.csv text eol=lf
+*.sql text eol=lf
+*.py text eol=lf
+*.java text eol=lf
+*.tex text eol=lf
+*.md text eol=lf
+*.png binary
+*.jpg binary
+*.jar binary

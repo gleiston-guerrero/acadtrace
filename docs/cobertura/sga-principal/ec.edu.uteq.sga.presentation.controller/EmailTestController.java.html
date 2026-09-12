@@ -17,14 +17,14 @@ public class EmailTestController {
     public ResponseEntity&lt;?&gt; probarEnvioDe(@RequestParam String correo) {
         try {
 <span class="nc" id="L19">            emailService.enviarCredenciales(</span>
-                    correo,
-                    &quot;Test Usuario&quot;,
-                    &quot;test.user&quot;,
-                    &quot;TestPass123!&quot;
+<span class="nc" id="L20">                    correo,</span>
+<span class="nc" id="L21">                    &quot;Test Usuario&quot;,</span>
+<span class="nc" id="L22">                    &quot;test.user&quot;,</span>
+<span class="nc" id="L23">                    &quot;TestPass123!&quot;</span>
             );
 <span class="nc" id="L25">            return ResponseEntity.ok(Map.of(</span>
 <span class="nc" id="L26">                    &quot;success&quot;, true,</span>
-                    &quot;message&quot;, &quot;Correo enviado a: &quot; + correo
+<span class="nc" id="L27">                    &quot;message&quot;, &quot;Correo enviado a: &quot; + correo</span>
             ));
 <span class="nc" id="L29">        } catch (Exception e) {</span>
 <span class="nc" id="L30">            return ResponseEntity.badRequest().body(Map.of(</span>

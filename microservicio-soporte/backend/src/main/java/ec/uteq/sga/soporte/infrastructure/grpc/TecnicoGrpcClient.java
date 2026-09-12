@@ -10,6 +10,7 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.MetadataUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,16 +40,16 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class TecnicoGrpcClient {
 
-    private static final String INTERNAL_TOKEN_VALUE = "***REMOVED***";
+
     private static final long   DEADLINE_SECONDS      = 3;
     private static final int    MAX_REINTENTOS        = 2; // reintentos ADEMAS del intento inicial
     private static final long   BACKOFF_BASE_MS        = 300; // 300ms, 600ms...
 
     private final UsuarioServiceGrpc.UsuarioServiceBlockingStub stub;
 
-    public TecnicoGrpcClient(ManagedChannel principalGrpcChannel) {
+    public TecnicoGrpcClient(ManagedChannel principalGrpcChannel, @Value("${app.grpc.internal-token}") String internalToken) {
         Metadata metadata = new Metadata();
-        metadata.put(Metadata.Key.of("internal_token", Metadata.ASCII_STRING_MARSHALLER), INTERNAL_TOKEN_VALUE);
+        metadata.put(Metadata.Key.of("internal_token", Metadata.ASCII_STRING_MARSHALLER), internalToken);
 
         this.stub = UsuarioServiceGrpc.newBlockingStub(principalGrpcChannel)
                 .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));

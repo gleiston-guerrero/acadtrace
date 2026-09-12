@@ -57,10 +57,10 @@ import java.sql.Connection;
 <span class="nc" id="L57">                System.err.println(&quot;La tabla sga_principal.usuarios no existe. Omitiendo seed.&quot;);</span>
 <span class="nc" id="L58">                return;</span>
             }
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        } catch (Exception e) {</span>
+<span class="nc" id="L60">        } catch (Exception e) {</span>
 <span class="nc" id="L61">            System.err.println(&quot;Error verificando la BD: &quot; + e.getMessage());</span>
 <span class="nc" id="L62">            return;</span>
-<span class="nc" id="L63">        }</span>
+        }
 
         try {
 
@@ -109,7 +109,7 @@ import java.sql.Connection;
 <span class="nc" id="L109">        Grado grado = null;</span>
 <span class="nc bnc" id="L110" title="All 2 branches missed.">        if (gradoRepository.findAll().stream().anyMatch(g -&gt; g.getNombre().equals(&quot;Octavo de prueba&quot;))) {</span>
 <span class="nc" id="L111">            grado = gradoRepository.findAll().stream().filter(g -&gt; g.getNombre().equals(&quot;Octavo de prueba&quot;)).findFirst().get();</span>
-        } else {
+<span class="nc" id="L112">        } else {</span>
 <span class="nc" id="L113">            grado = new Grado();</span>
 <span class="nc" id="L114">            grado.setNombre(&quot;Octavo de prueba&quot;);</span>
 <span class="nc" id="L115">            grado.setOrden((short) 8);</span>
@@ -121,7 +121,7 @@ import java.sql.Connection;
 <span class="nc" id="L121">        Asignatura asignatura = null;</span>
 <span class="nc bnc" id="L122" title="All 2 branches missed.">        if (asignaturaRepository.findAll().stream().anyMatch(a -&gt; a.getNombre().equals(&quot;Matemática de prueba&quot;))) {</span>
 <span class="nc" id="L123">            asignatura = asignaturaRepository.findAll().stream().filter(a -&gt; a.getNombre().equals(&quot;Matemática de prueba&quot;)).findFirst().get();</span>
-        } else {
+<span class="nc" id="L124">        } else {</span>
 <span class="nc" id="L125">            asignatura = new Asignatura();</span>
 <span class="nc" id="L126">            asignatura.setNombre(&quot;Matemática de prueba&quot;);</span>
 <span class="nc" id="L127">            asignatura.setActiva(true);</span>
@@ -180,7 +180,7 @@ import java.sql.Connection;
 <span class="nc" id="L180">        } catch (Exception e) {</span>
 <span class="nc" id="L181">            System.err.println(&quot;Error ejecutando el SeedRunner: &quot; + e.getMessage());</span>
 <span class="nc" id="L182">            e.printStackTrace();</span>
-<span class="nc" id="L183">        }</span>
+        }
 <span class="nc" id="L184">    }</span>
 
     private void crearMatriculaSiNoExiste(Estudiante estudiante, AnoLectivo ano, Grado grado) {

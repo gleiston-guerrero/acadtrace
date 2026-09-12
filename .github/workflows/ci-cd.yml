@@ -23,6 +23,18 @@ env:
 
 jobs:
 
+  secret-scan:
+    name: Deteccion de secretos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout completo del historial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ejecutar Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ci-docente:
     name: CI Microservicio Docente
     runs-on: ubuntu-latest
@@ -32,6 +44,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Suite, cobertura y comprobaciones Django
+        env:
+          GRPC_INTERNAL_TOKEN: test-internal-token
         run: |
           cd microservicio-docente
           python -m pip install -r requirements.txt
@@ -121,6 +135,8 @@ jobs:
           python-version: "3.12"
 
       - name: Pruebas y Cobertura Python (Microservicio Docente)
+        env:
+          GRPC_INTERNAL_TOKEN: test-internal-token
         run: |
           cd microservicio-docente
           python -m pip install --upgrade pip
@@ -128,9 +144,19 @@ jobs:
           python -m pytest -v --cov=docentes --cov-report=term-missing --cov-fail-under=70
 
       - name: Pruebas Unitarias SGA Principal (Spring Boot)
+        env:
+          DB_HOST: 192.0.2.1
+          DB_PORT: 5433
+          DB_NAME: sga
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          GRPC_INTERNAL_TOKEN: test-internal-token
+          AES_SECRET_KEY: test-aes-key-for-ci-only
         run: |
           cd sga-principal
-          ./mvnw clean test -Dtest=EstudianteServiceTest,TeacherAuthorizationServiceTest -q
+          ./mvnw clean test -q
 
       - name: Subir reporte de cobertura JaCoCo como artefacto
         uses: actions/upload-artifact@v4
@@ -138,6 +164,39 @@ jobs:
         with:
           name: reporte-cobertura-jacoco
           path: sga-principal/target/site/jacoco/
+          retention-days: 7
+
+  test-soporte-backend:
+    name: CI Backend Microservicio Soporte
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      GRPC_INTERNAL_TOKEN: test-internal-token
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Ejecutar pruebas y cobertura JaCoCo de Soporte
+        working-directory: microservicio-soporte/backend
+        env:
+          GRPC_INTERNAL_TOKEN: test-internal-token
+        run: |
+          chmod +x mvnw
+          ./mvnw clean verify
+
+      - name: Subir reporte JaCoCo de Soporte
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-microservicio-soporte
+          path: microservicio-soporte/backend/target/site/jacoco/
           retention-days: 7
 
   # ─── 3. JOB TEST-WEB ───────────────────────────────────────────────────────
@@ -171,6 +230,12 @@ jobs:
           cd microservicio-soporte
           npm install --no-audit --legacy-peer-deps
           npm run build
+
+      - name: Ejecutar Pruebas E2E de Navegador Real (Playwright / Chromium) E10
+        run: |
+          python -m pip install playwright pytest-playwright
+          python -m playwright install chromium
+          python -m pytest tests/browser/test_sga_navegador.py -v
 
       - name: Empaquetar distribución web como artefacto (.tar.gz)
         run: |
@@ -269,6 +334,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test-backend
+      - test-soporte-backend
       - test-web
     if: github.ref == 'refs/heads/main'
     steps:
@@ -342,7 +408,6 @@ jobs:
     steps:
       - name: Despliegue Seguro por SSH a AWS EC2
         uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
         env:
           GRPC_INTERNAL_TOKEN: ${{ secrets.GRPC_INTERNAL_TOKEN }}
         with:
