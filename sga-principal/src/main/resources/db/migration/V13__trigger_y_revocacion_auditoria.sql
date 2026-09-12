@@ -1,4 +1,4 @@
-﻿-- =============================================================================
+-- =============================================================================
 -- Migracion 007: Inmutabilidad Criptografica Estricta (Append-Only Trigger)
 -- Microservicio Secretaria / SGA Principal
 --
@@ -26,5 +26,19 @@ EXECUTE FUNCTION sga_principal.prohibir_modificacion_auditoria();
 
 COMMENT ON TRIGGER tg_auditoria_append_only ON sga_principal.auditoria IS 
 'Garantiza la inmutabilidad y no-repudio bloqueando cualquier intento de UPDATE o DELETE sobre los registros de auditoria.';
+
 -- Criterio E6: Restriccion estricta de privilegios a nivel de motor de BD
-REVOKE UPDATE, DELETE ON TABLE sga_principal.auditoria FROM PUBLIC;
+REVOKE UPDATE, DELETE, TRUNCATE ON TABLE sga_principal.auditoria FROM PUBLIC;
+
+DO $$ 
+BEGIN
+    -- Revocar explicitamente para roles especificos de aplicacion si existen
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sga_app') THEN
+        REVOKE UPDATE, DELETE, TRUNCATE ON TABLE sga_principal.auditoria FROM sga_app;
+        GRANT SELECT, INSERT ON TABLE sga_principal.auditoria TO sga_app;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sga_user') THEN
+        REVOKE UPDATE, DELETE, TRUNCATE ON TABLE sga_principal.auditoria FROM sga_user;
+        GRANT SELECT, INSERT ON TABLE sga_principal.auditoria TO sga_user;
+    END IF;
+END $$;

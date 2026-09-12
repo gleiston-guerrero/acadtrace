@@ -26,64 +26,83 @@ sga-secretaria/
 
 ---
 
-## Instalación y primer uso
+## Instalación Reproducible y Primer Uso (Criterios E12 & E14)
+
+### Requisitos Previos
+- **Java:** JDK 21 (Eclipse Temurin 21 recomendado).
+- **Maven:** 3.9+ (o utilizar el wrapper incluido `./mvnw` / `mvnw.cmd`).
+- **Node.js:** 20.x LTS y npm con soporte para lockfile v3 (`package-lock.json`).
+
+### Pasos de Construcción Limpia desde Cero
 
 ```bash
-# 1. Configurar variables de entorno
+# 1. Configurar variables de entorno requeridas
 cp .env.example .env
-# → Editar .env: DB_PASSWORD y demás valores
+# → Definir contraseñas y llaves obligatorias (ver sección Variables de Entorno)
 
-# 2. Compilar el frontend (una sola vez, o cada vez que cambies el React)
-cd client && npm install && npm run build && cd ..
+# 2. Instalación determinística y compilación del frontend (E12 con npm ci)
+cd client
+npm ci --no-audit
+npm run build
+cd ..
 
-# 3. Compilar y ejecutar el backend (desde la raíz del repo)
-mvn -f backend/pom.xml spring-boot:run
+# 3. Compilación, verificación de pruebas y empaquetado del backend
+cd backend
+./mvnw clean package -DskipTests   # Linux / macOS
+# o en Windows:
+.\mvnw.cmd clean package -DskipTests
+cd ..
+
+# 4. Ejecutar el microservicio Secretaría
+java -jar backend/target/sga-secretaria-backend.jar
 ```
 
-Abre **http://localhost:5176** — verás el login del panel de secretaría.
-
-> El backend usa el Maven Wrapper si no tenés Maven instalado: `./backend/mvnw -f backend/pom.xml spring-boot:run` (Linux/Mac) o `backend\mvnw.cmd -f backend\pom.xml spring-boot:run` (Windows).
+Abre **http://localhost:5176** — verás la interfaz web integrada del panel de secretaría.
 
 ---
 
-## Modos de desarrollo
+## Modos de Desarrollo
 
-### Opción A — Solo backend (si ya tenés el build del frontend)
+### Opción A — Solo backend (usando build previo del frontend)
 ```bash
-mvn -f backend/pom.xml spring-boot:run
+cd backend
+./mvnw spring-boot:run
 ```
-Con `spring-boot-devtools` en el classpath, el backend se reinicia solo al recompilar (`mvn -f backend/pom.xml compile`).
+Con `spring-boot-devtools` en el classpath, el backend se reinicia automáticamente al recompilar.
 
-### Opción B — Desarrollo activo del frontend (hot reload)
+### Opción B — Desarrollo activo del frontend (Vite Hot Reload)
 ```bash
-# Terminal 1: backend Spring Boot
-mvn -f backend/pom.xml spring-boot:run
+# Terminal 1: Backend Spring Boot
+cd backend
+./mvnw spring-boot:run
 
-# Terminal 2: Vite dev con proxy automático → :5176
-cd client && npm run dev
+# Terminal 2: Vite dev con proxy hacia :5176
+cd client
+npm ci
+npm run dev
 # Abre http://localhost:5174
 ```
 
-El `vite.config.js` tiene configurado el proxy: todas las peticiones `/api/*` desde el puerto de Vite se redirigen al backend.
-
 ---
 
-## Variables de entorno
+## Variables de Entorno Obligatorias (Fail-Fast E1)
 
-| Variable | Descripción | Ejemplo |
+| Variable | Descripción | Valor Ejemplo / Placeholder |
 |---|---|---|
-| `PORT` | Puerto del servidor | `5176` |
-| `DB_HOST` | Host Supabase | `aws-1-us-east-1.pooler.supabase.com` |
-| `DB_PORT` | Puerto PostgreSQL | `5432` |
-| `DB_NAME` | Nombre base de datos | `postgres` |
-| `DB_USER` | Usuario Supabase | `postgres.xxxxx` |
-| `DB_PASSWORD` | Contraseña | `tu_password` |
-| `DB_SSL` | SSL activado | `true` |
-| `JWT_SECRET` | **Misma secret que sga-principal** | `sga-provincias-unidas-...` |
-| `VITE_API_PRINCIPAL` | URL del Spring Boot de login (solo dev, la usa el frontend) | `http://localhost:8080/api` |
-| `INST_NOMBRE` / `INST_CIUDAD` | Encabezados institucionales de los PDFs | — |
-| `CORS_ORIGIN` *(opcional)* | Origen permitido, default `*` | — |
-| `FRONTEND_DIST_PATH` *(opcional)* | Carpeta del build del frontend, default `client/dist` | — |
+| `PORT` | Puerto del servidor HTTP | `5176` |
+| `DB_HOST` | Host PostgreSQL | `192.0.2.1` |
+| `DB_PORT` | Puerto PostgreSQL | `5433` |
+| `DB_NAME` | Nombre base de datos | `sga` |
+| `DB_USER` | Usuario base de datos | `postgres` |
+| `DB_PASSWORD` | Contraseña obligatoria (fail-fast) | `change-me` |
+| `JWT_SECRET` | Clave secreta obligatoria HMAC-SHA256 (mín. 256 bits) | `change-me` |
+| `AES_SECRET_KEY` | Clave AES-256 (32 bytes Base64) para campos sensibles | `change-me` |
+| `GRPC_INTERNAL_TOKEN` | Token interno de autenticación inter-servicios | `change-me` |
+| `GRPC_PRINCIPAL_HOST` | Host del servidor gRPC Principal | `sga-principal` (o `localhost`) |
+| `GRPC_PRINCIPAL_PORT` | Puerto del servidor gRPC Principal | `9092` |
+| `INST_NOMBRE` / `INST_CIUDAD` | Encabezados institucionales de reportes PDF | `Escuela de Educación Básica Provincias Unidas` |
+| `CORS_ORIGIN` *(opcional)* | Origen CORS permitido (default `*`) | `*` |
+| `FRONTEND_DIST_PATH` *(opcional)* | Ruta de artefactos estáticos | `client/dist` |
 
 ---
 

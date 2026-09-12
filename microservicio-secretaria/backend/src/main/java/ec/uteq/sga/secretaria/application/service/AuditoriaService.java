@@ -36,10 +36,16 @@ public class AuditoriaService {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final HmacService hmacService;
+    private final LamportClock lamportClock;
 
     public AuditoriaService(NamedParameterJdbcTemplate jdbc, HmacService hmacService) {
+        this(jdbc, hmacService, new LamportClock());
+    }
+
+    public AuditoriaService(NamedParameterJdbcTemplate jdbc, HmacService hmacService, LamportClock lamportClock) {
         this.jdbc = jdbc;
         this.hmacService = hmacService;
+        this.lamportClock = lamportClock != null ? lamportClock : new LamportClock();
     }
 
     public void registrarCrud(String accion, String tablaAfectada, Long registroId, String descripcion) {
@@ -69,6 +75,8 @@ public class AuditoriaService {
                     String.valueOf(fecha.toEpochMilli())
             );
 
+            long lamport = lamportClock != null ? lamportClock.tick() : 1L;
+
             MapSqlParameterSource params = new MapSqlParameterSource()
                     .addValue("username", username)
                     .addValue("accion", accion)
@@ -79,6 +87,7 @@ public class AuditoriaService {
                     .addValue("traceId", traceUuid.toString())
                     .addValue("resultado", resultado)
                     .addValue("hmac", hmac)
+                    .addValue("relojLamport", lamport)
                     // pgjdbc no infiere el tipo SQL para java.time.Instant via setObject;
                     // OffsetDateTime si tiene soporte nativo para timestamptz.
                     .addValue("fecha", fecha.atOffset(java.time.ZoneOffset.UTC));
@@ -86,10 +95,10 @@ public class AuditoriaService {
             jdbc.update("""
                     INSERT INTO sga_principal.auditoria
                         (schema_origen, username, accion, tabla_afectada, registro_id, descripcion,
-                         ip_address, trace_id, resultado, hmac, fecha)
+                         ip_address, trace_id, resultado, hmac, reloj_lamport, fecha)
                     VALUES
                         ('SECRETARIA', :username, CAST(:accion AS sga_principal.accion_auditoria_t), :tablaAfectada,
-                         :registroId, :descripcion, :ip, CAST(:traceId AS uuid), :resultado, :hmac, :fecha)
+                         :registroId, :descripcion, :ip, CAST(:traceId AS uuid), :resultado, :hmac, :relojLamport, :fecha)
                     """, params);
         } catch (Exception e) {
             log.error("No se pudo registrar evento de auditoria ({} / {}): {}", accion, tablaAfectada, e.getMessage(), e);
