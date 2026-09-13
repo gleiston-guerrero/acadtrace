@@ -309,19 +309,19 @@ jobs:
       - name: Compilar Frontend SGA Principal
         run: |
           cd sga-principal/sga-frontend
-          npm install --no-audit --legacy-peer-deps
+          npm ci --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Docente
         run: |
           cd microservicio-docente/frontend
-          npm install --no-audit --legacy-peer-deps
+          npm ci --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Soporte
         run: |
           cd microservicio-soporte
-          npm install --no-audit --legacy-peer-deps
+          npm ci --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Secretaría (E12 con npm ci)
