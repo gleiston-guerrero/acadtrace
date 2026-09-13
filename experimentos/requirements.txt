@@ -1,0 +1,2 @@
+# Dependencia gráfica; el verificador solo requiere la biblioteca estándar.
+matplotlib==3.10.6
