@@ -19,8 +19,21 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Testcontainers
+import org.junit.jupiter.api.condition.EnabledIf;
+import org.testcontainers.DockerClientFactory;
+
+@Testcontainers(disabledWithoutDocker = true)
+@EnabledIf("isDockerAvailable")
 class AuditoriaFlywayMigrationContainerTest {
+
+    static boolean isDockerAvailable() {
+        try {
+            DockerClientFactory.instance().client();
+            return true;
+        } catch (Throwable ex) {
+            return false;
+        }
+    }
 
     private static final String DB_PASSWORD =
             UUID.randomUUID().toString();
@@ -103,7 +116,8 @@ class AuditoriaFlywayMigrationContainerTest {
                     "14",
                     "15",
                     "16",
-                    "17"
+                    "17",
+                    "18"
             )) {
 
                 assertThat(
@@ -190,6 +204,86 @@ class AuditoriaFlywayMigrationContainerTest {
                             idAuditoria
                     )
             ).isEqualTo(1L);
+        }
+    }
+
+    @Test
+    void criterioE6_rolCreadoPorMigracionRechazaModificacionInclusoSinTrigger()
+            throws SQLException {
+
+        assertThat(POSTGRES.isRunning()).isTrue();
+
+        Flyway flyway = Flyway.configure()
+                .dataSource(
+                        POSTGRES.getJdbcUrl(),
+                        POSTGRES.getUsername(),
+                        POSTGRES.getPassword()
+                )
+                .schemas("sga_principal")
+                .defaultSchema("sga_principal")
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .baselineVersion(MigrationVersion.fromVersion("8"))
+                .load();
+
+        flyway.migrate();
+
+        // 1. Demostrar que la migracion V18 creo realmente el rol sga_app en el motor
+        try (Connection adminConn = abrirConexion();
+             PreparedStatement ps = adminConn.prepareStatement(
+                     "SELECT count(*) FROM pg_roles WHERE rolname = 'sga_app'")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1))
+                        .as("El rol sga_app debe haber sido creado por la migracion V18")
+                        .isEqualTo(1);
+            }
+        }
+
+        // 2. Insertar registro testigo con conexion admin
+        long idAuditoria;
+        try (Connection adminConn = abrirConexion()) {
+            idAuditoria = insertarRegistroTestigo(adminConn);
+
+            // 3. Simular que un atacante o admin desactiva temporalmente el trigger
+            try (Statement stmt = adminConn.createStatement()) {
+                stmt.execute("ALTER TABLE sga_principal.auditoria DISABLE TRIGGER tg_auditoria_append_only;");
+            }
+        }
+
+        // 4. Conectarse con el usuario de aplicacion sga_app creado por la migracion
+        try {
+            try (Connection appConn = DriverManager.getConnection(
+                    POSTGRES.getJdbcUrl(), "sga_app", "sga_app_secure_pass_2026")) {
+
+                // Intento de UPDATE sin trigger: DEBE fallar por permisos a nivel de motor (42501 permission denied)
+                try (Statement stmt = appConn.createStatement()) {
+                    assertThatThrownBy(() -> stmt.executeUpdate(
+                            "UPDATE sga_principal.auditoria SET descripcion = 'hack sin trigger' WHERE id_auditoria = " + idAuditoria))
+                            .isInstanceOf(SQLException.class)
+                            .satisfies(ex -> {
+                                SQLException sqlEx = (SQLException) ex;
+                                assertThat(sqlEx.getSQLState()).isEqualTo("42501");
+                                assertThat(sqlEx.getMessage().toLowerCase()).contains("permission denied");
+                            });
+
+                    // Intento de DELETE sin trigger: DEBE fallar por permisos a nivel de motor (42501 permission denied)
+                    assertThatThrownBy(() -> stmt.executeUpdate(
+                            "DELETE FROM sga_principal.auditoria WHERE id_auditoria = " + idAuditoria))
+                            .isInstanceOf(SQLException.class)
+                            .satisfies(ex -> {
+                                SQLException sqlEx = (SQLException) ex;
+                                assertThat(sqlEx.getSQLState()).isEqualTo("42501");
+                                assertThat(sqlEx.getMessage().toLowerCase()).contains("permission denied");
+                            });
+                }
+            }
+        } finally {
+            // Reactivar trigger con conexion admin
+            try (Connection adminConn = abrirConexion();
+                 Statement stmt = adminConn.createStatement()) {
+                stmt.execute("ALTER TABLE sga_principal.auditoria ENABLE TRIGGER tg_auditoria_append_only;");
+            }
         }
     }
 
