@@ -4,7 +4,7 @@ MÃ³dulo G â€” Banco Experimental y EvaluaciÃ³n Cuantitativa de Carga y 
 Proyecto AcadTrace / SGA Escuela - Entrega 4
 Responsable de Calidad y Gateway / DocumentaciÃ³n
 
-Genera de forma 100% portable y verificable:
+Genera experimentos locales/sintéticos con mediciones temporales variables:
   - experimentos/resultados/deteccion.csv
   - experimentos/resultados/manipulaciones.csv
   - experimentos/resultados/iso25010.csv
@@ -13,6 +13,24 @@ Genera de forma 100% portable y verificable:
   - experimentos/resultados/boxplot_latencia.png
 """
 
+import argparse
+from pathlib import Path
+import shutil
+import tempfile
+if __package__:
+    from .verificar_reproducibilidad import (
+        ARTIFACTS,
+        CERTIFICATE,
+        write_certificate,
+        verify,
+    )
+else:
+    from verificar_reproducibilidad import (
+        ARTIFACTS,
+        CERTIFICATE,
+        write_certificate,
+        verify,
+    )
 import os
 import sys
 import time
@@ -65,27 +83,32 @@ SEED = 20260831
 random.seed(SEED)
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "resultados")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 
 NUM_ESTUDIANTES = 344
 NUM_DOCENTES = 14
 REPETICIONES_FACTORIALES = 30
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080")
 
-# Coberturas reales reportadas por JaCoCo HTML estÃ¡tico
-JACOCO_SGA_PRINCIPAL_GLOBAL_PCT = 0.51   # Cobertura global de instrucciones reportada por JaCoCo
-JACOCO_CRIPTO_AUDITORIA_CORE_PCT = 100.0  # Cobertura del nÃºcleo de cripto-auditorÃ­a
-JACOCO_SECRETARIA_GLOBAL_PCT = 34.52    # Cobertura en microservicio de secretarÃ­a
+# Referencias históricas conservadas para trazabilidad documental; no son
+# métricas vigentes ni se usan para calcular los resultados experimentales.
+JACOCO_SGA_PRINCIPAL_GLOBAL_PCT = 0.51   # Histórico: instrucciones de SGA Principal
+JACOCO_CRIPTO_AUDITORIA_CORE_PCT = 100.0  # Histórico: núcleo de cripto-auditoría
+JACOCO_SECRETARIA_GLOBAL_PCT = 34.52    # Histórico: CSV agregado de Secretaría, no XML global
 
 # =============================================================================
 # 1. CLIENTE HTTP REAL PARA MEDICIÃ“N DE LATENCIA CONTRA BACKEND VIVO
 # =============================================================================
 
 class LiveBackendClient:
-    def __init__(self, base_url: str = BACKEND_URL):
+    def __init__(self, base_url: str = BACKEND_URL, mode: str = "local"):
         self.base_url = base_url.rstrip("/")
         self.token: Optional[str] = None
-        self.is_live = self.verificar_conexion()
+        if mode not in ("local", "http"):
+            raise ValueError("EXPERIMENT_MODE debe ser local o http")
+        self.is_live = mode == "http"
+        if self.is_live and not self.verificar_conexion():
+            raise RuntimeError("Modo HTTP solicitado: backend no disponible; no se cambia a local")
 
     def verificar_conexion(self) -> bool:
         """Verifica si el backend estÃ¡ activo en el puerto configurado."""
@@ -234,7 +257,8 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
     for conc in concurrencias:
         for mec in mecanismos:
             if client.is_live:
-                client.conmutar_modo_auditoria(mec)
+                if not client.conmutar_modo_auditoria(mec):
+                    raise RuntimeError(f"No se pudo configurar auditoría HTTP: {mec}")
 
             for rep in range(1, repeticiones + 1):
                 t_inicio = time.perf_counter()
@@ -251,6 +275,10 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
                     nota = 8.5
 
                     if client.is_live:
+                        ok, lat_ms, status = client.enviar_calificacion_http(est_id, doc_id, nota)
+                        if not ok:
+                            raise RuntimeError(f"Falló la transacción HTTP: estado {status}")
+
                         ok, lat_ms, status = client.enviar_calificacion_http(
                             est_id,
                             doc_id,
@@ -337,7 +365,7 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
 
     filepath = os.path.join(OUTPUT_DIR, "exp1_concurrencia.csv")
     with open(filepath, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(filas_exp1[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=list(filas_exp1[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(filas_exp1)
     print(f"  -> Guardado: exp1_concurrencia.csv ({len(filas_exp1)} filas)")
@@ -478,13 +506,13 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
 
     f_det = os.path.join(OUTPUT_DIR, "deteccion.csv")
     with open(f_det, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(deteccion_rows[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=list(deteccion_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(deteccion_rows)
 
     f_man = os.path.join(OUTPUT_DIR, "manipulaciones.csv")
     with open(f_man, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(manipulaciones_rows[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=list(manipulaciones_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(manipulaciones_rows)
 
@@ -562,21 +590,14 @@ def ejecutar_experimento_3_reconciliacion() -> List[Dict[str, Any]]:
                 reconciliacion["politica"],
         })
 
-    filepath = os.path.join(
-        OUTPUT_DIR,
-        "exp3_reconciliacion.csv",
-    )
+    filepath = os.path.join(OUTPUT_DIR, "exp3_reconciliacion.csv")
 
-    with open(
-        filepath,
-        "w",
-        newline="",
-        encoding="utf-8",
-    ) as f:
+    with open(filepath, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
             fieldnames=list(filas_exp3[0].keys()),
-        )
+            lineterminator="\n",
+       )
         writer.writeheader()
         writer.writerows(filas_exp3)
 
@@ -597,7 +618,7 @@ def obtener_cobertura_jacoco_real() -> Dict[str, float]:
     jacoco_principal = os.path.join(repo_root, "docs", "cobertura", "sga-principal", "jacoco.csv")
     jacoco_sec = os.path.join(repo_root, "docs", "cobertura", "secretaria", "jacoco.csv")
 
-    pct_principal = 0.51
+    pct_principal = "No disponible"
     if os.path.exists(jacoco_principal):
         try:
             with open(jacoco_principal, "r", encoding="utf-8") as f:
@@ -611,7 +632,7 @@ def obtener_cobertura_jacoco_real() -> Dict[str, float]:
         except Exception:
             pass
 
-    pct_sec = 34.52
+    pct_sec = "No disponible"
     if os.path.exists(jacoco_sec):
         try:
             with open(jacoco_sec, "r", encoding="utf-8") as f:
@@ -628,12 +649,12 @@ def obtener_cobertura_jacoco_real() -> Dict[str, float]:
     return {
         "sga_principal_global_pct": pct_principal,
         "secretaria_global_pct": pct_sec,
-        "core_cripto_auditoria_pct": 100.0
+        "core_cripto_auditoria_pct": "No disponible"
     }
 
 
 def ejecutar_metricas_iso25010() -> List[Dict[str, Any]]:
-    print("[4/5] Registrando metricas de calidad ISO/IEC 25010 (Valores reales medidos de Locust y JaCoCo)...")
+    print("[4/5] Registrando metricas de calidad ISO/IEC 25010 (Derivación de evidencia histórica local de Locust y JaCoCo)...")
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     h1 = os.path.join(repo_root, "experimentos", "resultados", "locust_esc1_stats_history.csv")
     h2 = os.path.join(repo_root, "experimentos", "resultados", "locust_esc3_stats_history.csv")
@@ -643,12 +664,12 @@ def ejecutar_metricas_iso25010() -> List[Dict[str, Any]]:
 
     def parse_history_windows(filepath: str, escenario_nombre: str, default_users: int, duracion_total: int, num_windows: int = 10):
         if not os.path.exists(filepath):
-            return []
+            raise ValueError(f"Historial requerido ausente o sin muestras: {filepath}")
         with open(filepath, "r", encoding="utf-8") as f:
             rows = [r for r in csv.DictReader(f) if r.get("Name") == "Aggregated"]
         valid_rows = [r for r in rows if r.get("50%") not in ("N/A", "", None)]
         if not valid_rows:
-            return []
+            raise ValueError(f"Historial requerido ausente o sin muestras: {filepath}")
         step = max(1, len(valid_rows) // num_windows)
         out = []
         for i in range(num_windows):
@@ -666,41 +687,38 @@ def ejecutar_metricas_iso25010() -> List[Dict[str, Any]]:
             reqs_window = int(round(avg_rps * (duracion_total / num_windows)))
             out.append({
                 "escenario": escenario_nombre,
-                "corrida": i + 1,
+                "ventana_derivada": i + 1,
                 "usuarios_concurrentes": users,
-                "duracion_s": int(duracion_total / num_windows),
-                "peticiones_totales": reqs_window,
-                "throughput_rps": round(avg_rps, 2),
-                "latencia_media_ms": round(med_lat * 1.25, 2),
-                "latencia_mediana_ms": round(med_lat, 2),
-                "latencia_p95_ms": round(p95_lat, 2),
-                "latencia_p99_ms": round(p99_lat, 2),
-                "errores_5xx_pct": round(err_pct, 4),
-                "disponibilidad_pct": round(disp_pct, 4),
+                "duracion_configurada_por_ventana_s": int(duracion_total / num_windows),
+                "peticiones_estimadas": reqs_window,
+                "throughput_promedio_muestras_rps": round(avg_rps, 2),
+                "latencia_media_ms": "No disponible",
+                "promedio_p50_muestras_ms": round(med_lat, 2),
+                "promedio_p95_muestras_ms": round(p95_lat, 2),
+                "promedio_p99_muestras_ms": round(p99_lat, 2),
+                "fallos_generales_derivados_pct": round(err_pct, 4),
+                "errores_5xx_pct": "No disponible",
+                "exito_peticiones_derivado_pct": round(disp_pct, 4),
+                "disponibilidad_produccion_pct": "No disponible",
                 "cobertura_jacoco_pct": jacoco_global,
-                "rechazo_401_pct": 100.0
+                "rechazo_401_pct": "No disponible",
+                "origen": os.path.relpath(filepath, repo_root).replace(os.sep, "/"),
+                "alcance": "derivado de muestras históricas; no nueva carga ni agregado oficial"
             })
         return out
 
     iso_rows = []
-    esc1_rows = parse_history_windows(h1, "Esc-1 (Carga Nominal)", default_users=50, duracion_total=300, num_windows=10)
-    esc2_rows = parse_history_windows(h2, "Esc-2 (EstrÃ©s Rampa 200)", default_users=200, duracion_total=600, num_windows=10)
+    esc1_rows = parse_history_windows(h1, "Histórico locust_esc1", default_users=50, duracion_total=300, num_windows=10)
+    esc2_rows = parse_history_windows(h2, "Histórico locust_esc3 (perfil no validado)", default_users=200, duracion_total=600, num_windows=10)
     iso_rows.extend(esc1_rows)
     iso_rows.extend(esc2_rows)
 
     filepath = os.path.join(OUTPUT_DIR, "iso25010.csv")
     with open(filepath, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(iso_rows[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=list(iso_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(iso_rows)
-    print(f"  -> Guardado: iso25010.csv ({len(iso_rows)} corridas derivadas de Locust y JaCoCo reales)")
-
-    docs_out = os.path.join(repo_root, "docs", "experimentos", "resultados")
-    if os.path.exists(docs_out):
-        with open(os.path.join(docs_out, "iso25010.csv"), "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=list(iso_rows[0].keys()))
-            writer.writeheader()
-            writer.writerows(iso_rows)
+    print(f"  -> Guardado: iso25010.csv ({len(iso_rows)} ventanas derivadas de archivos históricos de Locust y JaCoCo)")
 
     return iso_rows
 
@@ -784,28 +802,9 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
         falsos_positivos / total_pruebas
     ) * 100.0
 
-    print(
-        f"  -> FPR Comprobado: {fpr:.2f}% "
-        f"({falsos_positivos} falsas alarmas "
-        f"en {total_pruebas} cadenas, "
-        "IC 95% [0.0%, 11.6%])"
-    )
-
-    filepath = os.path.join(
-        OUTPUT_DIR,
-        "falsos_positivos.csv",
-    )
-
-    with open(
-        filepath,
-        "w",
-        newline="",
-        encoding="utf-8",
-    ) as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=list(fpr_rows[0].keys()),
-        )
+    filepath = os.path.join(OUTPUT_DIR, "falsos_positivos.csv")
+    with open(filepath, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(fpr_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(fpr_rows)
 
@@ -938,6 +937,8 @@ def generar_graficos_y_estadistica(deteccion_rows: List[Dict[str, Any]]):
     print("=" * 70)
 
     try:
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         plt.figure(figsize=(9, 5.5), dpi=300)
         data_plot = [lat_m0, lat_m1, lat_m2, lat_m3]
@@ -953,22 +954,58 @@ def generar_graficos_y_estadistica(deteccion_rows: List[Dict[str, Any]]):
         plt.savefig(plot_path)
         plt.close()
         print(f"  -> Grafico PNG generado en: {plot_path}")
-    except Exception:
-        print(f"  (Matplotlib no requerido para generacion de CSVs; datos tabulares listos)")
+    except Exception as exc:
+        raise RuntimeError("No se pudo generar boxplot_latencia.png en esta ejecución") from exc
 
 
 def main():
-    print("==================================================================")
-    print("EJECUTANDO BANCO EXPERIMENTAL COMPLETO â€” ACADTRACE E4")
-    print("==================================================================")
-    client = LiveBackendClient()
-    ejecutar_experimento_1_concurrencia(client)
-    deteccion_rows, _ = ejecutar_experimento_2_deteccion()
-    ejecutar_experimento_3_reconciliacion()
-    ejecutar_metricas_iso25010()
-    verificar_falsos_positivos()
-    generar_graficos_y_estadistica(deteccion_rows)
-    print("\n[OK] Banco experimental completado con Ã©xito. Todos los artefactos fueron generados sin variables sinteticas.")
+    global OUTPUT_DIR
+    parser = argparse.ArgumentParser(description="Generación y certificado E7 de una ejecución concreta")
+    parser.add_argument("--mode", choices=("local", "http"), default=os.environ.get("EXPERIMENT_MODE", "local"))
+    parser.add_argument("--output-dir", type=Path, default=Path(OUTPUT_DIR))
+    args = parser.parse_args()
+    if args.mode not in ("local", "http"):
+        parser.error("EXPERIMENT_MODE debe ser local o http")
+    # Fallar antes de generar si no está instalada la dependencia gráfica.
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot
+    random.seed(SEED)
+    client = LiveBackendClient(mode=args.mode)
+    destination = args.output_dir.resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    print(f"Modo explícito: {args.mode}; Python {sys.version.split()[0]}; Matplotlib {matplotlib.__version__}; semilla {SEED}")
+    print("Datos sintéticos; tiempos medidos variables. ISO deriva de archivos históricos locales.")
+    original_output = OUTPUT_DIR
+    # Directorio vacío: ningún artefacto anterior puede superar las comprobaciones.
+    with tempfile.TemporaryDirectory(prefix="e7-", dir=destination.parent) as temporary:
+        OUTPUT_DIR = temporary
+        try:
+            ejecutar_experimento_1_concurrencia(client)
+            deteccion_rows, _ = ejecutar_experimento_2_deteccion()
+            ejecutar_experimento_3_reconciliacion()
+            ejecutar_metricas_iso25010()
+            verificar_falsos_positivos()
+            generar_graficos_y_estadistica(deteccion_rows)
+            staged = Path(temporary)
+            write_certificate(staged)  # Exige 6/6, no vacíos y CSV con LF.
+            if verify(staged) != 0:
+                raise RuntimeError("La verificación previa a publicación falló")
+            # Conservar originales antes de reemplazar solo los siete archivos E7.
+            existing = [name for name in (*ARTIFACTS, CERTIFICATE) if (destination / name).exists()]
+            if existing:
+                archive = Path(tempfile.mkdtemp(prefix="e7-anterior-", dir=destination))
+                for name in existing:
+                    shutil.copy2(destination / name, archive / name)
+                print(f"Evidencia anterior conservada en: {archive}")
+            # Certificado al final: una interrupción no valida un conjunto parcial.
+            for name in (*ARTIFACTS, CERTIFICATE):
+                os.replace(staged / name, destination / name)
+        finally:
+            OUTPUT_DIR = original_output
+    if verify(destination) != 0:
+        raise RuntimeError("Falló la verificación del conjunto publicado")
+    print("[OK] E7: integridad de esta ejecución verificada; no se garantiza identidad de hashes entre ejecuciones.")
 
 
 if __name__ == "__main__":

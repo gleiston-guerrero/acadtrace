@@ -48,8 +48,8 @@ Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican has
 | Resultado JVM Android actual | 36 aprobadas, 0 fallos (100% éxito) |
 | Pruebas específicas SGA Principal | 11 aprobadas, 0 fallos |
 | Suite Microservicio Docente | 83 aprobadas, 0 fallos |
-| Cobertura Microservicio Docente | 79.28% |
-| Cobertura JaCoCo (instructions/lines/branches/classes) | Ejecución unitaria completada (100% pruebas superadas) |
+| Cobertura Microservicio Docente | 79.28% histórica, de una ejecución no regenerada contra HEAD; no es cobertura oficial actual |
+| Cobertura JaCoCo (instructions/lines/branches/classes) | Ejecución histórica con 100% de pruebas superadas; no confundir con la cobertura coverage.py de Docente |
 | Tamaño APK debug actual | 19.06 MB (19,992,081 bytes, ubicado en `release/apk/app-representante-debug.apk`) |
 | Tamaño APK release | Pendiente de keystore y firma interactiva |
 | Capacidades del dispositivo implementadas | 2 |
@@ -114,7 +114,7 @@ Se elige Android nativo porque es la única alternativa que conserva directament
 - JaCoCo está configurado para publicar reportes en CI.
 - El 4 de septiembre de 2026 se ejecutaron exitosamente `testDebugUnitTest` (36 pruebas unitarias aprobadas, 0 fallos) y `assembleDebug`, generando `app-debug.apk` con SHA-256 `E97D8BAD09ECF7AA2C590D7480F54735A17946859BB52C917DE54EDF165A595B` (19.06 MB), versionado oficialmente en `release/apk/app-representante-debug.apk`.
 - `mvn test` ejecutó correctamente las 36 pruebas unitarias previas al test de contexto, pero `contextLoads` no pudo crear el canal Netty por el mismo fallo loopback del host. La selección específica de fachada ejecutó 11 pruebas con éxito y cumplió el check JaCoCo configurado.
-- Microservicio Docente ejecutó 83 pruebas con éxito y obtuvo 79.28% de cobertura, por encima del mínimo de 70%.
+- Evidencia histórica conservada: Microservicio Docente ejecutó 83 pruebas con éxito y obtuvo 79.28% en una ejecución no regenerada contra HEAD. El HTML conservado de coverage.py muestra además 78% en otra ejecución; la discrepancia queda documentada y ninguna cifra se presenta como cobertura actual.
 - En el APK previamente instalado en el teléfono TECNO CL7, el desbloqueo usó `BiometricPrompt` y Logcat confirmó autenticación exitosa. Esta evidencia no sustituye la validación del APK nuevo.
 - La evidencia AWS anterior del 403 directo a Docente queda como diagnóstico histórico de la arquitectura reemplazada. El flujo nuevo no expone puerto 8081 a Android y requiere desplegar simultáneamente Principal y Docente con `GRPC_INTERNAL_TOKEN` coincidente.
 - El crash de `POST_NOTIFICATIONS` se rastreó a Activity Result/Fragment y se fijó `androidx.fragment:fragment-ktx:1.6.2`; compilado e integrado en el binario final de release.

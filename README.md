@@ -45,6 +45,10 @@ En cumplimiento con el Listado 3 de la guía de consolidación, a continuación 
 
 ---
 
+## Cobertura documentada (E8)
+
+La tabla central de cobertura, con la separación entre el último reporte local conservado de Soporte y las cifras históricas no regeneradas de otros módulos, está en [`docs/cobertura/README.md`](docs/cobertura/README.md). No se presenta ninguna cifra histórica como cobertura actual.
+
 ## Guia de Ejecucion
 
 Existen dos alternativas para poner en marcha el sistema:
@@ -131,8 +135,16 @@ npm run dev
 python -m pytest tests/contract tests/integration tests/e2e -v
 
 # 2. Banco Experimental Cuantitativo (Modulo G) y Metricas ISO 25010:
-python experimentos/run_experimentos.py
+python -m pip install -r experimentos/requirements.txt
+python experimentos/run_experimentos.py --mode local
+python experimentos/verificar_reproducibilidad.py
 ```
+
+E7: [alcance, dependencias y verificación](experimentos/REPRODUCIBILIDAD.md).
+La generación local usa datos sintéticos y mediciones temporales variables;
+SHA-256 verifica integridad de una ejecución concreta, no hashes idénticos entre
+ejecuciones. El modo HTTP requiere selección explícita. La regeneración y las
+pruebas del proceso corregido siguen pendientes de un entorno con Python.
 
 ---
 
@@ -167,6 +179,36 @@ LIMIT 20;
 ```
 
 ---
+
+## Publicación de imágenes Docker (E14)
+
+El job `build-images` de `.github/workflows/ci-cd.yml` publica imágenes propias
+en `ghcr.io/<repository_owner-en-minúsculas>/<imagen>`, mediante `GITHUB_TOKEN`.
+Conserva las dependencias `test-backend`, `test-soporte-backend` y `test-web`.
+
+| Imagen | Contexto de construcción | Dockerfile desde la raíz |
+|---|---|---|
+| `sga-principal` | `sga-principal` | `sga-principal/Dockerfile` |
+| `microservicio-docente` | `microservicio-docente` | `microservicio-docente/Dockerfile` |
+| `microservicio-secretaria` | `microservicio-secretaria` | `microservicio-secretaria/backend/Dockerfile` |
+| `microservicio-soporte` | `microservicio-soporte` | `microservicio-soporte/backend/Dockerfile` |
+| `microservicio-ia` | `microservicio-ia` | `microservicio-ia/Dockerfile` |
+
+Solo publica en `main`, tras un evento `push` o `workflow_dispatch` y cuando
+sus dependencias terminan correctamente. Cada imagen recibe el SHA completo
+del commit como tag y `latest`; este último se aplica exclusivamente a `main`.
+Las ramas feature y los pull requests no publican ni sobrescriben `latest`.
+
+Las imágenes externas usadas por el Compose raíz (HAProxy, Spark, Zipkin, etcd,
+Node para frontends de desarrollo, Prometheus, Grafana, cAdvisor y
+postgres-exporter) no se republican. PostgreSQL en el Compose de Principal
+también es externo. Las imágenes base de los Dockerfiles son dependencias,
+no módulos propios a publicar.
+
+Esta configuración publica paquetes; no cambia el despliegue existente, que
+continúa construyendo mediante Compose. La construcción y publicación efectiva
+de las cinco imágenes deberá confirmarse en GitHub Actions/GHCR después de
+integrar y enviar los cambios. La modificación local no acredita publicación.
 
 ## Requisitos del Sistema
 
@@ -241,4 +283,22 @@ pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 ```
 *(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
 
+## Resultados oficiales de carga — E5
 
+La única corrida **OFICIAL NOMINAL de Soporte** es [locust_esc1_stats.csv](microservicio-soporte/locust_esc1_stats.csv), junto con [su historial](microservicio-soporte/locust_esc1_stats_history.csv), [fallos](microservicio-soporte/locust_esc1_failures.csv) y [excepciones](microservicio-soporte/locust_esc1_exceptions.csv). La [tabla E5](experimentos/resultados/corridas-e5.md) clasifica las demás corridas y conserva las referencias históricas.
+
+Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. Perfil configurado: 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. No representa tráfico real de producción.
+
+| Métrica de Aggregated | Valor oficial |
+|---|---|
+| Peticiones / fallos | **12.994 / 0**; sin HTTP 401 ni HTTP 500 registrados |
+| RPS | 43,537580 req/s |
+| Promedio | 109,113664 ms |
+| P50 / P95 / P99 | 6 / 440 / 850 ms |
+| Máximo | 2.037,104700 ms |
+
+Inicio registrado: **2026-09-11 03:59:05 UTC** (2026-09-10 22:59:05 UTC−05:00); 299 segundos entre muestras. Commit de conservación: `956cafcb` (normalización posterior `c5c0e6f5`). Commit del código ejecutado: **No disponible en la evidencia conservada**.
+
+**Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
+
+La [captura de Juliana](evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png) es histórica/complementaria: muestra 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.

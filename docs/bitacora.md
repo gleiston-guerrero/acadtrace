@@ -75,7 +75,7 @@
 | Inyeccion de Dependencias | Implementado | Inversion de Control (IoC) gestionada por Spring Boot (@Service, @Repository) y sustitucion limpia con @Mock en pruebas. | Ejemplo de sustitucion documentado en el informe. |
 | Integracion Continua (CI/CD) | Implementado | Workflow .github/workflows/ci-cd.yml con ejecucion automatizada de pruebas unitarias y empaquetado Maven. | Evidenciar corrida con fallo intencional (rojo) y pase corregido a verde. |
 | Observabilidad Distribuida | Parcial | Endpoints /actuator/prometheus y Prometheus recolectando metricas cada 15s. | Configurar logging estructurado JSON con traceId, panel Grafana Cloud y exportar traza distribuida. |
-| Pruebas Automatizadas | Implementado | 5 pruebas unitarias con JUnit 5 y Mockito en EstudianteServiceTest.java. Cobertura del 88% en servicios medida con JaCoCo. | Implementar pruebas unitarias en Python (pytest) para Docente y pruebas de integracion por Gateway. |
+| Pruebas Automatizadas | Implementado | Evidencia histórica: 5 pruebas unitarias con JUnit 5 y Mockito en EstudianteServiceTest.java y 88% en servicios medido con JaCoCo; no es cobertura global actual verificada contra HEAD. | Implementar pruebas unitarias en Python (pytest) para Docente y pruebas de integracion por Gateway. |
 | Evaluacion ISO/IEC 25010 | Pendiente | No evaluado formalmente con metricas de produccion. | Construir tabla booktabs con mediciones reales de Disponibilidad, Rendimiento, Fiabilidad, Mantenibilidad y Seguridad. |
 
 ---
