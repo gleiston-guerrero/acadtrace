@@ -453,12 +453,7 @@ public class AuditoriaService {
                     SET
                         ultimo_hash = :hashActual,
                         ultimo_lamport = :relojLamport,
-                        vector_reloj =
-                            CASE
-                                WHEN :vectorReloj IS NULL
-                                    THEN vector_reloj
-                                ELSE :vectorReloj
-                            END
+                        vector_reloj = COALESCE(CAST(:vectorReloj AS TEXT), vector_reloj)
                     WHERE id_estado = 1
                     """, estadoParams);
 
