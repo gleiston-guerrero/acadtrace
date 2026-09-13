@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.UUID;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +71,9 @@ class ApiGatewayAndSecurityE2EIntegrationTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        jwtService = new JwtService("test-only-jwt-secret-key-32-chars-long-minimum");
+        jwtService = new JwtService(
+                "test-" + UUID.randomUUID() + UUID.randomUUID()
+        );
 
         validSecretariaToken = jwtService.generateToken("secretaria.user", List.of("SECRETARIA"));
         validDirectorToken = jwtService.generateToken("director.user", List.of("DIRECTOR"));

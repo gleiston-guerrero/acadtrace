@@ -30,21 +30,58 @@ export async function abrirModulo(page, nombre) {
   await page.getByRole("button", { name: new RegExp(nombre, "i") }).click();
 }
 
-export async function seleccionarCurso(page, accion) {
+export async function seleccionarCurso(
+  page,
+  accion,
+  indiceCurso = null
+) {
   await expect(page.getByRole("heading", { name: "Mis grados" })).toBeVisible();
+
   const grado = e2e.grado
     ? page.getByRole("button").filter({ hasText: e2e.grado }).first()
     : page.getByRole("button").filter({ hasText: "Abrir cursos" }).first();
-  await grado.click();
-  await expect(page.getByText("Elige el curso (materia y paralelo)")).toBeVisible();
-  const main = page.getByRole("main");
 
-  const curso = e2e.curso
-    ? main.getByRole("button").filter({ hasText: e2e.curso }).first()
-    : main.getByRole("button").filter({ hasText: accion }).first();
+  await expect(grado).toBeVisible();
+  await grado.click();
+
+  await expect(
+    page.getByText("Elige el curso (materia y paralelo)")
+  ).toBeVisible();
+
+  const main = page.getByRole("main");
+  const cursos = main.getByRole("button").filter({ hasText: accion });
+  const totalCursos = await cursos.count();
+
+  expect(
+    totalCursos,
+    `No se encontraron cursos con la accion "${accion}"`
+  ).toBeGreaterThan(0);
+
+  /*
+   * Las llamadas existentes conservan su comportamiento.
+   * E10 puede indicar un indice para recorrer los cursos reales
+   * hasta encontrar una calificacion previa restaurable.
+   */
+  const curso =
+    indiceCurso === null
+      ? e2e.curso
+        ? main.getByRole("button").filter({ hasText: e2e.curso }).first()
+        : cursos.first()
+      : cursos.nth(indiceCurso);
+
+  if (indiceCurso !== null) {
+    expect(
+      indiceCurso,
+      `El indice de curso ${indiceCurso} esta fuera del rango disponible`
+    ).toBeLessThan(totalCursos);
+  }
 
   await expect(curso).toBeVisible();
   await curso.click();
 
-  await expect(page.getByText("Elige el curso (materia y paralelo)")).toBeHidden();
+  await expect(
+    page.getByText("Elige el curso (materia y paralelo)")
+  ).toBeHidden();
+
+  return totalCursos;
 }

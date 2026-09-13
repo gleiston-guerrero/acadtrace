@@ -228,6 +228,41 @@ public class SecretariaContainerIntegrationTest {
                 );
                 """);
 
+            // E3: completar el esquema central de auditoria usado por AuditoriaService.
+            stmt.execute("""
+                ALTER TABLE sga_principal.auditoria
+                    ADD COLUMN IF NOT EXISTS hash_actual VARCHAR(64),
+                    ADD COLUMN IF NOT EXISTS contenido_canonico TEXT,
+                    ADD COLUMN IF NOT EXISTS version_canonica VARCHAR(20);
+                """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS sga_principal.estado_cadena_auditoria (
+                    id_estado SMALLINT PRIMARY KEY,
+                    ultimo_hash VARCHAR(64) NOT NULL,
+                    ultimo_lamport BIGINT NOT NULL DEFAULT 0,
+                    vector_reloj TEXT,
+                    CONSTRAINT ck_estado_cadena_auditoria_singleton
+                        CHECK (id_estado = 1)
+                );
+                """);
+
+            stmt.execute("""
+                INSERT INTO sga_principal.estado_cadena_auditoria (
+                    id_estado,
+                    ultimo_hash,
+                    ultimo_lamport,
+                    vector_reloj
+                )
+                VALUES (
+                    1,
+                    repeat('0', 64),
+                    0,
+                    '{}'
+                )
+                ON CONFLICT (id_estado) DO NOTHING;
+                """);
+
             // Aplicar funcion de inmutabilidad y trigger append-only (Migracion 007)
             stmt.execute("""
                 CREATE OR REPLACE FUNCTION sga_principal.prohibir_modificacion_auditoria()

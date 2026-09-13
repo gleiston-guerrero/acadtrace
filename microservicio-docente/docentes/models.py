@@ -324,6 +324,10 @@ class EventoAuditoria(models.Model):
         ordering = ["id_evento"]
 
 
+# LEGACY E2:
+# Esta tabla local se conserva para compatibilidad historica de migraciones.
+# Desde E3, M2/M3 NO la usan como cabeza autoritativa.
+# La unica cabeza activa es sga_principal.estado_cadena_auditoria.
 class EstadoCadenaAuditoria(models.Model):
     id_estado = models.PositiveSmallIntegerField(primary_key=True, default=1)
     ultimo_hash = models.CharField(max_length=64, blank=True, null=True)

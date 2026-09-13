@@ -35,10 +35,10 @@ En cumplimiento con el Listado 3 de la guía de consolidación, a continuación 
 | :--- | :--- | :--- | :--- |
 | `src/core` | `sga-principal/` | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
 | `src/docente` | `microservicio-docente/` | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && pytest` |
-| `src/secretaria` | `microservicio-secretaria/` | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria && ./mvnw test` |
-| `src/soporte` | `microservicio-soporte/` | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte && ./mvnw test` |
+| `src/secretaria` | `microservicio-secretaria/` | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
+| `src/soporte` | `microservicio-soporte/` | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
 | `apps/mobile` | `app-movil-docente/` | Cliente nativo Android (Kotlin/Jetpack Compose) con persistencia offline Room | `cd app-movil-docente && ./gradlew test` |
-| `apps/web` | `sga-principal/sga-frontend/` | Portal web reactivo en React + TypeScript y Vite | `npm run build` |
+| `apps/web` | `sga-principal/sga-frontend/` | Portal web reactivo en React + TypeScript y Vite | `cd sga-principal/sga-frontend && npm run build` |
 | `infra/gateway` | `infra/haproxy/` | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
 | `infra/observability`| `infra/prometheus/`, `infra/grafana/` | Métricas Prometheus (:9090) y tableros Grafana (:3001) | `docker compose up prometheus grafana -d`|
 | `docs/experiments` | `experimentos/`, `docs/experimentos/` | Scripts de verificación de bitácora y datasets de reproducibilidad | `python experimentos/verificador_cadena.py` |

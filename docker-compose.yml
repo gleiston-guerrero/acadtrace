@@ -15,11 +15,11 @@ services:
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
-      - AES_SECRET_KEY=${AES_SECRET_KEY:?AES_SECRET_KEY debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - JWT_SECRET=${JWT_SECRET}
+      - AES_SECRET_KEY=${AES_SECRET_KEY}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - FCM_ENABLED=${FCM_ENABLED:-false}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
@@ -69,9 +69,9 @@ services:
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - SGA_PRINCIPAL_URL=http://sga-principal:8080
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
     networks:
@@ -98,7 +98,7 @@ services:
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./scripts/spark:/scripts
       - ./scripts/spark/jars:/jars
@@ -119,11 +119,11 @@ services:
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
       - AUDIT=${AUDIT:-m2}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
-      - AES_SECRET_KEY=${AES_SECRET_KEY:?AES_SECRET_KEY debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - JWT_SECRET=${JWT_SECRET}
+      - AES_SECRET_KEY=${AES_SECRET_KEY}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - GRPC_PRINCIPAL_HOST=sga-principal
       - GRPC_PRINCIPAL_PORT=9092
     networks:
@@ -145,9 +145,9 @@ services:
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
       - GRPC_PORT=9094
@@ -260,7 +260,7 @@ services:
     ports:
       - "8084:8084"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     networks:
       - sga-distribuido-net
     restart: unless-stopped
@@ -286,7 +286,7 @@ services:
     image: prometheuscommunity/postgres-exporter:v0.15.0
     container_name: sga-postgres-exporter
     environment:
-      - DATA_SOURCE_NAME=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:?DB_PASSWORD debe definirse}@${DB_HOST:-192.0.2.1}:${DB_PORT:-5433}/${DB_NAME:-sga}?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@${DB_HOST:-192.0.2.1}:${DB_PORT:-5433}/${DB_NAME:-sga}?sslmode=disable
     ports:
       - "9187:9187"
     networks:

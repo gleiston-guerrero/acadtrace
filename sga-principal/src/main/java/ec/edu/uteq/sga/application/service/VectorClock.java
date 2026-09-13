@@ -1,6 +1,7 @@
 package ec.edu.uteq.sga.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,29 @@ public class VectorClock {
             });
         }
         return current();
+    }
+
+    /**
+     * Recupera el ultimo vector confirmado en BD antes de generar
+     * un nuevo evento. Permite conservar causalidad tras reinicios
+     * y entre distintas instancias del servicio.
+     */
+    public synchronized Map<String, Long> mergeJson(String json) {
+        if (json == null || json.isBlank()) {
+            return current();
+        }
+        try {
+            Map<String, Long> remote = MAPPER.readValue(
+                    json,
+                    new TypeReference<Map<String, Long>>() {}
+            );
+            return merge(remote);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(
+                    "vector_reloj persistido no es JSON valido",
+                    e
+            );
+        }
     }
 
     public Map<String, Long> current() {

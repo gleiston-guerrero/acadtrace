@@ -57,6 +57,24 @@ def contenido_evento(
     }
 
 
-def calcular_hash(hash_anterior, contenido):
-    material = (hash_anterior + json_canonico(contenido)).encode("utf-8")
+def calcular_hash_canonico(hash_anterior, contenido_canonico):
+    """
+    Formula institucional E3:
+
+        H_k = SHA-256(H_{k-1} + contenido_canonico_v1)
+
+    Permite que cualquier servicio/verificador compruebe una fila sin
+    reconstruir mapas especificos de Java o Python.
+    """
+    material = (
+        str(hash_anterior) + str(contenido_canonico)
+    ).encode("utf-8")
+
     return hashlib.sha256(material).hexdigest()
+
+
+def calcular_hash(hash_anterior, contenido):
+    return calcular_hash_canonico(
+        hash_anterior,
+        json_canonico(contenido),
+    )

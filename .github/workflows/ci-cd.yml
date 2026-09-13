@@ -131,6 +131,42 @@ jobs:
           python -m pip install --upgrade pip flake8
           flake8 microservicio-docente/docentes --count --select=E9,F63,F7,F82 --show-source --statistics
 
+      - name: Verificar finales de línea LF en archivos CSV
+        run: |
+          python - <<'PY'
+          import subprocess
+
+          archivos = [
+              ruta
+              for ruta in subprocess.check_output(
+                  ["git", "ls-tree", "-r", "--name-only", "HEAD"],
+                  text=True,
+              ).splitlines()
+              if ruta.lower().endswith(".csv")
+          ]
+
+          invalidos = []
+
+          for ruta in archivos:
+              contenido = subprocess.check_output(
+                  ["git", "show", f"HEAD:{ruta}"]
+              )
+
+              if b"\r" in contenido:
+                  invalidos.append(ruta)
+
+          if invalidos:
+              print("ERROR: archivos CSV versionados con CR/CRLF:")
+              for ruta in invalidos:
+                  print(f" - {ruta}")
+              raise SystemExit(1)
+
+          print(
+              f"OK: {len(archivos)} archivos CSV versionados "
+              "usan únicamente LF."
+          )
+          PY
+
   # ─── 2. JOB TEST-BACKEND ───────────────────────────────────────────────────
   test-backend:
     name: 2. Pruebas Unitarias Backend y Cobertura
@@ -276,19 +312,19 @@ jobs:
       - name: Compilar Frontend SGA Principal
         run: |
           cd sga-principal/sga-frontend
-          npm install --no-audit --legacy-peer-deps
+          npm ci --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Docente
         run: |
           cd microservicio-docente/frontend
-          npm install --no-audit --legacy-peer-deps
+          npm ci --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Soporte
         run: |
           cd microservicio-soporte
-          npm install --no-audit --legacy-peer-deps
+          npm ci --no-audit --legacy-peer-deps
           npm run build
 
       - name: Compilar Frontend Secretaría (E12 con npm ci)
@@ -472,6 +508,14 @@ jobs:
           push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.image-tags.outputs.tags }}
 
+      - name: Construir y Etiquetar Imagen Microservicio Secretaría (E14 GHCR)
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest -f microservicio-secretaria/backend/Dockerfile microservicio-secretaria/
+          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }}
+          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest
+
   # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
   build-mobile-apk:
     name: 6. Compilación de Paquete APK Android
@@ -533,3 +577,31 @@ jobs:
             docker compose down --remove-orphans || true
             docker compose up -d --build
             docker image prune -f
+            
+            echo "==> Iniciando sondas de salud posterior al arranque (Criterio E15)..."
+            sleep 15
+            
+            check_health() {
+              local url=$1
+              local name=$2
+              echo "Verificando $name en $url..."
+              # Aumentamos a 30 intentos (150 segundos) porque AWS EC2 puede ser lento para iniciar Java
+              for i in {1..30}; do
+                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $url)
+                if [ "$HTTP_STATUS" = "200" ]; then
+                  echo "$name esta SANO (HTTP 200)."
+                  return 0
+                fi
+                sleep 5
+              done
+              echo "ERROR: $name NUNCA REPORTO SALUD (Fallo el despliegue)"
+              docker compose logs "$name"
+              return 1
+            }
+            
+            check_health "http://localhost:8080/actuator/health" "sga-principal" || exit 1
+            check_health "http://localhost:5176/actuator/health" "microservicio-secretaria" || exit 1
+            check_health "http://localhost:8083/actuator/health" "microservicio-soporte" || exit 1
+            check_health "http://localhost:8081/health/" "microservicio-docente" || exit 1
+            
+            echo "==> Todos los contenedores reportaron salud exitosamente."

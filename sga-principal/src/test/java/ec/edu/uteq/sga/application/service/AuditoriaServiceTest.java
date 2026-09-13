@@ -1,7 +1,9 @@
 package ec.edu.uteq.sga.application.service;
 
 import ec.edu.uteq.sga.domain.entity.Auditoria;
+import ec.edu.uteq.sga.domain.entity.EstadoCadenaAuditoria;
 import ec.edu.uteq.sga.infrastructure.repository.AuditoriaRepository;
+import ec.edu.uteq.sga.infrastructure.repository.EstadoCadenaAuditoriaRepository;
 import ec.edu.uteq.sga.infrastructure.security.HmacService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,9 @@ class AuditoriaServiceTest {
     private AuditoriaRepository repo;
 
     @Mock
+    private EstadoCadenaAuditoriaRepository estadoCadenaRepo;
+
+    @Mock
     private HmacService hmacService;
 
     private LamportClock lamportClock;
@@ -33,7 +38,25 @@ class AuditoriaServiceTest {
         lamportClock = new LamportClock();
         vectorClock = new VectorClock();
         auditHashService = new AuditHashService();
-        auditoriaService = new AuditoriaService(repo, hmacService, lamportClock, vectorClock, auditHashService);
+
+        EstadoCadenaAuditoria estado = EstadoCadenaAuditoria.builder()
+                .idEstado((short) 1)
+                .ultimoHash(AuditHashService.GENESIS_HASH)
+                .ultimoLamport(0L)
+                .vectorReloj("{}")
+                .build();
+
+        lenient().when(estadoCadenaRepo.buscarParaActualizar((short) 1))
+                .thenReturn(java.util.Optional.of(estado));
+
+        auditoriaService = new AuditoriaService(
+                repo,
+                estadoCadenaRepo,
+                hmacService,
+                lamportClock,
+                vectorClock,
+                auditHashService
+        );
     }
 
     @Test
@@ -72,11 +95,21 @@ class AuditoriaServiceTest {
 
         Auditoria guardada = captor.getValue();
         assertEquals("HMAC_M2_VALIDO", guardada.getHmac());
-        assertTrue(guardada.getDescripcion().contains("lamport:1"));
+        assertEquals("Nota corregida", guardada.getDescripcion());
         assertEquals(1L, guardada.getRelojLamport());
         assertEquals(AuditHashService.GENESIS_HASH, guardada.getHashAnterior());
         assertNotNull(guardada.getHashActual());
         assertEquals(64, guardada.getHashActual().length());
+        assertEquals("v1", guardada.getVersionCanonica());
+        assertNotNull(guardada.getContenidoCanonico());
+        assertTrue(
+                guardada.getContenidoCanonico()
+                        .contains("\"reloj_lamport\":1")
+        );
+        assertTrue(
+                guardada.getContenidoCanonico()
+                        .contains("\"reloj_vectorial\":null")
+        );
     }
 
     @Test
@@ -92,12 +125,70 @@ class AuditoriaServiceTest {
 
         Auditoria guardada = captor.getValue();
         assertEquals("HMAC_M3_VALIDO", guardada.getHmac());
-        assertTrue(guardada.getDescripcion().contains("vclock:"));
+        assertEquals("Reconciliacion offline", guardada.getDescripcion());
         assertNotNull(guardada.getVectorReloj());
         assertTrue(guardada.getVectorReloj().contains("\"principal\":1"));
         assertNotNull(guardada.getHashActual());
         assertEquals(64, guardada.getHashActual().length());
+        assertEquals("v1", guardada.getVersionCanonica());
+        assertNotNull(guardada.getContenidoCanonico());
+        assertTrue(
+                guardada.getContenidoCanonico()
+                        .contains("\"reloj_vectorial\":{")
+        );
+        assertTrue(
+                guardada.getContenidoCanonico()
+                        .contains("\"principal\":1")
+        );
     }
+
+    @Test
+    void modoM2_continuaDesdeCabezaYLamportPersistidos() {
+        auditoriaService.setAuditMode("m2");
+
+        String hashPersistido =
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+        EstadoCadenaAuditoria estadoPersistido = EstadoCadenaAuditoria.builder()
+                .idEstado((short) 1)
+                .ultimoHash(hashPersistido)
+                .ultimoLamport(41L)
+                .vectorReloj("{}")
+                .build();
+
+        when(estadoCadenaRepo.buscarParaActualizar((short) 1))
+                .thenReturn(java.util.Optional.of(estadoPersistido));
+
+        when(hmacService.firmar(
+                any(), any(), any(), any(), any(),
+                any(), any(), any(), any()
+        )).thenReturn("HMAC_PERSISTIDO");
+
+        auditoriaService.registrarCrud(
+                "CREAR",
+                "calificacion",
+                150L,
+                "Continuidad tras reinicio"
+        );
+
+        ArgumentCaptor<Auditoria> captor =
+                ArgumentCaptor.forClass(Auditoria.class);
+        verify(repo).save(captor.capture());
+
+        Auditoria guardada = captor.getValue();
+
+        assertEquals(hashPersistido, guardada.getHashAnterior());
+        assertEquals(42L, guardada.getRelojLamport());
+        assertNotNull(guardada.getHashActual());
+        assertEquals(64, guardada.getHashActual().length());
+
+        assertEquals(guardada.getHashActual(), estadoPersistido.getUltimoHash());
+        assertEquals(42L, estadoPersistido.getUltimoLamport());
+
+        verify(estadoCadenaRepo).buscarParaActualizar((short) 1);
+        verify(estadoCadenaRepo).save(estadoPersistido);
+    }
+
 
     @Test
     void verificarIntegridadCausal_dosEventos_detectaManipulacionYVerificaRelojLogico() {
@@ -118,8 +209,22 @@ class AuditoriaServiceTest {
         Auditoria evento1 = eventos.get(0);
         Auditoria evento2 = eventos.get(1);
 
-        assertTrue(evento1.getDescripcion().contains("lamport:1"));
-        assertTrue(evento2.getDescripcion().contains("lamport:2"));
+        assertEquals("Ingreso de nota inicial", evento1.getDescripcion());
+        assertEquals("Rectificacion de nota", evento2.getDescripcion());
+        assertEquals(1L, evento1.getRelojLamport());
+        assertEquals(2L, evento2.getRelojLamport());
+        assertEquals(
+                AuditHashService.GENESIS_HASH,
+                evento1.getHashAnterior()
+        );
+        assertEquals(
+                evento1.getHashActual(),
+                evento2.getHashAnterior()
+        );
+        assertEquals("v1", evento1.getVersionCanonica());
+        assertEquals("v1", evento2.getVersionCanonica());
+        assertNotNull(evento1.getContenidoCanonico());
+        assertNotNull(evento2.getContenidoCanonico());
         assertEquals("HMAC_EVENTO_1", evento1.getHmac());
         assertEquals("HMAC_EVENTO_2_ORIGINAL", evento2.getHmac());
 
