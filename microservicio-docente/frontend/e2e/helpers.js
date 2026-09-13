@@ -38,8 +38,8 @@ export async function seleccionarCurso(
 ) {
   await expect(page.getByRole("heading", { name: "Mis grados" })).toBeVisible();
 
-  const main = page.getByRole("main");
-  const grados = main.getByRole("button");
+  const mainGrados = page.getByRole("main");
+  const grados = mainGrados.getByRole("button");
   const totalGrados = await grados.count();
 
   expect(
