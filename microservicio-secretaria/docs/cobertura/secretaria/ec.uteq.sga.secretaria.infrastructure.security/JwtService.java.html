@@ -18,7 +18,7 @@ public class JwtService {
 
     private final SecretKey key;
 
-<span class="fc" id="L21">    public JwtService(@Value(&quot;${app.jwt.secret:***REMOVED***}&quot;) String secret) {</span>
+<span class="fc" id="L21">    public JwtService(@Value(&quot;${app.jwt.secret:test-only-jwt-secret}&quot;) String secret) {</span>
 <span class="fc" id="L22">        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));</span>
 <span class="fc" id="L23">    }</span>
 

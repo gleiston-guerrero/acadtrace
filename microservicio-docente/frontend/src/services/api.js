@@ -7,7 +7,7 @@ import axios from "axios";
 const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
 export const API_GATEWAY_BASE = `http://${host}:8080/api`;
 export const DOCENTE_API_BASE = `http://${host}:8081/api/docente`;
-export const PRINCIPAL_LOGIN_URL = `http://${host}:5174/login`;
+export const PRINCIPAL_LOGIN_URL = `http://${host}:5173/login`;
 const API = API_GATEWAY_BASE;
 const API_DOCENTE_REST = DOCENTE_API_BASE;
 
@@ -90,8 +90,37 @@ export const guardarCalificacion = (data, idCalificacion) => idCalificacion
 
 // ─── PERÍODOS DE EVALUACIÓN (aún solo REST en Django) ────────
 // TODO: exponer como endpoint en el gateway Java cuando exista.
-export const getPeriodos = () =>
-  axios.get(`${API}/docente/actividades/periodos`, { headers: authHeaders() });
+export const getPeriodos = async () => {
+  const response = await axios.get(
+    `${API}/docente/actividades/periodos`,
+    { headers: authHeaders() }
+  );
+
+  if (Array.isArray(response.data)) {
+    response.data = response.data.map((periodo) => ({
+      ...periodo,
+
+      // Compatibilidad entre el contrato Java (camelCase)
+      // y los consumidores históricos del frontend (snake_case).
+      id_periodo:
+        periodo.id_periodo ??
+        periodo.idPeriodo,
+
+      fecha_inicio:
+        periodo.fecha_inicio ??
+        periodo.fechaInicio,
+
+      fecha_fin:
+        periodo.fecha_fin ??
+        periodo.fechaFin,
+    }));
+  }
+
+  return response;
+};
+
+export const getPeriodosAsistencia = () =>
+  axios.get(`${API_DOCENTE_REST}/periodos-evaluacion/`, { headers: authHeaders() });
 
 export const getAulaVirtualResumen = (asignaciones) => {
   const params = new URLSearchParams();

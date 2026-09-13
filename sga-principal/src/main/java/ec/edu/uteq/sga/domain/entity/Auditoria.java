@@ -70,6 +70,18 @@ public class Auditoria {
     @Column(length = 64)
     private String hmac;
 
+    @Column(name = "hash_anterior", length = 64)
+    private String hashAnterior;
+
+    @Column(name = "hash_actual", length = 64)
+    private String hashActual;
+
+    @Column(name = "reloj_lamport")
+    private Long relojLamport;
+
+    @Column(name = "vector_reloj", columnDefinition = "text")
+    private String vectorReloj;
+
     @Builder.Default
     @Column(nullable = false)
     private Instant fecha = Instant.now();

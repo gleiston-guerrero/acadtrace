@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
 
-from .clocks import incrementar_vector, reconciliar_vectores
+from .clocks import incrementar_lamport, incrementar_vector, reconciliar_vectores
 from .hashing import GENESIS_HASH, calcular_hash, contenido_evento, json_canonico, normalizar
 
 
@@ -40,7 +40,7 @@ class HashChainAuditStrategy:
                 defaults={"ultimo_hash": None, "ultimo_lamport": 0, "reloj_vectorial": {}},
             )
             anterior = estado.ultimo_hash or GENESIS_HASH
-            lamport = max(int(estado.ultimo_lamport), int(evento.get("lamport_recibido") or 0)) + 1
+            lamport = incrementar_lamport(estado.ultimo_lamport, evento.get("lamport_recibido"))
             vector, reconciliacion = self._vector_y_reconciliacion(estado, evento)
             instante = evento.get("timestamp") or timezone.now()
             payload = normalizar(evento.get("payload") or {})

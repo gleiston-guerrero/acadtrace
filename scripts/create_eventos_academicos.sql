@@ -7,7 +7,7 @@
 -- SQL desde ese microservicio, sin pasar por gRPC).
 --
 -- Como correrlo:
--- PGPASSWORD=***REMOVED*** psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
+-- PGPASSWORD="$env:DB_PASSWORD" psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
 --   -v ON_ERROR_STOP=1 -f scripts/create_eventos_academicos.sql
 
 CREATE TABLE IF NOT EXISTS sga_principal.eventos_academicos (

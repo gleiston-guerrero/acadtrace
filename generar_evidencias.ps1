@@ -8,7 +8,7 @@ Write-Host "=========================================================" -Foregrou
 Write-Host "Destino: $TargetHost" -ForegroundColor Yellow
 
 # 1. Configurar la clave secreta EXACTA que usa el backend para que Locust no falle
-$env:JWT_SECRET = "***REMOVED***"
+$env:JWT_SECRET = "test-only-jwt-secret"
 $env:BACKEND_URL = $TargetHost
 
 # 2. Ejecutar Locust (Genera los CSV crudos)

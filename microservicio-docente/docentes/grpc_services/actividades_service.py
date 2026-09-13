@@ -1,4 +1,5 @@
 import grpc
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Sum
 from django.core.exceptions import ObjectDoesNotExist
@@ -25,31 +26,31 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
         if total + ponderacion > limite:
             categoria = "sumativa" if es_sumativa else "formativa"
             raise ValueError(f"La ponderación total {categoria} no puede superar {limite}%")
-    
+
     def _validate_auth(self, context, id_asignacion):
         metadata = dict(context.invocation_metadata())
         id_docente = metadata.get('docente_id')
         internal_token = metadata.get('internal_token')
-        
-        if internal_token != '***REMOVED***':
+
+        if internal_token != settings.GRPC_INTERNAL_TOKEN:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "Token interno inválido o ausente")
 
         if not id_docente:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "docente_id requerido en metadatos")
-            
+
         validation = validate_teacher_assignment(int(id_docente), id_asignacion)
         if not validation or not validation.get('is_valid'):
             context.abort(grpc.StatusCode.PERMISSION_DENIED, "El docente no tiene acceso a esta asignación")
-            
+
         return True
-        
+
     def CrearActividad(self, request, context):
         try:
             self._validate_auth(context, request.id_asignacion)
-            
+
             periodo = PeriodoEvaluacion.objects.get(id_periodo=request.id_periodo)
             self._validar_ponderacion(request.id_asignacion, request.id_periodo, request.es_sumativa, request.ponderacion)
-            
+
             with transaction.atomic():
                 actividad = Actividad.objects.create(
                     id_asignacion=request.id_asignacion,
@@ -67,7 +68,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                     entidad_id=actividad.id_actividad, operacion="CREAR", actor_id=None,
                     payload=payload_instancia(actividad),
                 )
-            
+
             dto = actividades_pb2.ActividadDto(
                 id_actividad=actividad.id_actividad,
                 id_asignacion=actividad.id_asignacion,
@@ -80,7 +81,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                 nota_maxima=float(actividad.nota_maxima),
                 es_sumativa=actividad.es_sumativa
             )
-            
+
             return actividades_pb2.ActividadResponse(
                 exitoso=True,
                 mensaje="Actividad creada exitosamente",
@@ -94,7 +95,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             raise
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
-            
+
     def EditarActividad(self, request, context):
         try:
             actividad = Actividad.objects.get(id_actividad=request.id_actividad)
@@ -103,7 +104,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                 actividad.id_asignacion, actividad.id_periodo_id,
                 request.es_sumativa, request.ponderacion, actividad.id_actividad,
             )
-            
+
             with transaction.atomic():
                 actividad.tipo = request.tipo
                 actividad.nombre = request.nombre
@@ -118,7 +119,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                     entidad_id=actividad.id_actividad, operacion="ACTUALIZAR", actor_id=None,
                     payload=payload_instancia(actividad),
                 )
-            
+
             dto = actividades_pb2.ActividadDto(
                 id_actividad=actividad.id_actividad,
                 id_asignacion=actividad.id_asignacion,
@@ -131,7 +132,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                 nota_maxima=float(actividad.nota_maxima),
                 es_sumativa=actividad.es_sumativa
             )
-            
+
             return actividades_pb2.ActividadResponse(
                 exitoso=True,
                 mensaje="Actividad actualizada exitosamente",
@@ -145,12 +146,12 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             raise
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
-            
+
     def ObtenerActividad(self, request, context):
         try:
             actividad = Actividad.objects.get(id_actividad=request.id_actividad)
             self._validate_auth(context, actividad.id_asignacion)
-            
+
             dto = actividades_pb2.ActividadDto(
                 id_actividad=actividad.id_actividad,
                 id_asignacion=actividad.id_asignacion,
@@ -163,7 +164,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                 nota_maxima=float(actividad.nota_maxima),
                 es_sumativa=actividad.es_sumativa
             )
-            
+
             return actividades_pb2.ActividadResponse(
                 exitoso=True,
                 mensaje="Actividad obtenida",
@@ -173,15 +174,15 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             context.abort(grpc.StatusCode.NOT_FOUND, "Actividad no encontrada")
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
-            
+
     def ListarActividades(self, request, context):
         try:
             self._validate_auth(context, request.id_asignacion)
-            
+
             query = Actividad.objects.filter(id_asignacion=request.id_asignacion)
             if request.id_periodo > 0:
                 query = query.filter(id_periodo_id=request.id_periodo)
-                
+
             actividades_list = []
             for actividad in query:
                 dto = actividades_pb2.ActividadDto(
@@ -197,7 +198,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                     es_sumativa=actividad.es_sumativa
                 )
                 actividades_list.append(dto)
-                
+
             return actividades_pb2.ListarActividadesResponse(
                 exitoso=True,
                 mensaje=f"{len(actividades_list)} actividades encontradas",
@@ -209,12 +210,12 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
             import traceback
             traceback.print_exc()
             context.abort(grpc.StatusCode.INTERNAL, f"{type(e).__name__}: {e}")
-            
+
     def EliminarActividad(self, request, context):
         try:
             actividad = Actividad.objects.get(id_actividad=request.id_actividad)
             self._validate_auth(context, actividad.id_asignacion)
-            
+
             with transaction.atomic():
                 entidad_id = actividad.id_actividad
                 payload = payload_instancia(actividad)
@@ -224,7 +225,7 @@ class ActividadServiceServicer(actividades_pb2_grpc.ActividadServiceServicer):
                     entidad_id=entidad_id, operacion="ELIMINAR", actor_id=None,
                     payload=payload,
                 )
-            
+
             return actividades_pb2.EliminarActividadResponse(
                 exitoso=True,
                 mensaje="Actividad eliminada exitosamente"

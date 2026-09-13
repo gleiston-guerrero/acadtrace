@@ -14,18 +14,31 @@ import com.google.gson.JsonParser
 
 class SessionManager(context: Context) {
 
-    private val prefs: SharedPreferences = run {
-        val masterKey = MasterKey.Builder(context)
+    private val appContext = context.applicationContext
+
+    private fun createEncryptedPreferences(): SharedPreferences {
+        val masterKey = MasterKey.Builder(appContext)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
-        EncryptedSharedPreferences.create(
-            context,
+        return EncryptedSharedPreferences.create(
+            appContext,
             Constants.PREFS_NAME,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        ).also { preferences ->
+            // Fuerza una lectura para detectar una sesión cifrada
+            // que ya no pueda descifrarse con la clave actual.
+            preferences.all
+        }
+    }
+
+    private val prefs: SharedPreferences = try {
+        createEncryptedPreferences()
+    }   catch (_: Exception) {
+        appContext.deleteSharedPreferences(Constants.PREFS_NAME)
+        createEncryptedPreferences()
     }
 
     private val gson = Gson()

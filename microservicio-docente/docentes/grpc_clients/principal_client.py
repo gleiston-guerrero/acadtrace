@@ -7,7 +7,7 @@ SGA_PRINCIPAL_HOST = os.environ.get("SGA_PRINCIPAL_GRPC_HOST", "localhost:9092")
 
 # El principal exige este token interno en toda llamada gRPC entrante
 # (InternalAuthInterceptor). Debe viajar como metadato en cada request.
-INTERNAL_TOKEN = os.environ.get("GRPC_INTERNAL_TOKEN", "***REMOVED***")
+INTERNAL_TOKEN = os.environ["GRPC_INTERNAL_TOKEN"]
 INTERNAL_MD = (("internal_token", INTERNAL_TOKEN),)
 
 def get_context_stub():

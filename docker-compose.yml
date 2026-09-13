@@ -11,17 +11,20 @@ services:
       - "8080"
       - "9092"
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
       - AUDIT=${AUDIT:-m2}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
+      - AES_SECRET_KEY=${AES_SECRET_KEY:?AES_SECRET_KEY debe definirse}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
       - FCM_ENABLED=${FCM_ENABLED:-false}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SPRING_FLYWAY_VALIDATE_ON_MIGRATE=false
 
 
     volumes:
@@ -62,13 +65,13 @@ services:
       - "8000"
       - "9091"
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
       - AUDIT=${AUDIT:-m2}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
       - SGA_PRINCIPAL_URL=http://sga-principal:8080
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
     networks:
@@ -91,11 +94,11 @@ services:
       - "8090:8080"
     environment:
       - SPARK_NO_DAEMONIZE=true
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
     volumes:
       - ./scripts/spark:/scripts
       - ./scripts/spark/jars:/jars
@@ -112,14 +115,15 @@ services:
       - "5176:5176"   # REST & Frontend integrado en Spring Boot
       # - "8082:5176"  # REST Backend alias compatible
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
       - AUDIT=${AUDIT:-m2}
-      - JWT_SECRET=***REMOVED***
-      - AES_SECRET_KEY=***REMOVED-AES-SECRET***=
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
+      - AES_SECRET_KEY=${AES_SECRET_KEY:?AES_SECRET_KEY debe definirse}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
       - GRPC_PRINCIPAL_HOST=sga-principal
       - GRPC_PRINCIPAL_PORT=9092
     networks:
@@ -137,12 +141,13 @@ services:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
       - "9094:9094"   # gRPC Servidor (IncidenciaService)
     environment:
-      - DB_HOST=192.0.2.1
-      - DB_PORT=5433
-      - DB_NAME=sga
-      - DB_USER=postgres
-      - DB_PASSWORD=***REMOVED***
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse en el entorno}
+      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_PORT=${DB_PORT:-5433}
+      - DB_NAME=${DB_NAME:-sga}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
       - GRPC_PORT=9094
@@ -234,7 +239,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=***REMOVED-GRAFANA-SECRET***
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD debe definirse}
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
@@ -281,7 +286,7 @@ services:
     image: prometheuscommunity/postgres-exporter:v0.15.0
     container_name: sga-postgres-exporter
     environment:
-      - DATA_SOURCE_NAME=postgresql://postgres:***REMOVED***@192.0.2.1:5433/sga?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:?DB_PASSWORD debe definirse}@${DB_HOST:-192.0.2.1}:${DB_PORT:-5433}/${DB_NAME:-sga}?sslmode=disable
     ports:
       - "9187:9187"
     networks:

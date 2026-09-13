@@ -33,6 +33,8 @@ public class AuditoriaService {
     private final AuditoriaRepository repo;
     private final HmacService hmacService;
     private final LamportClock lamportClock;
+    private final VectorClock vectorClock;
+    private final AuditHashService auditHashService;
 
     @Value("${AUDIT:m2}")
     private String auditMode = "m2";
@@ -76,13 +78,7 @@ public class AuditoriaService {
 
         try {
             UUID traceId = parseOrNew(traceIdOverride != null ? traceIdOverride : TraceContext.current());
-            long lamportTime = (lamportClock != null) ? lamportClock.tick() : 1L;
-
-            String descFinal = descripcion;
-            if ("m2".equalsIgnoreCase(auditMode) || "m3".equalsIgnoreCase(auditMode)) {
-                String extra = " [lamport:" + lamportTime + ("m3".equalsIgnoreCase(auditMode) ? ",vclock:[1,0,0]" : "") + "]";
-                descFinal = (descripcion != null ? descripcion : "") + extra;
-            }
+            Instant fecha = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
 
             Auditoria fila = Auditoria.builder()
                     .schemaOrigen("PRINCIPAL")
@@ -91,16 +87,61 @@ public class AuditoriaService {
                     .accion(accion)
                     .tablaAfectada(tablaAfectada)
                     .registroId(registroId)
-                    .descripcion(descFinal)
                     .ipAddress(ip)
                     .resultado(resultado)
-                    .fecha(Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS))
+                    .fecha(fecha)
                     .build();
 
             if (!"m1".equalsIgnoreCase(auditMode)) {
-                // m1 es bitacora convencional; m2 y m3 llevan HMAC criptografico
+                // Modos m2 y m3: Auditoria Criptografica Completa
+                long lamportTime = (lamportClock != null) ? lamportClock.tick() : 1L;
+                fila.setRelojLamport(lamportTime);
+
+                String vclockJson = null;
+                if ("m3".equalsIgnoreCase(auditMode) && vectorClock != null) {
+                    vectorClock.increment("principal");
+                    vclockJson = vectorClock.toJson();
+                    fila.setVectorReloj(vclockJson);
+                }
+
+                String extra = " [lamport:" + lamportTime + (vclockJson != null ? ",vclock:" + vclockJson : "") + "]";
+                String descFinal = (descripcion != null ? descripcion : "") + extra;
+                fila.setDescripcion(descFinal);
+
+                // Obtener hash anterior de la cadena persistida
+                String hashAnterior = repo.findTopByOrderByIdAuditoriaDesc()
+                        .map(Auditoria::getHashActual)
+                        .filter(h -> h != null && !h.isBlank())
+                        .orElse(AuditHashService.GENESIS_HASH);
+                fila.setHashAnterior(hashAnterior);
+
+                // Construir mapa de contenido canónico conforme a ADR-007
+                java.util.Map<String, Object> contenido = new java.util.TreeMap<>();
+                contenido.put("accion", accion);
+                contenido.put("actor_id", nvl(username));
+                contenido.put("entidad", nvl(tablaAfectada));
+                contenido.put("entidad_id", String.valueOf(registroId));
+                contenido.put("modo", auditMode.toLowerCase());
+                contenido.put("operacion", accion);
+                contenido.put("reloj_lamport", lamportTime);
+                contenido.put("reloj_vectorial", vclockJson != null ? vclockJson : "{}");
+                contenido.put("resultado", resultado);
+                contenido.put("schema_origen", "PRINCIPAL");
+                contenido.put("timestamp", fecha.toString());
+                contenido.put("trace_id", traceId.toString());
+
+                if (auditHashService != null) {
+                    String hashActual = auditHashService.calcularHash(hashAnterior, contenido);
+                    fila.setHashActual(hashActual);
+                }
+
+                // Firma HMAC de autenticidad local
                 fila.setHmac(firmar(fila));
+            } else {
+                // Modo m1: Bitácora relacional convencional
+                fila.setDescripcion(descripcion);
             }
+
             repo.save(fila);
         } catch (Exception e) {
             // Un fallo al auditar no debe romper la operacion que lo disparo.

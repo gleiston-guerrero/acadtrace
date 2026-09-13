@@ -7,11 +7,16 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE_DIR))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "micro_docente.settings")
 
+from docentes.auditoria.verifier import verificar_cadena
+
+
+def verificar_registros(registros):
+    return verificar_cadena(registros).valido
+
 
 def main():
     import django
     django.setup()
-    from docentes.auditoria.verifier import verificar_cadena
     from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
 
     estado = EstadoCadenaAuditoria.objects.get(id_estado=1)

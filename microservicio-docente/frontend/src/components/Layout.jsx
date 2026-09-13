@@ -102,6 +102,7 @@ export default function Layout({ children, breadcrumb = ["Inicio"], sidebarTitle
           {/* Usuario */}
           <div className="relative">
             <button
+              aria-label="Menú de usuario"
               onClick={() => { setShowUserMenu(!showUserMenu); setShowPeriodo(false); setShowNotifs(false); }}
               style={{ backgroundColor: PRIMARY_LIGHT }}
               className="flex items-center gap-2 hover:opacity-90 px-3 py-1.5 rounded-lg transition"

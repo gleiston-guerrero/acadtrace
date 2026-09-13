@@ -8,6 +8,7 @@ on:
       - devBedon
       - Ernesto-Luna
       - Juliana-Emanuel
+      - Leonardo-Castro
   pull_request:
     branches:
       - main
@@ -23,6 +24,18 @@ env:
 
 jobs:
 
+  secret-scan:
+    name: Deteccion de secretos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout completo del historial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ejecutar Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ci-docente:
     name: CI Microservicio Docente
     runs-on: ubuntu-latest
@@ -32,6 +45,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Suite, cobertura y comprobaciones Django
+        env:
+          GRPC_INTERNAL_TOKEN: test-internal-token
         run: |
           cd microservicio-docente
           python -m pip install -r requirements.txt
@@ -130,6 +145,8 @@ jobs:
           python-version: "3.12"
 
       - name: Pruebas y Cobertura Python (Microservicio Docente)
+        env:
+          GRPC_INTERNAL_TOKEN: test-internal-token
         run: |
           cd microservicio-docente
           python -m pip install --upgrade pip
@@ -137,6 +154,16 @@ jobs:
           python -m pytest -v --cov=docentes --cov-report=term-missing --cov-fail-under=70
 
       - name: Pruebas Unitarias SGA Principal (Spring Boot)
+        env:
+          DB_HOST: 192.0.2.1
+          DB_PORT: 5433
+          DB_NAME: sga
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          GRPC_INTERNAL_TOKEN: test-internal-token
+          AES_SECRET_KEY: test-aes-key-for-ci-only
         run: |
           cd sga-principal
           ./mvnw clean test -q
@@ -153,6 +180,8 @@ jobs:
     name: CI Backend Microservicio Soporte
     runs-on: ubuntu-latest
     needs: lint
+    env:
+      GRPC_INTERNAL_TOKEN: test-internal-token
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
@@ -166,6 +195,8 @@ jobs:
 
       - name: Ejecutar pruebas y cobertura JaCoCo de Soporte
         working-directory: microservicio-soporte/backend
+        env:
+          GRPC_INTERNAL_TOKEN: test-internal-token
         run: |
           chmod +x mvnw
           ./mvnw clean verify
@@ -176,6 +207,48 @@ jobs:
         with:
           name: cobertura-microservicio-soporte
           path: microservicio-soporte/backend/target/site/jacoco/
+          retention-days: 7
+
+  test-secretaria-backend:
+    name: CI Backend Microservicio Secretaría
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      DB_PASSWORD: test_secret_pass
+      JWT_SECRET: test-container-jwt-secret-key-32-chars-long-minimum
+      AES_SECRET_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      GRPC_INTERNAL_TOKEN: test-internal-token
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Ejecutar pruebas y cobertura JaCoCo de Secretaría
+        working-directory: microservicio-secretaria/backend
+        run: |
+          chmod +x mvnw
+          ./mvnw clean test -Dsurefire.useFile=false || { echo "=== DUMPING FAILED LOGS ==="; for f in target/surefire-reports/*; do echo "=== $f ==="; cat "$f"; done; exit 1; }
+
+      - name: Subir reporte JaCoCo de Secretaría
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-microservicio-secretaria
+          path: microservicio-secretaria/backend/target/site/jacoco/
+          retention-days: 7
+
+      - name: Subir reportes de prueba Surefire
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: surefire-reports-secretaria
+          path: microservicio-secretaria/backend/target/surefire-reports/
           retention-days: 7
 
   # ─── 3. JOB TEST-WEB ───────────────────────────────────────────────────────
@@ -210,15 +283,78 @@ jobs:
           npm install --no-audit --legacy-peer-deps
           npm run build
 
+      - name: Compilar Frontend Secretaría (E12 con npm ci)
+        run: |
+          cd microservicio-secretaria/client
+          npm ci --no-audit
+          npm run build
+
       - name: Empaquetar distribución web como artefacto (.tar.gz)
         run: |
-          tar -czf release-web.tar.gz sga-principal/sga-frontend/dist microservicio-docente/frontend/dist microservicio-soporte/dist
+          tar -czf release-web.tar.gz sga-principal/sga-frontend/dist microservicio-docente/frontend/dist microservicio-soporte/dist microservicio-secretaria/client/dist
 
       - name: Subir artefacto web versionado
         uses: actions/upload-artifact@v4
         with:
           name: web-dist-sha-${{ github.sha }}
           path: release-web.tar.gz
+          retention-days: 7
+
+  e2e-docente:
+    name: E10 - Playwright Frontend Docente
+    runs-on: ubuntu-latest
+
+    concurrency:
+     group: e10-docente-entorno-real
+     cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.0"
+          cache: npm
+          cache-dependency-path: microservicio-docente/frontend/package-lock.json
+      - name: Validar configuración E2E
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_LOGIN_URL: ${{ vars.E2E_LOGIN_URL }}
+          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
+          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
+          E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
+        run: |
+          test -n "$E2E_BASE_URL"
+          test -n "$E2E_LOGIN_URL"
+          test -n "$E2E_DOCENTE_USER"
+          test -n "$E2E_DOCENTE_PASSWORD"
+          test -n "$E2E_ACTIVIDAD"
+      - name: Instalar frontend y Chromium
+        working-directory: microservicio-docente/frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Ejecutar recorridos E2E
+        working-directory: microservicio-docente/frontend
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_LOGIN_URL: ${{ vars.E2E_LOGIN_URL }}
+          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
+          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
+          E2E_GRADO: ${{ vars.E2E_GRADO }}
+          E2E_CURSO: ${{ vars.E2E_CURSO }}
+          E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-docente
+          path: microservicio-docente/frontend/playwright-report/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-test-results-docente
+          path: microservicio-docente/frontend/test-results/
           retention-days: 7
 
   # ─── 4. JOB TEST-MOBILE ────────────────────────────────────────────────────
@@ -255,6 +391,7 @@ jobs:
     needs:
       - test-backend
       - test-soporte-backend
+      - test-secretaria-backend
       - test-web
       - lint
       - ci-docente
@@ -326,6 +463,13 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.image-tags.outputs.tags }}
+
+      - name: Construir y Etiquetar Imagen Microservicio Secretaría (E14 GHCR)
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest -f microservicio-secretaria/backend/Dockerfile microservicio-secretaria/
+          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }}
+          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest
 
   # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
   build-mobile-apk:

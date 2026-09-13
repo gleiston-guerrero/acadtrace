@@ -6,7 +6,7 @@
 -- sga_principal.historial_promocion) o vía POST /api/notificaciones/masivo.
 --
 -- Como correrlo:
--- PGPASSWORD=***REMOVED*** psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
+-- PGPASSWORD="$env:DB_PASSWORD" psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
 --   -v ON_ERROR_STOP=1 -f scripts/create_notificaciones.sql
 
 CREATE TABLE IF NOT EXISTS sga_principal.notificaciones (

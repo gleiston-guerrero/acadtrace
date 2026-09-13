@@ -14,7 +14,11 @@ class NotificationEventTests(SimpleTestCase):
         enqueue_attendance(SimpleNamespace(**base, estado="ATRASO"))
         enqueue_attendance(SimpleNamespace(**base, estado="PRESENTE"))
         self.assertEqual([c.args[0]["type"] for c in deliver.call_args_list], ["AUSENTE", "ATRASO"])
-        self.assertEqual(deliver.call_args_list[0].args[0]["eventKey"], "ASISTENCIA:7:AUSENTE")
+        payload = deliver.call_args_list[0].args[0]
+        self.assertEqual(payload["eventKey"], "ASISTENCIA:7:AUSENTE")
+        self.assertEqual(payload["studentName"], "Ana Paz")
+        self.assertEqual(payload["date"], "2026-09-09")
+        self.assertEqual(payload["attendanceId"], 7)
 
     @patch("docentes.notifications.transaction.on_commit", side_effect=lambda callback: callback())
     @patch("docentes.notifications._deliver")

@@ -24,12 +24,16 @@ class AuditoriaServiceTest {
     private HmacService hmacService;
 
     private LamportClock lamportClock;
+    private VectorClock vectorClock;
+    private AuditHashService auditHashService;
     private AuditoriaService auditoriaService;
 
     @BeforeEach
     void setUp() {
         lamportClock = new LamportClock();
-        auditoriaService = new AuditoriaService(repo, hmacService, lamportClock);
+        vectorClock = new VectorClock();
+        auditHashService = new AuditHashService();
+        auditoriaService = new AuditoriaService(repo, hmacService, lamportClock, vectorClock, auditHashService);
     }
 
     @Test
@@ -52,6 +56,7 @@ class AuditoriaServiceTest {
         assertEquals("CREAR", guardada.getAccion());
         assertEquals("calificacion", guardada.getTablaAfectada());
         assertNull(guardada.getHmac());
+        assertNull(guardada.getHashActual());
     }
 
     @Test
@@ -68,6 +73,10 @@ class AuditoriaServiceTest {
         Auditoria guardada = captor.getValue();
         assertEquals("HMAC_M2_VALIDO", guardada.getHmac());
         assertTrue(guardada.getDescripcion().contains("lamport:1"));
+        assertEquals(1L, guardada.getRelojLamport());
+        assertEquals(AuditHashService.GENESIS_HASH, guardada.getHashAnterior());
+        assertNotNull(guardada.getHashActual());
+        assertEquals(64, guardada.getHashActual().length());
     }
 
     @Test
@@ -83,6 +92,54 @@ class AuditoriaServiceTest {
 
         Auditoria guardada = captor.getValue();
         assertEquals("HMAC_M3_VALIDO", guardada.getHmac());
-        assertTrue(guardada.getDescripcion().contains("vclock:[1,0,0]"));
+        assertTrue(guardada.getDescripcion().contains("vclock:"));
+        assertNotNull(guardada.getVectorReloj());
+        assertTrue(guardada.getVectorReloj().contains("\"principal\":1"));
+        assertNotNull(guardada.getHashActual());
+        assertEquals(64, guardada.getHashActual().length());
+    }
+
+    @Test
+    void verificarIntegridadCausal_dosEventos_detectaManipulacionYVerificaRelojLogico() {
+        auditoriaService.setAuditMode("m2");
+
+        when(hmacService.firmar(any(), any(), any(), eq("CREAR"), any(), any(), any(), any(), any()))
+                .thenReturn("HMAC_EVENTO_1");
+        when(hmacService.firmar(any(), any(), any(), eq("ACTUALIZAR"), any(), any(), any(), any(), any()))
+                .thenReturn("HMAC_EVENTO_2_ORIGINAL");
+
+        auditoriaService.registrarCrud("CREAR", "calificacion", 201L, "Ingreso de nota inicial");
+        auditoriaService.registrarCrud("ACTUALIZAR", "calificacion", 201L, "Rectificacion de nota");
+
+        ArgumentCaptor<Auditoria> captor = ArgumentCaptor.forClass(Auditoria.class);
+        verify(repo, times(2)).save(captor.capture());
+
+        var eventos = captor.getAllValues();
+        Auditoria evento1 = eventos.get(0);
+        Auditoria evento2 = eventos.get(1);
+
+        assertTrue(evento1.getDescripcion().contains("lamport:1"));
+        assertTrue(evento2.getDescripcion().contains("lamport:2"));
+        assertEquals("HMAC_EVENTO_1", evento1.getHmac());
+        assertEquals("HMAC_EVENTO_2_ORIGINAL", evento2.getHmac());
+
+        // Simulacion de alteracion maliciosa en el segundo evento
+        evento2.setDescripcion("Alteracion no autorizada [lamport:2]");
+        when(hmacService.firmar(any(), any(), any(), eq("ACTUALIZAR"), any(), any(), contains("Alteracion no autorizada"), any(), any()))
+                .thenReturn("HMAC_RECALCULADO_DISCREPANTE");
+
+        String hmacRecalculado = hmacService.firmar(
+                evento2.getSchemaOrigen(),
+                String.valueOf(evento2.getTraceId()),
+                evento2.getUsername(),
+                evento2.getAccion(),
+                evento2.getTablaAfectada(),
+                String.valueOf(evento2.getRegistroId()),
+                evento2.getDescripcion(),
+                evento2.getResultado(),
+                String.valueOf(evento2.getFecha().toEpochMilli())
+        );
+
+        assertNotEquals(evento2.getHmac(), hmacRecalculado);
     }
 }
