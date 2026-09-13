@@ -1,0 +1,59 @@
+﻿EVIDENCIA: ENTORNO REPRODUCIBLE DE COMPILACIÓN ANDROID
+
+Objetivo
+--------
+Identificar la versión concreta del código y las herramientas utilizadas
+para ejecutar las pruebas y generar el APK.
+
+Repositorio
+-----------
+AcadTrace
+
+Componente
+----------
+app-movil-docente
+
+Rama
+----
+devBedon
+
+Commit
+------
+d835e46b61c369882b1c5e36a5464c369185823e
+
+Java
+----
+java : openjdk version "21.0.11" 2026-04-21 LTS
+En línea: 3 Carácter: 9
++ $java = java -version 2>&1 | Out-String
++         ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (openjdk version "21.0.11" 2026-04-21 LTS:String) [], RemoteExcepti 
+   on
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+OpenJDK Runtime Environment Temurin-21.0.11+10 (build 21.0.11+10-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.11+10 (build 21.0.11+10-LTS, mixed mode, sharing)
+
+
+Gradle
+------
+
+------------------------------------------------------------
+Gradle 8.4
+------------------------------------------------------------
+
+Build time:   2023-10-04 20:52:13 UTC
+Revision:     e9251e572c9bd1d01e503a0dfdf43aedaeecdc3f
+
+Kotlin:       1.9.10
+Groovy:       3.0.17
+Ant:          Apache Ant(TM) version 1.10.13 compiled on January 4 2023
+JVM:          21.0.11 (Eclipse Adoptium 21.0.11+10-LTS)
+OS:           Windows 11 10.0 amd64
+
+
+
+Conclusión
+----------
+La evidencia identifica el commit y el entorno utilizado para reproducir
+la compilación y las pruebas Android.

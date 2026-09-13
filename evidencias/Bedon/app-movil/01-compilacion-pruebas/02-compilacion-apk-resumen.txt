@@ -1,0 +1,36 @@
+﻿EVIDENCIA: COMPILACIÓN DE LA APLICACIÓN ANDROID
+
+Objetivo
+--------
+Comprobar que la aplicación móvil puede generar correctamente el
+paquete APK mediante Gradle Wrapper.
+
+Componente
+----------
+app-movil-docente
+
+Comando ejecutado
+-----------------
+.\gradlew.bat assembleDebug --console=plain
+
+Resultado
+---------
+BUILD SUCCESSFUL
+
+Artefacto generado
+------------------
+app/build/outputs/apk/debug/app-debug.apk
+
+Evidencia relacionada
+----------------------
+../08-E14-artefacto-apk/app-debug.apk
+../08-E14-artefacto-apk/app-debug.sha256.txt
+
+Log completo
+------------
+02-assembleDebug.log
+
+Conclusión
+----------
+La compilación Android finalizó correctamente y produjo el APK Debug
+documentado en la evidencia E14.

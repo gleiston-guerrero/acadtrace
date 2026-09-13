@@ -1,0 +1,39 @@
+﻿EVIDENCIA: COMPILACIÓN DEL APK ANDROID
+
+Objetivo
+--------
+Verificar que la aplicación móvil puede compilarse mediante el
+Gradle Wrapper incluido en el repositorio.
+
+Componente
+----------
+app-movil-docente
+
+Rama
+----
+devBedon
+
+Commit
+------
+d835e46b61c369882b1c5e36a5464c369185823e
+
+Comando ejecutado
+-----------------
+.\gradlew.bat assembleDebug --console=plain
+
+Resultado
+---------
+BUILD SUCCESSFUL
+
+Artefacto esperado
+------------------
+app/build/outputs/apk/debug/app-debug.apk
+
+Log completo
+------------
+04-assembleDebug.log
+
+Conclusión
+----------
+La aplicación Android se compiló correctamente y produjo el artefacto
+APK de la variante Debug.

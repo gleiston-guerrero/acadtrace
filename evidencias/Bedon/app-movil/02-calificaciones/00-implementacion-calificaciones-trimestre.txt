@@ -1,0 +1,127 @@
+﻿EVIDENCIA: IMPLEMENTACIÓN DE CALIFICACIONES POR TRIMESTRE
+
+Objetivo
+--------
+Documentar la implementación utilizada por la aplicación móvil para
+consultar y presentar calificaciones académicas según el período o
+trimestre seleccionado.
+
+Componente
+----------
+app-movil-docente
+
+Fuente
+------
+Código fuente real ubicado en:
+app-movil-docente/app/src/main/
+
+Aspectos verificados
+--------------------
+- selección de período o trimestre;
+- consulta de calificaciones;
+- actividades académicas;
+- promedio formativo;
+- promedio sumativo;
+- promedio del período;
+- actualización de datos según el período seleccionado.
+
+Referencias encontradas
+-----------------------
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:13: @Query("SELECT * FROM calificaciones_representado_cache WHERE idEstudiante = :id")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:14: suspend fun getCalificaciones(id: Long): CalificacionesRepresentadoCacheEntity?
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:16: suspend fun putCalificaciones(item: CalificacionesRepresentadoCacheEntity)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:58: interface PeriodoDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:59: @Query("SELECT * FROM periodos WHERE activo = 1 ORDER BY fechaInicio")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:60: fun getPeriodosActivos(): Flow<List<PeriodoEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:63: suspend fun insertPeriodos(periodos: List<PeriodoEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:67: interface ActividadDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:68: @Query("SELECT * FROM actividades WHERE idAsignacion = :idAsignacion AND (:idPeriodo IS NULL OR idPeriodo = :idPeriodo) ORDER BY fechaEntrega DESC")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:69: fun getActividades(idAsignacion: Long, idPeriodo: Long?): Flow<List<ActividadEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:71: @Query("SELECT * FROM actividades WHERE idActividad = :id")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:72: suspend fun getActividadById(id: Long): ActividadEntity?
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:75: suspend fun insertActividades(actividades: List<ActividadEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:78: suspend fun insertActividad(actividad: ActividadEntity)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:81: suspend fun deleteActividad(actividad: ActividadEntity)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:83: @Query("DELETE FROM actividades WHERE idActividad = :id")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:84: suspend fun deleteActividadById(id: Long)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:86: @Query("UPDATE actividades SET idActividad = :newRemoteId, isPendingSync = 0 WHERE idActividad = :localTempId")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:87: suspend fun updateActividadRemoteId(localTempId: Long, newRemoteId: Long)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:91: interface CalificacionDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:92: @Query("SELECT * FROM calificaciones WHERE idActividad = :idActividad")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:93: fun getCalificacionesByActividad(idActividad: Long): Flow<List<CalificacionEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:95: @Query("SELECT * FROM calificaciones WHERE idActividad = :idActividad AND idMatricula = :idMatricula")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:96: suspend fun getCalificacion(idActividad: Long, idMatricula: Long): CalificacionEntity?
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:99: suspend fun insertCalificaciones(calificaciones: List<CalificacionEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:102: suspend fun insertCalificacion(calificacion: CalificacionEntity)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:104: @Query("UPDATE calificaciones SET idCalificacion = :newRemoteId, isPendingSync = 0 WHERE idCalificacion = :localTempId")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:105: suspend fun updateCalificacionRemoteId(localTempId: Long, newRemoteId: Long)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:128: @Query("SELECT * FROM resumenes_asistencia WHERE idAsignacion = :idAsignacion AND (:idPeriodo IS NULL OR idPeriodo = :idPeriodo)")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:129: fun getResumenesAsistencia(idAsignacion: Long, idPeriodo: Long?): Flow<List<ResumenAsistenciaEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:136: interface PromediosDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:137: @Query("SELECT * FROM promedios_trimestrales WHERE idAsignacion = :idAsignacion AND (:idPeriodo IS NULL OR idPeriodo = :idPeriodo)")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:138: fun getPromediosTrimestrales(idAsignacion: Long, idPeriodo: Long?): Flow<List<PromedioTrimestralEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:141: suspend fun insertPromediosTrimestrales(promedios: List<PromedioTrimestralEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:143: @Query("SELECT * FROM promedios_anuales WHERE idAsignacion = :idAsignacion")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:144: fun getPromediosAnuales(idAsignacion: Long): Flow<List<PromedioAnualEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:147: suspend fun insertPromediosAnuales(promedios: List<PromedioAnualEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:10: @Entity(tableName = "calificaciones_representado_cache")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:11: data class CalificacionesRepresentadoCacheEntity(@PrimaryKey val idEstudiante: Long, val json: String, val lastUpdated: Long = System.currentTimeMillis())
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:40: val promedioCalificaciones: Double? = null,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:65: tableName = "periodos",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:71: data class PeriodoEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:72: @PrimaryKey val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:82: tableName = "actividades",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:85: Index(value = ["idPeriodo"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:86: Index(value = ["idAsignacion", "idPeriodo"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:90: data class ActividadEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:91: @PrimaryKey val idActividad: Long, // Puede ser id temporal negativo para creadas offline
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:93: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:106: tableName = "calificaciones",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:108: Index(value = ["idActividad"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:110: Index(value = ["idActividad", "idMatricula"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:114: data class CalificacionEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:115: @PrimaryKey val idCalificacion: Long, // Id temporal negativo si es offline
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:116: val idActividad: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:141: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:155: Index(value = ["idAsignacion", "idPeriodo"])
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:162: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:171: tableName = "promedios_trimestrales",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:175: Index(value = ["idAsignacion", "idPeriodo"])
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:178: data class PromedioTrimestralEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:179: @PrimaryKey val idPromedio: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:182: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:183: val promedioFormativo: Double = 0.0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:185: val promedioTrimestral: Double = 0.0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:191: tableName = "promedios_anuales",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:198: data class PromedioAnualEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:199: @PrimaryKey val idPromedioAnual: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:203: val promedioAnual: Double = 0.0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:213: Index(value = ["idPeriodo"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:221: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:286: val idPeriodo: Int,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:307: val entityType: String, // ACTIVIDAD, CALIFICACION, ASISTENCIA, SEGUIMIENTO, ANUNCIO, MATERIAL
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:17: PeriodoEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:18: ActividadEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:19: CalificacionEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:22: PromedioTrimestralEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:23: PromedioAnualEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:30: CalificacionesRepresentadoCacheEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:41: abstract fun periodoDao(): PeriodoDao
+
+Resultado
+---------
+El código fuente contiene referencias e implementación relacionadas
+con períodos académicos, calificaciones, actividades y promedios.
+
+Alcance
+-------
+Esta evidencia documenta la implementación existente en el código.
+
+La comprobación visual de que T1, T2 y T3 presentan información
+diferente se documentará posteriormente mediante capturas funcionales.
+
+Capturas pendientes
+-------------------
+01-calificaciones-T1.png
+02-calificaciones-T2.png
+03-calificaciones-T3.png

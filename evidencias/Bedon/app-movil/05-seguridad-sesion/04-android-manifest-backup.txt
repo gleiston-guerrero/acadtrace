@@ -1,0 +1,40 @@
+﻿EVIDENCIA: CONFIGURACIÓN DE BACKUP SEGURO EN ANDROID
+
+Objetivo
+--------
+Verificar que Android utiliza las reglas de backup y extracción
+definidas por la aplicación para proteger las preferencias
+cifradas de sesión.
+
+Fuente
+------
+app-movil-docente/app/src/main/AndroidManifest.xml
+
+Configuración verificada
+-------------------------
+android:allowBackup="true"
+android:dataExtractionRules="@xml/data_extraction_rules"
+android:fullBackupContent="@xml/backup_rules"
+
+Archivos relacionados
+----------------------
+app-movil-docente/app/src/main/res/xml/backup_rules.xml
+app-movil-docente/app/src/main/res/xml/data_extraction_rules.xml
+
+Preferencia protegida
+---------------------
+sga_representante_secure_prefs.xml
+
+Resultado
+---------
+AndroidManifest.xml referencia explícitamente las reglas de backup
+y extracción de datos utilizadas por la aplicación.
+
+Los archivos de reglas excluyen las preferencias cifradas de sesión
+de los mecanismos configurados de backup y transferencia.
+
+Conclusión
+----------
+La configuración evita que las preferencias cifradas de sesión sean
+restauradas o transferidas de una forma incompatible con la clave
+criptográfica disponible en el dispositivo.

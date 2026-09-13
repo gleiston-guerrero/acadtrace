@@ -1,0 +1,152 @@
+﻿EVIDENCIA: IMPLEMENTACIÓN DE ASISTENCIA POR TRIMESTRE Y ESTADO
+
+Objetivo
+--------
+Documentar la implementación utilizada por la aplicación móvil para
+consultar, presentar y filtrar los registros de asistencia del estudiante.
+
+Componente
+----------
+app-movil-docente
+
+Fuente
+------
+Código fuente real ubicado en:
+app-movil-docente/app/src/main/
+
+Aspectos verificados
+--------------------
+- consulta de registros de asistencia;
+- asociación con período o trimestre;
+- estados de asistencia;
+- presente;
+- ausente;
+- atraso;
+- justificado;
+- filtrado y presentación de registros;
+- cálculo o presentación de totales.
+
+Referencias encontradas
+-----------------------
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:17: @Query("SELECT * FROM asistencia_hijo_cache WHERE idEstudiante = :id")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:18: suspend fun getAsistencia(id: Long): AsistenciaHijoCacheEntity?
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:20: suspend fun putAsistencia(item: AsistenciaHijoCacheEntity)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:58: interface PeriodoDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:59: @Query("SELECT * FROM periodos WHERE activo = 1 ORDER BY fechaInicio")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:60: fun getPeriodosActivos(): Flow<List<PeriodoEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:63: suspend fun insertPeriodos(periodos: List<PeriodoEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:68: @Query("SELECT * FROM actividades WHERE idAsignacion = :idAsignacion AND (:idPeriodo IS NULL OR idPeriodo = :idPeriodo) ORDER BY fechaEntrega DESC")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:69: fun getActividades(idAsignacion: Long, idPeriodo: Long?): Flow<List<ActividadEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:109: interface AsistenciaDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:110: @Query("SELECT * FROM asistencias WHERE idAsignacion = :idAsignacion AND fecha = :fecha")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:111: fun getAsistenciasPorFecha(idAsignacion: Long, fecha: String): Flow<List<AsistenciaEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:113: @Query("SELECT * FROM asistencias WHERE idMatricula = :idMatricula AND idAsignacion = :idAsignacion AND fecha = :fecha")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:114: suspend fun getAsistenciaAlumno(idMatricula: Long, idAsignacion: Long, fecha: String): AsistenciaEntity?
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:117: suspend fun insertAsistencias(asistencias: List<AsistenciaEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:120: suspend fun insertAsistencia(asistencia: AsistenciaEntity)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:122: @Query("UPDATE asistencias SET idAsistencia = :newRemoteId, isPendingSync = 0 WHERE idAsistencia = :localTempId")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:123: suspend fun updateAsistenciaRemoteId(localTempId: Long, newRemoteId: Long)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:127: interface ResumenAsistenciaDao {
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:128: @Query("SELECT * FROM resumenes_asistencia WHERE idAsignacion = :idAsignacion AND (:idPeriodo IS NULL OR idPeriodo = :idPeriodo)")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:129: fun getResumenesAsistencia(idAsignacion: Long, idPeriodo: Long?): Flow<List<ResumenAsistenciaEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:132: suspend fun insertResumenes(resumenes: List<ResumenAsistenciaEntity>)
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:137: @Query("SELECT * FROM promedios_trimestrales WHERE idAsignacion = :idAsignacion AND (:idPeriodo IS NULL OR idPeriodo = :idPeriodo)")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\dao\Daos.kt:138: fun getPromediosTrimestrales(idAsignacion: Long, idPeriodo: Long?): Flow<List<PromedioTrimestralEntity>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:13: @Entity(tableName = "asistencia_hijo_cache")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:14: data class AsistenciaHijoCacheEntity(@PrimaryKey val idEstudiante: Long, val json: String, val lastUpdated: Long = System.currentTimeMillis())
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:39: val porcentajeAsistencia: Double? = null,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:65: tableName = "periodos",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:71: data class PeriodoEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:72: @PrimaryKey val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:85: Index(value = ["idPeriodo"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:86: Index(value = ["idAsignacion", "idPeriodo"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:93: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:128: tableName = "asistencias",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:137: data class AsistenciaEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:138: @PrimaryKey val idAsistencia: Long, // Id temporal negativo si es offline
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:141: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:143: val estado: String, // PRESENTE, AUSENTE, JUSTIFICADO, ATRASO
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:151: tableName = "resumenes_asistencia",
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:155: Index(value = ["idAsignacion", "idPeriodo"])
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:158: data class ResumenAsistenciaEntity(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:162: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:163: val totalPresentes: Int = 0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:164: val totalAusentes: Int = 0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:165: val totalJustificados: Int = 0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:166: val totalAtrasos: Int = 0,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:175: Index(value = ["idAsignacion", "idPeriodo"])
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:182: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:213: Index(value = ["idPeriodo"]),
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:221: val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:286: val idPeriodo: Int,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\entity\Entities.kt:307: val entityType: String, // ACTIVIDAD, CALIFICACION, ASISTENCIA, SEGUIMIENTO, ANUNCIO, MATERIAL
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:17: PeriodoEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:20: AsistenciaEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:21: ResumenAsistenciaEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:31: AsistenciaHijoCacheEntity::class,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:41: abstract fun periodoDao(): PeriodoDao
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:44: abstract fun asistenciaDao(): AsistenciaDao
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:45: abstract fun resumenAsistenciaDao(): ResumenAsistenciaDao
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\local\AppDatabase.kt:76: db.execSQL("CREATE TABLE IF NOT EXISTS asistencia_hijo_cache (idEstudiante INTEGER NOT NULL, json TEXT NOT NULL, lastUpdated INTEGER NOT NULL, PRIMARY KEY(idEstudiante))")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:21: // ─── PERIODOS EVALUACIÓN ───────────────────────────────────────────────
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:22: @GET("periodos-evaluacion/")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:23: suspend fun getPeriodosEvaluacion(): Response<List<PeriodoEvaluacionDTO>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:29: @Query("id_periodo") idPeriodo: Long? = null,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:60: @Query("id_periodo") idPeriodo: Long? = null
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:78: @Query("id_periodo") idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:82: // ─── ASISTENCIAS ───────────────────────────────────────────────────────
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:83: @GET("asistencias/")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:84: suspend fun getAsistencias(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:87: @Query("id_periodo") idPeriodo: Long? = null,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:90: ): Response<List<AsistenciaDTO>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:92: @POST("asistencias/")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:93: suspend fun createAsistencia(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:94: @Body asistencia: AsistenciaCreateDTO
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:95: ): Response<AsistenciaDTO>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:97: @PUT("asistencias/{id}/")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:98: suspend fun updateAsistencia(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:100: @Body asistencia: AsistenciaCreateDTO
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:101: ): Response<AsistenciaDTO>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:103: @GET("resumen-asistencia/")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:104: suspend fun getResumenAsistencia(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:107: @Query("id_periodo") idPeriodo: Long? = null
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:108: ): Response<List<ResumenAsistenciaDTO>>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:110: @POST("resumen-asistencia/calcular/")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:111: suspend fun calcularResumenAsistencia(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:113: ): Response<ResumenAsistenciaDTO>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:120: @Query("id_periodo") idPeriodo: Long? = null
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\DocenteApi.kt:147: @Query("id_periodo") idPeriodo: Long? = null,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\RepresentanteApi.kt:25: @GET("representante/me/estudiantes/{id}/asistencia")
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\api\RepresentanteApi.kt:26: suspend fun getAsistencia(@Path("id") idEstudiante: Long): Response<AsistenciaRepresentadoDTO>
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:5: // ─── PERIODOS EVALUACIÓN ───────────────────────────────────────────────
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:6: data class PeriodoEvaluacionDTO(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:7: @SerializedName("id_periodo") val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:9: @SerializedName("tipo") val tipo: String, // PRIMER_TRIMESTRE, SEGUNDO_TRIMESTRE, TERCER_TRIMESTRE
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:20: @SerializedName("id_periodo") val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:33: @SerializedName("id_periodo") val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:68: @SerializedName("id_periodo") val idPeriodo: Long,
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:73: // ─── ASISTENCIAS ───────────────────────────────────────────────────────
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:74: data class AsistenciaDTO(
+app-movil-docente\app\src\main\java\ec\edu\uteq\sga\representante\data\remote\dto\AcademicDTOs.kt:75: @SerializedName("id_asistencia") val idAsistencia: Long,
+
+Resultado
+---------
+El código fuente contiene la implementación y referencias utilizadas
+para consultar y presentar la información de asistencia del estudiante,
+incluyendo períodos académicos y estados de asistencia.
+
+Alcance
+-------
+Esta evidencia documenta la implementación existente en el código.
+
+La comprobación visual de los resultados por trimestre y de los filtros
+se documentará posteriormente mediante capturas funcionales reales.
+
+Capturas pendientes
+-------------------
+01-asistencia-T1.png
+02-asistencia-T2.png
+03-asistencia-T3.png
+04-filtro-atrasos.png
+05-filtro-ausentes.png
+06-filtro-justificados.png

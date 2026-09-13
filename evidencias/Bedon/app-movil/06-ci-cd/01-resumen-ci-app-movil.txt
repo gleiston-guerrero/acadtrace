@@ -1,0 +1,28 @@
+﻿EVIDENCIA: INTEGRACIÓN CONTINUA DE LA APLICACIÓN MÓVIL
+
+Objetivo
+--------
+Verificar que el repositorio contiene automatización de CI relacionada
+con la aplicación Android.
+
+Workflows encontrados
+----------------------
+ci-cd.yml
+
+Verificaciones buscadas
+------------------------
+- Gradle Wrapper
+- pruebas Android
+- compilación APK
+- assembleDebug
+- testDebugUnitTest
+- jobs relacionados con la aplicación móvil
+
+Resultado
+---------
+Los archivos originales de workflow relacionados con Android fueron
+copiados a esta carpeta como evidencia verificable.
+
+Fuente
+------
+.github/workflows/
