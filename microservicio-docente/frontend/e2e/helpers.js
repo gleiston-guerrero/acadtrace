@@ -38,10 +38,8 @@ export async function seleccionarCurso(
 ) {
   await expect(page.getByRole("heading", { name: "Mis grados" })).toBeVisible();
 
-  const grados = page
-    .getByRole("button")
-    .filter({ hasText: "Abrir cursos" });
-
+  const main = page.getByRole("main");
+  const grados = main.getByRole("button");
   const totalGrados = await grados.count();
 
   expect(
@@ -49,7 +47,7 @@ export async function seleccionarCurso(
     "No se encontraron grados disponibles para el docente"
   ).toBeGreaterThan(0);
 
-  let grado = grados.first();
+  let grado = null;
 
   if (e2e.grado) {
     const gradoPreferido = grados
@@ -63,6 +61,22 @@ export async function seleccionarCurso(
       grado = gradoPreferido;
     }
   }
+
+  if (!grado) {
+    for (let i = 0; i < totalGrados; i += 1) {
+      const candidato = grados.nth(i);
+
+      if (await candidato.isVisible()) {
+        grado = candidato;
+        break;
+      }
+    }
+  }
+
+  expect(
+    grado,
+    "No se encontro ningun grado visible para continuar"
+  ).not.toBeNull();
 
   await expect(grado).toBeVisible();
   await grado.click();
