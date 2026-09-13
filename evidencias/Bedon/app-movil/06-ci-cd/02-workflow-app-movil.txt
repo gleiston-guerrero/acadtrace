@@ -1,0 +1,42 @@
+﻿EVIDENCIA: INTEGRACIÓN CONTINUA DE LA APLICACIÓN MÓVIL
+
+Objetivo
+--------
+Identificar las etapas del workflow del repositorio relacionadas
+directamente con pruebas y compilación de la aplicación Android.
+
+Fuente
+------
+.github/workflows/ci-cd.yml
+
+Referencias relevantes
+-----------------------
+Línea 64: name: CI Aplicación Móvil Representante
+Línea 72: - name: Tests, JaCoCo, lint y APK debug
+Línea 76: chmod +x gradlew
+Línea 77: ./gradlew testDebugUnitTest jacocoTestReport lintDebug assembleDebug --no-daemon
+Línea 82: path: app-movil-docente/app/build/outputs/apk/debug/app-debug.apk
+Línea 403: name: 4. Pruebas Unitarias App Móvil
+Línea 419: - name: Ejecutar Pruebas Unitarias JVM de Android
+Línea 425: chmod +x gradlew
+Línea 426: ./gradlew testDebugUnitTest --no-daemon
+Línea 516: # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
+Línea 517: build-mobile-apk:
+Línea 518: name: 6. Compilación de Paquete APK Android
+Línea 534: - name: Compilar APK en modo Debug
+Línea 540: chmod +x gradlew
+Línea 541: ./gradlew assembleDebug --no-daemon
+Línea 543: - name: Subir APK como artefacto versionado
+Línea 548: path: app-movil-docente/app/build/outputs/apk/debug/app-debug.apk
+Línea 557: - build-mobile-apk
+
+Seguridad
+---------
+Esta evidencia contiene únicamente referencias estructurales al
+pipeline Android. No se copian credenciales, tokens, contraseñas
+ni valores de secretos.
+
+Resultado
+---------
+El workflow del repositorio contiene automatización relacionada
+con pruebas y construcción de la aplicación móvil Android.
