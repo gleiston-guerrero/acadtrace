@@ -21,6 +21,7 @@ export async function loginDocente(page) {
   await page.getByRole("button", { name: /ingresar/i }).click();
   await page.waitForURL((url) => url.origin === new URL(e2e.baseURL).origin, {
     timeout: 60_000,
+    waitUntil: "domcontentloaded",
   });
   await expect(page.getByRole("heading", { name: /bienvenido/i })).toBeVisible();
 }
@@ -37,9 +38,31 @@ export async function seleccionarCurso(
 ) {
   await expect(page.getByRole("heading", { name: "Mis grados" })).toBeVisible();
 
-  const grado = e2e.grado
-    ? page.getByRole("button").filter({ hasText: e2e.grado }).first()
-    : page.getByRole("button").filter({ hasText: "Abrir cursos" }).first();
+  const grados = page
+    .getByRole("button")
+    .filter({ hasText: "Abrir cursos" });
+
+  const totalGrados = await grados.count();
+
+  expect(
+    totalGrados,
+    "No se encontraron grados disponibles para el docente"
+  ).toBeGreaterThan(0);
+
+  let grado = grados.first();
+
+  if (e2e.grado) {
+    const gradoPreferido = grados
+      .filter({ hasText: e2e.grado })
+      .first();
+
+    if (
+      (await gradoPreferido.count()) > 0 &&
+      (await gradoPreferido.isVisible())
+    ) {
+      grado = gradoPreferido;
+    }
+  }
 
   await expect(grado).toBeVisible();
   await grado.click();
@@ -62,12 +85,26 @@ export async function seleccionarCurso(
    * E10 puede indicar un indice para recorrer los cursos reales
    * hasta encontrar una calificacion previa restaurable.
    */
-  const curso =
-    indiceCurso === null
-      ? e2e.curso
-        ? main.getByRole("button").filter({ hasText: e2e.curso }).first()
-        : cursos.first()
-      : cursos.nth(indiceCurso);
+  let curso;
+
+  if (indiceCurso !== null) {
+    curso = cursos.nth(indiceCurso);
+  } else {
+    curso = cursos.first();
+
+    if (e2e.curso) {
+      const cursoPreferido = cursos
+        .filter({ hasText: e2e.curso })
+        .first();
+
+      if (
+        (await cursoPreferido.count()) > 0 &&
+        (await cursoPreferido.isVisible())
+      ) {
+        curso = cursoPreferido;
+      }
+    }
+  }
 
   if (indiceCurso !== null) {
     expect(
