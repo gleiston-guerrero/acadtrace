@@ -6,6 +6,7 @@ E2:
 - No reimplementa SHA-256.
 - No mantiene un algoritmo de verificación paralelo.
 - Reutiliza directamente hashing.py y verifier.py de producción.
+- La evidencia de cadena real utiliza el contrato global canónico v1.
 """
 
 from pathlib import Path
@@ -22,13 +23,16 @@ if str(DOCENTE_DIR) not in sys.path:
 from docentes.auditoria.hashing import (  # noqa: E402
     GENESIS_HASH,
     calcular_hash,
+    calcular_hash_canonico,
     contenido_evento,
     json_canonico,
     normalizar,
 )
+
 from docentes.auditoria.verifier import (  # noqa: E402
     ResultadoVerificacion,
     verificar_cadena,
+    verificar_cadena_global,
     verificar_estado_academico,
 )
 
@@ -37,9 +41,11 @@ __all__ = [
     "GENESIS_HASH",
     "ResultadoVerificacion",
     "calcular_hash",
+    "calcular_hash_canonico",
     "contenido_evento",
     "json_canonico",
     "normalizar",
     "verificar_cadena",
+    "verificar_cadena_global",
     "verificar_estado_academico",
 ]

@@ -1,8 +1,8 @@
 ﻿#!/usr/bin/env python3
 """
-MÃ³dulo G â€” Banco Experimental y EvaluaciÃ³n Cuantitativa de Carga y Cripto-AuditorÃ­a
+Modulo Banco Experimental y Evaluación Cuantitativa de Carga y Cripto-Auditoría
 Proyecto AcadTrace / SGA Escuela - Entrega 4
-Responsable de Calidad y Gateway / DocumentaciÃ³n
+Responsable de Calidad y Gateway / Documentación
 
 Genera experimentos locales/sintéticos con mediciones temporales variables:
   - experimentos/resultados/deteccion.csv
@@ -72,9 +72,12 @@ from docentes.auditoria.hashing import (  # noqa: E402
     calcular_hash,
     contenido_evento,
     json_canonico,
+    calcular_hash_canonico,
+
 )
 from docentes.auditoria.verifier import (  # noqa: E402
     verificar_cadena,
+    verificar_cadena_global,
     verificar_estado_academico,
 )
 
@@ -171,21 +174,59 @@ class LiveBackendClient:
 # 2. MODELO DE RELOJES LÃ“GICOS Y CRIPTOGRAFÃA
 # =============================================================================
 
-def construir_evento_productivo(*, identificador, anterior, lamport, vector,
-                                est_id, doc_id, nota_final, timestamp, modo):
-    payload = {"est_id": est_id, "nota_final": nota_final}
+def construir_evento_productivo(
+    *,
+    identificador,
+    anterior,
+    lamport,
+    vector,
+    est_id,
+    doc_id,
+    nota_final,
+    timestamp,
+    modo,
+):
+    payload = {
+        "est_id": est_id,
+        "nota_final": nota_final,
+    }
+
     contenido = contenido_evento(
-        tipo_evento="CALIFICACION_ACTUALIZADA", entidad="Calificacion",
-        entidad_id=est_id, operacion="ACTUALIZAR", actor_id=doc_id,
-        timestamp=timestamp, payload=payload, modo=modo,
-        reloj_lamport=lamport, reloj_vectorial=vector,
+        tipo_evento="CALIFICACION_ACTUALIZADA",
+        entidad="Calificacion",
+        entidad_id=est_id,
+        operacion="ACTUALIZAR",
+        actor_id=doc_id,
+        timestamp=timestamp,
+        payload=payload,
+        modo=modo,
+        reloj_lamport=lamport,
+        reloj_vectorial=vector,
         estado_reconciliacion="APLICADO" if modo == "m3" else "NO_APLICA",
     )
-    actual = calcular_hash(anterior, contenido)
+
+    contenido_canonico = json_canonico(contenido)
+
+    actual = calcular_hash_canonico(
+        anterior,
+        contenido_canonico,
+    )
+
     return {
-        "id_evento": identificador, "hash_anterior": anterior,
-        "hash_actual": actual, "payload_canonico": json_canonico(payload),
-        **{clave: valor for clave, valor in contenido.items() if clave != "payload"},
+        "id_auditoria": identificador,
+        "version_canonica": "v1",
+        "contenido_canonico": contenido_canonico,
+
+        "id_evento": identificador,
+        "hash_anterior": anterior,
+        "hash_actual": actual,
+        "payload_canonico": json_canonico(payload),
+
+        **{
+            clave: valor
+            for clave, valor in contenido.items()
+            if clave != "payload"
+        },
     }
 
 
@@ -198,7 +239,7 @@ def medir_verificacion_productiva(eventos: List[Dict[str, Any]], mec: str) -> Tu
         return True, "SIN_CRIPTOGRAFIA", -1, 0.0
 
     t0 = time.perf_counter_ns()
-    resultado = verificar_cadena(eventos)
+    resultado = verificar_cadena_global(eventos)
     t_us = (time.perf_counter_ns() - t0) / 1000.0
     return (
         resultado.valido, resultado.tipo_inconsistencia or "CADENA_VALIDA",
