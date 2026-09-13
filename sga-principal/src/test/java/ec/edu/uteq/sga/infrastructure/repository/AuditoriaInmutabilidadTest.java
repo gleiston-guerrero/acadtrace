@@ -65,19 +65,15 @@ class AuditoriaInmutabilidadTest {
     void verificarRestriccionPrivilegios_dosConexiones_fallaInclusoSinTrigger() throws SQLException {
         assertNotNull(dataSource, "El DataSource debe estar inyectado y disponible; la prueba no puede omitirse");
 
-        String appUser = "sga_app_test_e6";
-        String appPass = "sga_app_test_pass_123";
+        String appUser = "sga_app";
+        String appPass = "sga_app_secure_pass_2026";
 
         try (Connection adminConn = dataSource.getConnection()) {
             String jdbcUrl = adminConn.getMetaData().getURL();
 
             try (Statement adminStmt = adminConn.createStatement()) {
-                // 1. Conexión Administrativa: Configurar rol de aplicacion y revocar privilegios UPDATE/DELETE
-                adminStmt.execute("DO $$ BEGIN " +
-                        "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '" + appUser + "') THEN " +
-                        "CREATE ROLE " + appUser + " WITH LOGIN PASSWORD '" + appPass + "' NOSUPERUSER NOCREATEDB NOCREATEROLE; " +
-                        "END IF; END $$;");
-
+                // 1. Conexión Administrativa: El rol de aplicación sga_app ya fue creado por la migración V18.
+                // Asegurar permisos por idempotencia
                 adminStmt.execute("GRANT USAGE ON SCHEMA sga_principal TO " + appUser + ";");
                 adminStmt.execute("GRANT SELECT, INSERT ON TABLE sga_principal.auditoria TO " + appUser + ";");
                 adminStmt.execute("REVOKE UPDATE, DELETE, TRUNCATE ON TABLE sga_principal.auditoria FROM " + appUser + ";");
