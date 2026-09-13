@@ -128,6 +128,42 @@ jobs:
           python -m pip install --upgrade pip flake8
           flake8 microservicio-docente/docentes --count --select=E9,F63,F7,F82 --show-source --statistics
 
+      - name: Verificar finales de línea LF en archivos CSV
+        run: |
+          python - <<'PY'
+          import subprocess
+
+          archivos = [
+              ruta
+              for ruta in subprocess.check_output(
+                  ["git", "ls-tree", "-r", "--name-only", "HEAD"],
+                  text=True,
+              ).splitlines()
+              if ruta.lower().endswith(".csv")
+          ]
+
+          invalidos = []
+
+          for ruta in archivos:
+              contenido = subprocess.check_output(
+                  ["git", "show", f"HEAD:{ruta}"]
+              )
+
+              if b"\r" in contenido:
+                  invalidos.append(ruta)
+
+          if invalidos:
+              print("ERROR: archivos CSV versionados con CR/CRLF:")
+              for ruta in invalidos:
+                  print(f" - {ruta}")
+              raise SystemExit(1)
+
+          print(
+              f"OK: {len(archivos)} archivos CSV versionados "
+              "usan únicamente LF."
+          )
+          PY
+
   # ─── 2. JOB TEST-BACKEND ───────────────────────────────────────────────────
   test-backend:
     name: 2. Pruebas Unitarias Backend y Cobertura
