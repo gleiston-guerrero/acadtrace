@@ -1,5 +1,6 @@
 package ec.uteq.sga.secretaria.infrastructure.security;
 
+import ec.uteq.sga.secretaria.application.service.AuditHashService;
 import ec.uteq.sga.secretaria.application.service.AuditoriaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +27,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuditoriaIntegridadTest {
 
-    private static final String SECRET = "test-only-jwt-secret-key-32-chars-long-minimum";
     private HmacService hmacService;
 
     @Mock
@@ -35,8 +36,27 @@ class AuditoriaIntegridadTest {
 
     @BeforeEach
     void setUp() {
-        hmacService = new HmacService(SECRET);
-        auditoriaService = new AuditoriaService(jdbc, hmacService);
+        String secretoEfimero =
+                UUID.randomUUID().toString()
+                        + UUID.randomUUID().toString();
+        hmacService = new HmacService(secretoEfimero);
+        auditoriaService =
+                new AuditoriaService(jdbc, hmacService);
+
+        Map<String, Object> estado = new java.util.HashMap<>();
+        estado.put(
+                "ultimo_hash",
+                AuditHashService.GENESIS_HASH
+        );
+        estado.put("ultimo_lamport", 0L);
+        estado.put("vector_reloj", "{}");
+
+        lenient().when(
+                jdbc.queryForMap(
+                        anyString(),
+                        any(MapSqlParameterSource.class)
+                )
+        ).thenReturn(estado);
     }
 
     @Test
@@ -105,7 +125,11 @@ class AuditoriaIntegridadTest {
     @Test
     @DisplayName("Debe rechazar firmas forjadas con otra clave secreta (Resistencia a falsificacion)")
     void testRechazoFirmaForjada() {
-        HmacService forjador = new HmacService("clave-falsa-atacante-12345678901234567890");
+        String secretoForjador =
+                UUID.randomUUID().toString()
+                        + UUID.randomUUID().toString();
+        HmacService forjador =
+                new HmacService(secretoForjador);
         String[] campos = {"SECRETARIA", UUID.randomUUID().toString(), "hacker", "CREAR", "usuario", "1", "Inyeccion", "EXITO", "1725482000000"};
 
         String firmaForjada = forjador.firmar(campos);
@@ -119,16 +143,36 @@ class AuditoriaIntegridadTest {
     void testAuditoriaService_RegistroCorrecto() {
         auditoriaService.registrarCrud("CREAR", "estudiante", 450L, "Nuevo estudiante registrado");
 
-        ArgumentCaptor<MapSqlParameterSource> captor = ArgumentCaptor.forClass(MapSqlParameterSource.class);
-        verify(jdbc, times(1)).update(anyString(), captor.capture());
+        ArgumentCaptor<MapSqlParameterSource> captor =
+                ArgumentCaptor.forClass(
+                        MapSqlParameterSource.class
+                );
 
-        MapSqlParameterSource params = captor.getValue();
+        verify(jdbc, times(2))
+                .update(anyString(), captor.capture());
+
+        MapSqlParameterSource params =
+                captor.getAllValues().get(0);
         assertEquals("CREAR", params.getValue("accion"));
         assertEquals("estudiante", params.getValue("tablaAfectada"));
         assertEquals(450L, params.getValue("registroId"));
         assertEquals("EXITO", params.getValue("resultado"));
-        assertNotNull(params.getValue("hmac"), "Debe calcular y asignar la firma HMAC");
-        assertNotNull(params.getValue("traceId"), "Debe asignar un UUID de trace");
+        assertNotNull(
+                params.getValue("hmac"),
+                "Debe calcular y asignar la firma HMAC"
+        );
+        assertNotNull(
+                params.getValue("traceId"),
+                "Debe asignar un UUID de trace"
+        );
+        assertEquals(
+                AuditHashService.GENESIS_HASH,
+                params.getValue("hashAnterior")
+        );
+        assertNotNull(params.getValue("hashActual"));
+        assertEquals(1L, params.getValue("relojLamport"));
+        assertEquals("v1", params.getValue("versionCanonica"));
+        assertNotNull(params.getValue("contenidoCanonico"));
     }
 
     @Test

@@ -3,6 +3,7 @@ package ec.uteq.sga.secretaria.infrastructure.security;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import java.util.UUID;
 
 import java.util.List;
 
@@ -13,7 +14,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JwtServiceTest {
 
     private JwtService jwtService;
-    private final String secret = "test-only-jwt-secret-key-32-chars-long-minimum";
+    private final String secret =
+            "test-" + UUID.randomUUID() + UUID.randomUUID();
 
     @BeforeEach
     void setUp() {

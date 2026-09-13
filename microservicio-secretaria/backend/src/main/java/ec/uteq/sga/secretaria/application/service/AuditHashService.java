@@ -1,4 +1,4 @@
-package ec.edu.uteq.sga.application.service;
+package ec.uteq.sga.secretaria.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,15 +14,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-/**
- * Servicio centralizado para el calculo del hash criptografico SHA-256 encadenado
- * para la bitacora de auditoria (blockchain-style).
- * Garantiza coincidencia canonica con la especificacion ADR-007 y los verificadores del cluster.
- */
 @Service
 public class AuditHashService {
 
-    public static final String GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
+    public static final String GENESIS_HASH =
+            "0000000000000000000000000000000000000000000000000000000000000000";
 
     private static final Set<String> SECRET_KEYS = Set.of(
             "authorization",
@@ -39,21 +35,22 @@ public class AuditHashService {
 
     public AuditHashService() {
         this.mapper = new ObjectMapper();
-        this.mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+        this.mapper.configure(
+                SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,
+                true
+        );
     }
 
-    /**
-     * Genera la representación JSON canónica con claves ordenadas lexicográficamente
-     * y sin espacios adicionales entre separadores.
-     */
     public String jsonCanonico(Map<String, Object> contenido) {
         if (contenido == null) {
             return "{}";
         }
+
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> normalizado =
                     (Map<String, Object>) normalizar(contenido);
+
             return mapper.writeValueAsString(normalizado);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(
@@ -63,9 +60,6 @@ public class AuditHashService {
         }
     }
 
-    /**
-     * Contrato canonico v1 compartido con microservicio-docente.
-     */
     public Map<String, Object> contenidoEvento(
             String tipoEvento,
             String entidad,
@@ -80,13 +74,17 @@ public class AuditHashService {
             String estadoReconciliacion
     ) {
         Map<String, Object> contenido = new TreeMap<>();
+
         contenido.put("actor_id", actorId);
         contenido.put("entidad", entidad);
         contenido.put(
                 "entidad_id",
                 entidadId == null ? "None" : String.valueOf(entidadId)
         );
-        contenido.put("estado_reconciliacion", estadoReconciliacion);
+        contenido.put(
+                "estado_reconciliacion",
+                estadoReconciliacion
+        );
         contenido.put("modo", modo);
         contenido.put("operacion", operacion);
         contenido.put(
@@ -94,16 +92,73 @@ public class AuditHashService {
                 normalizar(payload != null ? payload : Map.of())
         );
         contenido.put("reloj_lamport", relojLamport);
-        contenido.put("reloj_vectorial", normalizar(relojVectorial));
+        contenido.put(
+                "reloj_vectorial",
+                normalizar(relojVectorial)
+        );
         contenido.put("timestamp", timestamp);
         contenido.put("tipo_evento", tipoEvento);
+
         return contenido;
     }
 
-    /**
-     * Normalizacion equivalente a docentes.auditoria.hashing.normalizar.
-     * Ordena mapas recursivamente y excluye material sensible.
-     */
+    public String calcularHash(
+            String hashAnterior,
+            Map<String, Object> contenido
+    ) {
+        String previo =
+                hashAnterior == null || hashAnterior.isBlank()
+                        ? GENESIS_HASH
+                        : hashAnterior;
+
+        return sha256Hex(previo + jsonCanonico(contenido));
+    }
+
+    public Map<String, Long> parseVector(String json) {
+        Map<String, Long> vector = new TreeMap<>();
+
+        if (json == null || json.isBlank()) {
+            return vector;
+        }
+
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> raw =
+                    mapper.readValue(json, Map.class);
+
+            for (Map.Entry<String, Object> entry : raw.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Number numero) {
+                    vector.put(
+                            entry.getKey(),
+                            numero.longValue()
+                    );
+                }
+            }
+
+            return vector;
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(
+                    "vector_reloj persistido no es JSON valido",
+                    e
+            );
+        }
+    }
+
+    public String vectorJson(Map<String, Long> vector) {
+        try {
+            return mapper.writeValueAsString(
+                    new TreeMap<>(vector)
+            );
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(
+                    "No se pudo serializar vector_reloj",
+                    e
+            );
+        }
+    }
+
     private Object normalizar(Object valor) {
         if (valor instanceof Map<?, ?> mapa) {
             Map<String, Object> resultado = new TreeMap<>();
@@ -115,7 +170,10 @@ public class AuditHashService {
                     continue;
                 }
 
-                resultado.put(clave, normalizar(entry.getValue()));
+                resultado.put(
+                        clave,
+                        normalizar(entry.getValue())
+                );
             }
 
             return resultado;
@@ -134,27 +192,28 @@ public class AuditHashService {
         return valor;
     }
 
-    /**
-     * Calcula H_k = SHA-256(H_{k-1} + JSON_canonico(contenido)).
-     */
-    public String calcularHash(String hashAnterior, Map<String, Object> contenido) {
-        String previo = (hashAnterior == null || hashAnterior.isBlank()) ? GENESIS_HASH : hashAnterior;
-        String canonico = jsonCanonico(contenido);
-        String material = previo + canonico;
-        return sha256Hex(material);
-    }
-
     public static String sha256Hex(String input) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder(hashBytes.length * 2);
-            for (byte b : hashBytes) {
+            MessageDigest digest =
+                    MessageDigest.getInstance("SHA-256");
+
+            byte[] bytes = digest.digest(
+                    input.getBytes(StandardCharsets.UTF_8)
+            );
+
+            StringBuilder sb =
+                    new StringBuilder(bytes.length * 2);
+
+            for (byte b : bytes) {
                 sb.append(String.format("%02x", b));
             }
+
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Algoritmo SHA-256 no disponible en la JVM", e);
+            throw new IllegalStateException(
+                    "SHA-256 no disponible",
+                    e
+            );
         }
     }
 }

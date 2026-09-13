@@ -82,6 +82,12 @@ public class Auditoria {
     @Column(name = "vector_reloj", columnDefinition = "text")
     private String vectorReloj;
 
+    @Column(name = "contenido_canonico", columnDefinition = "text")
+    private String contenidoCanonico;
+
+    @Column(name = "version_canonica", length = 20)
+    private String versionCanonica;
+
     @Builder.Default
     @Column(nullable = false)
     private Instant fecha = Instant.now();

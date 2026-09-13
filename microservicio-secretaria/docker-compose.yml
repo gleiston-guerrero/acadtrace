@@ -15,8 +15,8 @@ services:
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
     networks:
       - sga-distribuido-net
@@ -35,8 +35,8 @@ services:
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
     networks:
       - sga-distribuido-net
@@ -56,10 +56,10 @@ services:
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
-      - AES_SECRET_KEY=${AES_SECRET_KEY:?AES_SECRET_KEY debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - AES_SECRET_KEY=${AES_SECRET_KEY}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - GRPC_PRINCIPAL_HOST=sga-principal
       - GRPC_PRINCIPAL_PORT=9092
     networks:
@@ -80,9 +80,9 @@ services:
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres
-      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD debe definirse}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET debe definirse}
-      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - PRINCIPAL_GRPC_HOST=sga-principal
       - PRINCIPAL_GRPC_PORT=9092
       - ETCD_ENDPOINTS=http://etcd:2379
