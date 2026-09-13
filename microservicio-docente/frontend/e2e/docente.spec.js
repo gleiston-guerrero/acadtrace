@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
+
 import {
   abrirModulo,
   e2e,
-  hasLoginConfiguration,
   loginDocente,
   seleccionarCurso,
 } from "./helpers.js";
@@ -55,10 +55,13 @@ test.describe("Frontend Docente conectado al entorno real", () => {
   test("registro de calificación restaura la nota original", async ({
     page,
   }) => {
+    // El recorrido puede revisar varios trimestres, semanas y actividades.
+    test.setTimeout(120_000);
+
     await abrirModulo(page, "Calificaciones");
     await seleccionarCurso(page, "Calificar");
 
-    const semana = page.getByRole("spinbutton");
+    const semana = page.getByRole("spinbutton").first();
     const trimestre = page.getByRole("combobox").first();
 
     await expect(semana).toBeVisible();
@@ -72,8 +75,14 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           .filter((value) => value !== "")
       );
 
+    expect(
+      periodos.length,
+      "No se encontraron trimestres disponibles para ejecutar E10"
+    ).toBeGreaterThan(0);
+
     let nota = null;
     let original = "";
+    let indiceNota = -1;
 
     for (const periodo of periodos) {
       if (nota) {
@@ -81,6 +90,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       }
 
       await trimestre.selectOption(periodo);
+      await expect(trimestre).toHaveValue(periodo);
 
       const maxSemanas =
         Number(await semana.getAttribute("max")) || 1;
@@ -111,7 +121,8 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         );
 
         // Si E2E_ACTIVIDAD está configurada, se intenta primero.
-        // Si no sirve, el test continúa con las demás actividades.
+        // Si no contiene una nota reutilizable, el test continúa
+        // automáticamente con las demás actividades.
         if (e2e.actividad) {
           for (
             let indice = 0;
@@ -138,10 +149,24 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         for (const indice of orden) {
           const tarjeta = tarjetas.nth(indice);
 
+          const nombreActividad = (
+            await tarjeta.locator("p").first().innerText()
+          ).trim();
+
           await tarjeta.click();
 
-          // Solo inputs de notas de la tabla.
-          // No incluye el selector numérico de semana.
+          // Esperamos que la actividad seleccionada sea realmente
+          // la que se encuentra cargada en la zona de calificaciones.
+          await expect(
+            page.getByRole("heading", {
+              name: nombreActividad,
+              exact: true,
+            })
+          ).toBeVisible({ timeout: 15_000 });
+
+          // Se buscan únicamente los campos numéricos de la tabla.
+          // De esta forma no se confunde el selector de semana con
+          // los campos correspondientes a las calificaciones.
           const candidatas = page
             .getByRole("table")
             .getByRole("spinbutton");
@@ -180,10 +205,16 @@ test.describe("Frontend Docente conectado al entorno real", () => {
               continue;
             }
 
+            if (!(await candidata.isEditable())) {
+              continue;
+            }
+
             const valor = (
               await candidata.inputValue()
             ).trim();
 
+            // E10 debe modificar una calificación que ya existe
+            // para poder restaurar exactamente el estado inicial.
             if (valor === "") {
               continue;
             }
@@ -194,6 +225,8 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 
             nota = candidata;
             original = valor;
+            indiceNota = i;
+
             break;
           }
 
@@ -209,8 +242,23 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       "No se encontró ninguna calificación previa restaurable en el curso seleccionado"
     ).not.toBeNull();
 
+    expect(
+      indiceNota,
+      "No se pudo identificar la posición de la calificación seleccionada"
+    ).toBeGreaterThanOrEqual(0);
+
+    const maxAtributo = await nota.getAttribute("max");
+    const minAtributo = await nota.getAttribute("min");
+
     const maximo =
-      Number(await nota.getAttribute("max")) || 10;
+      maxAtributo === null
+        ? 10
+        : Number(maxAtributo);
+
+    const minimo =
+      minAtributo === null
+        ? 0
+        : Number(minAtributo);
 
     const actual = Number(original);
 
@@ -219,62 +267,222 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       `La nota original no es numérica: "${original}"`
     ).toBeTruthy();
 
-    const temporal =
-      actual >= 0.01
-        ? actual - 0.01
-        : Math.min(
-            maximo,
-            actual + 0.01
-          );
+    expect(
+      Number.isFinite(maximo),
+      `El máximo permitido no es numérico: "${maxAtributo}"`
+    ).toBeTruthy();
 
-    const guardarYEsperar = async () => {
-      const respuestaPromise = page.waitForResponse(
-        (response) =>
-          /\/calificaciones\//.test(response.url()) &&
-          ["POST", "PATCH"].includes(
-            response.request().method()
-          ),
+    expect(
+      Number.isFinite(minimo),
+      `El mínimo permitido no es numérico: "${minAtributo}"`
+    ).toBeTruthy();
+
+    let temporal;
+
+    if (actual + 0.01 <= maximo) {
+      temporal = actual + 0.01;
+    } else if (actual - 0.01 >= minimo) {
+      temporal = actual - 0.01;
+    } else {
+      throw new Error(
+        `No es posible modificar temporalmente la nota ${actual} ` +
+          `dentro del rango ${minimo}-${maximo}`
+      );
+    }
+
+    const temporalTexto = temporal.toFixed(2);
+
+    const notasTabla = page
+      .getByRole("table")
+      .getByRole("spinbutton");
+
+    const botonGuardar = page.getByRole("button", {
+      name: /Guardar (notas|calificaciones)/i,
+    });
+
+    await expect(botonGuardar).toBeVisible();
+
+    /**
+     * El formulario productivo puede contener muchas notas ya registradas.
+     * Para que E10 pruebe una única escritura real y sea determinista,
+     * dejamos temporalmente vacíos los demás campos y conservamos solo
+     * la calificación que se está verificando.
+     *
+     * Esto modifica únicamente el estado del formulario. Los demás valores
+     * no se envían al backend y son recuperados nuevamente cuando la
+     * aplicación vuelve a consultar las calificaciones.
+     */
+    const prepararUnicaNota = async (valor) => {
+      const total = await notasTabla.count();
+
+      expect(
+        total,
+        "La tabla perdió la calificación seleccionada"
+      ).toBeGreaterThan(indiceNota);
+
+      for (
+        let i = 0;
+        i < total;
+        i += 1
+      ) {
+        if (i === indiceNota) {
+          continue;
+        }
+
+        const campo = notasTabla.nth(i);
+
+        if (!(await campo.isVisible())) {
+          continue;
+        }
+
+        if (!(await campo.isEditable())) {
+          continue;
+        }
+
+        const valorActual = (
+          await campo.inputValue()
+        ).trim();
+
+        if (valorActual !== "") {
+          await campo.fill("");
+        }
+      }
+
+      const objetivo = notasTabla.nth(indiceNota);
+
+      await expect(objetivo).toBeVisible();
+      await expect(objetivo).toBeEditable();
+
+      await objetivo.fill(valor);
+    };
+
+    /**
+     * Ejecuta una escritura real mediante la interfaz y comprueba:
+     *
+     * 1. Que exista una petición POST o PATCH a la API real.
+     * 2. Que el servidor responda satisfactoriamente.
+     * 3. Que el frontend vuelva a consultar las calificaciones.
+     * 4. Que el valor mostrado después de la recarga coincida con
+     *    el valor persistido.
+     *
+     * La prueba no depende de mensajes visuales temporales.
+     */
+    const guardarYVerificar = async (valor) => {
+      await prepararUnicaNota(valor);
+
+      await expect(botonGuardar).toBeEnabled();
+
+      const escrituraPromise = page.waitForResponse(
+        (response) => {
+          const metodo =
+            response.request().method();
+
+          return (
+            response.url().includes("/calificaciones/") &&
+            (metodo === "POST" || metodo === "PATCH")
+          );
+        },
         {
-          timeout: 15_000,
+          timeout: 30_000,
         }
       );
 
-      await page
-        .getByRole("button", {
-          name: "Guardar notas",
-        })
-        .click();
+      // La aplicación vuelve a consultar las notas después
+      // de completar correctamente la escritura.
+      const recargaPromise = page
+        .waitForResponse(
+          (response) =>
+            response.url().includes("/calificaciones/") &&
+            response.request().method() === "GET",
+          {
+            timeout: 30_000,
+          }
+        )
+        .catch(() => null);
 
-      const respuesta = await respuestaPromise;
+      await botonGuardar.click();
+
+      const escritura = await escrituraPromise;
 
       expect(
-        respuesta.ok(),
-        `El guardado de calificaciones respondió HTTP ${respuesta.status()}`
+        escritura.ok(),
+        `La API respondió HTTP ${escritura.status()} ` +
+          "al guardar la calificación"
       ).toBeTruthy();
+
+      const recarga = await recargaPromise;
+
+      expect(
+        recarga,
+        "La aplicación no volvió a consultar las calificaciones después del guardado"
+      ).not.toBeNull();
+
+      expect(
+        recarga.ok(),
+        `La API respondió HTTP ${recarga.status()} ` +
+          "al recargar las calificaciones"
+      ).toBeTruthy();
+
+      // Se comprueba el valor que aparece después de la recarga
+      // realizada por la aplicación, no solamente el valor escrito
+      // previamente en el campo del navegador.
+      await expect
+        .poll(
+          async () => {
+            const campo =
+              notasTabla.nth(indiceNota);
+
+            if (!(await campo.isVisible())) {
+              return Number.NaN;
+            }
+
+            const valorRecargado =
+              await campo.inputValue();
+
+            return Number(valorRecargado);
+          },
+          {
+            timeout: 15_000,
+            message:
+              "La interfaz no reflejó la calificación persistida por el backend",
+          }
+        )
+        .toBeCloseTo(Number(valor), 2);
     };
 
     try {
-      await nota.fill(
-        temporal.toFixed(2)
-      );
-
-      await guardarYEsperar();
-      await expect(
-        page.getByText(
-          /Se guardaron \d+ calificaciones/
-        )
-      ).toBeVisible({ timeout: 15000 });
+      // Primera escritura: modifica temporalmente una nota real.
+      await guardarYVerificar(temporalTexto);
     } finally {
-      await nota.fill(original);
-
-      await guardarYEsperar();
-
-      await expect(
-        page.getByText(
-          /Se guardaron \d+ calificaciones/
-        )
-      ).toBeVisible({ timeout: 15000 });
+      // La restauración se intenta incluso si una comprobación posterior
+      // a la primera escritura falla.
+      await guardarYVerificar(original);
     }
+
+    // Evidencia final de que E10 dejó el sistema exactamente
+    // en el estado académico existente antes de comenzar la prueba.
+    await expect
+      .poll(
+        async () => {
+          const campo =
+            notasTabla.nth(indiceNota);
+
+          if (!(await campo.isVisible())) {
+            return Number.NaN;
+          }
+
+          const valorRestaurado =
+            await campo.inputValue();
+
+          return Number(valorRestaurado);
+        },
+        {
+          timeout: 15_000,
+          message:
+            "La calificación original no quedó restaurada",
+        }
+      )
+      .toBeCloseTo(actual, 2);
   });
 
   test("cierre de sesión vuelve al Login", async ({ page }) => {
