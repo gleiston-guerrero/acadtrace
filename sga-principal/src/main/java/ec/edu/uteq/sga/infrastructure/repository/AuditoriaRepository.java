@@ -17,6 +17,7 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
     List<Auditoria> findByTablaAfectada(String tablaAfectada);
     List<Auditoria> findByAccion(String accion);
     List<Auditoria> findByTraceIdOrderByFechaAsc(UUID traceId);
+    java.util.Optional<Auditoria> findTopByOrderByIdAuditoriaDesc();
 
     /**
      * Nativa (no JPQL): accion es un enum nativo de Postgres, y a diferencia

@@ -66,8 +66,8 @@ def test_ponderacion_negativa_grpc(mock_filter):
 
 @pytest.mark.parametrize(("metadata", "validation", "code"), [
     ((("docente_id", "10"), ("internal_token", "malo")), {"is_valid": True}, grpc.StatusCode.UNAUTHENTICATED),
-    ((("internal_token", "***REMOVED***"),), {"is_valid": True}, grpc.StatusCode.UNAUTHENTICATED),
-    ((("docente_id", "10"), ("internal_token", "***REMOVED***")), {"is_valid": False}, grpc.StatusCode.PERMISSION_DENIED),
+    ((("internal_token", "test-internal-token"),), {"is_valid": True}, grpc.StatusCode.UNAUTHENTICATED),
+    ((("docente_id", "10"), ("internal_token", "test-internal-token")), {"is_valid": False}, grpc.StatusCode.PERMISSION_DENIED),
 ])
 @patch("docentes.grpc_services.actividades_service.validate_teacher_assignment")
 def test_autorizacion_actividad_rechaza_acceso(mock_validate, metadata, validation, code):
@@ -82,7 +82,7 @@ def test_autorizacion_actividad_rechaza_acceso(mock_validate, metadata, validati
 
 @patch("docentes.grpc_services.actividades_service.validate_teacher_assignment", return_value={"is_valid": True})
 def test_autorizacion_actividad_valida(mock_validate):
-    context = DummyContext((("docente_id", "10"), ("internal_token", "***REMOVED***")))
+    context = DummyContext((("docente_id", "10"), ("internal_token", "test-internal-token")))
     assert ActividadServiceServicer()._validate_auth(context, 50) is True
     assert context.code is None
     assert mock_validate.call_args.args == (10, 50)

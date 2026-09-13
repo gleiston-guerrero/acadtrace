@@ -4,4 +4,4 @@ import java.time.LocalDate;
 public record EventoAcademicoPushDTO(
  @NotBlank String eventKey, @NotBlank @Pattern(regexp="COMUNICADO|AUSENTE|ATRASO") String type,
  Long matriculaId, Long asignacionId, Long periodId, Long announcementId,
- String title, String body, LocalDate date) {}
+ String title, String body, LocalDate date, String studentName, Long attendanceId) {}

@@ -8,6 +8,7 @@ import io.grpc.Status;
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Valida el "internal_token" de las llamadas gRPC entrantes al servidor de
@@ -23,8 +24,9 @@ public class InternalAuthInterceptor implements ServerInterceptor {
     private static final Logger log = LoggerFactory.getLogger(InternalAuthInterceptor.class);
 
     private static final String INTERNAL_TOKEN_KEY = "internal_token";
-    // TODO: mover a variable de entorno antes de producción real.
-    private static final String EXPECTED_TOKEN = "***REMOVED***";
+
+    @Value("${app.grpc.internal-token}")
+    private String expectedToken;
 
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
@@ -34,7 +36,7 @@ public class InternalAuthInterceptor implements ServerInterceptor {
 
         String token = headers.get(Metadata.Key.of(INTERNAL_TOKEN_KEY, Metadata.ASCII_STRING_MARSHALLER));
 
-        if (token == null || !token.equals(EXPECTED_TOKEN)) {
+        if (token == null || !token.equals(expectedToken)) {
             log.warn("[grpc] Llamada rechazada: internal_token invalido o ausente (metodo {})",
                     call.getMethodDescriptor().getFullMethodName());
             call.close(Status.UNAUTHENTICATED.withDescription("Invalid or missing internal token"), headers);

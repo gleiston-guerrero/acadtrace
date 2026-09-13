@@ -86,7 +86,7 @@ import java.util.function.Supplier;
     @GrpcClient(&quot;principal-service&quot;)
     private PrincipalServiceGrpc.PrincipalServiceBlockingStub stub;
 
-    @Value(&quot;${app.grpc.internal-token:***REMOVED***}&quot;)
+    @Value(&quot;${app.grpc.internal-token:test-internal-token}&quot;)
     private String internalToken;
 
     /**

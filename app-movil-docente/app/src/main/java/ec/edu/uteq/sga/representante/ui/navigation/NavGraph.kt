@@ -14,9 +14,16 @@ import ec.edu.uteq.sga.representante.ui.screens.login.LoginViewModel
 import ec.edu.uteq.sga.representante.ui.screens.representante.*
 import ec.edu.uteq.sga.representante.ui.screens.security.*
 import ec.edu.uteq.sga.representante.data.sync.SyncWorker
+import ec.edu.uteq.sga.representante.notifications.AttendanceNotificationContext
+
+internal fun notificationRouteAfterStart(startDestination: String, notificationRoute: String?): String? =
+    notificationRoute?.takeIf { startDestination == Screen.Home.route }
 
 @Composable
-fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, startDestination: String, notificationRoute: String? = null) {
+fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, startDestination: String, notificationRoute: String? = null, attendanceContext: AttendanceNotificationContext? = null) {
+    LaunchedEffect(startDestination, notificationRoute) {
+        notificationRouteAfterStart(startDestination, notificationRoute)?.let { nav.navigate(it) }
+    }
     NavHost(nav, startDestination) {
         composable(Screen.Login.route) {
             val vm: LoginViewModel = factory { LoginViewModel(app.authRepository) }
@@ -76,7 +83,7 @@ fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, star
             val id = entry.arguments?.getLong("id") ?: return@composable
             val vm: RepresentanteViewModel = factory("asistencia_$id") { RepresentanteViewModel(app.representanteRepository) }
             LaunchedEffect(id) { vm.cargarAsistencia(id) }
-            AsistenciaHijoScreen(vm, { nav.popBackStack() }) {
+            AsistenciaHijoScreen(vm, { nav.popBackStack() }, attendanceContext?.takeIf { it.studentId == id }) {
                 vm.cargarAsistencia(id)
                 SyncWorker.triggerImmediateSync(app)
             }

@@ -1,4 +1,5 @@
 import grpc
+from django.conf import settings
 from decimal import Decimal
 from django.db import connection, transaction
 from . import docente_pb2
@@ -40,7 +41,7 @@ class DocenteServiceServicer(docente_pb2_grpc.DocenteServiceServicer):
         id_docente = metadata.get('docente_id')
         internal_token = metadata.get('internal_token')
 
-        if internal_token != '***REMOVED***':
+        if internal_token != settings.GRPC_INTERNAL_TOKEN:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "Token interno inválido o ausente")
         if not id_docente:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "docente_id requerido en metadatos")

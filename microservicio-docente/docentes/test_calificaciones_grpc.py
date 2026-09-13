@@ -16,7 +16,7 @@ class Abortado(Exception):
 
 class Contexto:
     def invocation_metadata(self):
-        return (("internal_token", "***REMOVED***"), ("docente_id", "7"))
+        return (("internal_token", "test-internal-token"), ("docente_id", "7"))
 
     def abort(self, code, detail):
         raise Abortado(code, detail)
