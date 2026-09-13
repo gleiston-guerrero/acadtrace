@@ -55,11 +55,27 @@ test.describe("Frontend Docente conectado al entorno real", () => {
   test("registro de calificación restaura la nota original", async ({
     page,
   }) => {
-    // El recorrido puede revisar varios trimestres, semanas y actividades.
-    test.setTimeout(120_000);
+    // El recorrido puede revisar varios cursos, trimestres, semanas y actividades.
+    test.setTimeout(240_000);
 
-    await abrirModulo(page, "Calificaciones");
-    await seleccionarCurso(page, "Calificar");
+    let nota = null;
+    let original = "";
+    let indiceNota = -1;
+    let totalCursos = 0;
+
+    /*
+     * E10 no depende de que el primer curso tenga una nota previa.
+     * Se recorren los cursos disponibles hasta encontrar una
+     * calificacion existente que pueda modificarse y restaurarse.
+     */
+    const buscarNotaRestaurable = async (indiceCurso) => {
+      await abrirModulo(page, "Calificaciones");
+
+      totalCursos = await seleccionarCurso(
+        page,
+        "Calificar",
+        indiceCurso
+      );
 
     const semana = page.getByRole("spinbutton").first();
     const trimestre = page.getByRole("combobox").first();
@@ -75,14 +91,9 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           .filter((value) => value !== "")
       );
 
-    expect(
-      periodos.length,
-      "No se encontraron trimestres disponibles para ejecutar E10"
-    ).toBeGreaterThan(0);
-
-    let nota = null;
-    let original = "";
-    let indiceNota = -1;
+      if (periodos.length === 0) {
+        return;
+      }
 
     for (const periodo of periodos) {
       if (nota) {
@@ -237,9 +248,21 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       }
     }
 
+    };
+
+    await buscarNotaRestaurable(0);
+
+    for (
+      let indiceCurso = 1;
+      indiceCurso < totalCursos && !nota;
+      indiceCurso += 1
+    ) {
+      await buscarNotaRestaurable(indiceCurso);
+    }
+
     expect(
       nota,
-      "No se encontró ninguna calificación previa restaurable en el curso seleccionado"
+      "No se encontro ninguna calificacion previa restaurable en los cursos disponibles"
     ).not.toBeNull();
 
     expect(
