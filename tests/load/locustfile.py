@@ -21,7 +21,11 @@ import hmac
 import hashlib
 from locust import HttpUser, task, between, tag
 
-JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-key-sga-distribuido-2026-acadtrace-production-security")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET debe definirse mediante variable de entorno"
+    )
 
 
 def generate_jwt_token(secret: str = JWT_SECRET, username: str = "locust_loadtest", roles: list = None) -> str:

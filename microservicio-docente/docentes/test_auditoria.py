@@ -19,7 +19,7 @@ from docentes.auditoria.hashing import GENESIS_HASH, calcular_hash, contenido_ev
 from docentes.auditoria.service import auditar_evento
 from docentes.auditoria.verifier import verificar_cadena, verificar_estado_academico
 from docentes.auditoria.payloads import payload_instancia
-from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
+from docentes.models import EventoAuditoria
 from experimentos.generador_sintetico import SEED, generar_dataset
 from experimentos.manipulaciones import aplicar_manipulacion
 
@@ -42,9 +42,9 @@ def test_selector_usa_m0_y_rechaza_valor_invalido(monkeypatch):
     assert "desconocido" in str(exc.value)
 
 
+@patch("docentes.auditoria.strategies.bloquear_estado_global")
 @patch("docentes.auditoria.strategies.EventoAuditoria.objects.create")
-@patch("docentes.auditoria.strategies.EstadoCadenaAuditoria.objects")
-def test_m0_no_inserta_ni_calcula_cadena(mock_estado, mock_create, monkeypatch):
+def test_m0_no_inserta_ni_calcula_cadena(mock_create, mock_bloquear, monkeypatch):
     monkeypatch.setenv("AUDIT", "m0")
     resultado = auditar_evento(
         tipo_evento="PRUEBA", entidad="Calificacion", entidad_id=1,
@@ -52,7 +52,7 @@ def test_m0_no_inserta_ni_calcula_cadena(mock_estado, mock_create, monkeypatch):
     )
     assert resultado is None
     assert mock_create.call_count == 0
-    assert mock_estado.mock_calls == []
+    assert mock_bloquear.call_count == 0
 
 
 @patch("docentes.auditoria.strategies.EventoAuditoria.objects.create")
@@ -72,25 +72,51 @@ def test_m1_crea_bitacora_plana_sin_hash(mock_create, monkeypatch):
 
 @patch("docentes.auditoria.strategies.transaction.atomic", return_value=nullcontext())
 @patch("docentes.auditoria.strategies.EventoAuditoria.objects.create")
-@patch("docentes.auditoria.strategies.EstadoCadenaAuditoria.objects")
-def test_m2_encadena_hash_y_lamport_monotonico(mock_manager, mock_create, _mock_atomic, monkeypatch):
+def test_m2_encadena_hash_y_lamport_monotonico(mock_create, _mock_atomic, monkeypatch):
     monkeypatch.setenv("AUDIT", "m2")
-    estado = SimpleNamespace(ultimo_hash=None, ultimo_lamport=0, reloj_vectorial={}, save=lambda **_kwargs: None)
-    mock_manager.select_for_update.return_value.get_or_create.return_value = (estado, False)
+
+    estado = SimpleNamespace(
+        ultimo_hash=GENESIS_HASH,
+        ultimo_lamport=0,
+        reloj_vectorial={},
+    )
+
     mock_create.side_effect = lambda **kwargs: SimpleNamespace(**kwargs)
-    primero = auditar_evento(
-        tipo_evento="ASISTENCIA_REGISTRADA", entidad="Asistencia", entidad_id=1,
-        operacion="CREAR", actor_id=2, payload={"estado": "PRESENTE"},
-    )
-    segundo = auditar_evento(
-        tipo_evento="ASISTENCIA_ACTUALIZADA", entidad="Asistencia", entidad_id=1,
-        operacion="ACTUALIZAR", actor_id=2, payload={"estado": "ATRASO"},
-        lamport_recibido=0,
-    )
-    assert primero.hash_anterior == GENESIS_HASH and segundo.hash_anterior == primero.hash_actual
+
+    with patch(
+        "docentes.auditoria.strategies.bloquear_estado_global",
+        return_value=estado,
+    ) as mock_bloquear, patch(
+        "docentes.auditoria.strategies.insertar_evento_global"
+    ) as mock_insertar, patch(
+        "docentes.auditoria.strategies.actualizar_estado_global"
+    ) as mock_actualizar:
+        primero = auditar_evento(
+            tipo_evento="ASISTENCIA_REGISTRADA",
+            entidad="Asistencia",
+            entidad_id=1,
+            operacion="CREAR",
+            actor_id=2,
+            payload={"estado": "PRESENTE"},
+        )
+
+        segundo = auditar_evento(
+            tipo_evento="ASISTENCIA_ACTUALIZADA",
+            entidad="Asistencia",
+            entidad_id=1,
+            operacion="ACTUALIZAR",
+            actor_id=2,
+            payload={"estado": "ATRASO"},
+            lamport_recibido=0,
+        )
+
+    assert primero.hash_anterior == GENESIS_HASH
+    assert segundo.hash_anterior == primero.hash_actual
     assert (primero.reloj_lamport, segundo.reloj_lamport) == (1, 2)
     assert len(primero.hash_actual) == len(segundo.hash_actual) == 64
-    assert mock_manager.select_for_update.call_count == 2
+    assert mock_bloquear.call_count == 2
+    assert mock_insertar.call_count == 2
+    assert mock_actualizar.call_count == 2
 
 
 def test_vector_clock_incrementa_combina_y_compara():
@@ -114,26 +140,59 @@ def test_reconciliacion_concurrente_preserva_ambas_versiones():
 
 @patch("docentes.auditoria.strategies.transaction.atomic", return_value=nullcontext())
 @patch("docentes.auditoria.strategies.EventoAuditoria.objects.create")
-@patch("docentes.auditoria.strategies.EstadoCadenaAuditoria.objects")
-def test_m3_marca_conflicto_y_avanza_vector(mock_manager, mock_create, _mock_atomic, monkeypatch):
+def test_m3_marca_conflicto_y_avanza_vector(mock_create, _mock_atomic, monkeypatch):
     monkeypatch.setenv("AUDIT", "m3")
-    estado = SimpleNamespace(ultimo_hash=None, ultimo_lamport=0, reloj_vectorial={}, save=lambda **_kwargs: None)
-    mock_manager.select_for_update.return_value.get_or_create.return_value = (estado, False)
+
+    estado = SimpleNamespace(
+        ultimo_hash=GENESIS_HASH,
+        ultimo_lamport=0,
+        reloj_vectorial={},
+    )
+
     mock_create.side_effect = lambda **kwargs: SimpleNamespace(**kwargs)
-    primero = auditar_evento(
-        tipo_evento="CALIFICACION_ACTUALIZADA", entidad="Calificacion", entidad_id=9,
-        operacion="ACTUALIZAR", actor_id=1, payload={"nota": "8"},
-        nodo="docente-1", reloj_vectorial_recibido={"remoto": 1},
-    )
-    segundo = auditar_evento(
-        tipo_evento="CALIFICACION_ACTUALIZADA", entidad="Calificacion", entidad_id=9,
-        operacion="ACTUALIZAR", actor_id=1, payload={"nota": "9"},
-        nodo="docente-1", reloj_vectorial_recibido={"remoto": 2},
-    )
-    assert primero.reloj_vectorial == {"remoto": 1, "docente-1": 1}
+
+    with patch(
+        "docentes.auditoria.strategies.bloquear_estado_global",
+        return_value=estado,
+    ) as mock_bloquear, patch(
+        "docentes.auditoria.strategies.insertar_evento_global"
+    ) as mock_insertar, patch(
+        "docentes.auditoria.strategies.actualizar_estado_global"
+    ) as mock_actualizar:
+        primero = auditar_evento(
+            tipo_evento="CALIFICACION_ACTUALIZADA",
+            entidad="Calificacion",
+            entidad_id=9,
+            operacion="ACTUALIZAR",
+            actor_id=1,
+            payload={"nota": "8"},
+            nodo="docente-1",
+            reloj_vectorial_recibido={"remoto": 1},
+        )
+
+        segundo = auditar_evento(
+            tipo_evento="CALIFICACION_ACTUALIZADA",
+            entidad="Calificacion",
+            entidad_id=9,
+            operacion="ACTUALIZAR",
+            actor_id=1,
+            payload={"nota": "9"},
+            nodo="docente-1",
+            reloj_vectorial_recibido={"remoto": 2},
+        )
+
+    assert primero.reloj_vectorial == {
+        "remoto": 1,
+        "docente-1": 1,
+    }
     assert segundo.estado_reconciliacion == "CONFLICTO"
-    assert segundo.reloj_vectorial == {"remoto": 2, "docente-1": 2}
-    assert mock_manager.select_for_update.call_count == 2
+    assert segundo.reloj_vectorial == {
+        "remoto": 2,
+        "docente-1": 2,
+    }
+    assert mock_bloquear.call_count == 2
+    assert mock_insertar.call_count == 2
+    assert mock_actualizar.call_count == 2
 
 
 def _cadena_prueba(cantidad=3):
@@ -199,3 +258,129 @@ def test_t1_detecta_cambio_directo_en_nota_contra_evidencia(monkeypatch):
     resultado = verificar_estado_academico(nota, evidencia)
     assert resultado.valido is False
     assert resultado.tipo_inconsistencia == "ESTADO_ACADEMICO_DIVERGENTE"
+
+
+
+def test_m2_continua_lamport_desde_cabeza_global_persistida(monkeypatch):
+    """
+    E3: simula reinicio del proceso.
+
+    No importa el valor del reloj en memoria: la autoridad es
+    sga_principal.estado_cadena_auditoria.
+    """
+    monkeypatch.setenv("AUDIT", "m2")
+
+    hash_persistido = "a" * 64
+
+    estado_global = SimpleNamespace(
+        ultimo_hash=hash_persistido,
+        ultimo_lamport=41,
+        reloj_vectorial={
+            "principal": 5,
+            "secretaria": 3,
+        },
+    )
+
+    with patch(
+        "docentes.auditoria.strategies.transaction.atomic",
+        return_value=nullcontext(),
+    ), patch(
+        "docentes.auditoria.strategies.bloquear_estado_global",
+        return_value=estado_global,
+    ) as mock_bloquear, patch(
+        "docentes.auditoria.strategies.insertar_evento_global"
+    ) as mock_insertar, patch(
+        "docentes.auditoria.strategies.actualizar_estado_global"
+    ) as mock_actualizar, patch(
+        "docentes.auditoria.strategies.EventoAuditoria.objects.create",
+        side_effect=lambda **kwargs: SimpleNamespace(**kwargs),
+    ):
+        resultado = auditar_evento(
+            tipo_evento="CALIFICACION_ACTUALIZADA",
+            entidad="Calificacion",
+            entidad_id=77,
+            operacion="ACTUALIZAR",
+            actor_id=9,
+            payload={"nota": "9.50"},
+        )
+
+    assert resultado.hash_anterior == hash_persistido
+    assert resultado.reloj_lamport == 42
+
+    assert mock_bloquear.call_count == 1
+    assert mock_insertar.call_count == 1
+    assert mock_actualizar.call_count == 1
+
+    kwargs = mock_actualizar.call_args.kwargs
+
+    assert kwargs["reloj_lamport"] == 42
+    assert kwargs["hash_actual"] == resultado.hash_actual
+
+
+def test_m3_preserva_vector_global_de_otros_servicios(monkeypatch):
+    """
+    E3: el vector no es causalmente inerte.
+
+    Docente recibe como estado autoritativo componentes ya avanzadas
+    por Principal y Secretaria, las conserva y solo entonces incrementa
+    su propia componente.
+    """
+    monkeypatch.setenv("AUDIT", "m3")
+
+    estado_global = SimpleNamespace(
+        ultimo_hash="b" * 64,
+        ultimo_lamport=80,
+        reloj_vectorial={
+            "principal": 5,
+            "secretaria": 3,
+        },
+    )
+
+    with patch(
+        "docentes.auditoria.strategies.transaction.atomic",
+        return_value=nullcontext(),
+    ), patch(
+        "docentes.auditoria.strategies.bloquear_estado_global",
+        return_value=estado_global,
+    ), patch(
+        "docentes.auditoria.strategies.insertar_evento_global"
+    ) as mock_insertar, patch(
+        "docentes.auditoria.strategies.actualizar_estado_global"
+    ) as mock_actualizar, patch(
+        "docentes.auditoria.strategies.EventoAuditoria.objects.create",
+        side_effect=lambda **kwargs: SimpleNamespace(**kwargs),
+    ):
+        resultado = auditar_evento(
+            tipo_evento="ASISTENCIA_ACTUALIZADA",
+            entidad="Asistencia",
+            entidad_id=88,
+            operacion="ACTUALIZAR",
+            actor_id=9,
+            payload={"estado": "ATRASO"},
+            nodo="docente-9",
+            reloj_vectorial_recibido={
+                "principal": 5,
+                "secretaria": 3,
+            },
+        )
+
+    assert resultado.reloj_lamport == 81
+
+    assert resultado.reloj_vectorial == {
+        "docente-9": 1,
+        "principal": 5,
+        "secretaria": 3,
+    }
+
+    assert mock_insertar.call_count == 1
+    assert mock_actualizar.call_count == 1
+
+    vector_persistido = (
+        mock_actualizar.call_args.kwargs["reloj_vectorial"]
+    )
+
+    assert vector_persistido == {
+        "docente-9": 1,
+        "principal": 5,
+        "secretaria": 3,
+    }

@@ -1,12 +1,24 @@
-import json
-
 from django.db import transaction
 from django.utils import timezone
 
-from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
+from docentes.models import EventoAuditoria
 
-from .clocks import incrementar_lamport, incrementar_vector, reconciliar_vectores
-from .hashing import GENESIS_HASH, calcular_hash, contenido_evento, json_canonico, normalizar
+from .central_ledger import (
+    actualizar_estado_global,
+    bloquear_estado_global,
+    insertar_evento_global,
+)
+from .clocks import (
+    incrementar_lamport,
+    incrementar_vector,
+    reconciliar_vectores,
+)
+from .hashing import (
+    calcular_hash,
+    contenido_evento,
+    json_canonico,
+    normalizar,
+)
 
 
 class NoAuditStrategy:
@@ -20,11 +32,16 @@ class FlatAuditStrategy:
     def registrar(self, **evento):
         instante = evento.get("timestamp") or timezone.now()
         payload = normalizar(evento.get("payload") or {})
+
         return EventoAuditoria.objects.create(
-            tipo_evento=evento["tipo_evento"], entidad=evento["entidad"],
-            entidad_id=str(evento["entidad_id"]), operacion=evento["operacion"],
-            actor_id=evento.get("actor_id"), timestamp=instante,
-            payload_canonico=json_canonico(payload), modo=self.modo,
+            tipo_evento=evento["tipo_evento"],
+            entidad=evento["entidad"],
+            entidad_id=str(evento["entidad_id"]),
+            operacion=evento["operacion"],
+            actor_id=evento.get("actor_id"),
+            timestamp=instante,
+            payload_canonico=json_canonico(payload),
+            modo=self.modo,
             estado_reconciliacion="NO_APLICA",
         )
 
@@ -35,35 +52,84 @@ class HashChainAuditStrategy:
 
     def registrar(self, **evento):
         with transaction.atomic():
-            estado, _ = EstadoCadenaAuditoria.objects.select_for_update().get_or_create(
-                id_estado=1,
-                defaults={"ultimo_hash": None, "ultimo_lamport": 0, "reloj_vectorial": {}},
+            # E3: una sola cabeza fisica para Principal, Secretaria y Docente.
+            estado = bloquear_estado_global()
+
+            anterior = estado.ultimo_hash
+
+            lamport = incrementar_lamport(
+                estado.ultimo_lamport,
+                evento.get("lamport_recibido"),
             )
-            anterior = estado.ultimo_hash or GENESIS_HASH
-            lamport = incrementar_lamport(estado.ultimo_lamport, evento.get("lamport_recibido"))
-            vector, reconciliacion = self._vector_y_reconciliacion(estado, evento)
+
+            vector, reconciliacion = self._vector_y_reconciliacion(
+                estado,
+                evento,
+            )
+
             instante = evento.get("timestamp") or timezone.now()
             payload = normalizar(evento.get("payload") or {})
+
             contenido = contenido_evento(
-                tipo_evento=evento["tipo_evento"], entidad=evento["entidad"],
-                entidad_id=evento["entidad_id"], operacion=evento["operacion"],
-                actor_id=evento.get("actor_id"), timestamp=instante, payload=payload,
-                modo=self.modo, reloj_lamport=lamport, reloj_vectorial=vector,
+                tipo_evento=evento["tipo_evento"],
+                entidad=evento["entidad"],
+                entidad_id=evento["entidad_id"],
+                operacion=evento["operacion"],
+                actor_id=evento.get("actor_id"),
+                timestamp=instante,
+                payload=payload,
+                modo=self.modo,
+                reloj_lamport=lamport,
+                reloj_vectorial=vector,
                 estado_reconciliacion=reconciliacion,
             )
+
+            canonico = json_canonico(contenido)
             actual = calcular_hash(anterior, contenido)
-            registro = EventoAuditoria.objects.create(
-                tipo_evento=evento["tipo_evento"], entidad=evento["entidad"],
-                entidad_id=str(evento["entidad_id"]), operacion=evento["operacion"],
-                actor_id=evento.get("actor_id"), timestamp=instante,
-                payload_canonico=json_canonico(payload), modo=self.modo,
-                hash_anterior=anterior, hash_actual=actual, reloj_lamport=lamport,
-                reloj_vectorial=vector, estado_reconciliacion=reconciliacion,
+
+            # Escritura autoritativa institucional.
+            insertar_evento_global(
+                evento=evento,
+                instante=instante,
+                hash_anterior=anterior,
+                hash_actual=actual,
+                reloj_lamport=lamport,
+                reloj_vectorial=vector,
+                contenido_canonico=canonico,
             )
+
+            # Proyeccion local conservada para compatibilidad con E2,
+            # consultas academicas y evidencia historica de Docente.
+            registro = EventoAuditoria.objects.create(
+                tipo_evento=evento["tipo_evento"],
+                entidad=evento["entidad"],
+                entidad_id=str(evento["entidad_id"]),
+                operacion=evento["operacion"],
+                actor_id=evento.get("actor_id"),
+                timestamp=instante,
+                payload_canonico=json_canonico(payload),
+                modo=self.modo,
+                hash_anterior=anterior,
+                hash_actual=actual,
+                reloj_lamport=lamport,
+                reloj_vectorial=vector,
+                estado_reconciliacion=reconciliacion,
+            )
+
+            actualizar_estado_global(
+                hash_actual=actual,
+                reloj_lamport=lamport,
+                reloj_vectorial=vector,
+            )
+
+            # Mantener el objeto en memoria coherente para pruebas y para
+            # cualquier consumidor que reutilice la instancia durante
+            # la misma unidad de trabajo.
             estado.ultimo_hash = actual
             estado.ultimo_lamport = lamport
-            estado.reloj_vectorial = vector or estado.reloj_vectorial
-            estado.save(update_fields=["ultimo_hash", "ultimo_lamport", "reloj_vectorial"])
+            if vector is not None:
+                estado.reloj_vectorial = vector
+
             return registro
 
     def _vector_y_reconciliacion(self, _estado, _evento):
@@ -75,11 +141,28 @@ class VectorClockAuditStrategy(HashChainAuditStrategy):
     usa_vector = True
 
     def _vector_y_reconciliacion(self, estado, evento):
-        remoto = normalizar(evento.get("reloj_vectorial_recibido") or {})
-        nodo = evento.get("nodo") or f"docente-{evento.get('actor_id') or 'sistema'}"
-        resultado = reconciliar_vectores(estado.reloj_vectorial, remoto)
+        remoto = normalizar(
+            evento.get("reloj_vectorial_recibido") or {}
+        )
+
+        nodo = (
+            evento.get("nodo")
+            or f"docente-{evento.get('actor_id') or 'sistema'}"
+        )
+
+        # estado.reloj_vectorial ya contiene la combinacion global
+        # confirmada por Principal, Secretaria y Docente.
+        resultado = reconciliar_vectores(
+            estado.reloj_vectorial,
+            remoto,
+        )
+
         combinado = resultado["reloj_combinado"]
-        return incrementar_vector(combinado, nodo), resultado["estado"]
+
+        return (
+            incrementar_vector(combinado, nodo),
+            resultado["estado"],
+        )
 
 
 STRATEGIES = {

@@ -9,6 +9,7 @@ Verifica formalmente el ciclo completo de vida del sistema:
 6. Inmutabilidad física append-only simulada sobre la bitácora transaccional.
 """
 
+import secrets
 import os
 import sys
 import time
@@ -42,7 +43,7 @@ class TestSecurityE2E:
 
     def test_jwt_hmac_sha256_creation_and_verification(self):
         """Verifica la generación y validación de firmas criptográficas HMAC-SHA256 en tokens JWT."""
-        secret_key = b"test-only-jwt-secret"
+        secret_key = secrets.token_bytes(32)
         header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip("=")
         payload = base64.urlsafe_b64encode(json.dumps({"sub": "admin", "rol": "DOCENTE", "exp": int(time.time()) + 3600}).encode()).decode().rstrip("=")
 
@@ -187,7 +188,7 @@ class TestFrontendRutasE2E:
     10. Comportamiento y rechazo ante expiración de JWT.
     """
 
-    SECRET_KEY = b"test-only-jwt-secret"
+    SECRET_KEY = secrets.token_bytes(32)
 
     def _generar_token(self, usuario="admin", rol="ADMIN", expirado=False):
         header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip("=")

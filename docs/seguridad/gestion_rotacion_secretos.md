@@ -19,10 +19,10 @@ El sistema fue acondicionado para operar bajo el principio de **Fail-Fast (Fallo
 
 | Secreto / Credencial | Función en el Sistema | Estado Previo en Repositorio | Estado Actual (Post-Rotación) |
 | :--- | :--- | :--- | :--- |
-| `DB_PASSWORD` | Contraseña de conexión a PostgreSQL Multi-Esquema | Expuesta en `docker-compose.yml` y `.properties` | Parametrizada obligatoria `${DB_PASSWORD:?DB_PASSWORD debe definirse}`. Credencial rotada en el servidor de BD en AWS EC2. |
-| `JWT_SECRET` | Clave simétrica HMAC-SHA256 para emisión y firma de tokens JWT y registros de auditoría | Expuesta (`sga-provincias-unidas-...`) | Parametrizada obligatoria `${JWT_SECRET:?JWT_SECRET debe definirse}`. Clave criptográfica de 256 bits rotada globalmente. Sesiones anteriores invalidadas. |
-| `AES_SECRET_KEY` | Clave simétrica AES-256-GCM para cifrado de datos sensibles de menores (RF-04) | Expuesta en `docker-compose.yml` y `.properties` | Parametrizada obligatoria `${AES_SECRET_KEY:?AES_SECRET_KEY debe definirse}`. Llave de 32 bytes (Base64) rotada. |
-| `GRPC_INTERNAL_TOKEN` | Token de autenticación mutua interna para llamadas gRPC entre microservicios | Expuesta (`***REMOVED***`) | Parametrizada obligatoria `${GRPC_INTERNAL_TOKEN:?GRPC_INTERNAL_TOKEN debe definirse}` en Principal, Docente, Secretaría y Soporte. |
+| `DB_PASSWORD` | Contraseña de conexión a PostgreSQL Multi-Esquema | Expuesta en `docker-compose.yml` y `.properties` | Parametrizada obligatoria `${DB_PASSWORD}`. Credencial rotada en el servidor de BD en AWS EC2. |
+| `JWT_SECRET` | Clave simétrica HMAC-SHA256 para emisión y firma de tokens JWT y registros de auditoría | Expuesta (`[valor retirado del repositorio]`) | Parametrizada obligatoria `${JWT_SECRET}`. Clave criptográfica de 256 bits rotada globalmente. Sesiones anteriores invalidadas. |
+| `AES_SECRET_KEY` | Clave simétrica AES-256-GCM para cifrado de datos sensibles de menores (RF-04) | Expuesta en `docker-compose.yml` y `.properties` | Parametrizada obligatoria `${AES_SECRET_KEY}`. Llave de 32 bytes (Base64) rotada. |
+| `GRPC_INTERNAL_TOKEN` | Token de autenticación mutua interna para llamadas gRPC entre microservicios | Expuesta (`[valor retirado del repositorio]`) | Parametrizada obligatoria `${GRPC_INTERNAL_TOKEN}` en Principal, Docente, Secretaría y Soporte. |
 | `MAIL_PASSWORD` | Contraseña de aplicación SMTP (Gmail 2FA) para notificaciones por correo | Parcialmente expuesta | Parametrizada obligatoria `${MAIL_PASSWORD}` inyectada en despliegue. |
 | `FIREBASE_CREDENTIALS` | Credenciales de servicio Google Firebase Admin (FCM) | Archivo montado por volumen | Montaje desacoplado vía `/home/ubuntu/.secrets/acadtrace/firebase-admin.json:ro`. |
 
