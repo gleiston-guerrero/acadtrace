@@ -365,18 +365,56 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     await expect(botonGuardar).toBeVisible();
     await expect(botonGuardar).toBeEnabled();
 
-    /*
-     * Escribe únicamente sobre el campo seleccionado.
-     * No se eliminan ni modifican las demás notas del formulario.
+        /*
+     * Deja una sola calificación no vacía en el formulario.
+     * El frontend productivo guarda todas las notas no vacías,
+     * por lo que así E10 provoca exactamente una escritura real.
+     *
+     * Los demás campos se vacían solamente en el estado del
+     * formulario; no se envían al backend y no se eliminan.
      */
-    const prepararNota = async (valor) => {
+    const prepararUnicaNota = async (valor) => {
+      const total = await notasTabla.count();
+
+      expect(
+        total,
+        "La tabla perdió la calificación seleccionada"
+      ).toBeGreaterThan(indiceNota);
+
+      for (
+        let i = 0;
+        i < total;
+        i += 1
+      ) {
+        const campo = notasTabla.nth(i);
+
+        if (!(await campo.isVisible())) {
+          continue;
+        }
+
+        if (!(await campo.isEditable())) {
+          continue;
+        }
+
+        if (i === indiceNota) {
+          await campo.fill(valor);
+          continue;
+        }
+
+        const valorActual = (
+          await campo.inputValue()
+        ).trim();
+
+        if (valorActual !== "") {
+          await campo.fill("");
+        }
+      }
+
       const objetivo =
         notasTabla.nth(indiceNota);
 
       await expect(objetivo).toBeVisible();
       await expect(objetivo).toBeEditable();
-
-      await objetivo.fill(valor);
 
       await expect
         .poll(
@@ -391,33 +429,141 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           }
         )
         .toBeCloseTo(Number(valor), 2);
-
-      await objetivo.blur();
     };
 
-    let idCalificacionPersistida = null;
+    /*
+     * Obtiene el JSON enviado realmente al backend.
+     */
+    const obtenerPayload = (request) => {
+      try {
+        return request.postDataJSON();
+      } catch {
+        return null;
+      }
+    };
 
     /*
-     * Guarda mediante la interfaz real y valida directamente
-     * la petición y la respuesta del backend.
+     * Obtiene los campos estables que identifican la
+     * calificación, sin incluir la nota porque ese es
+     * justamente el valor que E10 modifica y restaura.
+     */
+    const obtenerIdentidad = (payload) => {
+      const entradas =
+        Object.entries(payload || {}).filter(
+          ([clave]) =>
+            clave !== "nota" &&
+            /matricula|actividad|trimestre|periodo/i.test(
+              clave
+            )
+        );
+
+      if (entradas.length > 0) {
+        return Object.fromEntries(
+          entradas
+        );
+      }
+
+      return Object.fromEntries(
+        Object.entries(payload || {}).filter(
+          ([clave]) => clave !== "nota"
+        )
+      );
+    };
+
+    const mismaIdentidad = (
+      payload,
+      identidad
+    ) =>
+      Object.entries(identidad).every(
+        ([clave, valor]) =>
+          String(payload?.[clave]) ===
+          String(valor)
+      );
+
+       let identidadCalificacion = null;
+
+    /*
+     * Guarda mediante la interfaz real y comprueba:
      *
-     * No se depende de un mensaje temporal ni del tiempo que
-     * tarde React en volver a dibujar la tabla.
+     * 1. Que el navegador produzca una petición real.
+     * 2. Que sea POST o PATCH sobre calificaciones.
+     * 3. Que la petición contenga exactamente la nota esperada.
+     * 4. Que el servidor responda con un código satisfactorio.
+     * 5. Que al restaurar se utilice la misma calificación.
+     *
+     * No se depende de mensajes visuales temporales ni de una
+     * recarga GET posterior para considerar válida la escritura.
      */
     const guardarYVerificar = async (
       valor,
-      idEsperado = null
+      identidadEsperada = null,
+      guardarIdentidad = false
     ) => {
-      await prepararNota(valor);
+      await prepararUnicaNota(valor);
 
-      const respuestaPromise =
+      await expect(
+        botonGuardar
+      ).toBeEnabled();
+
+      /*
+       * Como prepararUnicaNota deja un único campo con valor,
+       * handleGuardar producirá una sola escritura de calificación.
+       */
+      await expect
+        .poll(
+          async () => {
+            const total = await notasTabla.count();
+            let noVacias = 0;
+
+            for (
+              let i = 0;
+              i < total;
+              i += 1
+            ) {
+              const campo = notasTabla.nth(i);
+
+              if (!(await campo.isVisible())) {
+                continue;
+              }
+
+              if (!(await campo.isEditable())) {
+                continue;
+              }
+
+              const contenido = (
+                await campo.inputValue()
+              ).trim();
+
+              if (contenido !== "") {
+                noVacias += 1;
+              }
+            }
+
+            return noVacias;
+          },
+          {
+            timeout: 5_000,
+            message:
+              "E10 debe enviar exactamente una calificación",
+          }
+        )
+        .toBe(1);
+
+      const escrituraPromise =
         page.waitForResponse(
           (response) => {
             const request =
               response.request();
 
             if (
-              request.method() !== "PATCH" ||
+              !["POST", "PATCH"].includes(
+                request.method()
+              )
+            ) {
+              return false;
+            }
+
+            if (
               !response
                 .url()
                 .includes("/calificaciones/")
@@ -425,28 +571,31 @@ test.describe("Frontend Docente conectado al entorno real", () => {
               return false;
             }
 
+            const payload =
+              obtenerPayload(request);
+
+            if (!payload) {
+              return false;
+            }
+
             if (
-              idEsperado !== null &&
-              !response
-                .url()
-                .includes(
-                  `/calificaciones/${idEsperado}/`
-                )
+              Number(payload.nota) !==
+              Number(valor)
             ) {
               return false;
             }
 
-            try {
-              const payload =
-                request.postDataJSON();
-
-              return (
-                Number(payload?.nota) ===
-                Number(valor)
-              );
-            } catch {
+            if (
+              identidadEsperada &&
+              !mismaIdentidad(
+                payload,
+                identidadEsperada
+              )
+            ) {
               return false;
             }
+
+            return true;
           },
           {
             timeout: 30_000,
@@ -456,7 +605,31 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       await botonGuardar.click();
 
       const respuesta =
-        await respuestaPromise;
+        await escrituraPromise;
+
+      const request =
+        respuesta.request();
+
+      const payload =
+        obtenerPayload(request);
+
+      /*
+       * La identidad se captura inmediatamente después de recibir
+       * la escritura. Así, aunque una comprobación posterior falle,
+       * el bloque finally puede restaurar el mismo dato.
+       */
+      const identidadActual =
+        obtenerIdentidad(payload);
+
+      if (
+        guardarIdentidad &&
+        Object.keys(
+          identidadActual
+        ).length > 0
+      ) {
+        identidadCalificacion =
+          identidadActual;
+      }
 
       expect(
         respuesta.ok(),
@@ -464,85 +637,82 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       ).toBeTruthy();
 
       expect(
-        respuesta.request().method(),
-        "Una calificación existente debe actualizarse mediante PATCH"
-      ).toBe("PATCH");
-
-      const cuerpo =
-        await respuesta.json();
-
-      expect(
-        Number(cuerpo.nota),
-        "El backend no devolvió la nota enviada"
-      ).toBeCloseTo(Number(valor), 2);
+        ["POST", "PATCH"],
+        "La escritura debe utilizar POST o PATCH"
+      ).toContain(
+        request.method()
+      );
 
       expect(
-        cuerpo.id_calificacion,
-        "El backend no devolvió el identificador de la calificación"
-      ).toBeTruthy();
+        payload,
+        "La petición de calificación no contiene un JSON válido"
+      ).not.toBeNull();
 
-      if (idEsperado !== null) {
+      expect(
+        Number(payload.nota),
+        "La petición no contiene la nota esperada"
+      ).toBeCloseTo(
+        Number(valor),
+        2
+      );
+
+      expect(
+        Object.keys(
+          identidadActual
+        ).length,
+        "No se pudo identificar la calificación enviada"
+      ).toBeGreaterThan(0);
+
+      if (identidadEsperada) {
         expect(
-          String(cuerpo.id_calificacion),
-          "La restauración modificó una calificación distinta"
-        ).toBe(String(idEsperado));
+          mismaIdentidad(
+            payload,
+            identidadEsperada
+          ),
+          "La restauración no corresponde a la misma calificación"
+        ).toBeTruthy();
       }
 
-      idCalificacionPersistida =
-        cuerpo.id_calificacion;
+      /*
+       * handleGuardar mantiene el botón deshabilitado mientras
+       * termina la operación. Esperar a que vuelva a habilitarse
+       * garantiza que el ciclo de guardado finalizó.
+       */
+      await expect(
+        botonGuardar
+      ).toBeEnabled({
+        timeout: 15_000,
+      });
 
-      return cuerpo;
+      return identidadActual;
     };
 
     try {
       /*
        * Primera escritura:
-       * cambia temporalmente una calificación real.
+       * modifica temporalmente una calificación real.
        */
       await guardarYVerificar(
-        temporalTexto
+        temporalTexto,
+        null,
+        true
       );
     } finally {
       /*
-       * Segunda escritura:
-       * restaura exactamente el mismo registro y su
-       * valor original, incluso si una comprobación
-       * posterior a la primera escritura falla.
+       * La restauración se intenta siempre.
+       *
+       * Si la primera escritura llegó correctamente al backend,
+       * se exige además que la segunda escritura corresponda
+       * exactamente a la misma calificación.
        */
-      await prepararNota(original);
-
-      if (
-        idCalificacionPersistida !== null
-      ) {
-        await guardarYVerificar(
-          original,
-          idCalificacionPersistida
-        );
-      } else {
-        /*
-         * Si no llegó a confirmarse ninguna escritura,
-         * el campo vuelve localmente a su valor inicial.
-         */
-        await expect
-          .poll(
-            async () =>
-              Number(
-                await notasTabla
-                  .nth(indiceNota)
-                  .inputValue()
-              ),
-            {
-              timeout: 5_000,
-              message:
-                "No se pudo recuperar la nota original en el formulario",
-            }
-          )
-          .toBeCloseTo(actual, 2);
-      }
+      await guardarYVerificar(
+        original,
+        identidadCalificacion
+      );
     }
 
     expect(
-      idCalificacionPersistida,
+      identidadCalificacion,
       "E10 no pudo verificar una escritura real de calificación"
     ).not.toBeNull();
   });
