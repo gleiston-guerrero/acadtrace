@@ -574,3 +574,30 @@ jobs:
             docker compose down --remove-orphans || true
             docker compose up -d --build
             docker image prune -f
+            
+            echo "==> Iniciando sondas de salud posterior al arranque (Criterio E15)..."
+            sleep 15
+            
+            check_health() {
+              local url=$1
+              local name=$2
+              echo "Verificando $name en $url..."
+              for i in {1..15}; do
+                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $url)
+                if [ "$HTTP_STATUS" = "200" ]; then
+                  echo "$name esta SANO (HTTP 200)."
+                  return 0
+                fi
+                sleep 5
+              done
+              echo "ERROR: $name NUNCA REPORTO SALUD (Fallo el despliegue)"
+              docker compose logs $name
+              return 1
+            }
+            
+            check_health "http://localhost:8080/actuator/health" "sga-principal (via HAProxy)" || exit 1
+            check_health "http://localhost:5176/actuator/health" "microservicio-secretaria" || exit 1
+            check_health "http://localhost:8083/actuator/health" "microservicio-soporte" || exit 1
+            check_health "http://localhost:8081/health/" "microservicio-docente (via HAProxy)" || exit 1
+            
+            echo "==> Todos los contenedores reportaron salud exitosamente."
