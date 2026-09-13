@@ -87,82 +87,83 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         .locator("..")
         .getByRole("button");
 
-      const totalTarjetas = await tarjetas.count();
+      const actividadObjetivo = tarjetas
+        .filter({ hasText: e2e.actividad })
+        .first();
+
+      if ((await actividadObjetivo.count()) === 0) {
+        continue;
+      }
+
+      await actividadObjetivo.click();
+
+      await expect(
+        page.getByRole("heading", {
+          name: e2e.actividad,
+          exact: true,
+        })
+      ).toBeVisible();
+
+      const candidatas = page.getByPlaceholder("—");
+
+      const sinEstudiantes = page
+        .getByText(/No hay estudiantes/i)
+        .first();
+
+      await expect
+        .poll(
+          async () => {
+            const total = await candidatas.count();
+
+            for (let i = 0; i < total; i += 1) {
+              if (await candidatas.nth(i).isVisible()) {
+                return true;
+              }
+            }
+
+            return await sinEstudiantes.isVisible();
+          },
+          {
+            timeout: 15_000,
+            message:
+              "La actividad no terminó de cargar sus estudiantes y calificaciones",
+          }
+        )
+        .toBe(true);
+
+      const totalNotas = await candidatas.count();
 
       for (
-        let indice = 0;
-        indice < totalTarjetas && !nota;
-        indice += 1
+        let i = 0;
+        i < totalNotas;
+        i += 1
       ) {
-        const tarjeta = tarjetas.nth(indice);
+        const candidata = candidatas.nth(i);
 
-        const nombreActividad = (
-          await tarjeta.locator("p").first().textContent()
-        )?.trim();
-
-        await tarjeta.click();
-
-        if (nombreActividad) {
-          await expect(
-            page.getByRole("heading", {
-              name: nombreActividad,
-              exact: true,
-            })
-          ).toBeVisible();
+        if (!(await candidata.isVisible())) {
+          continue;
         }
 
-        const candidatas = page.getByPlaceholder("—");
+        const valor = (await candidata.inputValue()).trim();
 
-        const sinEstudiantes = page
-          .getByText(/No hay estudiantes/i)
-          .first();
-
-        await expect
-          .poll(
-            async () => {
-              const total = await candidatas.count();
-
-              for (let i = 0; i < total; i += 1) {
-                if (await candidatas.nth(i).isVisible()) {
-                  return true;
-                }
-              }
-
-              return await sinEstudiantes.isVisible();
-            },
-            {
-              timeout: 15_000,
-              message:
-                "La actividad no terminó de cargar sus estudiantes y calificaciones",
-            }
-          )
-          .toBe(true);
-
-        const totalNotas = await candidatas.count();
-
-        for (
-          let i = 0;
-          i < totalNotas;
-          i += 1
-        ) {
-          const candidata = candidatas.nth(i);
-
-          if (!(await candidata.isVisible())) {
-            continue;
-          }
-
-          const valor = await candidata.inputValue();
-
-          nota = candidata;
-          original = valor;
-          break;
+        // E10 debe restaurar una nota PREVIA real.
+        if (valor === "") {
+          continue;
         }
+
+        if (!Number.isFinite(Number(valor))) {
+          continue;
+        }
+
+        nota = candidata;
+        original = valor;
+        break;
       }
     }
 
     expect(
       nota,
-      "No se encontró ninguna actividad con una nota previa restaurable"
+      `La actividad "${e2e.actividad}" no tiene ninguna nota previa restaurable`
     ).not.toBeNull();
 
     const maximo =
