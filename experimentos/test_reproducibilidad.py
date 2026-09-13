@@ -84,5 +84,36 @@ class ModeTests(unittest.TestCase):
             LiveBackendClient(mode="automatico")
 
 
+class DocumentationMirrorTests(unittest.TestCase):
+    def test_copias_documentales_coinciden_con_resultados_oficiales(self):
+        """E7: la evidencia publicada debe ser id?ntica al resultado certificado."""
+        raiz = Path(__file__).resolve().parents[1]
+        oficiales = raiz / "experimentos" / "resultados"
+        documentados = raiz / "docs" / "experimentos" / "resultados"
+
+        archivos = tuple(dict.fromkeys(
+            (*ARTIFACTS, CERTIFICATE, "falsos_positivos.csv")
+        ))
+
+        for nombre in archivos:
+            with self.subTest(archivo=nombre):
+                origen = oficiales / nombre
+                copia = documentados / nombre
+
+                self.assertTrue(
+                    origen.is_file(),
+                    f"Falta resultado oficial E7: {origen}",
+                )
+                self.assertTrue(
+                    copia.is_file(),
+                    f"Falta copia documental E7: {copia}",
+                )
+                self.assertEqual(
+                    origen.read_bytes(),
+                    copia.read_bytes(),
+                    f"Copia documental E7 desactualizada: {nombre}",
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

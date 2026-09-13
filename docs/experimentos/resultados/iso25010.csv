@@ -1,21 +1,21 @@
-escenario,corrida,usuarios_concurrentes,duracion_s,peticiones_totales,throughput_rps,latencia_media_ms,latencia_mediana_ms,latencia_p95_ms,latencia_p99_ms,errores_5xx_pct,disponibilidad_pct,cobertura_jacoco_pct,rechazo_401_pct
-Esc-1 (Carga Nominal),1,50,30,1187,39.57,33.58,26.86,266.21,335.86,74.4133,25.5867,30.31,100.0
-Esc-1 (Carga Nominal),2,50,30,1888,62.93,12.76,10.21,240.0,270.0,72.4344,27.5656,30.31,100.0
-Esc-1 (Carga Nominal),3,50,30,1871,62.37,11.38,9.1,240.0,267.93,73.4465,26.5535,30.31,100.0
-Esc-1 (Carga Nominal),4,50,30,1873,62.43,10.47,8.38,240.0,260.0,75.1118,24.8882,30.31,100.0
-Esc-1 (Carga Nominal),5,50,30,1880,62.66,10.0,8.0,240.0,260.0,72.8744,27.1256,30.31,100.0
-Esc-1 (Carga Nominal),6,50,30,1893,63.1,10.0,8.0,240.0,260.0,73.086,26.914,30.31,100.0
-Esc-1 (Carga Nominal),7,50,30,1889,62.96,10.0,8.0,240.0,260.0,75.2437,24.7563,30.31,100.0
-Esc-1 (Carga Nominal),8,50,30,1904,63.48,8.88,7.1,240.0,260.0,73.3188,26.6812,30.31,100.0
-Esc-1 (Carga Nominal),9,50,30,1884,62.8,8.75,7.0,240.0,260.0,72.8655,27.1345,30.31,100.0
-Esc-1 (Carga Nominal),10,50,30,1873,62.44,8.75,7.0,240.0,260.0,72.6183,27.3817,30.31,100.0
-Esc-2 (Estrés Rampa 200),1,1,60,68,1.13,5.4,4.32,227.49,235.8,80.0308,19.9692,30.31,100.0
-Esc-2 (Estrés Rampa 200),2,1,60,73,1.21,5.0,4.0,241.36,260.0,81.3725,18.6275,30.31,100.0
-Esc-2 (Estrés Rampa 200),3,1,60,71,1.19,5.0,4.0,240.0,260.0,74.359,25.641,30.31,100.0
-Esc-2 (Estrés Rampa 200),4,1,60,74,1.23,5.0,4.0,240.34,260.0,65.4219,34.5781,30.31,100.0
-Esc-2 (Estrés Rampa 200),5,1,60,71,1.18,5.0,4.0,242.54,260.0,80.2878,19.7122,30.31,100.0
-Esc-2 (Estrés Rampa 200),6,1,60,71,1.18,5.0,4.0,250.0,260.0,84.0058,15.9942,30.31,100.0
-Esc-2 (Estrés Rampa 200),7,1,60,70,1.17,5.0,4.0,250.0,260.0,78.9017,21.0983,30.31,100.0
-Esc-2 (Estrés Rampa 200),8,1,60,77,1.29,5.0,4.0,250.0,260.0,87.22,12.78,30.31,100.0
-Esc-2 (Estrés Rampa 200),9,1,60,73,1.21,5.81,4.64,250.34,335.59,82.3776,17.6224,30.31,100.0
-Esc-2 (Estrés Rampa 200),10,1,60,69,1.15,6.25,5.0,259.83,450.0,76.8778,23.1222,30.31,100.0
+escenario,ventana_derivada,usuarios_concurrentes,duracion_configurada_por_ventana_s,peticiones_estimadas,throughput_promedio_muestras_rps,latencia_media_ms,promedio_p50_muestras_ms,promedio_p95_muestras_ms,promedio_p99_muestras_ms,fallos_generales_derivados_pct,errores_5xx_pct,exito_peticiones_derivado_pct,disponibilidad_produccion_pct,cobertura_jacoco_pct,rechazo_401_pct,origen,alcance
+Histórico locust_esc1,1,50,30,758,25.27,No disponible,142.41,875.52,2881.72,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,2,50,30,1279,42.63,No disponible,110.0,371.72,1306.9,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,3,50,30,1277,42.56,No disponible,110.0,370.0,471.72,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,4,50,30,1258,41.93,No disponible,110.0,370.0,414.48,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,5,50,30,1238,41.27,No disponible,110.0,370.0,426.21,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,6,50,30,1236,41.19,No disponible,110.0,370.0,464.83,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,7,50,30,1243,41.43,No disponible,110.0,370.0,467.93,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,8,50,30,1250,41.67,No disponible,110.0,370.0,454.14,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,9,50,30,1221,40.69,No disponible,110.0,370.0,468.97,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc1,10,50,30,1240,41.32,No disponible,110.0,370.0,471.03,0.0,No disponible,100.0,No disponible,30.31,No disponible,experimentos/resultados/locust_esc1_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),1,1,60,68,1.13,No disponible,4.32,227.49,235.8,80.0308,No disponible,19.9692,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),2,1,60,73,1.21,No disponible,4.0,241.36,260.0,81.3725,No disponible,18.6275,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),3,1,60,71,1.19,No disponible,4.0,240.0,260.0,74.359,No disponible,25.641,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),4,1,60,74,1.23,No disponible,4.0,240.34,260.0,65.4219,No disponible,34.5781,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),5,1,60,71,1.18,No disponible,4.0,242.54,260.0,80.2878,No disponible,19.7122,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),6,1,60,71,1.18,No disponible,4.0,250.0,260.0,84.0058,No disponible,15.9942,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),7,1,60,70,1.17,No disponible,4.0,250.0,260.0,78.9017,No disponible,21.0983,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),8,1,60,77,1.29,No disponible,4.0,250.0,260.0,87.22,No disponible,12.78,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),9,1,60,73,1.21,No disponible,4.64,250.34,335.59,82.3776,No disponible,17.6224,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
+Histórico locust_esc3 (perfil no validado),10,1,60,69,1.15,No disponible,5.0,259.83,450.0,76.8778,No disponible,23.1222,No disponible,30.31,No disponible,experimentos/resultados/locust_esc3_stats_history.csv,derivado de muestras históricas; no nueva carga ni agregado oficial
