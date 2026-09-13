@@ -1,40 +1,45 @@
 #!/usr/bin/env python3
-"""Adaptador experimental del verificador productivo de auditoría."""
+"""
+Adaptador experimental del verificador de auditoría de Docente.
 
-import os
-import sys
+E2:
+- No reimplementa SHA-256.
+- No mantiene un algoritmo de verificación paralelo.
+- Reutiliza directamente hashing.py y verifier.py de producción.
+"""
+
 from pathlib import Path
+import sys
 
-MICROSERVICIO_DIR = Path(__file__).resolve().parents[1] / "microservicio-docente"
-if str(MICROSERVICIO_DIR) not in sys.path:
-    sys.path.insert(0, str(MICROSERVICIO_DIR))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "micro_docente.settings")
 
-import django
-django.setup()
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOCENTE_DIR = REPO_ROOT / "microservicio-docente"
 
-from docentes.auditoria.verifier import (
+if str(DOCENTE_DIR) not in sys.path:
+    sys.path.insert(0, str(DOCENTE_DIR))
+
+
+from docentes.auditoria.hashing import (  # noqa: E402
+    GENESIS_HASH,
+    calcular_hash,
+    contenido_evento,
+    json_canonico,
+    normalizar,
+)
+from docentes.auditoria.verifier import (  # noqa: E402
     ResultadoVerificacion,
-    verificar_cadena as verificar_cadena_productiva,
+    verificar_cadena,
     verificar_estado_academico,
 )
 
 
-def verificar_cadena(eventos, hash_cabeza=None, lamport_cabeza=None):
-    return verificar_cadena_productiva(
-        eventos, hash_cabeza=hash_cabeza, lamport_cabeza=lamport_cabeza
-    )
-
-
-def verificar_registros(eventos, hash_cabeza=None, lamport_cabeza=None):
-    return verificar_cadena(
-        eventos, hash_cabeza=hash_cabeza, lamport_cabeza=lamport_cabeza
-    ).valido
-
-
 __all__ = [
+    "GENESIS_HASH",
     "ResultadoVerificacion",
+    "calcular_hash",
+    "contenido_evento",
+    "json_canonico",
+    "normalizar",
     "verificar_cadena",
     "verificar_estado_academico",
-    "verificar_registros",
 ]

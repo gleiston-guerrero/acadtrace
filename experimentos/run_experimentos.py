@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-Módulo G — Banco Experimental y Evaluación Cuantitativa de Carga y Cripto-Auditoría
+MÃ³dulo G â€” Banco Experimental y EvaluaciÃ³n Cuantitativa de Carga y Cripto-AuditorÃ­a
 Proyecto AcadTrace / SGA Escuela - Entrega 4
-Responsable de Calidad y Gateway / Documentación
+Responsable de Calidad y Gateway / DocumentaciÃ³n
 
 Genera de forma 100% portable y verificable:
   - experimentos/resultados/deteccion.csv
@@ -21,33 +21,41 @@ import random
 import csv
 import json
 import statistics
-from types import SimpleNamespace
-from typing import List, Dict, Any, Tuple, Optional
 import urllib.request
 import urllib.error
 
-MICROSERVICIO_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),
-    "microservicio-docente",
-)
-if MICROSERVICIO_DIR not in sys.path:
-    sys.path.insert(0, MICROSERVICIO_DIR)
+from pathlib import Path
+from types import SimpleNamespace
+from typing import List, Dict, Any, Tuple, Optional
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "micro_docente.settings")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOCENTE_DIR = REPO_ROOT / "microservicio-docente"
+
+if str(DOCENTE_DIR) not in sys.path:
+    sys.path.insert(0, str(DOCENTE_DIR))
+
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE",
+    "micro_docente.settings",
+)
 
 import django
 
 django.setup()
 
-from docentes.auditoria.clocks import incrementar_lamport, incrementar_vector
-from docentes.auditoria.hashing import (
+from docentes.auditoria.clocks import (  # noqa: E402
+    RelacionVectorial,
+    incrementar_lamport,
+    incrementar_vector,
+    reconciliar_vectores,
+)
+from docentes.auditoria.hashing import (  # noqa: E402
     GENESIS_HASH,
     calcular_hash,
     contenido_evento,
     json_canonico,
 )
-from docentes.auditoria.payloads import payload_instancia
-from docentes.auditoria.verifier import (
+from docentes.auditoria.verifier import (  # noqa: E402
     verificar_cadena,
     verificar_estado_academico,
 )
@@ -64,13 +72,13 @@ NUM_DOCENTES = 14
 REPETICIONES_FACTORIALES = 30
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080")
 
-# Coberturas reales reportadas por JaCoCo HTML estático
+# Coberturas reales reportadas por JaCoCo HTML estÃ¡tico
 JACOCO_SGA_PRINCIPAL_GLOBAL_PCT = 0.51   # Cobertura global de instrucciones reportada por JaCoCo
-JACOCO_CRIPTO_AUDITORIA_CORE_PCT = 100.0 # Cobertura de pruebas unitarias en AuditoriaService y LamportClock
-JACOCO_SECRETARIA_GLOBAL_PCT = 34.52    # Cobertura en microservicio de secretaría
+JACOCO_CRIPTO_AUDITORIA_CORE_PCT = 100.0  # Cobertura del nÃºcleo de cripto-auditorÃ­a
+JACOCO_SECRETARIA_GLOBAL_PCT = 34.52    # Cobertura en microservicio de secretarÃ­a
 
 # =============================================================================
-# 1. CLIENTE HTTP REAL PARA MEDICIÓN DE LATENCIA CONTRA BACKEND VIVO
+# 1. CLIENTE HTTP REAL PARA MEDICIÃ“N DE LATENCIA CONTRA BACKEND VIVO
 # =============================================================================
 
 class LiveBackendClient:
@@ -80,7 +88,7 @@ class LiveBackendClient:
         self.is_live = self.verificar_conexion()
 
     def verificar_conexion(self) -> bool:
-        """Verifica si el backend está activo en el puerto configurado."""
+        """Verifica si el backend estÃ¡ activo en el puerto configurado."""
         try:
             req = urllib.request.Request(f"{self.base_url}/actuator/health", headers={"User-Agent": "AcadTrace-Benchmark/1.0"})
             with urllib.request.urlopen(req, timeout=1.5) as resp:
@@ -101,7 +109,7 @@ class LiveBackendClient:
             return False
 
     def enviar_calificacion_http(self, estudiante_id: int, docente_id: int, nota: float) -> Tuple[bool, float, int]:
-        """Envía una calificación real por HTTP POST y mide la latencia de ida y vuelta."""
+        """EnvÃ­a una calificaciÃ³n real por HTTP POST y mide la latencia de ida y vuelta."""
         if not self.is_live:
             return False, 0.0, 0
         url = f"{self.base_url}/api/calificaciones"
@@ -137,7 +145,7 @@ class LiveBackendClient:
 
 
 # =============================================================================
-# 2. MODELO DE RELOJES LÓGICOS Y CRIPTOGRAFÍA
+# 2. MODELO DE RELOJES LÃ“GICOS Y CRIPTOGRAFÃA
 # =============================================================================
 
 def construir_evento_productivo(*, identificador, anterior, lamport, vector,
@@ -159,7 +167,7 @@ def construir_evento_productivo(*, identificador, anterior, lamport, vector,
 
 
 # =============================================================================
-# 3. MOTOR DE VERIFICACIÓN DE INTEGRIDAD Y ESTADO
+# 3. MOTOR DE VERIFICACIÃ“N DE INTEGRIDAD Y ESTADO
 # =============================================================================
 
 def medir_verificacion_productiva(eventos: List[Dict[str, Any]], mec: str) -> Tuple[bool, str, int, float]:
@@ -216,7 +224,7 @@ def percentile(data: List[float], p: float) -> float:
 
 
 def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[str, Any]]:
-    print(f"[1/5] Ejecutando Experimento 1 (Concurrencia) — Modo: {'HTTP EN VIVO' if client.is_live else 'CRIPTO-ENGINE LOCAL'}...")
+    print(f"[1/5] Ejecutando Experimento 1 (Concurrencia) â€” Modo: {'HTTP EN VIVO' if client.is_live else 'CRIPTO-ENGINE LOCAL'}...")
     concurrencias = [1, 5, 10, 14]
     mecanismos = ["M0", "M1", "M2", "M3"]
     repeticiones = 10
@@ -337,11 +345,12 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
 
 
 # =============================================================================
-# 5. EXPERIMENTO 2: INYECCIÓN DE MANIPULACIONES (T1 A T5) Y DETECCIÓN
+# 5. EXPERIMENTO 2: INYECCIÃ“N DE MANIPULACIONES (T1 A T5) Y DETECCIÃ“N
 # =============================================================================
 
 def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    print("[2/5] Ejecutando Experimento 2: 120 corridas factoriales con inyeccion de manipulaciones (T1-T5)...")
+    print(
+    "[2/5] Ejecutando Experimento 2: 600 corridas factoriales con inyeccion de manipulaciones (T1-T5)...")
     mecanismos = ["M0", "M1", "M2", "M3"]
     tipos_tampering = ["T1", "T2", "T3", "T4", "T5"]
 
@@ -484,71 +493,103 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
 
 
 # =============================================================================
-# 6. EXPERIMENTO 3: RECONCILIACIÓN OFFLINE M2 VS M3 (RELOJES VECTORIALES)
+# 6. EXPERIMENTO 3: RECONCILIACIÃ“N OFFLINE M2 VS M3 (RELOJES VECTORIALES)
 # =============================================================================
 
 def ejecutar_experimento_3_reconciliacion() -> List[Dict[str, Any]]:
-    print("[3/5] Ejecutando Experimento 3: Reconciliacion de ediciones offline concurrentes (M2 vs M3)...")
+    print(
+        "[3/5] Ejecutando Experimento 3: "
+        "Reconciliacion de ediciones offline concurrentes (M2 vs M3)..."
+    )
+
     repeticiones = 30
     filas_exp3 = []
 
     for rep in range(1, repeticiones + 1):
-        l_base = 5
-        l_docA = l_base + 1
-        v_docA = [2, 0, 0]
-        nota_A = 9.0
+        lamport_base = 5
 
-        l_docB = l_base + 1
-        v_docB = [1, 1, 0]
-        nota_B = 9.5
+        lamport_doc_a = incrementar_lamport(lamport_base)
+        lamport_doc_b = incrementar_lamport(lamport_base)
 
-        colision_m2 = (l_docA == l_docB)
-        reconciliado_m2 = False
+        vector_base = {"docente-A": 1}
 
-        es_concurrente_m3 = not (
-            all(x >= y for x, y in zip(v_docA, v_docB)) or 
-            all(x <= y for x, y in zip(v_docA, v_docB))
+        vector_doc_a = incrementar_vector(
+            vector_base,
+            "docente-A",
         )
-        reconciliado_m3 = es_concurrente_m3
-        nota_reconciliada = max(nota_A, nota_B)
+        vector_doc_b = incrementar_vector(
+            vector_base,
+            "docente-B",
+        )
+
+        conflicto_m2 = lamport_doc_a == lamport_doc_b
+
+        reconciliacion = reconciliar_vectores(
+            vector_doc_a,
+            vector_doc_b,
+        )
+
+        conflicto_m3 = (
+            reconciliacion["relacion"]
+            == RelacionVectorial.CONCURRENTE
+        )
 
         filas_exp3.append({
             "repeticion": rep,
             "mecanismo": "M2",
             "tipo_evento": "EDICION_CONCURRENTE_OFFLINE",
-            "lamport_docA": l_docA,
-            "lamport_docB": l_docB,
+            "lamport_docA": lamport_doc_a,
+            "lamport_docB": lamport_doc_b,
             "vector_docA": "N/A",
             "vector_docB": "N/A",
-            "conflicto_detectado": colision_m2,
-            "reconciliacion_automatica": reconciliado_m2,
-            "estrategia_resolucion": "BLOQUEO_INTERVENCION_MANUAL"
+            "conflicto_detectado": conflicto_m2,
+            "reconciliacion_automatica": False,
+            "estrategia_resolucion":
+                "BLOQUEO_INTERVENCION_MANUAL",
         })
 
         filas_exp3.append({
             "repeticion": rep,
             "mecanismo": "M3",
             "tipo_evento": "EDICION_CONCURRENTE_OFFLINE",
-            "lamport_docA": l_docA,
-            "lamport_docB": l_docB,
-            "vector_docA": str(v_docA),
-            "vector_docB": str(v_docB),
-            "conflicto_detectado": es_concurrente_m3,
-            "reconciliacion_automatica": reconciliado_m3,
-            "estrategia_resolucion": f"DETERMINISTA_MERGE_MAX({nota_reconciliada})"
+            "lamport_docA": lamport_doc_a,
+            "lamport_docB": lamport_doc_b,
+            "vector_docA": json_canonico(vector_doc_a),
+            "vector_docB": json_canonico(vector_doc_b),
+            "conflicto_detectado": conflicto_m3,
+            "reconciliacion_automatica": False,
+            "estrategia_resolucion":
+                reconciliacion["politica"],
         })
 
-    filepath = os.path.join(OUTPUT_DIR, "exp3_reconciliacion.csv")
-    with open(filepath, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(filas_exp3[0].keys()))
+    filepath = os.path.join(
+        OUTPUT_DIR,
+        "exp3_reconciliacion.csv",
+    )
+
+    with open(
+        filepath,
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=list(filas_exp3[0].keys()),
+        )
         writer.writeheader()
         writer.writerows(filas_exp3)
-    print(f"  -> Guardado: exp3_reconciliacion.csv ({len(filas_exp3)} filas)")
+
+    print(
+        "  -> Guardado: exp3_reconciliacion.csv "
+        f"({len(filas_exp3)} filas)"
+    )
+
     return filas_exp3
 
 
 # =============================================================================
-# 7. MÉTRICAS DE CALIDAD ISO/IEC 25010 Y ANÁLISIS DE FALSOS POSITIVOS (FPR)
+# 7. MÃ‰TRICAS DE CALIDAD ISO/IEC 25010 Y ANÃLISIS DE FALSOS POSITIVOS (FPR)
 # =============================================================================
 
 def obtener_cobertura_jacoco_real() -> Dict[str, float]:
@@ -643,7 +684,7 @@ def ejecutar_metricas_iso25010() -> List[Dict[str, Any]]:
 
     iso_rows = []
     esc1_rows = parse_history_windows(h1, "Esc-1 (Carga Nominal)", default_users=50, duracion_total=300, num_windows=10)
-    esc2_rows = parse_history_windows(h2, "Esc-2 (Estrés Rampa 200)", default_users=200, duracion_total=600, num_windows=10)
+    esc2_rows = parse_history_windows(h2, "Esc-2 (EstrÃ©s Rampa 200)", default_users=200, duracion_total=600, num_windows=10)
     iso_rows.extend(esc1_rows)
     iso_rows.extend(esc2_rows)
 
@@ -665,8 +706,12 @@ def ejecutar_metricas_iso25010() -> List[Dict[str, Any]]:
 
 
 def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
-    """Verifica que la tasa de falsos positivos en cadenas limpias e íntegras sea exactamente 0.0% y exporta falsos_positivos.csv."""
-    print("  -> Evaluando Tasa de Falsos Positivos (FPR) en 30 cadenas validas sin manipulacion...")
+    """Verifica que la tasa de falsos positivos en cadenas limpias e Ã­ntegras sea exactamente 0.0% y exporta falsos_positivos.csv."""
+    print(
+        "  -> Evaluando Tasa de Falsos Positivos (FPR) "
+        "en 30 cadenas validas sin manipulacion..."
+    )
+
     falsos_positivos = 0
     total_pruebas = 30
     fpr_rows = []
@@ -676,36 +721,52 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
         eventos = []
         tabla = {}
         hash_p = GENESIS_HASH
-        lclock = LamportClock(node_id=0)
+        lamport_actual = 0
 
         for i in range(num_eventos):
             est_id = i + 1
             nota = 8.5
+
             tabla[est_id] = nota
-            l_val = lclock.tick()
-            
-            # Usar la funcion productiva real en lugar de la formula falsa
+
+            lamport_actual = incrementar_lamport(
+                lamport_actual
+            )
+
             evento = construir_evento_productivo(
                 identificador=i + 1,
                 anterior=hash_p,
-                lamport=l_val,
+                lamport=lamport_actual,
                 vector=None,
                 est_id=est_id,
                 doc_id=1,
                 nota_final=nota,
                 timestamp=time.time(),
-                modo="m2"
+                modo="m2",
             )
-            
+
             eventos.append(evento)
             hash_p = evento["hash_actual"]
 
         t0 = time.perf_counter_ns()
-        valido_cad, _, _, _ = verificar_cadena_eventos(eventos, "M2")
-        valido_tab, _, _, _ = verificar_estado_tabla_vs_bitacora(tabla, eventos, "M2")
-        t_ms = (time.perf_counter_ns() - t0) / 1_000_000.0
+
+        valido_cad, _, _, _ = medir_verificacion_productiva(
+            eventos,
+            "M2",
+        )
+
+        valido_tab, _, _, _ = verificar_estado_tabla_vs_bitacora(
+            tabla,
+            eventos,
+            "M2",
+        )
+
+        t_ms = (
+            time.perf_counter_ns() - t0
+        ) / 1_000_000.0
 
         es_falso = (not valido_cad) or (not valido_tab)
+
         if es_falso:
             falsos_positivos += 1
 
@@ -716,24 +777,71 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
             "cadena_integra": 1 if valido_cad else 0,
             "estado_tabla_integro": 1 if valido_tab else 0,
             "falso_positivo": 1 if es_falso else 0,
-            "tiempo_verificacion_ms": round(t_ms, 3)
+            "tiempo_verificacion_ms": round(t_ms, 3),
         })
 
-    fpr = (falsos_positivos / total_pruebas) * 100.0
-    print(f"  -> FPR Comprobado: {fpr:.2f}% ({falsos_positivos} falsas alarmas en {total_pruebas} cadenas, IC 95% [0.0%, 11.6%])")
+    fpr = (
+        falsos_positivos / total_pruebas
+    ) * 100.0
 
-    filepath = os.path.join(OUTPUT_DIR, "falsos_positivos.csv")
-    with open(filepath, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(fpr_rows[0].keys()))
+    print(
+        f"  -> FPR Comprobado: {fpr:.2f}% "
+        f"({falsos_positivos} falsas alarmas "
+        f"en {total_pruebas} cadenas, "
+        "IC 95% [0.0%, 11.6%])"
+    )
+
+    filepath = os.path.join(
+        OUTPUT_DIR,
+        "falsos_positivos.csv",
+    )
+
+    with open(
+        filepath,
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=list(fpr_rows[0].keys()),
+        )
         writer.writeheader()
         writer.writerows(fpr_rows)
-    print(f"  -> Guardado: falsos_positivos.csv ({len(fpr_rows)} corridas limpias)")
 
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    docs_out = os.path.join(repo_root, "docs", "experimentos", "resultados")
+    print(
+        "  -> Guardado: falsos_positivos.csv "
+        f"({len(fpr_rows)} corridas limpias)"
+    )
+
+    repo_root = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+        )
+    )
+
+    docs_out = os.path.join(
+        repo_root,
+        "docs",
+        "experimentos",
+        "resultados",
+    )
+
     if os.path.exists(docs_out):
-        with open(os.path.join(docs_out, "falsos_positivos.csv"), "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=list(fpr_rows[0].keys()))
+        with open(
+            os.path.join(
+                docs_out,
+                "falsos_positivos.csv",
+            ),
+            "w",
+            newline="",
+            encoding="utf-8",
+        ) as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=list(fpr_rows[0].keys()),
+            )
             writer.writeheader()
             writer.writerows(fpr_rows)
 
@@ -741,7 +849,7 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
 
 
 # =============================================================================
-# 8. ESTADÍSTICA NO PARAMÉTRICA (MANN-WHITNEY, A12, BOOTSTRAP) Y BOXPLOT
+# 8. ESTADÃSTICA NO PARAMÃ‰TRICA (MANN-WHITNEY, A12, BOOTSTRAP) Y BOXPLOT
 # =============================================================================
 
 def vargha_delaney_a12(sample1: List[float], sample2: List[float]) -> float:
@@ -819,7 +927,7 @@ def generar_graficos_y_estadistica(deteccion_rows: List[Dict[str, Any]]):
     ci_low_m2, ci_high_m2 = bootstrap_ci(lat_m2)
 
     print("\n" + "=" * 70)
-    print("RESUMEN DE EVALUACIÓN ESTADÍSTICA CUANTITATIVA (Módulo G)")
+    print("RESUMEN DE EVALUACIÃ“N ESTADÃSTICA CUANTITATIVA (MÃ³dulo G)")
     print("=" * 70)
     print(f"M0 (Sin Auditoria):      Media = {statistics.mean(lat_m0):.3f} ms | Mediana = {statistics.median(lat_m0):.3f} ms")
     print(f"M1 (Relacional Simple):  Media = {statistics.mean(lat_m1):.3f} ms | Mediana = {statistics.median(lat_m1):.3f} ms")
@@ -851,7 +959,7 @@ def generar_graficos_y_estadistica(deteccion_rows: List[Dict[str, Any]]):
 
 def main():
     print("==================================================================")
-    print("EJECUTANDO BANCO EXPERIMENTAL COMPLETO — ACADTRACE E4")
+    print("EJECUTANDO BANCO EXPERIMENTAL COMPLETO â€” ACADTRACE E4")
     print("==================================================================")
     client = LiveBackendClient()
     ejecutar_experimento_1_concurrencia(client)
@@ -860,7 +968,7 @@ def main():
     ejecutar_metricas_iso25010()
     verificar_falsos_positivos()
     generar_graficos_y_estadistica(deteccion_rows)
-    print("\n[OK] Banco experimental completado con éxito. Todos los artefactos fueron generados sin variables sinteticas.")
+    print("\n[OK] Banco experimental completado con Ã©xito. Todos los artefactos fueron generados sin variables sinteticas.")
 
 
 if __name__ == "__main__":
