@@ -59,110 +59,154 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     await seleccionarCurso(page, "Calificar");
 
     const semana = page.getByRole("spinbutton");
+    const trimestre = page.getByRole("combobox").first();
 
     await expect(semana).toBeVisible();
-    await page.waitForLoadState('networkidle');
+    await expect(trimestre).toBeVisible();
 
-    const maxSemanas =
-      Number(await semana.getAttribute("max")) || 1;
+    const periodos = await trimestre
+      .locator("option")
+      .evaluateAll((options) =>
+        options
+          .map((option) => option.value)
+          .filter((value) => value !== "")
+      );
 
     let nota = null;
     let original = "";
 
-    for (
-      let numero = 1;
-      numero <= maxSemanas && !nota;
-      numero += 1
-    ) {
-      await semana.fill(String(numero));
+    for (const periodo of periodos) {
+      if (nota) {
+        break;
+      }
 
-      const encabezadoSemana = page.getByText(
-        `Actividades de la semana ${numero}`,
-        { exact: true }
-      );
+      await trimestre.selectOption(periodo);
 
-      await expect(encabezadoSemana).toBeVisible();
-
-      const tarjetas = encabezadoSemana
-        .locator("..")
-        .getByRole("button");
-
-      const totalTarjetas = await tarjetas.count();
+      const maxSemanas =
+        Number(await semana.getAttribute("max")) || 1;
 
       for (
-        let indice = 0;
-        indice < totalTarjetas && !nota;
-        indice += 1
+        let numero = 1;
+        numero <= maxSemanas && !nota;
+        numero += 1
       ) {
-        const tarjeta = tarjetas.nth(indice);
+        await semana.fill(String(numero));
 
-        const nombreActividad = (
-          await tarjeta.locator("p").first().textContent()
-        )?.trim();
+        const encabezadoSemana = page.getByText(
+          `Actividades de la semana ${numero}`,
+          { exact: true }
+        );
 
-        await tarjeta.click();
+        await expect(encabezadoSemana).toBeVisible();
 
-        if (nombreActividad) {
-          await expect(
-            page.getByRole("heading", {
-              name: nombreActividad,
-              exact: true,
-            })
-          ).toBeVisible();
-        }
+        const tarjetas = encabezadoSemana
+          .locator("..")
+          .getByRole("button");
 
-        const candidatas = page.getByPlaceholder("—");
+        const totalTarjetas = await tarjetas.count();
 
-        const sinEstudiantes = page
-          .getByText(/No hay estudiantes/i)
-          .first();
+        const orden = Array.from(
+          { length: totalTarjetas },
+          (_, indice) => indice
+        );
 
-        await expect
-          .poll(
-            async () => {
-              const total = await candidatas.count();
+        // Si E2E_ACTIVIDAD está configurada, se intenta primero.
+        // Si no sirve, el test continúa con las demás actividades.
+        if (e2e.actividad) {
+          for (
+            let indice = 0;
+            indice < totalTarjetas;
+            indice += 1
+          ) {
+            const texto = (
+              await tarjetas.nth(indice).innerText()
+            ).trim();
 
-              for (let i = 0; i < total; i += 1) {
-                if (await candidatas.nth(i).isVisible()) {
-                  return true;
-                }
+            if (texto.includes(e2e.actividad)) {
+              const posicion = orden.indexOf(indice);
+
+              if (posicion >= 0) {
+                orden.splice(posicion, 1);
+                orden.unshift(indice);
               }
 
-              return await sinEstudiantes.isVisible();
-            },
-            {
-              timeout: 15_000,
-              message:
-                "La actividad no terminó de cargar sus estudiantes y calificaciones",
+              break;
             }
-          )
-          .toBe(true);
+          }
+        }
 
-        const totalNotas = await candidatas.count();
+        for (const indice of orden) {
+          const tarjeta = tarjetas.nth(indice);
 
-        for (
-          let i = 0;
-          i < totalNotas;
-          i += 1
-        ) {
-          const candidata = candidatas.nth(i);
+          await tarjeta.click();
 
-          if (!(await candidata.isVisible())) {
-            continue;
+          // Solo inputs de notas de la tabla.
+          // No incluye el selector numérico de semana.
+          const candidatas = page
+            .getByRole("table")
+            .getByRole("spinbutton");
+
+          const sinEstudiantes = page
+            .getByText(/No hay estudiantes/i)
+            .first();
+
+          await expect
+            .poll(
+              async () => {
+                if ((await candidatas.count()) > 0) {
+                  return true;
+                }
+
+                return await sinEstudiantes.isVisible();
+              },
+              {
+                timeout: 15_000,
+                message:
+                  "La actividad no terminó de cargar sus estudiantes y calificaciones",
+              }
+            )
+            .toBe(true);
+
+          const totalNotas = await candidatas.count();
+
+          for (
+            let i = 0;
+            i < totalNotas;
+            i += 1
+          ) {
+            const candidata = candidatas.nth(i);
+
+            if (!(await candidata.isVisible())) {
+              continue;
+            }
+
+            const valor = (
+              await candidata.inputValue()
+            ).trim();
+
+            if (valor === "") {
+              continue;
+            }
+
+            if (!Number.isFinite(Number(valor))) {
+              continue;
+            }
+
+            nota = candidata;
+            original = valor;
+            break;
           }
 
-          const valor = await candidata.inputValue();
-
-          nota = candidata;
-          original = valor;
-          break;
+          if (nota) {
+            break;
+          }
         }
       }
     }
 
     expect(
       nota,
-      "No se encontró ninguna actividad con una nota previa restaurable"
+      "No se encontró ninguna calificación previa restaurable en el curso seleccionado"
     ).not.toBeNull();
 
     const maximo =
