@@ -3,20 +3,3 @@ title = "AcadTrace Gitleaks Configuration"
 
 [extend]
 useDefault = true
-
-[allowlist]
-description = "Permitir placeholders de ejemplo, fixtures de prueba y documentacion"
-paths = [
-    '''\.env\.example$''',
-    '''.*Test\.java$''',
-    '''.*test_.*\.py$''',
-    '''docs/cobertura/.*''',
-    '''experimentos/.*''',
-    '''\.github/workflows/.*'''
-]
-regexes = [
-    '''change-me.*''',
-    '''***REMOVED***''',
-    '''***REMOVED***''',
-    '''***REMOVED***'''
-]
