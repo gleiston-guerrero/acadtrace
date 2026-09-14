@@ -855,94 +855,60 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 test(
   "acceso sin autenticación a Asistencia es rechazado o redirigido al Login",
   async ({ page }) => {
-    test(
-    "acceso sin autenticación a Asistencia es rechazado o redirigido al Login",
-    async ({ page }) => {
-      const asistenciaURL = new URL(
-        "/asistencia",
-        e2e.baseURL
-      ).toString();
+    const asistenciaURL = new URL(
+      "/asistencia",
+      e2e.baseURL
+    ).toString();
 
-      await page.goto(asistenciaURL, {
-        waitUntil: "domcontentloaded",
-      });
+    await page.goto(asistenciaURL, {
+      waitUntil: "domcontentloaded",
+    });
 
-      const loginURL = new URL(
-        e2e.loginURL
-      );
-
-      await expect
-        .poll(
-          () => {
-            const actual =
-              new URL(page.url());
-
-            return {
-              origin: actual.origin,
-              pathname: actual.pathname,
-            };
-          },
-          {
-            timeout: 15_000,
-            message:
-              "El acceso sin autenticación a Asistencia no fue redirigido al Login",
-          }
-        )
-        .toEqual({
-          origin: loginURL.origin,
-          pathname: loginURL.pathname,
-        });
-
-      await expect(
-        page.getByPlaceholder(
-          /ingresa tu usuario/i
-        )
-      ).toBeVisible({
-        timeout: 15_000,
-      });
-
-      await expect(
-        page.getByPlaceholder(
-          /ingresa tu contraseña/i
-        )
-      ).toBeVisible();
-
-      await expect(
-        page.getByRole("button", {
-          name: /ingresar/i,
-        })
-      ).toBeVisible();
-    }
-  );
-
-    await page.goto(
-      new URL(
-        "/asistencia",
-        e2e.baseURL
-      ).toString()
+    const loginURL = new URL(
+      e2e.loginURL
     );
-
-    const loginOrigin =
-      new URL(
-        e2e.loginURL
-      ).origin;
 
     await expect
       .poll(
-        () =>
-          new URL(
+        () => {
+          const actual = new URL(
             page.url()
-          ).origin,
+          );
+
+          return {
+            origin: actual.origin,
+            pathname: actual.pathname,
+          };
+        },
         {
           timeout: 15_000,
+          message:
+            "El acceso sin autenticación a Asistencia no fue redirigido al Login",
         }
       )
-      .toBe(loginOrigin);
+      .toEqual({
+        origin: loginURL.origin,
+        pathname: loginURL.pathname,
+      });
 
     await expect(
       page.getByPlaceholder(
         /ingresa tu usuario/i
       )
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await expect(
+      page.getByPlaceholder(
+        /ingresa tu contraseña/i
+      )
     ).toBeVisible();
-   }
+
+    await expect(
+      page.getByRole("button", {
+        name: /ingresar/i,
+      })
+    ).toBeVisible();
+  }
 );

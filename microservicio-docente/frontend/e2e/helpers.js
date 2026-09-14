@@ -213,14 +213,20 @@ export async function seleccionarCurso(
 
   await grado.click();
 
-  /*
-   * No se depende de textos decorativos.
-   * Se espera directamente el control funcional del curso.
+    /*
+   * SelectorCursos renderiza cada curso como un botón que contiene
+   * exactamente la acción funcional indicada por la página:
+   * "Calificar" o "Tomar asistencia".
+   *
+   * Usar un descendiente con texto exacto evita confundir
+   * "Calificar" con el botón lateral "Calificaciones".
    */
   const cursos = page
     .getByRole("button")
     .filter({
-      hasText: accion,
+      has: page.getByText(accion, {
+        exact: true,
+      }),
     });
 
   await expect(cursos.first()).toBeVisible({
@@ -248,7 +254,9 @@ export async function seleccionarCurso(
     curso = cursos.first();
 
     /*
-     * E2E_CURSO también es únicamente una preferencia.
+     * E2E_CURSO es únicamente una preferencia.
+     * Si el curso configurado existe, se utiliza.
+     * De lo contrario se mantiene el primer curso real disponible.
      */
     if (e2e.curso) {
       const cursoPreferido = cursos
@@ -268,6 +276,34 @@ export async function seleccionarCurso(
 
   await expect(curso).toBeVisible();
   await expect(curso).toBeEnabled();
+
+  /*
+   * Layout coloca este overlay cuando queda abierto alguno de
+   * los menús superiores. Si está presente, se cierra mediante
+   * su comportamiento normal antes de pulsar la tarjeta del curso.
+   *
+   * No se utiliza force:true porque E10 debe interactuar como
+   * un navegador real.
+   */
+  const overlay = page.locator(
+    "div.fixed.inset-0.z-20"
+  );
+
+  if (
+    (await overlay.count()) > 0 &&
+    (await overlay.isVisible())
+  ) {
+    await overlay.click({
+      position: {
+        x: 5,
+        y: 5,
+      },
+    });
+
+    await expect(overlay).toBeHidden({
+      timeout: 5_000,
+    });
+  }
 
   await curso.click();
 
