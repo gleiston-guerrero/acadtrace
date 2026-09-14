@@ -101,23 +101,83 @@ export async function seleccionarCurso(
   accion,
   indiceCurso = null
 ) {
-  const encabezado = page.getByRole("heading", {
-    name: "Mis grados",
-  });
+  /*
+   * SelectorCursos tiene dos niveles reales:
+   *
+   * 1. Tarjetas de grado, identificadas por el badge exacto "GRADO".
+   * 2. Tarjetas de curso, identificadas por el footer exacto recibido
+   *    en "accion": "Calificar" o "Tomar asistencia".
+   *
+   * No se usan XPath, índices globales ni textos parciales de la
+   * navegación lateral.
+   */
 
-  await expect(encabezado).toBeVisible({
+  const cerrarOverlay = async () => {
+    const overlay = page.locator(
+      "div.fixed.inset-0.z-20"
+    );
+
+    if (
+      (await overlay.count()) > 0 &&
+      (await overlay.isVisible())
+    ) {
+      await overlay.click({
+        position: {
+          x: 5,
+          y: 5,
+        },
+      });
+
+      await expect(overlay).toBeHidden({
+        timeout: 5_000,
+      });
+    }
+  };
+
+  /*
+   * Esperamos que el selector real de grados haya terminado
+   * de cargar.
+   */
+  await expect(
+    page.getByRole("heading", {
+      name: "Mis grados",
+      exact: true,
+    })
+  ).toBeVisible({
     timeout: 15_000,
   });
 
-  let grado = null;
+  /*
+   * Las tarjetas de grado contienen el badge exacto "GRADO".
+   * Esto excluye botones del sidebar y otros controles.
+   */
+  const grados = page
+    .getByRole("button")
+    .filter({
+      has: page.getByText("GRADO", {
+        exact: true,
+      }),
+    });
+
+  await expect(grados.first()).toBeVisible({
+    timeout: 15_000,
+  });
+
+  const totalGrados = await grados.count();
+
+  expect(
+    totalGrados,
+    "El docente autenticado no tiene grados disponibles"
+  ).toBeGreaterThan(0);
+
+  let grado = grados.first();
 
   /*
-   * E2E_GRADO es únicamente una preferencia.
-   * Si no existe, E10 utiliza un grado real disponible.
+   * E2E_GRADO es solamente una preferencia.
+   * Si no existe, se utiliza el primer grado real disponible.
    */
   if (e2e.grado) {
-    const gradoPreferido = page
-      .getByRole("button")
+    const gradoPreferido = grados
       .filter({
         hasText: e2e.grado,
       })
@@ -131,95 +191,33 @@ export async function seleccionarCurso(
     }
   }
 
-  /*
-   * Busca primero controles cuyo contenido parezca
-   * corresponder a un grado académico.
-   */
-  if (!grado) {
-    const gradosAcademicos = page
-      .getByRole("button")
-      .filter({
-        hasText:
-          /EGB|BGU|bachillerato|año|ano|grado/i,
-      });
-
-    const totalAcademicos =
-      await gradosAcademicos.count();
-
-    for (
-      let i = 0;
-      i < totalAcademicos;
-      i += 1
-    ) {
-      const candidato =
-        gradosAcademicos.nth(i);
-
-      if (await candidato.isVisible()) {
-        grado = candidato;
-        break;
-      }
-    }
-  }
-
-  /*
-   * Fallback:
-   * toma un botón visible situado después de "Mis grados",
-   * descartando controles de navegación conocidos.
-   */
-  if (!grado) {
-    const candidatos = encabezado.locator(
-      'xpath=following::*[self::button or @role="button"]'
-    );
-
-    const totalCandidatos =
-      await candidatos.count();
-
-    for (
-      let i = 0;
-      i < totalCandidatos;
-      i += 1
-    ) {
-      const candidato =
-        candidatos.nth(i);
-
-      if (!(await candidato.isVisible())) {
-        continue;
-      }
-
-      const textoBoton = (
-        await candidato.innerText()
-      ).trim();
-
-      if (
-        /cerrar sesi[oó]n|calificaciones|asistencia|inicio/i.test(
-          textoBoton
-        )
-      ) {
-        continue;
-      }
-
-      grado = candidato;
-      break;
-    }
-  }
-
-  expect(
-    grado,
-    "No existe ningún grado real visible para el docente autenticado"
-  ).not.toBeNull();
-
   await expect(grado).toBeVisible();
   await expect(grado).toBeEnabled();
 
+  await cerrarOverlay();
+
   await grado.click();
 
-    /*
-   * SelectorCursos renderiza cada curso como un botón que contiene
-   * exactamente la acción funcional indicada por la página:
-   * "Calificar" o "Tomar asistencia".
+  /*
+   * Tras elegir un grado, SelectorCursos cambia al segundo nivel.
+   * La presencia del botón para volver confirma que esa transición
+   * ocurrió realmente.
+   */
+  await expect(
+    page.getByTitle("Volver a grados")
+  ).toBeVisible({
+    timeout: 15_000,
+  });
+
+  /*
+   * Cada tarjeta de curso contiene como footer exactamente:
    *
-   * Usar un descendiente con texto exacto evita confundir
-   * "Calificar" con el botón lateral "Calificaciones".
+   * "Calificar"
+   * o
+   * "Tomar asistencia"
+   *
+   * El texto debe ser exacto para no confundir "Calificar"
+   * con el botón lateral "Calificaciones".
    */
   const cursos = page
     .getByRole("button")
@@ -233,12 +231,11 @@ export async function seleccionarCurso(
     timeout: 15_000,
   });
 
-  const totalCursos =
-    await cursos.count();
+  const totalCursos = await cursos.count();
 
   expect(
     totalCursos,
-    `No se encontraron cursos disponibles con la acción "${accion}"`
+    `No se encontraron cursos disponibles para "${accion}"`
   ).toBeGreaterThan(0);
 
   let curso;
@@ -254,9 +251,7 @@ export async function seleccionarCurso(
     curso = cursos.first();
 
     /*
-     * E2E_CURSO es únicamente una preferencia.
-     * Si el curso configurado existe, se utiliza.
-     * De lo contrario se mantiene el primer curso real disponible.
+     * E2E_CURSO también es únicamente una preferencia.
      */
     if (e2e.curso) {
       const cursoPreferido = cursos
@@ -277,33 +272,7 @@ export async function seleccionarCurso(
   await expect(curso).toBeVisible();
   await expect(curso).toBeEnabled();
 
-  /*
-   * Layout coloca este overlay cuando queda abierto alguno de
-   * los menús superiores. Si está presente, se cierra mediante
-   * su comportamiento normal antes de pulsar la tarjeta del curso.
-   *
-   * No se utiliza force:true porque E10 debe interactuar como
-   * un navegador real.
-   */
-  const overlay = page.locator(
-    "div.fixed.inset-0.z-20"
-  );
-
-  if (
-    (await overlay.count()) > 0 &&
-    (await overlay.isVisible())
-  ) {
-    await overlay.click({
-      position: {
-        x: 5,
-        y: 5,
-      },
-    });
-
-    await expect(overlay).toBeHidden({
-      timeout: 5_000,
-    });
-  }
+  await cerrarOverlay();
 
   await curso.click();
 
