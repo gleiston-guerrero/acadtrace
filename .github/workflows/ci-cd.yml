@@ -123,6 +123,9 @@ jobs:
       - name: Verificar certificado E7 de artefactos versionados
         run: python experimentos/verificar_reproducibilidad.py
 
+      - name: Verificar certificado E7 con reproducibilidad.sh (sha256sum -c)
+        run: bash experimentos/reproducibilidad.sh
+
       - name: Validar sintaxis Python en microservicio-docente
         run: |
           python -m pip install --upgrade pip flake8
