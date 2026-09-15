@@ -1,234 +1,626 @@
 openapi: 3.0.3
 info:
-  title: AcadTrace - API Gateway & Microservicio Secretaría
+  title: AcadTrace REST API
+  version: 4.1.0
   description: |
-    Especificación OpenAPI 3.0 para la plataforma de Gestión Académica y Auditoría Criptográfica AcadTrace.
-    Incluye endpoints de Secretaría, SGA Principal y Auditoría con control de acceso por tokens JWT HMAC-SHA256
-    y propagación de trazas distribuidas mediante encabezado X-Trace-Id.
-  version: 4.0.0
-  contact:
-    name: Equipo BCEL - UTEQ
-    url: https://github.com/LEO23as/acadtrace
-
+    Catalogo agregado de las interfaces REST versionadas de AcadTrace.
+    Cada operacion declara el servidor del microservicio que la implementa.
+    El contrato de microservicio-ia se genera en runtime por FastAPI; las rutas
+    y modelos incluidos aqui reflejan app/main.py y no sustituyen /openapi.json.
+tags:
+  - name: principal
+  - name: secretaria
+  - name: docente
+  - name: soporte
+  - name: ia
 servers:
   - url: http://localhost:8080
-    description: API Gateway HAProxy (Entorno de Desarrollo / Integración Local)
-  - url: http://192.0.2.1:8080
-    description: Servidor Perimetral AWS EC2 Producción
-
+    description: sga-principal o entrada HAProxy para Principal
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Token de autenticación JWT firmado con HMAC-SHA256.
-
-  parameters:
-    TraceIdHeader:
-      name: X-Trace-Id
-      in: header
-      required: false
-      description: Identificador UUID de correlación para observabilidad distribuida.
-      schema:
-        type: string
-        format: uuid
-
+      description: JWT usado por los filtros REST de Principal, Secretaría y Soporte.
   schemas:
+    Empty:
+      type: object
+      additionalProperties: true
+    PageResult:
+      type: object
+      additionalProperties: true
+      description: PageResult devuelto por los endpoints paginados de Secretaría.
     Estudiante:
       type: object
       properties:
-        idEstudiante:
-          type: integer
-        cedula:
-          type: string
-          description: Cédula de identidad (cifrada con AES-256-GCM en reposo).
-        nombres:
-          type: string
-        apellidos:
-          type: string
-        fechaNacimiento:
-          type: string
-          format: date
-        genero:
-          type: string
-        direccion:
-          type: string
-        activo:
-          type: boolean
-
+        cedula: {type: string}
+        nombres: {type: string}
+        apellidos: {type: string}
+        fecha_nacimiento: {type: string}
+        genero: {type: string, enum: [MASCULINO, FEMENINO, OTRO]}
+        correo: {type: string, format: email}
+        direccion: {type: string}
+        telefono: {type: string}
+        discapacidad: {type: boolean}
+        tipo_discapacidad: {type: string}
+        porcentaje_disc: {type: integer}
+        id_representante: {type: integer, format: int64}
+        nacionalidad: {type: string}
+        etnia: {type: string}
+        lugar_nacimiento: {type: string}
+        vive_con: {type: string}
+        numeros_hermanos: {type: integer}
+        beneficio_social: {type: boolean}
+        carnet_conadis: {type: string}
+        foto_url: {type: string}
     MatriculaRequest:
       type: object
-      required:
-        - idEstudiante
-        - idGrado
-        - idPeriodo
+      required: [id_estudiante, id_grado, id_paralelo, id_ano_lectivo]
       properties:
-        idEstudiante:
-          type: integer
-        idGrado:
-          type: integer
-        idPeriodo:
-          type: integer
-        folio:
-          type: string
-
+        id_estudiante: {type: integer, format: int64}
+        id_grado: {type: integer, format: int64}
+        id_paralelo: {type: integer, format: int64}
+        id_ano_lectivo: {type: integer, format: int64}
+        estado: {type: string, enum: [ACTIVA, RETIRADA, EGRESADA, PROMOVIDA, NO_PROMOVIDA]}
+        observaciones: {type: string}
     EventoAcademico:
       type: object
+      required: [titulo, fecha_inicio]
       properties:
-        idEvento:
-          type: integer
-        titulo:
-          type: string
-        descripcion:
-          type: string
-        fechaInicio:
-          type: string
-          format: date
-        fechaFin:
-          type: string
-          format: date
-        tipo:
-          type: string
-          enum: [REUNION, EVALUACION, FERIADO, CIVICO]
-
-    AuditoriaEvento:
+        titulo: {type: string}
+        descripcion: {type: string}
+        fecha_inicio: {type: string, format: date}
+        fecha_fin: {type: string, format: date}
+        tipo: {type: string}
+        id_grado: {type: integer, format: int64}
+    Auditoria:
+      type: object
+      additionalProperties: true
+      properties:
+        idAuditoria: {type: integer, format: int64}
+        schemaOrigen: {type: string}
+        username: {type: string}
+        accion: {type: string}
+        categoria: {type: string}
+        tablaAfectada: {type: string}
+        resultado: {type: string}
+        fecha: {type: string, format: date-time}
+        traceId: {type: string, format: uuid}
+    TicketRequest:
+      type: object
+      required: [titulo, descripcion, categoria, prioridad]
+      properties:
+        titulo: {type: string, maxLength: 150}
+        descripcion: {type: string}
+        categoria: {type: string}
+        prioridad: {type: string}
+    ActualizarTicketRequest:
+      type: object
+      required: [estado]
+      properties:
+        estado: {type: string}
+        asignadoA: {type: string}
+        solucionAplicada: {type: string}
+    EscalarTicketRequest:
+      type: object
+      required: [motivo]
+      properties:
+        nuevaPrioridad: {type: string}
+        nuevoAsignado: {type: string}
+        motivo: {type: string}
+    ComentarioRequest:
+      type: object
+      required: [contenido]
+      properties:
+        contenido: {type: string}
+        notaInterna: {type: boolean}
+    DiagnosticoRequest:
+      type: object
+      required: [id_matricula, estudiante, materia, notas]
+      properties:
+        id_matricula: {type: integer}
+        estudiante: {type: string}
+        materia: {type: string}
+        grado: {type: string, default: Décimo año EGB}
+        trimestre: {type: integer, default: 1}
+        porcentaje_asistencia: {type: number, format: float, default: 95.0}
+        notas:
+          $ref: '#/components/schemas/NotasEstudiante'
+    NotasEstudiante:
       type: object
       properties:
-        idAuditoria:
-          type: integer
-        schemaOrigen:
-          type: string
-        traceId:
-          type: string
-          format: uuid
-        username:
-          type: string
-        accion:
-          type: string
-        tablaAfectada:
-          type: string
-        registroId:
-          type: integer
-        descripcion:
-          type: string
-        resultado:
-          type: string
-          enum: [EXITO, FALLO]
-        hmac:
-          type: string
-          description: Firma HMAC-SHA256 para verificación de integridad.
-        fecha:
-          type: string
-          format: date-time
-
+        oral: {type: number, format: float, default: 8.0}
+        escrita: {type: number, format: float, default: 8.0}
+        tareas: {type: number, format: float, default: 8.0}
+        talleres: {type: number, format: float, default: 8.0}
+        cuaderno: {type: number, format: float, default: 8.0}
+        trabajo_individual: {type: number, format: float, default: 8.0}
+        exposicion: {type: number, format: float, default: 8.0}
+        proyecto: {type: number, format: float, default: 8.0}
+        examen: {type: number, format: float, default: 8.0}
+    DiagnosticoResponse:
+      type: object
+      required: [id_matricula, estudiante, materia, trimestre, promedio_formativo_70, promedio_sumativo_30, promedio_trimestral, escala_cualitativa, nivel_riesgo, fortalezas, areas_de_mejora, recomendacion_pedagogica, alerta_representante, motor_ia, fecha_analisis]
+      properties:
+        id_matricula: {type: integer}
+        estudiante: {type: string}
+        materia: {type: string}
+        trimestre: {type: integer}
+        promedio_formativo_70: {type: number}
+        promedio_sumativo_30: {type: number}
+        promedio_trimestral: {type: number}
+        escala_cualitativa: {type: string}
+        nivel_riesgo: {type: string}
+        fortalezas: {type: array, items: {type: string}}
+        areas_de_mejora: {type: array, items: {type: string}}
+        recomendacion_pedagogica: {type: string}
+        alerta_representante: {type: boolean}
+        motor_ia: {type: string}
+        fecha_analisis: {type: string}
+    ChatQueryRequest:
+      type: object
+      required: [pregunta]
+      properties:
+        pregunta: {type: string}
+        contexto_materia: {type: string, nullable: true, default: General}
+  responses:
+    OkObject:
+      description: Respuesta JSON del controlador.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Empty'}
+    NoContent:
+      description: Operacion completada sin cuerpo.
+    Pdf:
+      description: Documento PDF generado por el servicio.
+      content:
+        application/pdf:
+          schema: {type: string, format: binary}
 paths:
-  /api/secretaria/estudiantes:
-    get:
-      summary: Listar estudiantes
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/TraceIdHeader'
-        - name: q
-          in: query
-          schema:
-            type: string
-          description: Filtro de búsqueda por nombres o apellidos
-      responses:
-        '200':
-          description: Lista de estudiantes obtenida exitosamente.
-        '401':
-          description: No autorizado (Token JWT ausente o inválido).
-
-    post:
-      summary: Registrar nuevo estudiante
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/TraceIdHeader'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Estudiante'
-      responses:
-        '201':
-          description: Estudiante creado y evento de auditoría registrado.
-        '400':
-          description: Datos inválidos.
-
-  /api/secretaria/matriculas:
-    post:
-      summary: Matricular estudiante en curso y periodo
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/TraceIdHeader'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MatriculaRequest'
-      responses:
-        '201':
-          description: Matrícula asentada con folio y reloj de Lamport sincronizado.
-        '409':
-          description: Conflicto - estudiante ya matriculado en este periodo.
-
-  /api/secretaria/reportes/matricula/{idMatricula}/pdf:
-    get:
-      summary: Generar acta de matrícula en formato PDF
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: idMatricula
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Documento PDF generado con Apache PDFBox.
-          content:
-            application/pdf:
-              schema:
-                type: string
-                format: binary
-
-  /api/secretaria/eventos:
-    get:
-      summary: Obtener eventos del calendario académico
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Listado de eventos académicos.
-
-  /api/auditoria:
-    get:
-      summary: Consultar bitácora criptográfica de auditoría
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: traceId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: schemaOrigen
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Registros de auditoría con estado de firma HMAC verificado.
-
   /actuator/health:
     get:
-      summary: Health Check del microservicio
+      tags: [principal]
+      summary: Health publico de sga-principal
+      servers: [{url: http://localhost:8080}]
+      security: []
+      responses: {'200': {description: Estado de salud}}
+  /api/auth/login:
+    post:
+      tags: [principal]
+      summary: Autenticacion JWT
+      servers: [{url: http://localhost:8080}]
+      security: []
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}
+      responses: {'200': {description: Token JWT}}
+  /api/estudiantes:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: q, in: query, required: false, schema: {type: string}}]
+      responses: {'200': {description: Lista de estudiantes}}
+    post:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'200': {description: Estudiante creado}}
+  /api/estudiantes/{id}:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Estudiante}}
+    put:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'200': {description: Estudiante actualizado}}
+  /api/matriculas:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idAnoLectivo, in: query, schema: {type: integer, format: int64}}
+        - {name: idEstudiante, in: query, schema: {type: integer, format: int64}}
+        - {name: idGrado, in: query, schema: {type: integer, format: int64}}
+        - {name: q, in: query, schema: {type: string}}
+        - {name: page, in: query, schema: {type: integer, default: 1}}
+        - {name: limit, in: query, schema: {type: integer, default: 500}}
+      responses: {'200': {description: Pagina de matriculas}}
+    post:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'201': {description: Matricula creada}}
+  /api/auditoria:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: schemaOrigen, in: query, schema: {type: string}}
+        - {name: accion, in: query, schema: {type: string}}
+        - {name: categoria, in: query, schema: {type: string}}
+        - {name: tablaAfectada, in: query, schema: {type: string}}
+        - {name: resultado, in: query, schema: {type: string}}
+        - {name: username, in: query, schema: {type: string}}
+        - {name: page, in: query, schema: {type: integer, default: 0}}
+        - {name: size, in: query, schema: {type: integer, default: 25}}
+      responses: {'200': {description: Pagina de auditoria}}
+  /api/auditoria/trace/{traceId}:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: traceId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {description: Auditoria asociada al trace}}
+  /api/secretario/estudiantes:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: q, in: query, schema: {type: string}}
+        - {name: page, in: query, schema: {type: integer, default: 1}}
+        - {name: limit, in: query, schema: {type: integer, default: 15}}
+      responses: {'200': {description: PageResult de estudiantes}}
+    post:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Estudiante'}}}}
+      responses: {'201': {description: Estudiante creado}}
+  /api/secretario/estudiantes/{id}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Estudiante}}
+    put:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Estudiante'}}}}
+      responses: {'200': {description: Estudiante actualizado}}
+  /api/secretario/estudiantes/{id}/estado:
+    patch:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'204': {$ref: '#/components/responses/NoContent'}}
+  /api/secretario/matriculas:
+    post:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/MatriculaRequest'}}}}
+      responses: {'201': {description: Matricula creada}}
+  /api/secretario/matriculas/paralelos/{idGrado}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idGrado, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Paralelos del grado}}
+  /api/secretario/matriculas/ano-lectivo/{idAno}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idAno, in: path, required: true, schema: {type: integer, format: int64}}
+        - {name: page, in: query, schema: {type: integer, default: 1}}
+        - {name: limit, in: query, schema: {type: integer, default: 30}}
+        - {name: q, in: query, schema: {type: string}}
+      responses: {'200': {description: Matriculas del año lectivo}}
+  /api/secretario/matriculas/ano-lectivo/{idAno}/estadisticas:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idAno, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Estadisticas de matricula}}
+  /api/secretario/matriculas/estudiante/{idEstudiante}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idEstudiante, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Matriculas del estudiante}}
+  /api/secretario/matriculas/{id}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Matricula}}
+  /api/secretario/matriculas/{id}/estado:
+    patch:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'204': {$ref: '#/components/responses/NoContent'}}
+  /api/secretario/calendario:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: mes, in: query, required: true, schema: {type: string}}]
+      responses: {'200': {description: Eventos del mes}}
+  /api/secretario/calendario/eventos:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Lista de eventos}}
+    post:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EventoAcademico'}}}}
+      responses: {'201': {description: Evento creado}}
+  /api/secretario/calendario/eventos/{id}:
+    put:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EventoAcademico'}}}}
+      responses: {'200': {description: Evento actualizado}}
+    delete:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'204': {$ref: '#/components/responses/NoContent'}}
+  /api/secretario/reportes/nomina-matriculas/{idAno}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idAno, in: path, required: true, schema: {type: integer, format: int64}}
+        - {name: id_grado, in: query, schema: {type: integer, format: int64}}
+        - {name: id_paralelo, in: query, schema: {type: integer, format: int64}}
+      responses: {'200': {$ref: '#/components/responses/Pdf'}}
+  /api/secretario/reportes/certificado-matricula/{id}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {$ref: '#/components/responses/Pdf'}}
+  /api/secretario/reportes/ficha-estudiante/{id}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {$ref: '#/components/responses/Pdf'}}
+  /api/secretario/reportes/libreta/{idMatricula}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idMatricula, in: path, required: true, schema: {type: integer, format: int64}}
+        - {name: idPeriodo, in: query, schema: {type: integer, format: int64}}
+      responses: {'200': {$ref: '#/components/responses/Pdf'}}
+  /api/secretario/reportes/asistencia-mensual/{idMatricula}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idMatricula, in: path, required: true, schema: {type: integer, format: int64}}
+        - {name: mes, in: query, required: true, schema: {type: string}}
+      responses: {'200': {$ref: '#/components/responses/Pdf'}}
+  /api/secretario/reportes/ficha-representante/{idRepresentante}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idRepresentante, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {$ref: '#/components/responses/Pdf'}}
+  /api/secretario/reportes/estadisticas/{idAno}:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idAno, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Estadisticas}}
+  /api/docente/periodos-evaluacion:
+    get:
+      tags: [docente]
+      servers: [{url: http://localhost:8081}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Lista DRF}}
+    post:
+      tags: [docente]
+      servers: [{url: http://localhost:8081}]
+      security: [{bearerAuth: []}]
+      responses: {'201': {description: Recurso creado}}
+  /api/docente/actividades:
+    get:
+      tags: [docente]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idAsignacion, in: query, required: true, schema: {type: integer}}
+        - {name: idPeriodo, in: query, schema: {type: integer}}
+      responses: {'200': {description: Actividades}}
+  /api/docente/asistencias/masivo:
+    post:
+      tags: [docente]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Asistencia procesada}, '400': {description: Peticion invalida}, '409': {description: Registro duplicado}}
+  /health:
+    get:
+      tags: [docente, secretaria, soporte, ia]
+      servers:
+        - {url: http://localhost:8000, description: microservicio-docente}
+        - {url: http://localhost:5176, description: microservicio-secretaria}
+        - {url: http://localhost:5178, description: microservicio-soporte}
+        - {url: http://localhost:8084, description: microservicio-ia}
+      security: []
+      responses: {'200': {description: Servicio saludable}}
+  /metrics:
+    get:
+      tags: [docente]
+      servers: [{url: http://localhost:8000}]
+      security: []
+      responses: {'200': {description: Metricas Prometheus}}
+  /api/soporte/election/status:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Estado de elección}}
+  /api/soporte/logs:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: limite, in: query, schema: {type: integer, default: 50, minimum: 1, maximum: 200}}]
+      responses: {'200': {description: Logs recientes}}
+  /api/soporte/tecnicos-list:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Técnicos disponibles}}
+  /api/soporte/tecnicos:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Técnicos consultados vía gRPC}}
+  /api/soporte/usuarios:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Usuarios consultados vía gRPC}}
+  /api/soporte/tickets:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Tickets}}
+    post:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/TicketRequest'}}}}
+      responses: {'201': {description: Ticket creado}}
+  /api/soporte/tickets/mis-tickets:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Tickets del usuario}}
+  /api/soporte/tickets/estadisticas:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Estadísticas}}
+  /api/soporte/tickets/reportes:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Reportes}}
+  /api/soporte/tickets/{id}:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Ticket}}
+    put:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ActualizarTicketRequest'}}}}
+      responses: {'200': {description: Ticket actualizado}}
+  /api/soporte/tickets/{id}/escalar:
+    post:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EscalarTicketRequest'}}}}
+      responses: {'200': {description: Ticket escalado}}
+  /api/soporte/tickets/{id}/historial:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Historial del ticket}}
+  /api/soporte/tickets/{id}/comentarios:
+    get:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Comentarios del ticket}}
+    post:
+      tags: [soporte]
+      servers: [{url: http://localhost:8083}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ComentarioRequest'}}}}
+      responses: {'201': {description: Comentario creado}}
+  /api/ia/diagnostico-estudiante:
+    post:
+      tags: [ia]
+      servers: [{url: http://localhost:8084}]
+      security: []
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DiagnosticoRequest'}}}}
       responses:
-        '200':
-          description: Servicio saludable (UP).
+        '200': {description: Diagnóstico generado, content: {application/json: {schema: {$ref: '#/components/schemas/DiagnosticoResponse'}}}}
+  /api/ia/asistente:
+    post:
+      tags: [ia]
+      servers: [{url: http://localhost:8084}]
+      security: []
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ChatQueryRequest'}}}}
+      responses: {'200': {description: Respuesta del asistente}}
+  /openapi.json:
+    get:
+      tags: [ia]
+      servers: [{url: http://localhost:8084}]
+      security: []
+      description: Contrato generado automáticamente por FastAPI en runtime.
+      responses: {'200': {description: Documento OpenAPI generado}}
+  /docs:
+    get:
+      tags: [ia]
+      servers: [{url: http://localhost:8084}]
+      security: []
+      responses: {'200': {description: Swagger UI de FastAPI}}
+  /redoc:
+    get:
+      tags: [ia]
+      servers: [{url: http://localhost:8084}]
+      security: []
+      responses: {'200': {description: ReDoc de FastAPI}}
