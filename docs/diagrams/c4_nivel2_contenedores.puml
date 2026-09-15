@@ -1,67 +1,75 @@
 @startuml C4_Nivel2_Contenedores
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.12.0/C4_Container.puml
 
 LAYOUT_WITH_LEGEND()
+title Diagrama C4 - Nivel 2: Contenedores de AcadTrace
 
-title Diagrama C4 - Nivel 2: Contenedores del SGA Distribuido
+Person(docente, "Docente", "Usuario docente")
+Person(representante, "Representante", "Usuario de la aplicación móvil")
+Person(administrativo, "Secretaría / DIRECTOR / ADMINISTRADOR", "Usuarios administrativos")
+Person(soporte_usuario, "Soporte técnico", "Usuario de soporte")
 
-Person(usuario_docente, "Docente", "Personal docente con App Móvil o Web")
-Person(usuario_admin, "Secretaría / Soporte", "Personal administrativo y de soporte")
+System_Boundary(acadtrace, "AcadTrace") {
+    Container(app_movil, "Aplicación móvil de representantes", "Android / Kotlin / Jetpack Compose", "Consulta académica móvil con persistencia local Room.")
+    Container(web_principal, "Frontend principal", "React / TypeScript / Vite", "Interfaz web del núcleo académico.")
+    Container(web_docente, "Frontend docente", "React / Vite", "Interfaz web de asistencia y calificaciones.")
+    Container(haproxy, "HAProxy", "HAProxy 2.9 / Docker", "Balancea Principal, Docente, Secretaría e IA; publica métricas en :8404.")
 
-System_Boundary(c1, "Sistema SGA Distribuido") {
-    Container(app_movil, "App Móvil Docente", "Android / Kotlin / Jetpack Compose", "App nativa con sincronización offline Room SQLite.")
-    Container(spa_web, "Portales Web", "Vue.js / Tailwind CSS / HTML5", "Interfaces web para secretaría, soporte y administración.")
-    
-    Container(haproxy, "HAProxy Load Balancer & Gateway", "HAProxy 2.9 (Alpine)", "Balanceo de carga Round Robin, enrutamiento perimetral, CORS y métricas en :8404.")
-    
-    Container(sga_principal, "sga-principal (2 Réplicas)", "Java 21 / Spring Boot", "Módulo central, autenticación JWT, catálogo maestro y servidor gRPC :9092.")
-    Container(ms_secretaria, "microservicio-secretaria", "Java 21 / Spring Boot", "Gestión de matrículas, event sourcing (Lamport clocks), auditoría y reportes PDF.")
-    Container(ms_docente, "microservicio-docente", "Python 3.12 / Django REST", "Gestión de asistencia y calificaciones, cliente gRPC :9092.")
-    Container(ms_soporte, "microservicio-soporte", "Java 21 / Spring Boot", "Helpdesk, RBAC anti-IDOR, servidor gRPC :9094 y tareas programadas con líder etcd.")
-    Container(ms_ia, "microservicio-ia", "Python 3.12 / FastAPI", "Generación de resúmenes asistidos con Google Gemini 1.5 Flash.")
-    
-    ContainerDb(db_postgres, "Base de Datos PostgreSQL", "PostgreSQL 16 (AWS EC2)", "Persistencia relacional con particionamiento lógico de esquemas (public, secretaria, docente, soporte).")
-    ContainerDb(etcd_cluster, "Clúster etcd (Raft)", "etcd v3.5", "Consenso Raft para elección de líder entre réplicas y coordinación distribuida.")
-    
-    Container(prometheus, "Servidor Prometheus", "Prometheus v2.51", "Scraping periódico (15s) de microservicios, HAProxy, etcd y cAdvisor.")
-    Container(cadvisor, "cAdvisor", "Google cAdvisor v0.49", "Extracción de métricas de CPU, RAM e I/O de contenedores Docker.")
-    Container(grafana, "Grafana Dashboard", "Grafana v10.4", "Visualización en tiempo real de las 6 vistas operativas.")
+    Container(sga_principal, "sga-principal (2 réplicas)", "Java 21 / Spring Boot", "Núcleo académico, autenticación JWT y gRPC :9092.")
+    Container(ms_docente, "microservicio-docente (2 réplicas)", "Python 3.12 / Django REST", "Asistencia, actividades y calificaciones; REST :8000 y gRPC :9091.")
+    Container(ms_secretaria, "microservicio-secretaria", "Java 21 / Spring Boot", "Matrículas, representantes, trámites y reportes; REST :5176.")
+    Container(ms_soporte, "microservicio-soporte", "Java / Spring Boot", "Tickets, gRPC :9094 y elección de líder con etcd; REST :5178 interno.")
+    Container(ms_ia, "microservicio-ia", "Python / FastAPI", "Endpoints de generación asistida mediante Google Gemini; :8084.")
+
+    ContainerDb(postgres, "PostgreSQL compartido", "PostgreSQL / destino DB configurable", "Un destino de base de datos con esquemas lógicos sga_principal, sga_secretaria, sga_docente y sga_soporte.")
+    Container(etcd, "etcd0", "etcd v3.5.11", "Instancia declarada para elección de líder en :2379.")
+    Container(prometheus, "Prometheus", "Prometheus v2.51.0", "Scraping cada 15 s y remote_write configurable.")
+    Container(grafana, "Grafana", "Grafana v10.4.0", "Dashboards sobre Prometheus; publicado en :3001.")
+    Container(cadvisor, "cAdvisor", "cAdvisor v0.49.1", "Métricas de contenedores; interno :8080, publicado :8085.")
+    Container(postgres_exporter, "postgres-exporter", "postgres-exporter v0.15.0", "Métricas de PostgreSQL; :9187.")
+    Container(zipkin, "Zipkin", "OpenZipkin 2.24.3", "Recepción de trazas; :9411.")
+    Container(spark, "Spark", "Apache Spark 3.5.1", "Procesamiento configurado en el despliegue; :7077 y :8090.")
 }
 
-System_Ext(gemini_api, "Google Gemini API", "LLM en la nube")
+System_Ext(gemini, "Google Gemini", "API externa usada por microservicio-ia.")
 
-Rel(usuario_docente, app_movil, "Usa interfaz móvil", "Touch")
-Rel(usuario_docente, spa_web, "Usa portal web", "HTTPS")
-Rel(usuario_admin, spa_web, "Usa portal web", "HTTPS")
+Rel(docente, web_principal, "Usa", "HTTP :5173")
+Rel(docente, web_docente, "Usa", "HTTP :3000")
+Rel(representante, app_movil, "Usa", "Android")
+Rel(administrativo, web_principal, "Usa", "HTTP :5173")
+Rel(soporte_usuario, web_principal, "Usa", "HTTP :5173")
 
-Rel(app_movil, haproxy, "Sincronización y peticiones REST", "HTTPS :8081 / :8080")
-Rel(spa_web, haproxy, "Peticiones HTTP REST", "HTTPS :8080, :8081, :8082, :8084")
+Rel(app_movil, haproxy, "Peticiones REST", "HTTP :8080 / :8081")
+Rel(web_principal, haproxy, "Peticiones REST", "HTTP :8080 / :8082 / :8084")
+Rel(web_docente, haproxy, "Peticiones REST", "HTTP :8081")
 
-Rel(haproxy, sga_principal, "Balancea tráfico REST y gRPC", "HTTP :8080, TCP :9092")
-Rel(haproxy, ms_secretaria, "Enruta tráfico de matrículas", "HTTP :5176")
-Rel(haproxy, ms_docente, "Enruta tráfico docente", "HTTP :8000")
-Rel(haproxy, ms_soporte, "Enruta tráfico de tickets", "HTTP :5178")
-Rel(haproxy, ms_ia, "Enruta consultas IA", "HTTP :8084")
+Rel(haproxy, sga_principal, "Enruta REST", "HTTP :8080")
+Rel(haproxy, ms_docente, "Enruta REST", "HTTP :8081")
+Rel(haproxy, ms_secretaria, "Enruta REST", "HTTP :8082 -> :5176")
+Rel(haproxy, ms_ia, "Enruta IA", "HTTP :8084")
+Rel(ms_soporte, sga_principal, "Consulta usuarios y roles", "gRPC :9092")
+Rel(sga_principal, ms_docente, "Consulta y notifica operaciones docentes", "gRPC :9091")
+Rel(sga_principal, ms_soporte, "Reporta incidencias", "gRPC :9094")
+Rel(ms_secretaria, sga_principal, "Consulta servicios académicos", "gRPC :9092")
+Rel(ms_secretaria, ms_ia, "Solicita generación asistida", "HTTP :8084")
+Rel(ms_ia, gemini, "Solicita inferencia", "HTTP / JSON")
 
-Rel(ms_docente, sga_principal, "Consulta de materias y auth", "gRPC :9092")
-Rel(sga_principal, ms_soporte, "Reporte de incidencias automáticas", "gRPC :9094")
-Rel(ms_secretaria, ms_ia, "Solicita resúmenes de actas", "HTTP :8084")
-Rel(ms_ia, gemini_api, "Genera inferencia IA", "HTTPS")
+Rel(sga_principal, postgres, "Persiste", "PostgreSQL :5433 / sga_principal")
+Rel(ms_secretaria, postgres, "Persiste", "PostgreSQL :5433 / sga_secretaria")
+Rel(ms_docente, postgres, "Persiste", "PostgreSQL :5433 / sga_docente")
+Rel(ms_soporte, postgres, "Persiste", "PostgreSQL :5433 / sga_soporte")
+Rel(ms_soporte, etcd, "Elección de líder", "HTTP :2379")
 
-Rel(sga_principal, db_postgres, "Lectura/Escritura schema public", "JDBC / SQL")
-Rel(ms_secretaria, db_postgres, "Lectura/Escritura schema secretaria", "JDBC / SQL")
-Rel(ms_docente, db_postgres, "Lectura/Escritura schema docente", "Django ORM / SQL")
-Rel(ms_soporte, db_postgres, "Lectura/Escritura schema soporte", "JdbcTemplate / SQL")
-
-Rel(ms_soporte, etcd_cluster, "Elección de líder (/sga/leader)", "gRPC / Raft :2379")
-
-Rel(prometheus, sga_principal, "Scrape /actuator/prometheus", "HTTP")
-Rel(prometheus, ms_secretaria, "Scrape /actuator/prometheus", "HTTP")
-Rel(prometheus, ms_soporte, "Scrape /actuator/prometheus", "HTTP")
-Rel(prometheus, ms_docente, "Scrape /metrics", "HTTP")
-Rel(prometheus, haproxy, "Scrape /metrics", "HTTP :8404")
-Rel(prometheus, etcd_cluster, "Scrape /metrics", "HTTP :2379")
-Rel(prometheus, cadvisor, "Scrape métricas de contenedor", "HTTP :8080")
-Rel(grafana, prometheus, "Consulta series temporales (PromQL)", "HTTP :9090")
+Rel(prometheus, sga_principal, "Scrapea", "HTTP :8080/actuator/prometheus")
+Rel(prometheus, ms_docente, "Scrapea", "HTTP :8000/metrics")
+Rel(prometheus, ms_secretaria, "Scrapea", "HTTP :5176/actuator/prometheus")
+Rel(prometheus, ms_soporte, "Scrapea", "HTTP :5178/actuator/prometheus")
+Rel(prometheus, haproxy, "Scrapea", "HTTP :8404/metrics")
+Rel(prometheus, etcd, "Scrapea", "HTTP :2379/metrics")
+Rel(prometheus, cadvisor, "Scrapea", "HTTP :8080")
+Rel(prometheus, postgres_exporter, "Scrapea", "HTTP :9187")
+Rel(grafana, prometheus, "Consulta métricas", "HTTP :9090")
+Rel(ms_soporte, zipkin, "Envía trazas", "HTTP :9411")
+Rel(spark, postgres, "Lee datos configurados", "PostgreSQL :5433")
 
 @enduml
