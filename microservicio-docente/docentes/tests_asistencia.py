@@ -22,6 +22,14 @@ class DummyContext:
         raise grpc.RpcError(details)
 
 
+class EmptyAbortContext(DummyContext):
+    """Imita context.abort del servidor, cuya excepción interna no expone detalle."""
+
+    def abort(self, code, details):
+        self.code, self.details = code, details
+        raise Exception()
+
+
 def auth_context(token="test-internal-token", docente="10"):
     return DummyContext((("docente_id", docente), ("internal_token", token)))
 
@@ -90,6 +98,9 @@ def test_registro_grupal_todos_estados_y_reemplazo(mock_enqueue, mock_periodo, m
     assert response.success and len(response.asistencias) == 4
     existentes.delete.assert_called_once()
     assert cursor.execute.call_count == 4
+    sql = cursor.execute.call_args_list[0].args[0]
+    assert "estado_asistencia_t" not in sql
+    assert "VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())" in sql
     mock_resumen.assert_called_once_with(50, periodo, [101, 102, 103, 104])
     assert [call.args[0].estado for call in mock_enqueue.call_args_list] == ["AUSENTE", "ATRASO"]
     assert asistencias_total._value.get() == metric_before + 4
@@ -155,6 +166,27 @@ def test_registro_valida_matricula_y_estado(mock_periodo, mock_auth, mock_assign
     assert context.code == grpc.StatusCode.INVALID_ARGUMENT
     assert isinstance(exc.value, grpc.RpcError)
     assert context.details in str(exc.value)
+
+
+@patch("docentes.grpc_services.asistencia_service._asegurar_asignacion")
+@patch.object(AsistenciaServiceServicer, "_validate_auth", return_value=10)
+@patch("docentes.grpc_services.asistencia_service.PeriodoEvaluacion.objects.get", return_value=SimpleNamespace(id_periodo=3))
+@patch("docentes.grpc_services.asistencia_service.get_students_by_assignment", return_value=[{"id_matricula": 1}])
+def test_registro_preserva_error_controlado_sin_convertirlo_en_internal(
+        mock_students, mock_periodo, mock_auth, mock_assignment):
+    context = EmptyAbortContext()
+    request = asistencia_pb2.RegistrarAsistenciaGrupalRequest(
+        id_asignacion=50,
+        id_periodo=3,
+        fecha="2026-07-15",
+        asistencias=[asistencia_pb2.AsistenciaItemRequest(id_matricula=1, estado="INVALIDO")],
+    )
+
+    with pytest.raises(Exception):
+        AsistenciaServiceServicer().RegistrarAsistenciaGrupal(request, context)
+
+    assert context.code == grpc.StatusCode.INVALID_ARGUMENT
+    assert context.details == "Estado INVALIDO inválido"
 
 
 @patch("docentes.grpc_services.asistencia_service.transaction.atomic", return_value=nullcontext())
