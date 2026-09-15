@@ -171,7 +171,7 @@ class LiveBackendClient:
 
 
 # =============================================================================
-# 2. MODELO DE RELOJES LÃ“GICOS Y CRIPTOGRAFÃA
+# 2. MODELO DE RELOJES LÓGICOS Y CRIPTOGRAFÍA
 # =============================================================================
 
 def construir_evento_productivo(
@@ -651,7 +651,7 @@ def ejecutar_experimento_3_reconciliacion() -> List[Dict[str, Any]]:
 
 
 # =============================================================================
-# 7. MÃ‰TRICAS DE CALIDAD ISO/IEC 25010 Y ANÃLISIS DE FALSOS POSITIVOS (FPR)
+# 7. MÉTRICAS DE CALIDAD ISO/IEC 25010 Y ANÁLISIS DE FALSOS POSITIVOS (FPR)
 # =============================================================================
 
 def obtener_cobertura_jacoco_real() -> Dict[str, float]:
@@ -889,7 +889,7 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
 
 
 # =============================================================================
-# 8. ESTADÃSTICA NO PARAMÃ‰TRICA (MANN-WHITNEY, A12, BOOTSTRAP) Y BOXPLOT
+# 8. ESTADÍSTICA NO PARAMÉTRICA (MANN-WHITNEY, A12, BOOTSTRAP) Y BOXPLOT
 # =============================================================================
 
 def vargha_delaney_a12(sample1: List[float], sample2: List[float]) -> float:
