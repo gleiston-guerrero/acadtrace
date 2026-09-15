@@ -139,28 +139,31 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
         ])
 
     def RegistrarAsistenciaGrupal(self, request, context):
+        # Las validaciones controladas quedan fuera del bloque que convierte
+        # fallos inesperados en INTERNAL. Así context.abort conserva su código
+        # y detalle originales en lugar de ser capturado como Exception.
+        id_docente = self._validate_auth(context, request.id_asignacion)
+        _asegurar_asignacion(request.id_asignacion, id_docente)
+
         try:
-            id_docente = self._validate_auth(context, request.id_asignacion)
-            _asegurar_asignacion(request.id_asignacion, id_docente)
+            periodo = PeriodoEvaluacion.objects.get(id_periodo=request.id_periodo)
+        except ObjectDoesNotExist:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Periodo de evaluación no encontrado")
 
-            try:
-                periodo = PeriodoEvaluacion.objects.get(id_periodo=request.id_periodo)
-            except ObjectDoesNotExist:
-                context.abort(grpc.StatusCode.NOT_FOUND, "Periodo de evaluación no encontrado")
+        # Evitar N+1 y llamadas a gRPC individuales obteniendo los estudiantes válidos
+        estudiantes = get_students_by_assignment(request.id_asignacion)
+        matriculas_validas = {est['id_matricula'] for est in estudiantes}
+        estados_validos = {e.value for e in EstadoAsistencia}
 
-            # Evitar N+1 y llamadas a gRPC individuales obteniendo los estudiantes válidos
-            estudiantes = get_students_by_assignment(request.id_asignacion)
-            matriculas_validas = {est['id_matricula'] for est in estudiantes}
-            estados_validos = {e.value for e in EstadoAsistencia}
+        # Validación previa (sin tocar BD).
+        items = list(request.asistencias)
+        for item in items:
+            if item.id_matricula not in matriculas_validas:
+                context.abort(grpc.StatusCode.INVALID_ARGUMENT, f"Estudiante con matrícula {item.id_matricula} no pertenece a la asignación")
+            if item.estado not in estados_validos:
+                context.abort(grpc.StatusCode.INVALID_ARGUMENT, f"Estado {item.estado} inválido")
 
-            # Validación previa (sin tocar BD).
-            items = list(request.asistencias)
-            for item in items:
-                if item.id_matricula not in matriculas_validas:
-                    context.abort(grpc.StatusCode.INVALID_ARGUMENT, f"Estudiante con matrícula {item.id_matricula} no pertenece a la asignación")
-                if item.estado not in estados_validos:
-                    context.abort(grpc.StatusCode.INVALID_ARGUMENT, f"Estado {item.estado} inválido")
-
+        try:
             # El usuario que registra es el mismo para todos: se resuelve una sola vez.
             usuario_registra = _usuario_de_persona(id_docente)
             matriculas = [item.id_matricula for item in items]
@@ -177,10 +180,9 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                 )
                 asistencias_anteriores.delete()
 
-                # Se usa INSERT raw con cast explicito a estado_asistencia_t porque
-                # la columna es un ENUM nativo de Postgres y Django bulk_create genera
-                # UNNEST(text[]) sin cast, lo que falla con "column is of type
-                # estado_asistencia_t but expression is of type character varying".
+                # Las inserciones son individuales y parametrizadas: PostgreSQL puede
+                # inferir el tipo real de la columna (varchar o enum) sin depender de un
+                # tipo de enum con nombre fijo que las migraciones no crean.
                 from django.db import connection
                 filas = [
                     (
@@ -198,7 +200,7 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
                     'INSERT INTO sga_docente.asistencias '
                     '(id_matricula, id_asignacion, id_periodo, fecha, estado, '
                     ' justificacion, registrado_por, fecha_registro, fecha_actualizacion) '
-                    'VALUES (%s, %s, %s, %s, %s::sga_docente.estado_asistencia_t, %s, %s, NOW(), NOW()) '
+                    'VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW()) '
                     'RETURNING id_asistencia'
                 )
                 ids_creados = []
@@ -245,8 +247,6 @@ class AsistenciaServiceServicer(asistencia_pb2_grpc.AsistenciaServiceServicer):
             registrar_asistencias_exitosas(len(asistencias_creadas))
             return response
 
-        except grpc.RpcError:
-            raise
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
 
