@@ -1,6 +1,10 @@
 [run]
 omit =
     */migrations/*
+    */test_*.py
+    */tests.py
+    */tests_*.py
+    */tests/*
     */grpc_services/*_pb2.py
     */grpc_services/*_pb2_grpc.py
     */grpc_services/server.py
