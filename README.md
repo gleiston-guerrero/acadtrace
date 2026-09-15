@@ -6,6 +6,8 @@ Sistema distribuido desacoplado bajo arquitectura de Microservicios con capa de 
 
 ---
 
+Los tres niveles C4 canónicos y sus instrucciones de regeneración están documentados en [docs/diagrams/README.md](docs/diagrams/README.md).
+
 
 ## Arquitectura General y Mapeo de Puertos
 
