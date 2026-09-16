@@ -17,23 +17,33 @@ captures:
 
   - file: release/screenshots/secretaria_portal.png
     component: Secretaría
-    purpose: "Captura prevista del portal de Secretaría."
-    sha256: 881FFBCAAFC212E49ADDAD08846A5B82761355FA20624253AF3477BA33262C5C
-    added_in_commit: f650bd2552bb677a7a48ce6883e8d41a6fcf8246
-    added_in_date: 2026-09-04
-    status: needs_replacement
+    purpose: "Dashboard web de Secretaría."
+    sha256: 426E1DDC84A58B436F20C3B5554FA3C4BB6AC46C16B5FB24E6FC61F9A4AABFDC
+    added_in_commit: 83afbe5b
+    added_in_date: 2026-09-15
+    status: current
     used_in_report: false
-    observations: "El contenido actual es un recurso gráfico de 343x361 y no corresponde al portal real de Secretaría."
+    observations: "Captura real y actual del dashboard de Secretaría obtenida en entorno local de demostración, localhost:5176/dashboard; muestra Director.Local y los módulos Estudiantes, Grados y Cursos, Matrículas y Usuarios."
 
   - file: release/screenshots/soporte_tickets.png
     component: Soporte
-    purpose: "Captura prevista del panel de tickets."
-    sha256: C7F24106513D80D4751DCB1FAB2D0456CDD79DD52235125FC94C1C42DFEE391A
-    added_in_commit: f650bd2552bb677a7a48ce6883e8d41a6fcf8246
-    added_in_date: 2026-09-04
-    status: needs_replacement
+    purpose: "Módulo de Tickets de Soporte con tablero Kanban."
+    sha256: 0E009A95B5DCFAE167698253861BA4B6FADB5F2BD99EE6A8C2171FEECBDA4DDF
+    added_in_commit: fcd56457
+    added_in_date: 2026-09-15
+    status: current
     used_in_report: false
-    observations: "El contenido actual corresponde a un gráfico de Grafana y no al panel de tickets de Soporte."
+    observations: "Captura real y actual del Módulo de Tickets obtenida en entorno local de demostración, localhost:8083/soporte; muestra el tablero Kanban con tarjetas visibles y el indicador de 150 tickets encontrados."
+
+  - file: release/screenshots/microservicio_ia.png
+    component: IA
+    purpose: "Interfaz Swagger/OpenAPI del microservicio IA."
+    sha256: EA653D8772ACA70F577AE99711F2921DD8CAAF6FDFEFF961611122840A7B8D23
+    added_in_commit: 04159b3c
+    added_in_date: 2026-09-15
+    status: current
+    used_in_report: false
+    observations: "Captura real y actual de la interfaz Swagger/OpenAPI de SGA - Microservicio de Inteligencia Artificial (Google Gemini); muestra los endpoints /health, /api/ia/diagnostico-estudiante y /api/ia/asistente."
 
   - file: release/screenshots/docente_asistencia.png
     component: Docente
@@ -108,10 +118,4 @@ captures:
     report_reference: Informe-E4_BCEL/movil_representante_evidencia.png
     observations: "La copia del informe tiene el mismo SHA-256; la documentación móvil indica que el APK instalado era anterior a cambios locales posteriores."
 
-pending:
-  - file: release/screenshots/microservicio_ia.png
-    component: IA
-    purpose: "Captura del runtime de IA."
-    status: unverified
-    used_in_report: false
-    observations: "No existe evidencia visual versionada; no hay SHA-256, commit ni fecha que reportar."
+pending: []
