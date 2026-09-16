@@ -32,12 +32,12 @@ public class CryptoService {
     private final SecretKeySpec key;
 <span class="fc" id="L33">    private final SecureRandom random = new SecureRandom();</span>
 
-<span class="fc" id="L35">    public CryptoService(@Value(&quot;${app.crypto.secret-key:test-only-aes-key}&quot;) String base64Key) {</span>
+<span class="fc" id="L35">    public CryptoService(@Value(&quot;${app.crypto.secret-key}&quot;) String base64Key) {</span>
 <span class="fc" id="L36">        byte[] keyBytes = Base64.getDecoder().decode(base64Key);</span>
 <span class="fc bfc" id="L37" title="All 2 branches covered.">        if (keyBytes.length != 32) {</span>
 <span class="fc" id="L38">            throw new IllegalStateException(</span>
-                    &quot;app.crypto.secret-key debe ser una clave AES-256 (32 bytes) en base64; recibidos &quot;
-                            + keyBytes.length + &quot; bytes&quot;);
+<span class="fc" id="L39">                    &quot;app.crypto.secret-key debe ser una clave AES-256 (32 bytes) en base64; recibidos &quot;</span>
+<span class="fc" id="L40">                            + keyBytes.length + &quot; bytes&quot;);</span>
         }
 <span class="fc" id="L42">        this.key = new SecretKeySpec(keyBytes, &quot;AES&quot;);</span>
 <span class="fc" id="L43">    }</span>
@@ -64,8 +64,8 @@ public class CryptoService {
 <span class="fc bfc" id="L64" title="All 2 branches covered.">        if (encoded == null) return null;</span>
         try {
 <span class="fc" id="L66">            byte[] input = Base64.getDecoder().decode(encoded);</span>
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">            if (input.length &lt; GCM_IV_LENGTH) {</span>
-<span class="nc" id="L68">                throw new IllegalArgumentException(&quot;Valor cifrado invalido (demasiado corto)&quot;);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            if (input.length &lt; GCM_IV_LENGTH) {</span>
+<span class="fc" id="L68">                throw new IllegalArgumentException(&quot;Valor cifrado invalido (demasiado corto)&quot;);</span>
             }
 <span class="fc" id="L70">            byte[] iv = new byte[GCM_IV_LENGTH];</span>
 <span class="fc" id="L71">            System.arraycopy(input, 0, iv, 0, GCM_IV_LENGTH);</span>

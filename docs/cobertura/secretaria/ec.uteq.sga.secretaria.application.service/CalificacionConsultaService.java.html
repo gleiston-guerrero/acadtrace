@@ -18,7 +18,7 @@ public class CalificacionConsultaService {
 <span class="nc" id="L18">    }</span>
 
     public List&lt;Map&lt;String, Object&gt;&gt; listarCursos(Long idAnoLectivo, Long idGrado) {
-        String sql = &quot;&quot;&quot;
+<span class="nc" id="L21">        String sql = &quot;&quot;&quot;</span>
                 SELECT asig.id_asignacion,
                        asig.id_grado, g.nombre AS grado_nombre,
                        asig.id_paralelo, p.letra AS paralelo_letra,
@@ -53,7 +53,7 @@ public class CalificacionConsultaService {
     }
 
     public List&lt;Map&lt;String, Object&gt;&gt; listarPeriodos(Long idAnoLectivo) {
-        String sql = &quot;&quot;&quot;
+<span class="nc" id="L56">        String sql = &quot;&quot;&quot;</span>
                 SELECT id_periodo, id_ano_lectivo, nombre, tipo, fecha_inicio, fecha_fin, activo
                 FROM sga_docente.periodos_evaluacion
 <span class="nc bnc" id="L59" title="All 2 branches missed.">                &quot;&quot;&quot; + (idAnoLectivo != null ? &quot; WHERE id_ano_lectivo = :idAno&quot; : &quot;&quot;)</span>
@@ -101,11 +101,11 @@ public class CalificacionConsultaService {
                 ORDER BY e.apellidos, e.nombres
                 &quot;&quot;&quot;;
 <span class="nc" id="L103">        List&lt;Map&lt;String, Object&gt;&gt; estudiantes = jdbc.query(sqlEstudiantes,</span>
-                new MapSqlParameterSource()
+<span class="nc" id="L104">                new MapSqlParameterSource()</span>
 <span class="nc" id="L105">                        .addValue(&quot;idGrado&quot;, idGrado)</span>
 <span class="nc" id="L106">                        .addValue(&quot;idParalelo&quot;, idParalelo)</span>
 <span class="nc" id="L107">                        .addValue(&quot;idAno&quot;, idAnoLectivo),</span>
-                GenericRowMapper.INSTANCE);
+<span class="nc" id="L108">                GenericRowMapper.INSTANCE);</span>
 
 <span class="nc" id="L110">        List&lt;Map&lt;String, Object&gt;&gt; periodos = listarPeriodos(idAnoLectivo);</span>
 
