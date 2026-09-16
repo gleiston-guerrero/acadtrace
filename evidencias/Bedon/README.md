@@ -992,29 +992,24 @@ con los siguientes archivos:
 
 ---
 
-# 33. Integración continua de la aplicación móvil
+# 33. Paquete móvil publicado en release
 
-Las evidencias del pipeline se almacenan en:
-
-```text
-app-movil/06-ci-cd/
-```
-
-La aplicación se encuentra integrada al workflow del repositorio.
-
-Durante las ejecuciones observadas se ejecutaron satisfactoriamente jobs relacionados con:
+La variante de entrega debe generar los siguientes paquetes Release:
 
 ```text
-CI Aplicación Móvil Representante
-Pruebas Unitarias App Móvil
-Compilación de Paquete APK Android
+app-movil-docente/app/build/outputs/apk/release/app-release.apk
+app-movil-docente/app/build/outputs/bundle/release/app-release.aab
 ```
 
-También se verificó una ejecución general del pipeline con estado:
+Ambos artefactos se firman con un certificado propio. El flujo recibe el almacén y sus credenciales exclusivamente mediante GitHub Actions Secrets: `RELEASE_KEYSTORE_BASE64`, `SGA_RELEASE_STORE_PASSWORD`, `SGA_RELEASE_KEY_ALIAS` y `SGA_RELEASE_KEY_PASSWORD`. El trabajo debe finalizar con error si falta el almacén, alguna credencial o cualquiera de los paquetes esperados.
+
+Antes de publicar, el flujo verifica la firma del APK mediante `apksigner verify --verbose` y la del AAB mediante `jarsigner -verify`. Después calcula el SHA-256 de ambos paquetes y genera:
 
 ```text
-Success
+SHA256SUMS.txt
 ```
+
+El artefacto de GitHub Actions reúne `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt`. La evidencia de la ejecución satisfactoria del flujo y de la publicación en GitHub Release se incorporará después de ejecutar y validar el proceso; este índice no afirma que esas acciones ya hayan finalizado.
 
 ---
 
