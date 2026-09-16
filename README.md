@@ -31,19 +31,32 @@ En cumplimiento con los estándares de seguridad y la norma **ISO/IEC 25010:2023
 ---
 ## 🗺️ Mapa de Estructura del Repositorio y Trazabilidad (Criterio E16)
 
-En cumplimiento con el Listado 3 de la guía de consolidación, a continuación se detalla el mapeo entre la estructura prescrita y los módulos del proyecto:
+Según la estructura de consolidación documentada en el proyecto, el siguiente mapa relaciona componentes lógicos con su ubicación física actual. Los elementos de la estructura prescrita son referencias lógicas, no carpetas que deban existir con esos nombres. Las filas complementarias describen componentes y recursos reales; no atribuyen nuevos nombres a la prescripción. La fuente normativa original del denominado "Listado 3 de la guía de consolidación" no está disponible para verificación independiente.
 
 | Estructura Prescrita | Carpeta en AcadTrace | Contenido y Responsabilidad | Comando de Reproducción |
 | :--- | :--- | :--- | :--- |
-| `src/core` | `sga-principal/` | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
-| `src/docente` | `microservicio-docente/` | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && pytest` |
-| `src/secretaria` | `microservicio-secretaria/` | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
-| `src/soporte` | `microservicio-soporte/` | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
-| `apps/mobile` | `app-movil-docente/` | Cliente nativo Android (Kotlin/Jetpack Compose) con persistencia offline Room | `cd app-movil-docente && ./gradlew test` |
-| `apps/web` | `sga-principal/sga-frontend/` | Portal web reactivo en React + TypeScript y Vite | `cd sga-principal/sga-frontend && npm run build` |
-| `infra/gateway` | `infra/haproxy/` | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
-| `infra/observability`| `infra/prometheus/`, `infra/grafana/` | Métricas Prometheus (:9090) y tableros Grafana (:3001) | `docker compose up prometheus grafana -d`|
-| `docs/experiments` | `experimentos/`, `docs/experimentos/` | Scripts de verificación de bitácora y datasets de reproducibilidad | `python experimentos/verificador_cadena.py` |
+| `src/core` | [`sga-principal/`](sga-principal/) | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
+| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && pytest` |
+| `src/secretaria` | [`microservicio-secretaria/`](microservicio-secretaria/) | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
+| `src/soporte` | [`microservicio-soporte/`](microservicio-soporte/) | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
+| Inteligencia artificial (complementario) | [`microservicio-ia/`](microservicio-ia/) | Microservicio de inteligencia artificial | No aplica al mapa |
+| `apps/mobile` | [`app-movil-docente/`](app-movil-docente/) | Ruta física actual de la aplicación móvil para representantes; cliente Android (Kotlin/Jetpack Compose) con persistencia offline Room | `cd app-movil-docente && ./gradlew test` |
+| `apps/web` — Principal | [`sga-principal/sga-frontend/`](sga-principal/sga-frontend/) | Portal web de Principal en React y Vite | `cd sga-principal/sga-frontend && npm run build` |
+| `apps/web` — Secretaría | [`microservicio-secretaria/client/`](microservicio-secretaria/client/) | Interfaz web de Secretaría | No aplica al mapa |
+| `apps/web` — Docente | [`microservicio-docente/frontend/`](microservicio-docente/frontend/) | Interfaz web de Docente | No aplica al mapa |
+| `apps/web` — Soporte | [`microservicio-soporte/src/`](microservicio-soporte/src/) | Código fuente de la interfaz web de Soporte | No aplica al mapa |
+| Infraestructura (complementario) | [`infra/`](infra/) | Configuración de infraestructura del sistema: gateway y observabilidad | No aplica al mapa |
+| `infra/gateway` | [`infra/haproxy/`](infra/haproxy/) | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
+| `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/) | Métricas Prometheus (:9090) y tableros Grafana (:3001) | `docker compose up prometheus grafana -d` |
+| Operación (complementario) | [`ops/`](ops/) | Recursos y configuración operativa de Prometheus y Grafana, en una ubicación distinta de la infraestructura agrupada en `infra/` | No aplica al mapa |
+| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Scripts de verificación de bitácora y datasets de reproducibilidad | `python experimentos/verificador_cadena.py` |
+| Documentación técnica (complementario) | [`docs/`](docs/) | Arquitectura, seguridad, API y evidencias | No aplica al mapa |
+| Utilidades (complementario) | [`scripts/`](scripts/) | Scripts y utilidades del proyecto | No aplica al mapa |
+| Entregables (complementario) | [`release/`](release/) | Artefactos y capturas asociados al release; no acredita un release final confirmado | No aplica al mapa |
+| Trazabilidad del release (complementario) | [`docs/evidencias/release/`](docs/evidencias/release/) | Manifiesto y documentación de las evidencias del release | No aplica al mapa |
+| Informe académico (complementario) | [`Informe-E4_BCEL/`](Informe-E4_BCEL/) | Informe académico del proyecto y sus recursos | No aplica al mapa |
+| Evidencias (complementario) | [`evidencias/`](evidencias/) | Evidencias organizadas del proyecto y por integrantes | No aplica al mapa |
+| Pruebas generales (complementario) | [`tests/`](tests/) | Pruebas generales del proyecto | No aplica al mapa |
 
 ---
 
@@ -303,4 +316,4 @@ Inicio registrado: **2026-09-11 03:59:05 UTC** (2026-09-10 22:59:05 UTC−05:00)
 
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
 
-La [captura de Juliana](evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png) es histórica/complementaria: muestra 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.
+La captura histórica/complementaria de Juliana no está disponible en el árbol actual. La descripción conservada le atribuye 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.
