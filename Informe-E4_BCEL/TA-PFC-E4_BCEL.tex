@@ -763,30 +763,25 @@ Los datos crudos generados en el banco experimental y almacenados en \texttt{exp
 \caption{Distribuci\'on de las 40 observaciones de \texttt{latencia\_mediana\_ms} por mecanismo, expresadas en milisegundos y obtenidas de \texttt{exp1\_concurrencia.csv}.}
 \label{fig:boxplot-latencia}
 \end{figure}
-
 \subsection{Matriz Formal de Evaluaci\'on de Calidad ISO/IEC 25010:2023}
 \label{subsec:matriz-iso25010}
-La Tabla~\ref{tab:iso-matriz-calidad} presenta la evaluaci\'on de calidad formalizada con valores reales 100\% medidos y planes de mejora t\'ecnicos:
+La Tabla~\ref{tab:iso-matriz-calidad} presenta la matriz de calidad actualizada. Cabe destacar que la caracter\'istica de disponibilidad en producci\'on no se encuentra acreditada en la muestra actual, y las ventanas de estr\'es operan bajo un perfil no validado:
 
 \begin{table}[H]
 \centering
 \scriptsize
-\renewcommand{\arraystretch}{1.2}
-\caption{Matriz de Evaluación de Calidad ISO/IEC 25010:2023 con Datos 100\% Medidos y Planes de Mejora.}
+\renewcommand{\arraystretch}{1.3}
+\caption{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 con Mediciones Parciales y Planes de Mejora.}
 \label{tab:iso-matriz-calidad}
-\begin{tabularx}{\textwidth}{|p{2.3cm}|p{3.8cm}|c|c|X|}
+\begin{tabularx}{\textwidth}{|p{2.3cm}|p{3.7cm}|c|p{2.8cm}|X|}
 \hline
 \textbf{Característica} & \textbf{Métrica Real Medida} & \textbf{Objetivo} & \textbf{Estado} & \textbf{Plan de Mejora Técnico} \\
 \hline
 \textbf{1. Disponibilidad} \newline \textit{(Availability)} & 0 fallos en 12{,}994 peticiones nominales (100\% de éxito en la muestra local); sin medición oficial válida de estrés & $\ge 99.5\%$ & Parcial: no acredita disponibilidad de producción & Medir disponibilidad temporal y repetir estrés con evidencia válida. \\
-
-\textbf{1. Disponibilidad} \newline \textit{(Availability)} & \textbf{100.0\% Nominal / 0.0\% Estrés (Esc-2)} \newline (Nominal Esc-1: 0 fallos en $12{,}265$ reqs; Estrés Esc-2: degradación global y 100\% fallos por timeout de 4100\,ms bajo 200 usuarios con $12{,}735$ peticiones no atendidas) & $\ge 99.5\%$ \newline (Nominal) & Parcial (Cumple en nominal) & Desplegar clúster multi-zona de disponibilidad (Multi-AZ) con auto-escalado horizontal (HPA) en Kubernetes y réplicas primario-standby geodistribuidas para PostgreSQL para superar el cuello de botella monoinstancia. \\
 \hline
 \textbf{2. Rendimiento} \newline \textit{(Performance)} & Nominal oficial: $P_{95}=440$\,ms, $P_{50}=6$\,ms, $P_{99}=850$\,ms; 43.537580\,req/s & $P_{95}<500$\,ms & Cumple en agregado nominal local & Evaluar por endpoint: tickets presenta $P_{95}=650$\,ms; repetir estrés. \\
 \hline
 \textbf{3. Fiabilidad} \newline \textit{(Reliability)} & 0 fallos nominales; sin estrés oficial validado & $<1.0\%$ & Nominal observado; E5 estrés pendiente & Obtener una corrida de estrés autenticada con cero fallos para E5. \\
-
-\textbf{3. Fiabilidad} \newline \textit{(Reliability)} & 0.0\% Fallos Nominal / Estrés Pendiente & $< 1.0\%$ \newline (Nominal) & Parcial (Cumple en nominal) & Implementar patrones \emph{Circuit Breaker} y \emph{Rate Limiting} con Resilience4j en el Gateway y clientes gRPC para mitigar fallos en cascada y aplicar degradación elegante ante sobrecargas severas. \\
 \hline
 \textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & Cobertura parcial no consolidada en HEAD & Umbral mínimo: 70\% LINE JaCoCo & Histórico/no actual & Ampliar progresivamente la suite de pruebas unitarias hacia controladores REST y adaptadores de infraestructura para alcanzar la meta global del 70\%. \\
 \hline
