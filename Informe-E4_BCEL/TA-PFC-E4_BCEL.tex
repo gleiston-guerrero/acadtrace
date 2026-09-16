@@ -718,6 +718,20 @@ En cumplimiento de la ampliaci\'on del M\'odulo G de la gu\'ia rectora, se ejecu
   \item \textbf{m3 (m2 + Relojes Vectoriales):} Incorpora vectores l\'ogicos $\vec{V} = [v_1, v_2, \dots, v_n]$ para reconciliaci\'on causal determinista de ediciones concurrentes desconectadas.
 \end{itemize}
 
+\subsection{Unificaci\'on Can\'onica y Sincronizaci\'on entre Microservicios Pol\'iglotas}
+\label{subsec:unificacion-canonica}
+La arquitectura distribuida de AcadTrace integra servicios desacoplados bajo diferentes lenguajes y plataformas de ejecuci\'on: \texttt{sga-principal} y \texttt{microservicio-secretaria} sobre Java 21 / Spring Boot 3, y \texttt{microservicio-docente} sobre Python 3.11 / Django REST Framework. Para garantizar que cualquier evento registrado por cualquiera de los tres servicios pertenezca a la misma cadena criptogr\'afica global sin requerir dependencias binarias compartidas entre runtimes heterog\'eneos, el contrato de auditor\'ia se sincroniza de manera estricta a trav\'es de un \textbf{vector patr\'on can\'onico} compuesto exactamente por once campos normalizados:
+\begin{center}
+\texttt{[\"accion\", \"app\", \"estado\_reconciliacion\", \"fecha\", \"lamport\", \"modo\_auditoria\", \"payload\", \"registro\_id\", \"tabla\", \"usuario\", \"vclock\"]}
+\end{center}
+
+Esta sincronizaci\'on se encuentra formalmente protegida y verificada contra derivas de implementaci\'on (\textit{schema drift}) mediante los siguientes mecanismos:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Normalizaci\'on Can\'onica Determinista:} Cada runtime implementa serializaci\'on lexicogr\'afica ordenada alfab\'eticamente por clave sin espacios innecesarios y con codificaci\'on UTF-8 estricta (\texttt{AuditHashService.java} en Java y \texttt{auditoria\_service.py} en Python), asegurando representaci\'on id\'entica car\'acter por car\'acter.
+  \item \textbf{Verificaci\'on Automatizada por Vector Patr\'on:} Bater\'ias de pruebas can\'onicas dedicadas (\texttt{AuditHashServiceCanonicalTest} en Java y \texttt{test\_auditoria\_canonica.py} en Python) eval\'uan el mismo vector can\'onico de 11 campos y verifican la coincidencia exacta del hash SHA-256 generado. La adici\'on, renombrado o alteraci\'on de cualquier campo rompe inmediatamente las aserciones de prueba en ambas plataformas en el pipeline de CI/CD.
+  \item \textbf{Serializaci\'on Concurrente y Siembra de Reloj:} La inmutabilidad de la secuencia global y la prevenci\'on de bifurcaciones se sustentan f\'isicamente mediante bloqueo pesimista (\texttt{SELECT ... FOR UPDATE}) sobre la fila singleton (\texttt{id\_estado = 1}) de la tabla \texttt{sga\_principal.estado\_cadena\_auditoria}. Asimismo, los relojes l\'ogicos de Lamport y vectoriales se inicializan (\textit{seeding}) desde el \'ultimo estado persistido en base de datos, garantizando monoton\'ia estricta aun tras reinicios de las instancias.
+\end{enumerate}
+
 \subsection{Cinco Tipos de Manipulaci\'on Inyectados (T1 a T5)}
 Se inyectaron 20 manipulaciones sint\'eticas controladas de cada tipo por mecanismo:
 \begin{itemize}
