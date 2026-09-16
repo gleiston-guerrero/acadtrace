@@ -550,6 +550,32 @@ jobs:
           printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/acadtrace-release.jks"
           test -s "$RUNNER_TEMP/acadtrace-release.jks"
 
+      - name: Validar keystore PKCS12 reconstruido
+        env:
+          SGA_RELEASE_STORE_PASSWORD: ${{ secrets.SGA_RELEASE_STORE_PASSWORD }}
+          SGA_RELEASE_KEY_ALIAS: ${{ secrets.SGA_RELEASE_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          KEYSTORE="$RUNNER_TEMP/acadtrace-release.jks"
+          EXPECTED_SIZE=2782
+          EXPECTED_SHA256="C076C5BDB2B017E8F2FC8F3AE5D1228B7B01331B032397EBBC2058DAC4DF9E9A"
+
+          test -s "$KEYSTORE"
+          ACTUAL_SIZE="$(stat -c '%s' "$KEYSTORE")"
+          printf 'Tamaño del keystore: %s bytes\n' "$ACTUAL_SIZE"
+          test "$ACTUAL_SIZE" -eq "$EXPECTED_SIZE"
+
+          ACTUAL_SHA256="$(sha256sum "$KEYSTORE" | awk '{print toupper($1)}')"
+          printf 'SHA-256 del keystore: %s\n' "$ACTUAL_SHA256"
+          test "$ACTUAL_SHA256" = "$EXPECTED_SHA256"
+
+          keytool -list \
+            -keystore "$KEYSTORE" \
+            -storetype PKCS12 \
+            -storepass "$SGA_RELEASE_STORE_PASSWORD" \
+            -alias "$SGA_RELEASE_KEY_ALIAS" \
+            > /dev/null
+
       - name: Restaurar configuración Firebase
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
