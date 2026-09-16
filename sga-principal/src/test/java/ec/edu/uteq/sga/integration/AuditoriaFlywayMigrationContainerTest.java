@@ -76,6 +76,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
+                .placeholders(java.util.Map.of("sga_app_password", "test_pass"))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
@@ -206,6 +207,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
+                .placeholders(java.util.Map.of("sga_app_password", "test_pass"))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
