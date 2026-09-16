@@ -20,7 +20,7 @@ System_Boundary(c1, "Sistema SGA Distribuido") {
     Container(ms_soporte, "microservicio-soporte", "Java 21 / Spring Boot", "Helpdesk, RBAC anti-IDOR, servidor gRPC :9094 y tareas programadas con líder etcd.")
     Container(ms_ia, "microservicio-ia", "Python 3.12 / FastAPI", "Generación de resúmenes asistidos con Google Gemini 1.5 Flash.")
     
-    ContainerDb(db_postgres, "Base de Datos PostgreSQL", "PostgreSQL 16 (AWS EC2)", "Persistencia relacional con particionamiento lógico de esquemas (public, secretaria, docente, soporte).")
+    ContainerDb(db_postgres, "Base de Datos PostgreSQL", "PostgreSQL (endpoint externo)", "Una instancia configurada; separación lógica: sga_principal, sga_secretaria, sga_docente, sga_soporte. Véase ADR-003.")
     ContainerDb(etcd_cluster, "Clúster etcd (Raft)", "etcd v3.5", "Consenso Raft para elección de líder entre réplicas y coordinación distribuida.")
     
     Container(prometheus, "Servidor Prometheus", "Prometheus v2.51", "Scraping periódico (15s) de microservicios, HAProxy, etcd y cAdvisor.")
@@ -48,10 +48,10 @@ Rel(sga_principal, ms_soporte, "Reporte de incidencias automáticas", "gRPC :909
 Rel(ms_secretaria, ms_ia, "Solicita resúmenes de actas", "HTTP :8084")
 Rel(ms_ia, gemini_api, "Genera inferencia IA", "HTTPS")
 
-Rel(sga_principal, db_postgres, "Lectura/Escritura schema public", "JDBC / SQL")
-Rel(ms_secretaria, db_postgres, "Lectura/Escritura schema secretaria", "JDBC / SQL")
-Rel(ms_docente, db_postgres, "Lectura/Escritura schema docente", "Django ORM / SQL")
-Rel(ms_soporte, db_postgres, "Lectura/Escritura schema soporte", "JdbcTemplate / SQL")
+Rel(sga_principal, db_postgres, "Lectura/Escritura schema sga_principal", "JDBC / SQL")
+Rel(ms_secretaria, db_postgres, "Lectura/Escritura schema sga_secretaria", "JDBC / SQL")
+Rel(ms_docente, db_postgres, "Lectura/Escritura schema sga_docente", "Django ORM / SQL")
+Rel(ms_soporte, db_postgres, "Lectura/Escritura schema sga_soporte", "JdbcTemplate / SQL")
 
 Rel(ms_soporte, etcd_cluster, "Elección de líder (/sga/leader)", "gRPC / Raft :2379")
 

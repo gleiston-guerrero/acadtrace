@@ -19,13 +19,13 @@ Container_Boundary(ms_soporte_boundary, "microservicio-soporte (Java 21 / Spring
     Component(principal_client, "PrincipalGrpcClient", "gRPC Client", "Conecta con sga-principal:9092 para validar existencia y roles de usuarios.")
     
     Component(jwt_filter, "JwtAuthenticationFilter", "Spring Security / JJWT", "Intercepta peticiones REST, valida firma HMAC-SHA256 y extrae roles.")
-    Component(datasource_config, "DataSourceConfig & JdbcTemplate", "Spring Data JDBC / HikariCP", "Pool de conexiones y acceso optimizado a PostgreSQL schema soporte.")
+    Component(datasource_config, "DataSourceConfig & JdbcTemplate", "Spring Data JDBC / HikariCP", "Pool de conexiones y acceso optimizado a PostgreSQL schema sga_soporte.")
     Component(mapper, "GenericRowMapper", "JDBC Helper", "Mapeo reflexivo de ResultSets hacia entidades Ticket y TicketComentario.")
     
     Component(actuator_micrometer, "Actuator & Micrometer Prometheus", "Spring Boot Actuator", "Exporta métricas en /actuator/prometheus con percentiles-histogram activado.")
 }
 
-ContainerDb(db, "PostgreSQL (Schema soporte)", "Base de Datos Relacional", "Tablas: tickets, ticket_comentarios, tecnicos, historial_estados.")
+ContainerDb(db, "PostgreSQL (Schema sga_soporte)", "Base de Datos Relacional", "Tablas evidenciadas: tickets, comentarios, historial_ticket.")
 ContainerDb(etcd, "etcd Raft Clúster", "Clúster Clave-Valor", "Clave /sga/leader para exclusión mutua de tareas.")
 Container(gateway, "HAProxy Gateway", "Reverse Proxy", "Enruta peticiones de clientes autorizados.")
 Container(prom, "Prometheus", "Monitoreo", "Recolecta métricas cada 15 segundos.")
@@ -49,7 +49,7 @@ Rel(election_service, etcd, "Renueva Lease y compite por /sga/leader", "gRPC / R
 Rel(ticket_service, datasource_config, "Ejecuta consultas SQL seguras", "In-Process")
 Rel(tecnico_service, datasource_config, "Ejecuta consultas SQL seguras", "In-Process")
 Rel(datasource_config, mapper, "Mapea tuplas a objetos Java", "In-Process")
-Rel(datasource_config, db, "Consultas parametrizadas sobre schema soporte", "JDBC :5432")
+Rel(datasource_config, db, "Consultas parametrizadas sobre schema sga_soporte", "JDBC DB_PORT (5433)")
 
 Rel(prom, actuator_micrometer, "Scrapea /actuator/prometheus", "HTTP :5178")
 

@@ -37,7 +37,7 @@ C4Context
 
 ## 2. Nivel 2: Diagrama de Contenedores
 
-Describe las aplicaciones, microservicios, bases de datos y herramientas de monitoreo desplegadas en contenedores Docker.
+Describe los servicios y su endpoint PostgreSQL compartido. El Compose principal usa un servidor externo; el Compose de Principal declara una única instancia local postgres:17 como alternativa. La separación por esquemas es lógica y la persistencia tiene un punto único de fallo en la topología versionada. Los nombres de esquemas se basan en configuración/modelos/SQL; docs/db/schema.sql usa nombres de referencia distintos (véase ADR-003). etcd/Raft coordina Soporte y no replica PostgreSQL.
 
 ```mermaid
 C4Container
@@ -57,7 +57,7 @@ C4Container
     Container(ms_soporte, "microservicio-soporte", "Spring Boot", "Tickets, IDOR fix, Líder etcd, gRPC :9094")
     Container(ms_ia, "microservicio-ia", "FastAPI", "Google Gemini 1.5 Flash")
 
-    ContainerDb(db, "PostgreSQL 16", "PostgreSQL AWS", "Esquemas: public, secretaria, docente, soporte")
+    ContainerDb(db, "PostgreSQL compartido", "Endpoint externo; alternativa local postgres:17", "Esquemas sga_principal, sga_secretaria, sga_docente, sga_soporte; véase ADR-003")
     ContainerDb(etcd, "etcd (Raft)", "etcd v3.5", "Consenso Raft para elección de líder")
 
     Container(prometheus, "Prometheus", "Prometheus v2.51", "Scraping cada 15s")
@@ -78,10 +78,10 @@ C4Container
     Rel(haproxy, ms_ia, "Proxy", "HTTP :8084")
 
     Rel(ms_soporte, etcd, "Líder Raft", "gRPC :2379")
-    Rel(ms_soporte, db, "Persistencia", "JDBC :5432")
-    Rel(sga_principal, db, "Persistencia", "JDBC :5432")
-    Rel(ms_secretaria, db, "Persistencia", "JDBC :5432")
-    Rel(ms_docente, db, "Persistencia", "SQL :5432")
+    Rel(ms_soporte, db, "Persistencia", "JDBC DB_PORT (5433)")
+    Rel(sga_principal, db, "Persistencia", "JDBC DB_PORT (5433)")
+    Rel(ms_secretaria, db, "Persistencia", "JDBC DB_PORT (5433)")
+    Rel(ms_docente, db, "Persistencia", "SQL DB_PORT (5433)")
 
     Rel(prometheus, ms_soporte, "Métricas", "/actuator/prometheus")
     Rel(prometheus, haproxy, "Métricas", "/metrics :8404")
@@ -113,7 +113,7 @@ C4Component
         Component(grpc_principal, "PrincipalGrpcClient", "gRPC Client", "Consulta usuarios en sga-principal :9092.")
 
         Component(sec_jwt, "JwtAuthenticationFilter", "Security Filter", "Valida tokens JWT compartidos.")
-        Component(dao_jdbc, "DataSourceConfig & JdbcTemplate", "JDBC Repo", "Consultas directas a schema soporte.")
+        Component(dao_jdbc, "DataSourceConfig & JdbcTemplate", "JDBC Repo", "Consultas directas a schema sga_soporte.")
         Component(actuator, "Actuator / Micrometer", "Metrics", "Histogramas de latencia P50/P95/P99.")
     }
 

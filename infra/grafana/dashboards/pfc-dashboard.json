@@ -297,7 +297,7 @@
         "y": 27
       },
       "id": 400,
-      "title": "Vista 4: Disponibilidad y Consenso Raft del Clúster (etcd / PostgreSQL / CockroachDB)",
+      "title": "Vista 4: Coordinación etcd/Raft y Conexiones PostgreSQL",
       "type": "row"
     },
     {

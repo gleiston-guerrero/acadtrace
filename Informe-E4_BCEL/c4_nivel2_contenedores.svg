@@ -65,8 +65,8 @@
 
   <!-- Datos y Consenso -->
   <rect x="130" y="365" width="310" height="70" class="container-db"/>
-  <text x="285" y="390" class="label-white">PostgreSQL 16 (AWS EC2)</text>
-  <text x="285" y="407" class="desc-white">Multi-Schema: public, secretaria, docente, soporte</text>
+  <text x="285" y="390" class="label-white">PostgreSQL (endpoint externo)</text>
+  <text x="285" y="407" class="desc-white" style="font-size:10px">sga_principal, sga_secretaria, sga_docente, sga_soporte</text>
   <text x="285" y="420" class="desc-white">Persistencia relacional y atomicidad ACID</text>
 
   <rect x="520" y="365" width="310" height="70" class="container-db"/>

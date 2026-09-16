@@ -75,7 +75,7 @@
   <!-- Capa de Datos e Infraestructura -->
   <rect x="50" y="425" width="380" height="70" class="comp-data"/>
   <text x="240" y="450" class="label-white">DataSourceConfig &amp; JdbcTemplate</text>
-  <text x="240" y="465" class="desc-white">Conexión a PostgreSQL (schema soporte) con HikariCP</text>
+  <text x="240" y="465" class="desc-white">Conexión a PostgreSQL (schema sga_soporte) con HikariCP</text>
   <text x="240" y="478" class="desc-white">Consultas SQL parametrizadas contra inyección SQL</text>
 
   <rect x="510" y="425" width="380" height="70" class="comp-data"/>
