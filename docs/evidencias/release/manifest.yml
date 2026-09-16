@@ -8,12 +8,12 @@ captures:
   - file: release/screenshots/sga_principal.png
     component: SGA Principal
     purpose: "Dashboard web del sistema principal."
-    sha256: B172B394A67212FFEF9A9E62EFD2D39787A2FD9CFE0615C952C0AE1E52C04BA1
-    added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
-    added_in_date: 2026-09-04
-    status: needs_replacement
+    sha256: E21642C6C5BD4067493FEC20744118BFBA40970A9D872D41F3085705B82B420F
+    added_in_commit: 2dab9279
+    added_in_date: 2026-09-15
+    status: current
     used_in_report: false
-    observations: "La imagen muestra información histórica de topología, servicios y puertos que no coincide con la configuración actual."
+    observations: "Captura real y actual del dashboard de SGA Principal obtenida en entorno local de demostración; período visible 2026-2027."
 
   - file: release/screenshots/secretaria_portal.png
     component: Secretaría
