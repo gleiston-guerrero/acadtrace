@@ -114,8 +114,10 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 }
 
 gradle.taskGraph.whenReady {
-    val requestsReleaseApk = allTasks.any { it.path == ":app:assembleRelease" }
-    if (requestsReleaseApk && !releaseSigningReady) {
+    val requestsReleasePackage = allTasks.any {
+        it.path == ":app:assembleRelease" || it.path == ":app:bundleRelease"
+    }
+    if (requestsReleasePackage && !releaseSigningReady) {
         throw GradleException(
             "Firma release no configurada. Define las variables SGA_RELEASE_* o crea keystore.properties local ignorado."
         )
