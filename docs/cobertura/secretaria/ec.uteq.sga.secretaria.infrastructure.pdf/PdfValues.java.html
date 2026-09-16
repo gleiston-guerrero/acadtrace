@@ -20,7 +20,7 @@ public final class PdfValues {
 <span class="nc" id="L20">            case null -&gt; null;</span>
 <span class="fc" id="L21">            case LocalDate d -&gt; d;</span>
 <span class="nc" id="L22">            case LocalDateTime dt -&gt; dt.toLocalDate();</span>
-<span class="pc" id="L23">            default -&gt; null;</span>
+<span class="nc" id="L23">            default -&gt; null;</span>
         };
 <span class="pc bpc" id="L25" title="1 of 2 branches missed.">        return date == null ? &quot;&quot; : date.format(SHORT_DATE);</span>
     }

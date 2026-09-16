@@ -95,7 +95,7 @@ public class PdfCanvas implements Closeable {
 <span class="fc bfc" id="L95" title="All 2 branches covered.">        for (String line : lines) {</span>
 <span class="fc" id="L96">            textAligned(x, y, width, line, font, size, color, align);</span>
 <span class="fc" id="L97">            y += lineHeight;</span>
-<span class="fc" id="L98">        }</span>
+        }
 <span class="fc" id="L99">        return y;</span>
     }
 
@@ -119,7 +119,7 @@ public class PdfCanvas implements Closeable {
 <span class="fc bfc" id="L119" title="All 4 branches covered.">                if (!current.isEmpty() &amp;&amp; widthOf(candidate, font, size) &gt; maxWidth) {</span>
 <span class="fc" id="L120">                    lines.add(current.toString());</span>
 <span class="fc" id="L121">                    current = new StringBuilder(word);</span>
-                } else {
+<span class="fc" id="L122">                } else {</span>
 <span class="fc" id="L123">                    current = new StringBuilder(candidate);</span>
                 }
             }

@@ -13,11 +13,11 @@ public class ApiException extends RuntimeException {
 <span class="fc" id="L13">    }</span>
 
     public int getStatus() {
-<span class="nc" id="L16">        return status;</span>
+<span class="fc" id="L16">        return status;</span>
     }
 
     public static ApiException notFound(String message) {
-<span class="nc" id="L20">        return new ApiException(404, message);</span>
+<span class="fc" id="L20">        return new ApiException(404, message);</span>
     }
 
     public static ApiException unauthorized(String message) {

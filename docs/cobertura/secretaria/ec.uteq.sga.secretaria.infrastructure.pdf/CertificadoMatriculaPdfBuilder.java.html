@@ -28,7 +28,7 @@ public final class CertificadoMatriculaPdfBuilder {
                         &quot;continuación se encuentra legalmente matriculado/a en esta institución educativa:&quot;)
 <span class="fc" id="L29">                        .formatted(theme.nombre());</span>
 <span class="fc" id="L30">                y = canvas.textWrapped(40, y, canvas.pageWidth() - 80, intro, Fonts.HELVETICA, 10,</span>
-                        PdfTheme.TEXT, 13f, PdfCanvas.Align.LEFT);
+<span class="fc" id="L31">                        PdfTheme.TEXT, 13f, PdfCanvas.Align.LEFT);</span>
 <span class="fc" id="L32">                y += 40;</span>
 
 <span class="fc" id="L34">                y = PdfLayout.drawSectionTitle(canvas, &quot;DATOS DEL ESTUDIANTE&quot;, y);</span>
@@ -54,8 +54,8 @@ public final class CertificadoMatriculaPdfBuilder {
 <span class="fc" id="L54">                canvas.rect(40, y, canvas.pageWidth() - 80, 1, PdfTheme.BORDER);</span>
 <span class="fc" id="L55">                y += 10;</span>
 <span class="fc" id="L56">                y = canvas.textWrapped(40, y, canvas.pageWidth() - 80,</span>
-                        &quot;El presente certificado se expide a petición del interesado/a para los fines legales que estime conveniente.&quot;,
-                        Fonts.HELVETICA, 9, PdfTheme.MUTED, 12f, PdfCanvas.Align.CENTER);
+<span class="fc" id="L57">                        &quot;El presente certificado se expide a petición del interesado/a para los fines legales que estime conveniente.&quot;,</span>
+<span class="fc" id="L58">                        Fonts.HELVETICA, 9, PdfTheme.MUTED, 12f, PdfCanvas.Align.CENTER);</span>
 <span class="fc" id="L59">                y += 30;</span>
 
 <span class="fc" id="L61">                float firmaX = canvas.pageWidth() / 2 - 75;</span>

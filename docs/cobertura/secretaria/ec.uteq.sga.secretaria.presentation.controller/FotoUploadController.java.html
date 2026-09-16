@@ -24,7 +24,7 @@ import java.util.UUID;
 <span class="nc" id="L24">public class FotoUploadController {</span>
 
 <span class="nc" id="L26">    private static final Logger log = LoggerFactory.getLogger(FotoUploadController.class);</span>
-    private static final long MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+<span class="nc" id="L27">    private static final long MAX_BYTES = 5 * 1024 * 1024; // 5 MB</span>
 
     @Value(&quot;${app.uploads.dir:uploads}&quot;)
     private String baseDir;
@@ -57,7 +57,7 @@ import java.util.UUID;
 <span class="nc" id="L57">        } catch (IOException e) {</span>
 <span class="nc" id="L58">            log.error(&quot;Error al guardar la imagen en el servidor: &quot;, e);</span>
 <span class="nc" id="L59">            throw ApiException.internal(&quot;No se pudo guardar la imagen: &quot; + e.getMessage());</span>
-<span class="nc" id="L60">        }</span>
+        }
 
 <span class="nc" id="L62">        return Map.of(&quot;url&quot;, &quot;/uploads/fotos/&quot; + nombre);</span>
     }
