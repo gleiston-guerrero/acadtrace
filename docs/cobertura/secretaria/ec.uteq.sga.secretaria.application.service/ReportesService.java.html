@@ -33,9 +33,9 @@ public class ReportesService {
     private final CatalogoService catalogo;
     private final PdfTheme theme;
 
-    public ReportesService(NamedParameterJdbcTemplate jdbc, EstudianteService estudianteService,
+<span class="fc" id="L36">    public ReportesService(NamedParameterJdbcTemplate jdbc, EstudianteService estudianteService,</span>
                             MatriculaService matriculaService, RepresentanteService representanteService,
-<span class="fc" id="L38">                            CatalogoService catalogo, PdfTheme theme) {</span>
+                            CatalogoService catalogo, PdfTheme theme) {
 <span class="fc" id="L39">        this.jdbc = jdbc;</span>
 <span class="fc" id="L40">        this.estudianteService = estudianteService;</span>
 <span class="fc" id="L41">        this.matriculaService = matriculaService;</span>
@@ -116,10 +116,10 @@ public class ReportesService {
                 WHERE pt.id_matricula = :idMatricula AND pt.id_periodo = :idPeriodo
                 ORDER BY a.nombre
                 &quot;&quot;&quot;,
-                new MapSqlParameterSource()
+<span class="fc" id="L119">                new MapSqlParameterSource()</span>
 <span class="fc" id="L120">                        .addValue(&quot;idMatricula&quot;, idMatricula)</span>
 <span class="fc" id="L121">                        .addValue(&quot;idPeriodo&quot;, periodo.get(&quot;id_periodo&quot;)),</span>
-                GenericRowMapper.INSTANCE);
+<span class="fc" id="L122">                GenericRowMapper.INSTANCE);</span>
 
 <span class="fc" id="L124">        return LibretaCalificacionesPdfBuilder.build(matricula, periodo, materias, theme);</span>
     }
@@ -127,8 +127,8 @@ public class ReportesService {
     private Map&lt;String, Object&gt; resolverPeriodo(Long idPeriodo, Long idAnoLectivo) {
 <span class="pc bpc" id="L128" title="1 of 2 branches missed.">        if (idPeriodo != null) {</span>
 <span class="fc" id="L129">            List&lt;Map&lt;String, Object&gt;&gt; rows = jdbc.query(</span>
-                    &quot;SELECT id_periodo, nombre, tipo, fecha_inicio, fecha_fin FROM sga_docente.periodos_evaluacion WHERE id_periodo = :id&quot;,
-                    new MapSqlParameterSource(&quot;id&quot;, idPeriodo), GenericRowMapper.INSTANCE);
+<span class="fc" id="L130">                    &quot;SELECT id_periodo, nombre, tipo, fecha_inicio, fecha_fin FROM sga_docente.periodos_evaluacion WHERE id_periodo = :id&quot;,</span>
+<span class="fc" id="L131">                    new MapSqlParameterSource(&quot;id&quot;, idPeriodo), GenericRowMapper.INSTANCE);</span>
 <span class="pc bpc" id="L132" title="1 of 2 branches missed.">            if (rows.isEmpty()) throw ApiException.notFound(&quot;Período de evaluación no encontrado&quot;);</span>
 <span class="fc" id="L133">            return rows.get(0);</span>
         }
@@ -137,7 +137,7 @@ public class ReportesService {
                 FROM sga_docente.periodos_evaluacion
                 WHERE id_ano_lectivo = :idAno AND activo = true
                 ORDER BY fecha_inicio DESC LIMIT 1
-                &quot;&quot;&quot;, new MapSqlParameterSource(&quot;idAno&quot;, idAnoLectivo), GenericRowMapper.INSTANCE);
+<span class="nc" id="L140">                &quot;&quot;&quot;, new MapSqlParameterSource(&quot;idAno&quot;, idAnoLectivo), GenericRowMapper.INSTANCE);</span>
 <span class="nc bnc" id="L141" title="All 2 branches missed.">        if (rows.isEmpty()) throw ApiException.notFound(&quot;No hay un período de evaluación activo para este año lectivo&quot;);</span>
 <span class="nc" id="L142">        return rows.get(0);</span>
     }
@@ -150,7 +150,7 @@ public class ReportesService {
 <span class="fc" id="L150">            ym = YearMonth.parse(mes);</span>
 <span class="fc" id="L151">        } catch (DateTimeParseException e) {</span>
 <span class="fc" id="L152">            throw ApiException.badRequest(&quot;El parámetro 'mes' debe tener formato YYYY-MM&quot;);</span>
-<span class="fc" id="L153">        }</span>
+        }
 <span class="fc" id="L154">        LocalDate inicio = ym.atDay(1);</span>
 <span class="fc" id="L155">        LocalDate fin = ym.atEndOfMonth();</span>
 
@@ -162,11 +162,11 @@ public class ReportesService {
                 WHERE a.id_matricula = :idMatricula AND a.fecha BETWEEN :inicio AND :fin
                 ORDER BY a.fecha, asig.nombre
                 &quot;&quot;&quot;,
-                new MapSqlParameterSource()
+<span class="fc" id="L165">                new MapSqlParameterSource()</span>
 <span class="fc" id="L166">                        .addValue(&quot;idMatricula&quot;, idMatricula)</span>
 <span class="fc" id="L167">                        .addValue(&quot;inicio&quot;, inicio)</span>
 <span class="fc" id="L168">                        .addValue(&quot;fin&quot;, fin),</span>
-                GenericRowMapper.INSTANCE);
+<span class="fc" id="L169">                GenericRowMapper.INSTANCE);</span>
 
 <span class="fc" id="L171">        String mesLabel = ym.getMonth().getDisplayName(TextStyle.FULL, new Locale(&quot;es&quot;, &quot;EC&quot;)) + &quot; &quot; + ym.getYear();</span>
 <span class="fc" id="L172">        return AsistenciaMensualPdfBuilder.build(matricula, mesLabel, registros, theme);</span>
@@ -197,11 +197,11 @@ public class ReportesService {
                 FROM sga_secretaria.matriculas
                 WHERE id_ano_lectivo = :idAno
                 GROUP BY id_grado
-                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE);
+<span class="fc" id="L200">                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE);</span>
 <span class="fc" id="L201">        Map&lt;Long, Long&gt; totalPorGrado = new LinkedHashMap&lt;&gt;();</span>
 <span class="fc bfc" id="L202" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; c : conteosPorGrado) {</span>
 <span class="fc" id="L203">            totalPorGrado.put(((Number) c.get(&quot;id_grado&quot;)).longValue(), ((Number) c.get(&quot;total&quot;)).longValue());</span>
-<span class="fc" id="L204">        }</span>
+        }
 
 <span class="fc" id="L206">        List&lt;Map&lt;String, Object&gt;&gt; porGrado = catalogo.grados().stream()</span>
 <span class="fc" id="L207">                .filter(CatalogoService.Grado::activo)</span>
@@ -219,7 +219,7 @@ public class ReportesService {
                 SELECT estado, COUNT(*) AS cantidad
                 FROM sga_secretaria.matriculas WHERE id_ano_lectivo = :idAno
                 GROUP BY estado
-                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE);
+<span class="fc" id="L222">                &quot;&quot;&quot;, params, GenericRowMapper.INSTANCE);</span>
 
 <span class="fc" id="L224">        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</span>
 <span class="fc" id="L225">        result.put(&quot;totales&quot;, totales);</span>
