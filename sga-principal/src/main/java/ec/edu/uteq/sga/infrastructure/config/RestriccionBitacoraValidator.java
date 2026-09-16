@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class RestriccionBitacoraValidator implements ApplicationRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(RestriccionBitacoraValidator.java);
+    private static final Logger log = LoggerFactory.getLogger(RestriccionBitacoraValidator.class);
     private final JdbcTemplate jdbcTemplate;
 
     public RestriccionBitacoraValidator(JdbcTemplate jdbcTemplate) {
