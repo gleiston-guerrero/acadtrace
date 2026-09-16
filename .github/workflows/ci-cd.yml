@@ -434,13 +434,6 @@ jobs:
       - ci-docente
       - ci-movil-representante
       - test-mobile
-    # Validar ramas/PR aunque fallen pruebas; en main exigir todas las validaciones.
-    if: >-
-      ${{ !cancelled() &&
-          (github.ref != 'refs/heads/main' ||
-           (!contains(needs.*.result, 'failure') &&
-            !contains(needs.*.result, 'cancelled') &&
-            !contains(needs.*.result, 'skipped'))) }}
     strategy:
       fail-fast: false
       matrix:
@@ -501,13 +494,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.image-tags.outputs.tags }}
 
-      - name: Construir y Etiquetar Imagen Microservicio Secretaría (E14 GHCR)
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest -f microservicio-secretaria/backend/Dockerfile microservicio-secretaria/
-          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }}
-          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest
 
   # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
   build-mobile-apk:
