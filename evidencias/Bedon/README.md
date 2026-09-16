@@ -994,22 +994,30 @@ con los siguientes archivos:
 
 # 33. Paquete móvil publicado en release
 
-La variante de entrega debe generar los siguientes paquetes Release:
+La publicación se realizó desde el commit exacto de `main`:
 
 ```text
-app-movil-docente/app/build/outputs/apk/release/app-release.apk
-app-movil-docente/app/build/outputs/bundle/release/app-release.aab
+9941f993ba9c8794a239685f2e2844bf374f2e88
 ```
 
-Ambos artefactos se firman con un certificado propio. El flujo recibe el almacén y sus credenciales exclusivamente mediante GitHub Actions Secrets: `RELEASE_KEYSTORE_BASE64`, `SGA_RELEASE_STORE_PASSWORD`, `SGA_RELEASE_KEY_ALIAS` y `SGA_RELEASE_KEY_PASSWORD`. El trabajo debe finalizar con error si falta el almacén, alguna credencial o cualquiera de los paquetes esperados.
+El GitHub Actions run `35049103743` finalizó con resultado `SUCCESS`. En esa ejecución quedaron verdes `CI Aplicación Móvil Representante`, `E10 - Playwright Frontend Docente`, `4. Pruebas Unitarias App Móvil`, `6. Compilación de Paquete APK Android` e `Integración y Despliegue`.
 
-Antes de publicar, el flujo verifica la firma del APK mediante `apksigner verify --verbose` y la del AAB mediante `jarsigner -verify`. Después calcula el SHA-256 de ambos paquetes y genera:
+El job móvil ejecutó `assembleRelease` y `bundleRelease` y generó el artefacto:
 
 ```text
-SHA256SUMS.txt
+app-release-sha-9941f993ba9c8794a239685f2e2844bf374f2e88
 ```
 
-El artefacto de GitHub Actions reúne `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt`. La evidencia de la ejecución satisfactoria del flujo y de la publicación en GitHub Release se incorporará después de ejecutar y validar el proceso; este índice no afirma que esas acciones ya hayan finalizado.
+Este contiene `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt`. Los paquetes Release se firmaron con un certificado propio suministrado mediante GitHub Actions Secrets. Antes de compilar, el flujo comprobó la existencia del keystore, su tamaño de 2782 bytes, su SHA-256 `C076C5BDB2B017E8F2FC8F3AE5D1228B7B01331B032397EBBC2058DAC4DF9E9A`, el formato PKCS12 y el alias configurado. Gradle declara explícitamente `storeType = "PKCS12"`, y el pipeline falla cuando no está disponible la configuración necesaria para la firma Release.
+
+La firma del APK se verificó mediante `apksigner verify --verbose` y la del AAB mediante `jarsigner -verify`. El archivo `SHA256SUMS.txt` registra los hashes finales:
+
+```text
+39082d5e29ad3646bf13acefe2b946ea43d0a8f180dc3e0252236513abba2a21  app-release.apk
+bc6897ab80ab8316de46ca75be5cf14d417529859d4459c361e36aefe795e7d0  app-release.aab
+```
+
+La trazabilidad queda cerrada con la publicación [AcadTrace v1.0.0](https://github.com/gleiston-guerrero/acadtrace/releases/tag/v1.0.0), cuyos assets son `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt`.
 
 ---
 
