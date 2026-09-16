@@ -54,21 +54,23 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 - archivo: `release/screenshots/sga_principal.png`
 - estado: `sga_principal.png` es una captura actual que corresponde al dashboard real de SGA Principal, obtenida en entorno local de demostración. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
 
-## Capturas pendientes de actualización
-
-### 1. Secretaría
+### Secretaría
 
 - archivo: `release/screenshots/secretaria_portal.png`
-- motivo: el contenido actual no corresponde al portal real.
+- estado: captura actual del dashboard de Secretaría. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
 
-### 2. Soporte
+### Soporte
 
 - archivo: `release/screenshots/soporte_tickets.png`
-- motivo: el contenido actual corresponde a Grafana y no al panel de tickets.
+- estado: captura actual del Módulo de Tickets/Kanban. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
 
-### 3. IA
+### IA
 
-- archivo esperado: `release/screenshots/microservicio_ia.png`
-- motivo: no existe evidencia visual versionada del runtime actual.
+- archivo: `release/screenshots/microservicio_ia.png`
+- estado: captura actual de Swagger/OpenAPI del microservicio IA. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
+
+## Capturas pendientes de actualización
+
+No quedan pendientes de actualización entre las capturas de Secretaría, Soporte e IA.
 
 Docente y móvil también requieren confirmación contra el release final antes de considerarse evidencia definitiva. No se incluyen capturas de E10, Playwright, E2E ni pruebas de navegador en esta documentación.
