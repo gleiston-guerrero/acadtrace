@@ -6,127 +6,536 @@ import ec.uteq.sga.secretaria.infrastructure.security.HmacService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
- * Escribe en sga_principal.auditoria (tabla centralizada, ver
- * ec.edu.uteq.sga.service.AuditoriaService en sga-principal) via SQL
- * cruzado: secretaria ya consulta sga_principal.usuarios directamente
- * (EstudianteService), asi que insertar aqui con el mismo
- * NamedParameterJdbcTemplate no agrega ningun salto de red nuevo.
+ * Escritor de Secretaria sobre la bitacora institucional.
  *
- * Firma cada fila con el mismo HMAC-SHA256 (mismo secreto, mismo orden de
- * campos) que usa sga-principal, para que sea verificable sin importar
- * quien la escribio. Nunca deja que un fallo al auditar tumbe la
- * operacion de negocio que lo disparo.
+ * M2/M3 utilizan la misma cabeza persistida que sga-principal y bloquean
+ * id_estado=1 mediante SELECT ... FOR UPDATE antes de calcular el siguiente
+ * eslabon. De esta forma dos escritores concurrentes no pueden producir
+ * bifurcaciones de la cadena.
  */
 @Service
 public class AuditoriaService {
 
-<span class="fc" id="L34">    private static final Logger log = LoggerFactory.getLogger(AuditoriaService.class);</span>
-    private static final String SCHEMA_ORIGEN = &quot;SECRETARIA&quot;;
+<span class="fc" id="L38">    private static final Logger log =</span>
+<span class="fc" id="L39">            LoggerFactory.getLogger(AuditoriaService.class);</span>
+
+<span class="fc" id="L41">    private static final String SCHEMA_ORIGEN = &quot;SECRETARIA&quot;;</span>
 
     private final NamedParameterJdbcTemplate jdbc;
     private final HmacService hmacService;
+    private final LamportClock lamportClock;
+    private final AuditHashService auditHashService;
 
-<span class="nc" id="L40">    public AuditoriaService(NamedParameterJdbcTemplate jdbc, HmacService hmacService) {</span>
-<span class="nc" id="L41">        this.jdbc = jdbc;</span>
-<span class="nc" id="L42">        this.hmacService = hmacService;</span>
-<span class="nc" id="L43">    }</span>
+    @Value(&quot;${AUDIT:m2}&quot;)
+<span class="fc" id="L49">    private String auditMode = &quot;m2&quot;;</span>
 
-    public void registrarCrud(String accion, String tablaAfectada, Long registroId, String descripcion) {
-<span class="nc" id="L46">        guardar(accion, tablaAfectada, registroId, descripcion, &quot;EXITO&quot;);</span>
-<span class="nc" id="L47">    }</span>
+    public AuditoriaService(
+            NamedParameterJdbcTemplate jdbc,
+            HmacService hmacService
+    ) {
+<span class="fc" id="L55">        this(</span>
+<span class="fc" id="L56">                jdbc,</span>
+<span class="fc" id="L57">                hmacService,</span>
+<span class="fc" id="L58">                new LamportClock(),</span>
+<span class="fc" id="L59">                new AuditHashService()</span>
+        );
+<span class="fc" id="L61">    }</span>
 
-    public void registrarFallo(String accion, String tablaAfectada, Long registroId, String descripcion) {
-<span class="nc" id="L50">        guardar(accion, tablaAfectada, registroId, descripcion, &quot;FALLO&quot;);</span>
-<span class="nc" id="L51">    }</span>
+    @Autowired
+<span class="fc" id="L64">    public AuditoriaService(</span>
+            NamedParameterJdbcTemplate jdbc,
+            HmacService hmacService,
+            LamportClock lamportClock,
+            AuditHashService auditHashService
+    ) {
+<span class="fc" id="L70">        this.jdbc = jdbc;</span>
+<span class="fc" id="L71">        this.hmacService = hmacService;</span>
+<span class="fc" id="L72">        this.lamportClock =</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">                lamportClock != null</span>
+<span class="fc" id="L74">                        ? lamportClock</span>
+<span class="nc" id="L75">                        : new LamportClock();</span>
+<span class="fc" id="L76">        this.auditHashService =</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">                auditHashService != null</span>
+<span class="fc" id="L78">                        ? auditHashService</span>
+<span class="nc" id="L79">                        : new AuditHashService();</span>
+<span class="fc" id="L80">    }</span>
 
-    private void guardar(String accion, String tablaAfectada, Long registroId, String descripcion, String resultado) {
+    public void setAuditMode(String mode) {
+<span class="nc" id="L83">        this.auditMode = mode;</span>
+<span class="nc" id="L84">    }</span>
+
+    public String getAuditMode() {
+<span class="nc" id="L87">        return auditMode;</span>
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarCrud(
+            String accion,
+            String tablaAfectada,
+            Long registroId,
+            String descripcion
+    ) {
+<span class="fc" id="L97">        guardar(</span>
+<span class="fc" id="L98">                accion,</span>
+<span class="fc" id="L99">                tablaAfectada,</span>
+<span class="fc" id="L100">                registroId,</span>
+<span class="fc" id="L101">                descripcion,</span>
+<span class="fc" id="L102">                &quot;EXITO&quot;</span>
+        );
+<span class="fc" id="L104">    }</span>
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarFallo(
+            String accion,
+            String tablaAfectada,
+            Long registroId,
+            String descripcion
+    ) {
+<span class="nc" id="L113">        guardar(</span>
+<span class="nc" id="L114">                accion,</span>
+<span class="nc" id="L115">                tablaAfectada,</span>
+<span class="nc" id="L116">                registroId,</span>
+<span class="nc" id="L117">                descripcion,</span>
+<span class="nc" id="L118">                &quot;FALLO&quot;</span>
+        );
+<span class="nc" id="L120">    }</span>
+
+    private void guardar(
+            String accion,
+            String tablaAfectada,
+            Long registroId,
+            String descripcion,
+            String resultado
+    ) {
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (&quot;m0&quot;.equalsIgnoreCase(auditMode)) {</span>
+<span class="nc" id="L130">            return;</span>
+        }
+
         try {
-<span class="nc" id="L55">            String username = usernameActual();</span>
-<span class="nc" id="L56">            String traceId = TraceContext.current();</span>
-<span class="nc" id="L57">            Instant fecha = Instant.now().truncatedTo(ChronoUnit.MILLIS);</span>
-<span class="nc" id="L58">            UUID traceUuid = parseOrNew(traceId);</span>
+<span class="fc" id="L134">            String username = usernameActual();</span>
+<span class="fc" id="L135">            UUID traceUuid =</span>
+<span class="fc" id="L136">                    parseOrNew(TraceContext.current());</span>
 
-<span class="nc" id="L60">            String hmac = hmacService.firmar(</span>
-                    SCHEMA_ORIGEN,
-<span class="nc" id="L62">                    String.valueOf(traceUuid),</span>
-<span class="nc" id="L63">                    nvl(username),</span>
-                    accion,
-<span class="nc" id="L65">                    nvl(tablaAfectada),</span>
-<span class="nc" id="L66">                    String.valueOf(registroId),</span>
-<span class="nc" id="L67">                    nvl(descripcion),</span>
-                    resultado,
-<span class="nc" id="L69">                    String.valueOf(fecha.toEpochMilli())</span>
+<span class="fc" id="L138">            Instant fecha =</span>
+<span class="fc" id="L139">                    Instant.now()</span>
+<span class="fc" id="L140">                            .truncatedTo(ChronoUnit.MILLIS);</span>
+
+<span class="fc" id="L142">            String ip = ipActual();</span>
+
+            /*
+             * M1 conserva la bitacora relacional convencional.
+             */
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">            if (&quot;m1&quot;.equalsIgnoreCase(auditMode)) {</span>
+<span class="nc" id="L148">                MapSqlParameterSource params =</span>
+<span class="nc" id="L149">                        new MapSqlParameterSource()</span>
+<span class="nc" id="L150">                                .addValue(&quot;username&quot;, username)</span>
+<span class="nc" id="L151">                                .addValue(&quot;accion&quot;, accion)</span>
+<span class="nc" id="L152">                                .addValue(</span>
+<span class="nc" id="L153">                                        &quot;tablaAfectada&quot;,</span>
+<span class="nc" id="L154">                                        tablaAfectada</span>
+                                )
+<span class="nc" id="L156">                                .addValue(</span>
+<span class="nc" id="L157">                                        &quot;registroId&quot;,</span>
+<span class="nc" id="L158">                                        registroId</span>
+                                )
+<span class="nc" id="L160">                                .addValue(</span>
+<span class="nc" id="L161">                                        &quot;descripcion&quot;,</span>
+<span class="nc" id="L162">                                        descripcion</span>
+                                )
+<span class="nc" id="L164">                                .addValue(&quot;ip&quot;, ip)</span>
+<span class="nc" id="L165">                                .addValue(</span>
+<span class="nc" id="L166">                                        &quot;traceId&quot;,</span>
+<span class="nc" id="L167">                                        traceUuid.toString()</span>
+                                )
+<span class="nc" id="L169">                                .addValue(</span>
+<span class="nc" id="L170">                                        &quot;resultado&quot;,</span>
+<span class="nc" id="L171">                                        resultado</span>
+                                )
+<span class="nc" id="L173">                                .addValue(</span>
+<span class="nc" id="L174">                                        &quot;fecha&quot;,</span>
+<span class="nc" id="L175">                                        fecha.atOffset(</span>
+<span class="nc" id="L176">                                                ZoneOffset.UTC</span>
+                                        )
+                                );
+
+<span class="nc" id="L180">                jdbc.update(&quot;&quot;&quot;</span>
+                        INSERT INTO sga_principal.auditoria
+                            (
+                                schema_origen,
+                                username,
+                                accion,
+                                tabla_afectada,
+                                registro_id,
+                                descripcion,
+                                ip_address,
+                                trace_id,
+                                resultado,
+                                fecha
+                            )
+                        VALUES
+                            (
+                                'SECRETARIA',
+                                :username,
+                                CAST(
+                                    :accion
+                                    AS sga_principal.accion_auditoria_t
+                                ),
+                                :tablaAfectada,
+                                :registroId,
+                                :descripcion,
+                                :ip,
+                                CAST(:traceId AS uuid),
+                                :resultado,
+                                :fecha
+                            )
+<span class="nc" id="L210">                        &quot;&quot;&quot;, params);</span>
+
+<span class="nc" id="L212">                return;</span>
+            }
+
+            /*
+             * La lectura FOR UPDATE mantiene bloqueada la cabeza hasta que
+             * esta transaccion inserta el evento y confirma la nueva cabeza.
+             */
+<span class="fc" id="L219">            Map&lt;String, Object&gt; estado = jdbc.queryForMap(&quot;&quot;&quot;</span>
+                    SELECT
+                        ultimo_hash,
+                        ultimo_lamport,
+                        vector_reloj
+                    FROM sga_principal.estado_cadena_auditoria
+                    WHERE id_estado = 1
+                    FOR UPDATE
+<span class="fc" id="L227">                    &quot;&quot;&quot;, new MapSqlParameterSource());</span>
+
+<span class="fc" id="L229">            String hashAnterior =</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">                    estado.get(&quot;ultimo_hash&quot;) != null</span>
+<span class="fc" id="L231">                            ? String.valueOf(</span>
+<span class="fc" id="L232">                                    estado.get(&quot;ultimo_hash&quot;)</span>
+<span class="fc" id="L233">                            )</span>
+<span class="nc" id="L234">                            : AuditHashService.GENESIS_HASH;</span>
+
+<span class="fc" id="L236">            long ultimoLamport =</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">                    estado.get(&quot;ultimo_lamport&quot;)</span>
+<span class="fc" id="L238">                            instanceof Number numero</span>
+<span class="fc" id="L239">                            ? numero.longValue()</span>
+<span class="nc" id="L240">                            : 0L;</span>
+
+<span class="fc" id="L242">            long lamport = ultimoLamport + 1L;</span>
+
+            /*
+             * El contador en memoria es solo espejo; la autoridad es la BD.
+             */
+<span class="fc" id="L247">            lamportClock.seed(lamport);</span>
+
+<span class="fc" id="L249">            Map&lt;String, Long&gt; vector = null;</span>
+<span class="fc" id="L250">            String vectorJson = null;</span>
+
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">            if (&quot;m3&quot;.equalsIgnoreCase(auditMode)) {</span>
+<span class="nc" id="L253">                vector = auditHashService.parseVector(</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                        estado.get(&quot;vector_reloj&quot;) != null</span>
+<span class="nc" id="L255">                                ? String.valueOf(</span>
+<span class="nc" id="L256">                                        estado.get(&quot;vector_reloj&quot;)</span>
+<span class="nc" id="L257">                                )</span>
+<span class="nc" id="L258">                                : &quot;{}&quot;</span>
+                );
+
+<span class="nc" id="L261">                vector.put(</span>
+<span class="nc" id="L262">                        &quot;secretaria&quot;,</span>
+<span class="nc" id="L263">                        vector.getOrDefault(</span>
+<span class="nc" id="L264">                                &quot;secretaria&quot;,</span>
+<span class="nc" id="L265">                                0L</span>
+<span class="nc" id="L266">                        ) + 1L</span>
+                );
+
+<span class="nc" id="L269">                vectorJson =</span>
+<span class="nc" id="L270">                        auditHashService.vectorJson(vector);</span>
+            }
+
+<span class="fc" id="L273">            Map&lt;String, Object&gt; payload =</span>
+<span class="fc" id="L274">                    new TreeMap&lt;&gt;();</span>
+
+<span class="fc" id="L276">            payload.put(&quot;descripcion&quot;, descripcion);</span>
+<span class="fc" id="L277">            payload.put(&quot;ip_address&quot;, ip);</span>
+<span class="fc" id="L278">            payload.put(&quot;resultado&quot;, resultado);</span>
+<span class="fc" id="L279">            payload.put(</span>
+<span class="fc" id="L280">                    &quot;schema_origen&quot;,</span>
+<span class="fc" id="L281">                    SCHEMA_ORIGEN</span>
+            );
+<span class="fc" id="L283">            payload.put(</span>
+<span class="fc" id="L284">                    &quot;trace_id&quot;,</span>
+<span class="fc" id="L285">                    traceUuid.toString()</span>
             );
 
-<span class="nc" id="L72">            MapSqlParameterSource params = new MapSqlParameterSource()</span>
-<span class="nc" id="L73">                    .addValue(&quot;username&quot;, username)</span>
-<span class="nc" id="L74">                    .addValue(&quot;accion&quot;, accion)</span>
-<span class="nc" id="L75">                    .addValue(&quot;tablaAfectada&quot;, tablaAfectada)</span>
-<span class="nc" id="L76">                    .addValue(&quot;registroId&quot;, registroId)</span>
-<span class="nc" id="L77">                    .addValue(&quot;descripcion&quot;, descripcion)</span>
-<span class="nc" id="L78">                    .addValue(&quot;ip&quot;, ipActual())</span>
-<span class="nc" id="L79">                    .addValue(&quot;traceId&quot;, traceUuid.toString())</span>
-<span class="nc" id="L80">                    .addValue(&quot;resultado&quot;, resultado)</span>
-<span class="nc" id="L81">                    .addValue(&quot;hmac&quot;, hmac)</span>
-                    // pgjdbc no infiere el tipo SQL para java.time.Instant via setObject;
-                    // OffsetDateTime si tiene soporte nativo para timestamptz.
-<span class="nc" id="L84">                    .addValue(&quot;fecha&quot;, fecha.atOffset(java.time.ZoneOffset.UTC));</span>
+<span class="fc" id="L288">            String estadoReconciliacion =</span>
+<span class="pc bpc" id="L289" title="1 of 2 branches missed.">                    &quot;m3&quot;.equalsIgnoreCase(auditMode)</span>
+<span class="nc" id="L290">                            ? &quot;APLICADO&quot;</span>
+<span class="fc" id="L291">                            : &quot;NO_APLICA&quot;;</span>
 
-<span class="nc" id="L86">            jdbc.update(&quot;&quot;&quot;</span>
+<span class="fc" id="L293">            Map&lt;String, Object&gt; contenido =</span>
+<span class="fc" id="L294">                    auditHashService.contenidoEvento(</span>
+<span class="fc" id="L295">                            &quot;AUDITORIA&quot;,</span>
+<span class="fc" id="L296">                            tablaAfectada,</span>
+<span class="fc" id="L297">                            registroId,</span>
+<span class="fc" id="L298">                            accion,</span>
+<span class="fc" id="L299">                            username,</span>
+<span class="fc" id="L300">                            fecha.toString(),</span>
+<span class="fc" id="L301">                            payload,</span>
+<span class="fc" id="L302">                            auditMode.toLowerCase(),</span>
+<span class="fc" id="L303">                            lamport,</span>
+<span class="fc" id="L304">                            vector,</span>
+<span class="fc" id="L305">                            estadoReconciliacion</span>
+                    );
+
+<span class="fc" id="L308">            String canonico =</span>
+<span class="fc" id="L309">                    auditHashService.jsonCanonico(</span>
+<span class="fc" id="L310">                            contenido</span>
+                    );
+
+<span class="fc" id="L313">            String hashActual =</span>
+<span class="fc" id="L314">                    auditHashService.calcularHash(</span>
+<span class="fc" id="L315">                            hashAnterior,</span>
+<span class="fc" id="L316">                            contenido</span>
+                    );
+
+<span class="fc" id="L319">            String hmac = hmacService.firmar(</span>
+<span class="fc" id="L320">                    SCHEMA_ORIGEN,</span>
+<span class="fc" id="L321">                    String.valueOf(traceUuid),</span>
+<span class="fc" id="L322">                    nvl(username),</span>
+<span class="fc" id="L323">                    accion,</span>
+<span class="fc" id="L324">                    nvl(tablaAfectada),</span>
+<span class="fc" id="L325">                    String.valueOf(registroId),</span>
+<span class="fc" id="L326">                    nvl(descripcion),</span>
+<span class="fc" id="L327">                    resultado,</span>
+<span class="fc" id="L328">                    String.valueOf(</span>
+<span class="fc" id="L329">                            fecha.toEpochMilli()</span>
+                    )
+            );
+
+<span class="fc" id="L333">            MapSqlParameterSource params =</span>
+<span class="fc" id="L334">                    new MapSqlParameterSource()</span>
+<span class="fc" id="L335">                            .addValue(&quot;username&quot;, username)</span>
+<span class="fc" id="L336">                            .addValue(&quot;accion&quot;, accion)</span>
+<span class="fc" id="L337">                            .addValue(</span>
+<span class="fc" id="L338">                                    &quot;tablaAfectada&quot;,</span>
+<span class="fc" id="L339">                                    tablaAfectada</span>
+                            )
+<span class="fc" id="L341">                            .addValue(</span>
+<span class="fc" id="L342">                                    &quot;registroId&quot;,</span>
+<span class="fc" id="L343">                                    registroId</span>
+                            )
+<span class="fc" id="L345">                            .addValue(</span>
+<span class="fc" id="L346">                                    &quot;descripcion&quot;,</span>
+<span class="fc" id="L347">                                    descripcion</span>
+                            )
+<span class="fc" id="L349">                            .addValue(&quot;ip&quot;, ip)</span>
+<span class="fc" id="L350">                            .addValue(</span>
+<span class="fc" id="L351">                                    &quot;traceId&quot;,</span>
+<span class="fc" id="L352">                                    traceUuid.toString()</span>
+                            )
+<span class="fc" id="L354">                            .addValue(</span>
+<span class="fc" id="L355">                                    &quot;resultado&quot;,</span>
+<span class="fc" id="L356">                                    resultado</span>
+                            )
+<span class="fc" id="L358">                            .addValue(&quot;hmac&quot;, hmac)</span>
+<span class="fc" id="L359">                            .addValue(</span>
+<span class="fc" id="L360">                                    &quot;hashAnterior&quot;,</span>
+<span class="fc" id="L361">                                    hashAnterior</span>
+                            )
+<span class="fc" id="L363">                            .addValue(</span>
+<span class="fc" id="L364">                                    &quot;hashActual&quot;,</span>
+<span class="fc" id="L365">                                    hashActual</span>
+                            )
+<span class="fc" id="L367">                            .addValue(</span>
+<span class="fc" id="L368">                                    &quot;relojLamport&quot;,</span>
+<span class="fc" id="L369">                                    lamport</span>
+                            )
+<span class="fc" id="L371">                            .addValue(</span>
+<span class="fc" id="L372">                                    &quot;vectorReloj&quot;,</span>
+<span class="fc" id="L373">                                    vectorJson</span>
+                            )
+<span class="fc" id="L375">                            .addValue(</span>
+<span class="fc" id="L376">                                    &quot;contenidoCanonico&quot;,</span>
+<span class="fc" id="L377">                                    canonico</span>
+                            )
+<span class="fc" id="L379">                            .addValue(</span>
+<span class="fc" id="L380">                                    &quot;versionCanonica&quot;,</span>
+<span class="fc" id="L381">                                    &quot;v1&quot;</span>
+                            )
+<span class="fc" id="L383">                            .addValue(</span>
+<span class="fc" id="L384">                                    &quot;fecha&quot;,</span>
+<span class="fc" id="L385">                                    fecha.atOffset(</span>
+<span class="fc" id="L386">                                            ZoneOffset.UTC</span>
+                                    )
+                            );
+
+<span class="fc" id="L390">            jdbc.update(&quot;&quot;&quot;</span>
                     INSERT INTO sga_principal.auditoria
-                        (schema_origen, username, accion, tabla_afectada, registro_id, descripcion,
-                         ip_address, trace_id, resultado, hmac, fecha)
+                        (
+                            schema_origen,
+                            username,
+                            accion,
+                            tabla_afectada,
+                            registro_id,
+                            descripcion,
+                            ip_address,
+                            trace_id,
+                            resultado,
+                            hmac,
+                            hash_anterior,
+                            hash_actual,
+                            reloj_lamport,
+                            vector_reloj,
+                            contenido_canonico,
+                            version_canonica,
+                            fecha
+                        )
                     VALUES
-                        ('SECRETARIA', :username, CAST(:accion AS sga_principal.accion_auditoria_t), :tablaAfectada,
-                         :registroId, :descripcion, :ip, CAST(:traceId AS uuid), :resultado, :hmac, :fecha)
-                    &quot;&quot;&quot;, params);
-<span class="nc" id="L94">        } catch (Exception e) {</span>
-<span class="nc" id="L95">            log.error(&quot;No se pudo registrar evento de auditoria ({} / {}): {}&quot;, accion, tablaAfectada, e.getMessage(), e);</span>
-<span class="nc" id="L96">        }</span>
-<span class="nc" id="L97">    }</span>
+                        (
+                            'SECRETARIA',
+                            :username,
+                            CAST(
+                                :accion
+                                AS sga_principal.accion_auditoria_t
+                            ),
+                            :tablaAfectada,
+                            :registroId,
+                            :descripcion,
+                            :ip,
+                            CAST(:traceId AS uuid),
+                            :resultado,
+                            :hmac,
+                            :hashAnterior,
+                            :hashActual,
+                            :relojLamport,
+                            :vectorReloj,
+                            :contenidoCanonico,
+                            :versionCanonica,
+                            :fecha
+                        )
+<span class="fc" id="L434">                    &quot;&quot;&quot;, params);</span>
+
+<span class="fc" id="L436">            MapSqlParameterSource estadoParams =</span>
+<span class="fc" id="L437">                    new MapSqlParameterSource()</span>
+<span class="fc" id="L438">                            .addValue(</span>
+<span class="fc" id="L439">                                    &quot;hashActual&quot;,</span>
+<span class="fc" id="L440">                                    hashActual</span>
+                            )
+<span class="fc" id="L442">                            .addValue(</span>
+<span class="fc" id="L443">                                    &quot;relojLamport&quot;,</span>
+<span class="fc" id="L444">                                    lamport</span>
+                            )
+<span class="fc" id="L446">                            .addValue(</span>
+<span class="fc" id="L447">                                    &quot;vectorReloj&quot;,</span>
+<span class="fc" id="L448">                                    vectorJson</span>
+                            );
+
+<span class="fc" id="L451">            jdbc.update(&quot;&quot;&quot;</span>
+                    UPDATE sga_principal.estado_cadena_auditoria
+                    SET
+                        ultimo_hash = :hashActual,
+                        ultimo_lamport = :relojLamport,
+                        vector_reloj = COALESCE(CAST(:vectorReloj AS TEXT), vector_reloj)
+                    WHERE id_estado = 1
+<span class="fc" id="L458">                    &quot;&quot;&quot;, estadoParams);</span>
+
+<span class="fc" id="L460">        } catch (Exception e) {</span>
+            /*
+             * No dejamos confirmar media operacion de auditoria:
+             * evento y cabeza se revierten juntos.
+             */
+            try {
+                TransactionAspectSupport
+<span class="nc" id="L467">                        .currentTransactionStatus()</span>
+<span class="nc" id="L468">                        .setRollbackOnly();</span>
+<span class="pc" id="L469">            } catch (Exception ignored) {</span>
+                // Pruebas unitarias sin proxy transaccional.
+            }
+
+<span class="fc" id="L473">            log.error(</span>
+<span class="fc" id="L474">                    &quot;No se pudo registrar evento de auditoria ({} / {}): {}&quot;,</span>
+<span class="fc" id="L475">                    accion,</span>
+<span class="fc" id="L476">                    tablaAfectada,</span>
+<span class="fc" id="L477">                    e.getMessage(),</span>
+<span class="fc" id="L478">                    e</span>
+            );
+        }
+<span class="fc" id="L481">    }</span>
 
     private static String usernameActual() {
         try {
-<span class="nc" id="L101">            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();</span>
-<span class="nc" id="L102">            HttpServletRequest request = attrs.getRequest();</span>
-<span class="nc" id="L103">            AuthenticatedUser user = (AuthenticatedUser) request.getAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE);</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">            return user != null ? user.username() : null;</span>
-<span class="nc" id="L105">        } catch (IllegalStateException e) {</span>
-<span class="nc" id="L106">            return null;</span>
+<span class="nc" id="L485">            ServletRequestAttributes attrs =</span>
+<span class="nc" id="L486">                    (ServletRequestAttributes)</span>
+                            RequestContextHolder
+<span class="nc" id="L488">                                    .currentRequestAttributes();</span>
+
+<span class="nc" id="L490">            HttpServletRequest request =</span>
+<span class="nc" id="L491">                    attrs.getRequest();</span>
+
+<span class="nc" id="L493">            AuthenticatedUser user =</span>
+<span class="nc" id="L494">                    (AuthenticatedUser)</span>
+<span class="nc" id="L495">                            request.getAttribute(</span>
+<span class="nc" id="L496">                                    AuthenticatedUser</span>
+                                            .REQUEST_ATTRIBUTE
+                            );
+
+<span class="nc bnc" id="L500" title="All 2 branches missed.">            return user != null</span>
+<span class="nc" id="L501">                    ? user.username()</span>
+<span class="nc" id="L502">                    : null;</span>
+
+<span class="fc" id="L504">        } catch (IllegalStateException e) {</span>
+<span class="fc" id="L505">            return null;</span>
         }
     }
 
     private static String ipActual() {
         try {
-<span class="nc" id="L112">            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();</span>
-<span class="nc" id="L113">            return attrs.getRequest().getRemoteAddr();</span>
-<span class="nc" id="L114">        } catch (IllegalStateException e) {</span>
-<span class="nc" id="L115">            return null;</span>
+<span class="nc" id="L511">            ServletRequestAttributes attrs =</span>
+<span class="nc" id="L512">                    (ServletRequestAttributes)</span>
+                            RequestContextHolder
+<span class="nc" id="L514">                                    .currentRequestAttributes();</span>
+
+<span class="nc" id="L516">            return attrs</span>
+<span class="nc" id="L517">                    .getRequest()</span>
+<span class="nc" id="L518">                    .getRemoteAddr();</span>
+
+<span class="fc" id="L520">        } catch (IllegalStateException e) {</span>
+<span class="fc" id="L521">            return null;</span>
         }
     }
 
     private static UUID parseOrNew(String value) {
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (value == null) return UUID.randomUUID();</span>
+<span class="pc bpc" id="L526" title="1 of 2 branches missed.">        if (value == null) {</span>
+<span class="fc" id="L527">            return UUID.randomUUID();</span>
+        }
+
         try {
-<span class="nc" id="L122">            return UUID.fromString(value);</span>
-<span class="nc" id="L123">        } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L124">            return UUID.randomUUID();</span>
+<span class="nc" id="L531">            return UUID.fromString(value);</span>
+<span class="nc" id="L532">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L533">            return UUID.randomUUID();</span>
         }
     }
 
-    private static String nvl(String v) {
-<span class="nc bnc" id="L129" title="All 2 branches missed.">        return v == null ? &quot;&quot; : v;</span>
+    private static String nvl(String value) {
+<span class="fc bfc" id="L538" title="All 2 branches covered.">        return value == null ? &quot;&quot; : value;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

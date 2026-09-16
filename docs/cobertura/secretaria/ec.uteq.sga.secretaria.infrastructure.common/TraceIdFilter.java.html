@@ -33,7 +33,7 @@ import java.util.UUID;
 <span class="fc" id="L33">            MDC.put(MDC_SERVICE_KEY, &quot;microservicio-secretaria&quot;);</span>
 <span class="fc" id="L34">            response.setHeader(HEADER, traceId);</span>
 <span class="fc" id="L35">            chain.doFilter(request, response);</span>
-        } finally {
+<span class="fc" id="L36">        } finally {</span>
 <span class="fc" id="L37">            TraceContext.clear();</span>
 <span class="fc" id="L38">            MDC.clear();</span>
         }

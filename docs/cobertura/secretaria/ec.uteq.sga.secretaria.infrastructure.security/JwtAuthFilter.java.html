@@ -55,13 +55,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         AuthenticatedUser user;
 <span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (token.startsWith(&quot;dev-token&quot;)) {</span>
 <span class="nc" id="L57">            user = new AuthenticatedUser(&quot;secretaria&quot;, List.of(&quot;SECRETARIA&quot;, &quot;DIRECTOR&quot;));</span>
-        } else {
+<span class="nc" id="L58">        } else {</span>
             try {
 <span class="fc" id="L60">                user = jwtService.parse(token);</span>
 <span class="fc" id="L61">            } catch (JwtException | IllegalArgumentException e) {</span>
 <span class="fc" id="L62">                writeError(response, 401, &quot;Token invalido o expirado&quot;);</span>
 <span class="fc" id="L63">                return;</span>
-<span class="fc" id="L64">            }</span>
+            }
         }
 
 <span class="pc bpc" id="L67" title="1 of 4 branches missed.">        boolean authorized = user.roles() != null &amp;&amp; user.roles().stream().anyMatch(REQUIRED_ROLES::contains);</span>
