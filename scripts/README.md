@@ -74,4 +74,4 @@ COMMIT;
 
 ## `backups/`
 
-Contiene los dumps `pg_dump` previos a cada corrida del seed.
+Los respaldos pre-seed pueden contener datos sensibles: no deben versionarse y deben almacenarse fuera del repositorio. Para reproducibilidad, utilizar el esquema y las migraciones junto con datos sint?ticos apropiados.
