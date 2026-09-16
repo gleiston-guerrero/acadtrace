@@ -15,20 +15,22 @@
 
 ---
 
+Nota de correccion documental (16 de septiembre de 2026, punto 6): se rectifican las afirmaciones de persistencia contra la configuracion versionada actual; no se certifica el despliegue historico pre-e4. Vease ADR-003.
+
 ## 1. Auditoria Tecnica del Estado de Partida (Mapeo por Unidades Curriculares)
 
 ### UNIDAD 1: Fundamentos de Sistemas Distribuidos y Comunicacion
 
 | Tema | Estado en pre-e4 | Mecanismo Tecnico Implementado y Evidencia en Repositorio | Pendiente / Por Mejorar en E4 |
 | :--- | :---: | :--- | :--- |
-| Transparencias ANSA | Parcial | Acceso (REST/JSON uniforme), Ubicacion (nombres logicos en Docker), Replicacion (Postgres Standby), Concurrencia (HikariCP y aislamiento transaccional), Fallos (HAProxy health check). | Formalizar la justificacion de 5 transparencias en el informe LaTeX. |
+| Transparencias ANSA | Parcial | Acceso (REST/JSON uniforme), Ubicacion (nombres logicos en Docker), Concurrencia (HikariCP y aislamiento transaccional), Fallos (HAProxy health check). | Documentar las transparencias evidenciadas sin atribuir replicacion a PostgreSQL. |
 | Sockets TCP | Implementado | Servidor TCP en puerto :9095 con delimitacion de trama por longitud (cabecera de 4 bytes) para recepcion de tramas de asistencia desde dispositivos de aula. | Rehacer medicion de latencia comparativa (100 envios) vs gRPC. |
 | gRPC y RPC | Implementado | Contratos .proto versionados en sga-principal/src/main/proto/. Servidor en :9092 y cliente en microservicio-docente para distribucion de catalogo institucional. | Documentar regeneracion limpia con protoc y medicion latency_grpc.csv. |
 | Relojes de Lamport y Vectoriales | Pendiente | Solo marcas de tiempo fisicas (timestamp ISO 8601). | Implementar mecanismos M2 (Lamport) y M3 (Relojes Vectoriales) en el motor de auditoria de calificaciones. |
 | Tolerancia a Fallos | Parcial | Heartbeats configurados en HAProxy hacia backends. Recuperacion automatica de contenedores con restart: always. | Registrar fallo de omision en sincronizacion movil y documentar latidos entre replicas. |
 | Eleccion de Lider | Pendiente | No implementado de forma distribuida. | Algoritmo de eleccion para el nodo que consolida actas y ejecuta el cierre de periodo lectivo. |
-| Teorema CAP | Implementado | Posicion por agregado: Consistencia Fuerte (CP) en Matricula y Calificaciones mediante PostgreSQL; Alta Disponibilidad (AP) en Consulta de Horarios y Reportes. | Revalidar la posicion con los datos de concurrencia del Paso 8. |
-| Coordinacion y Consistencia | Parcial | Transacciones locales ACID en sga-principal. Aislamiento Read Committed en Postgres. | Documentar protocolo de confirmacion en dos fases (2PC) para matricula atomica y consenso de cluster. |
+| Teorema CAP | Implementado | Persistencia relacional PostgreSQL; la configuracion de una instancia no demuestra clasificacion CP/AP de un cluster de datos. | Revalidar la posicion con los datos de concurrencia del Paso 8. |
+| Coordinacion y Consistencia | Parcial | Transacciones locales ACID en sga-principal. Aislamiento Read Committed en Postgres. | Documentar transacciones locales; no se demuestra 2PC entre servicios ni consenso de persistencia. |
 | Seguridad | Implementado | Autenticacion JWT (HS256) con expiracion de 24h. Control de acceso basado en 4 roles (Director, Docente, Secretaria, Soporte). Controles reforzados para proteccion de datos de menores. | Validar que el 100% de endpoints protegidos devuelvan 401 Unauthorized sin token. |
 | Acuerdo de Nivel de Servicio (SLA) | Parcial | Objetivo operativo declarado: Disponibilidad >= 99.5% y latencia P95 < 500ms. | Medir formalmente el SLA bajo carga real con Locust. |
 
@@ -38,9 +40,9 @@
 
 | Tema | Estado en pre-e4 | Mecanismo Tecnico Implementado y Evidencia en Repositorio | Pendiente / Por Mejorar en E4 |
 | :--- | :---: | :--- | :--- |
-| Fragmentacion de Datos | Implementado | Particionado horizontal declarativo en PostgreSQL: por periodo lectivo (rango anual) y por nivel academico/grado (lista). | Expresar el criterio de fragmentacion en algebra relacional formal en LaTeX. |
-| Replicacion y Consistencia | Implementado | Instancia principal PostgreSQL en AWS EC2 (192.0.2.1:5433) con streaming replication hacia nodo standby en puerto :5434 con consistencia serializable. | Versionar la configuracion del cluster en el repositorio. |
-| Tolerancia a Fallos en Datos | Pendiente | Mecanismo de failover pasivo. | Grabar video formal de la prueba de fallos (caida forzada de nodo primario y verificacion de cero perdida de notas). |
+| Fragmentacion de Datos | Parcial | Separacion logica por esquemas sga_principal, sga_docente, sga_secretaria y sga_soporte segun configuracion, modelos y SQL; no se demuestra particionado fisico por rango/lista. | Documentar la diferencia con los nombres de docs/db/schema.sql en ADR-003. |
+| Replicacion y Consistencia | No demostrada | Compose principal: endpoint PostgreSQL externo unico (predeterminado 192.0.2.1:5433, base sga). Compose de Principal: una instancia postgres:17. No hay configuracion versionada de replicacion ni standby. | Describir la instancia configurada; no certificar la topologia interna del servidor externo. |
+| Tolerancia a Fallos en Datos | No demostrada | Persistencia con punto unico de fallo en la topologia versionada; no se demuestra failover de PostgreSQL. | Registrar la limitacion; la eleccion de lider etcd de Soporte no replica ni recupera PostgreSQL. |
 
 ---
 
@@ -48,7 +50,7 @@
 
 | Tema | Estado en pre-e4 | Mecanismo Tecnico Implementado y Evidencia en Repositorio | Pendiente / Por Mejorar en E4 |
 | :--- | :---: | :--- | :--- |
-| Microservicios con BD Propia | Implementado | Segregacion total: sga-principal (Java/Postgres), microservicio-docente (Python/Postgres), microservicio-secretaria (Java/Postgres), microservicio-soporte (Java/Postgres). Cero base compartida. | Diagrama C4 nivel 3 actualizado en LaTeX. |
+| Microservicios con BD Propia | Parcial | Los servicios comparten por defecto endpoint y base PostgreSQL, con separacion logica multiesquema y accesos adicionales segun configuracion/consultas. No son bases fisicamente independientes. | Alinear C4 y LaTeX con la instancia compartida descrita en ADR-003. |
 | API REST y OpenAPI 3.0 | Parcial | Endpoints documentados con Swagger/SpringDoc en sga-principal. | Exportar y validar las especificaciones OpenAPI 3.0 de todos los microservicios en docs/api/*.yaml. |
 | API Gateway | Implementado | HAProxy configurado como reverse proxy, enrutador por prefijo de ruta (/api/v1/...), verificador de salud y limitador de tasa (rate limiting). | Registrar marca de tiempo, origen y codigo HTTP de cada peticion en el Gateway. |
 | Mensajeria Asincrona | Parcial | Eventos internos de auditoria de calificaciones y confirmacion de matricula. | Justificar tecnicamente la eleccion del canal de eventos. |

@@ -42,3 +42,5 @@ Entradas: los tres archivos `c4_nivel*.puml` de este directorio. PlantUML deriva
 Destinos SVG: `docs/diagrams/c4_nivel*.svg` y `Informe-E4_BCEL/c4_nivel*.svg`.
 
 Destinos PNG: `Informe-E4_BCEL/c4_nivel*.png`, utilizados por `TA-PFC-E4_BCEL.tex`.
+
+Describe los servicios y su endpoint PostgreSQL compartido. El Compose principal usa un servidor externo; el Compose de Principal declara una única instancia local postgres:17 como alternativa. La separación por esquemas es lógica y la persistencia tiene un punto único de fallo en la topología versionada. Los nombres de esquemas se basan en configuración/modelos/SQL; docs/db/schema.sql usa nombres de referencia distintos (véase ADR-003). etcd/Raft coordina Soporte y no replica PostgreSQL.
