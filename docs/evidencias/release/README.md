@@ -47,24 +47,26 @@ El resultado debe compararse con el campo `sha256` correspondiente de [manifest.
 git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/screenshots/<archivo>.png
 ```
 
-## Capturas pendientes de actualización
+## Capturas actualizadas
 
-### 1. SGA Principal
+### SGA Principal
 
 - archivo: `release/screenshots/sga_principal.png`
-- motivo: captura desactualizada respecto al estado actual.
+- estado: `sga_principal.png` es una captura actual que corresponde al dashboard real de SGA Principal, obtenida en entorno local de demostración. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
 
-### 2. Secretaría
+## Capturas pendientes de actualización
+
+### 1. Secretaría
 
 - archivo: `release/screenshots/secretaria_portal.png`
 - motivo: el contenido actual no corresponde al portal real.
 
-### 3. Soporte
+### 2. Soporte
 
 - archivo: `release/screenshots/soporte_tickets.png`
 - motivo: el contenido actual corresponde a Grafana y no al panel de tickets.
 
-### 4. IA
+### 3. IA
 
 - archivo esperado: `release/screenshots/microservicio_ia.png`
 - motivo: no existe evidencia visual versionada del runtime actual.
