@@ -14,8 +14,10 @@ services:
       - DB_HOST=${DB_HOST:-3.23.195.43}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
-      - DB_USER=${DB_USER:-postgres}
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
+      - FLYWAY_USER=${FLYWAY_USER:-postgres}
+      - FLYWAY_PASSWORD=${FLYWAY_PASSWORD}
       - AUDIT=${AUDIT:-m2}
       - JWT_SECRET=${JWT_SECRET}
       - AES_SECRET_KEY=${AES_SECRET_KEY}
