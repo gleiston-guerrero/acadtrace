@@ -35,8 +35,11 @@ Poblado masivo del dataset para cumplir el requisito de Entrega 3
 
 ### Como correrlo
 
+La variable `PGPASSWORD` debe suministrarse externamente en el entorno del proceso
+antes de ejecutar `psql`. No guardar la contrasena en el repositorio.
+
 ```bash
-PGPASSWORD="$env:DB_PASSWORD" psql -h 3.23.195.43 -p 5433 -U postgres -d sga \
+psql -h 3.23.195.43 -p 5433 -U postgres -d sga \
   -v ON_ERROR_STOP=1 -f scripts/seed_e3_500k.sql
 ```
 
@@ -71,4 +74,4 @@ COMMIT;
 
 ## `backups/`
 
-Contiene los dumps `pg_dump` previos a cada corrida del seed.
+Los respaldos pre-seed pueden contener datos sensibles: no deben versionarse y deben almacenarse fuera del repositorio. Para reproducibilidad, utilizar el esquema y las migraciones junto con datos sint?ticos apropiados.
