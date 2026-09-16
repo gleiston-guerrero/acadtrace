@@ -43,3 +43,34 @@ Thumbs.db
 *.out
 *.toc
 *.synctex.gz
+
+# Local secrets and credentials
+.secrets/
+secrets.local/
+credentials.local/
+credentials.json
+credentials.local.*
+*-credentials.json
+firebase-admin*.json
+*service-account*.json
+service_account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+keystore.properties
+.pgpass
+pgpass.conf
+id_rsa
+id_ecdsa
+id_ed25519
+
+# Operational logs (including rotated logs)
+logs/
+*.log.*
+
+# Sensitive database backups
+scripts/backups/backup_pre_seed_*.sql
+sga-principal/sql/supabase_dump_completo.sql

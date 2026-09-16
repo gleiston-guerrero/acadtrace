@@ -19,21 +19,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.jupiter.api.condition.EnabledIf;
-import org.testcontainers.DockerClientFactory;
-
-@Testcontainers(disabledWithoutDocker = true)
-@EnabledIf("isDockerAvailable")
+@Testcontainers
 class AuditoriaFlywayMigrationContainerTest {
-
-    static boolean isDockerAvailable() {
-        try {
-            DockerClientFactory.instance().client();
-            return true;
-        } catch (Throwable ex) {
-            return false;
-        }
-    }
 
     private static final String DB_PASSWORD =
             UUID.randomUUID().toString();
@@ -89,6 +76,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
+                .placeholders(java.util.Map.of("sga_app_password", "test_pass"))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
@@ -219,6 +207,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
+                .placeholders(java.util.Map.of("sga_app_password", "test_pass"))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
