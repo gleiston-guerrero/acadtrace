@@ -292,6 +292,21 @@ services:
     networks:
       - sga-distribuido-net
     restart: unless-stopped
+  # ─── DOZZLE (Visor de logs en tiempo real) ───
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8888:8080"
+    environment:
+      - DOZZLE_USERNAME=${DOZZLE_USERNAME}
+      - DOZZLE_PASSWORD=${DOZZLE_PASSWORD}
+    networks:
+      - sga-distribuido-net
+    restart: unless-stopped
+
 
 networks:
   sga-distribuido-net:
