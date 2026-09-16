@@ -1,112 +1,64 @@
-# Política y Registro de Gestión y Rotación de Secretos — AcadTrace (E1)
+# Gestión de secretos fuera del árbol versionado — Tarea 46
 
-**Responsable de Seguridad y Secretaría:** Ernesto Luna  
-**Coordinación de Infraestructura y Despliegue:** Leonardo Castro  
-**Fecha de Rotación:** 11 de Septiembre de 2026  
-**Estado:** Aplicado y Parametrizado  
+**Fecha de verificación:** 2026-09-16
+**Rama:** `Juliana-Emanuel`
+**HEAD de referencia del saneamiento:** `5ef594c1`
+**Estado:** PARCIAL. Saneamiento del alcance identificado verificado; revocación de credenciales históricas pendiente de verificación externa.
 
----
+## Alcance y límites
 
-## 1. Alcance y Contexto de la Rotación
+Se revisaron archivos de texto tracked del HEAD mediante patrones de contraseñas, secretos, tokens, claves API, JWT, Gemini, SMTP y claves privadas. Los resultados se clasifican sin reproducir valores. Se excluyeron E10, Playwright/E2E y workflows. No se certifica el contenido de imágenes, binarios, servicios desplegados ni almacenes de secretos externos. Esta revisión no equivale a un informe de Gitleaks ni acredita una externalización total.
 
-Para dar cumplimiento estricto al Criterio de Aceptación E1 de la Guía de Consolidación AcadTrace (BCEL), se eliminaron todos los secretos funcionales, contraseñas de base de datos, llaves simétricas y tokens de comunicación inter-servicios que se encontraban hardcodeados en el repositorio de control de versiones.
+## Suministro externo y plantillas
 
-El sistema fue acondicionado para operar bajo el principio de **Fail-Fast (Fallo Rápido)**: si cualquiera de las variables críticas de entorno no es suministrada explícitamente en el entorno de ejecución, Docker Compose y los microservicios detienen su inicio de forma inmediata, evitando arrancar en estados inseguros o con credenciales predeterminadas.
+- Principal y Soporte reciben secretos mediante variables/configuración externa. Secretaría exige `DB_PASSWORD`, `JWT_SECRET`, `AES_SECRET_KEY` y `GRPC_INTERNAL_TOKEN` sin valores de respaldo en `application.properties`.
+- IA obtiene `GEMINI_API_KEY` del entorno. El generador de carga de Soporte exige `JWT_SECRET`; la firma móvil utiliza configuración externa.
+- Los archivos `.env` reales no están tracked y están excluidos por `.gitignore`. Si se usan localmente, deben permanecer fuera del árbol versionado; preferir suministro del entorno o almacenamiento externo con acceso restringido.
+- `.env.example`, `microservicio-docente/.env.example` y `microservicio-secretaria/.env.example` son plantillas con placeholders, no credenciales reales. La plantilla raíz incluye `MAIL_PASSWORD`, `FIREBASE_CREDENTIALS_PATH` y `GRAFANA_ADMIN_PASSWORD`, alineados con Compose. Los placeholders deben sustituirse externamente; no son valores para producción.
+- Firebase requiere un archivo externo de credenciales, indicado por `FIREBASE_CREDENTIALS_PATH`. No debe incorporarse al repositorio.
+- No se afirma fallo inmediato global: una interpolación `${VARIABLE}` en Compose no es equivalente a una validación obligatoria `${VARIABLE:?mensaje}`. Tampoco se verificó aquí el arranque de todos los servicios sin secretos.
 
----
+## Comprobaciones del saneamiento
 
-## 2. Inventario de Secretos Rotados
+| Cambio | Evidencia versionada |
+|---|---|
+| Cuatro secretos obligatorios de Secretaría sin fallback | `28e8c27c` |
+| Comentario de HmacService y dos copias HTML saneados, sin cambiar lógica | `cc84077e` |
+| Contraseña retirada de ejemplos SQL y README; `PGPASSWORD` externa | `2a351196` |
+| Plantilla y exclusiones reforzadas | `6f32ddc2` |
+| Cinco logs operativos retirados del índice | `d76ddbaa` |
+| Dos dumps sensibles retirados del índice y excluidos específicamente | `5ef594c1` |
 
-| Secreto / Credencial | Función en el Sistema | Estado Previo en Repositorio | Estado Actual (Post-Rotación) |
-| :--- | :--- | :--- | :--- |
-| `DB_PASSWORD` | Contraseña de conexión a PostgreSQL Multi-Esquema | Expuesta en `docker-compose.yml` y `.properties` | Parametrizada obligatoria `${DB_PASSWORD}`. Credencial rotada en el servidor de BD en AWS EC2. |
-| `JWT_SECRET` | Clave simétrica HMAC-SHA256 para emisión y firma de tokens JWT y registros de auditoría | Expuesta (`[valor retirado del repositorio]`) | Parametrizada obligatoria `${JWT_SECRET}`. Clave criptográfica de 256 bits rotada globalmente. Sesiones anteriores invalidadas. |
-| `AES_SECRET_KEY` | Clave simétrica AES-256-GCM para cifrado de datos sensibles de menores (RF-04) | Expuesta en `docker-compose.yml` y `.properties` | Parametrizada obligatoria `${AES_SECRET_KEY}`. Llave de 32 bytes (Base64) rotada. |
-| `GRPC_INTERNAL_TOKEN` | Token de autenticación mutua interna para llamadas gRPC entre microservicios | Expuesta (`[valor retirado del repositorio]`) | Parametrizada obligatoria `${GRPC_INTERNAL_TOKEN}` en Principal, Docente, Secretaría y Soporte. |
-| `MAIL_PASSWORD` | Contraseña de aplicación SMTP (Gmail 2FA) para notificaciones por correo | Parcialmente expuesta | Parametrizada obligatoria `${MAIL_PASSWORD}` inyectada en despliegue. |
-| `FIREBASE_CREDENTIALS` | Credenciales de servicio Google Firebase Admin (FCM) | Archivo montado por volumen | Montaje desacoplado vía `/home/ubuntu/.secrets/acadtrace/firebase-admin.json:ro`. |
+Se comprobó la ausencia de los valores previamente identificados en los tres archivos HmacService y en los dos scripts SQL y su README, sin mostrarlos. La inyección existente de HmacService permanece intacta.
 
----
+No están tracked los siguientes archivos:
 
-## 3. Matriz de Suministro de Secretos por Entorno
+- `microservicio-docente/server.err.log`
+- `microservicio-docente/server.out.log`
+- `sga-principal/backend.log`
+- `sga-principal/build.log`
+- `sga-principal/maven-debug.log`
+- `scripts/backups/backup_pre_seed_20260806_135036.sql`
+- `sga-principal/sql/supabase_dump_completo.sql`
 
-Los secretos no residen en el repositorio Git bajo ninguna circunstancia. Son suministrados según la siguiente topología:
+Su retirada se realizó con `git rm --cached`: las copias locales se conservaron, sin sanear su contenido. Esto no demuestra que están almacenadas físicamente fuera del directorio de trabajo ni que tengan permisos adecuados. Los respaldos sensibles deben custodiarse fuera del repositorio; para reproducibilidad se deben usar esquema, migraciones y datos sintéticos apropiados. No se ignoran todos los archivos SQL.
 
-1. **Desarrollo Local:**
-   - Se copia la plantilla `.env.example` o `microservicio-secretaria/.env.example` hacia `.env`.
-   - Se reemplazan los marcadores `change-me` por credenciales generadas localmente.
-   - El archivo `.env` está estrictamente ignorado en `.gitignore`.
+Se conserva `Informe-E4_BCEL/evidencias/tolerancia/evidencia_tolerancia_20260811_081422.log` como excepción académica preventiva. No se encontró referencia explícita que pruebe su obligatoriedad; su contenido no queda certificado por esta excepción.
 
-2. **Integración Continua (GitHub Actions CI/CD):**
-   - Se inyectan como GitHub Actions Secrets (`secrets.DB_PASSWORD`, `secrets.JWT_SECRET`, `secrets.GRPC_INTERNAL_TOKEN`, `secrets.EC2_SSH_KEY`, etc.).
-   - Las pruebas de integración en contenedores (Testcontainers) levantan instancias efímeras con contraseñas generadas dinámicamente durante el ciclo de vida del test.
+## Clasificación y asuntos pendientes
 
-3. **Producción (AWS EC2 / Docker Swarm / Compose):**
-   - Suministrados mediante variables de entorno del sistema operativo host y montajes protegidos en `/run/secrets/` o `/home/ubuntu/.secrets/`.
-   - Permisos de lectura en el servidor host restringidos a `chmod 600` para el usuario de ejecución `ubuntu`.
+- **Variables de entorno:** referencias a configuración externa, sin confundir el nombre de una variable con un secreto.
+- **Placeholders/examples:** plantillas `.env.example` y ejemplos de Prometheus; no acreditan credenciales válidas.
+- **Desarrollo/pruebas:** se mantienen valores predeterminados o de demostración en `sga-principal/docker-compose.yml`, `scripts/populate_all_docentes_full.py` y `microservicio-docente/micro_docente/settings.py`, además de fixtures de pruebas. No se ha acreditado su vigencia como credenciales reales ni una restricción técnica que impida utilizarlos fuera de desarrollo. Deben revisarse antes de declarar externalización total.
+- **Falsos positivos:** DTO, formularios, traducciones, validadores y variables que reciben tokens en ejecución.
+- **Secretos reales:** no se identificaron valores reales adicionales confirmados en el alcance textual revisado. La ausencia de coincidencias no certifica todos los formatos ni la configuración desplegada.
 
----
+## Exposición histórica y revocación
 
-## 4. Procedimiento para Desplegar un Entorno Limpio desde Cero
+El historial no fue reescrito. Hay indicios históricos de contraseñas y claves en `microservicio-soporte/.env` y de una contraseña de correo en revisiones anteriores de la configuración de Principal. Los blobs históricos de dumps y logs también permanecen accesibles: eliminarlos del HEAD no elimina su historia.
 
-Para levantar el ecosistema completo sin ninguna credencial residual:
+Toda credencial que haya estado versionada debe considerarse comprometida y revocarse o rotarse en el proveedor o sistema correspondiente. No se afirma que la rotación está completada: las afirmaciones anteriores de rotación global y sesiones invalidadas no están respaldadas por evidencia verificable en esta revisión.
 
-### Paso 1: Clonar el repositorio
-```bash
-git clone https://github.com/LEO23as/acadtrace.git
-cd acadtrace
-```
+Para cerrar esta limitación se necesita evidencia redactada de la revocación o rotación efectiva, con fecha, sistema, responsable y resultado, sin incluir valores. Deben verificarse las cuentas de BD y correo, claves de firma, tokens internos y cualquier otra credencial expuesta. La rotación de claves de cifrado requiere preservar la recuperación de datos y planificar su migración; no debe sustituirse una clave sin ese control.
 
-### Paso 2: Generar y configurar las variables de entorno
-Copiar el archivo de plantilla:
-```bash
-cp .env.example .env
-```
-
-Generar credenciales criptográficamente seguras:
-```bash
-# Generar JWT_SECRET (mínimo 32 caracteres / 256 bits)
-openssl rand -base64 32
-
-# Generar AES_SECRET_KEY (exactamente 32 bytes en base64)
-openssl rand -base64 32
-
-# Generar GRPC_INTERNAL_TOKEN (token alfanumérico seguro)
-openssl rand -hex 24
-```
-
-Editar el archivo `.env` y definir los valores generados:
-```env
-DB_PASSWORD=<contrasena_segura_postgresql>
-JWT_SECRET=<jwt_secret_generado>
-AES_SECRET_KEY=<aes_secret_key_generado>
-GRPC_INTERNAL_TOKEN=<grpc_token_generado>
-```
-
-### Paso 3: Validación Fail-Fast de Docker Compose
-Si alguna variable requerida no fue definida en `.env` o en el entorno del shell, Docker Compose abortará el arranque inmediatamente con un mensaje explícito:
-```bash
-docker compose config
-```
-*Si falta `DB_PASSWORD`, la consola informará:*
-```
-variable DB_PASSWORD must be defined: DB_PASSWORD debe definirse
-```
-
-### Paso 4: Construcción y arranque de los microservicios
-```bash
-docker compose up -d --build
-```
-
-### Paso 5: Verificación de Salud
-```bash
-docker compose ps
-curl -s http://localhost:8080/actuator/health
-curl -s http://localhost:5176/actuator/health
-```
-
----
-
-## 5. Auditoría Automatizada de Fugas (Gitleaks)
-
-Se incorporó `.gitleaks.toml` y el paso automatizado en el pipeline de CI (`.github/workflows/ci-cd.yml`) para verificar que ningún commit contenga credenciales en texto plano antes de permitir el merge a ramas protegidas.
+La revocación efectiva permanece **PENDIENTE DE VERIFICACIÓN** en los proveedores/sistemas. No se ejecutaron cambios en esos sistemas, reescrituras de historial ni force push durante este cierre documental.

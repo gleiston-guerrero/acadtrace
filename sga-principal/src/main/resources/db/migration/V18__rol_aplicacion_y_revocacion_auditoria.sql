@@ -15,7 +15,7 @@
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sga_app') THEN
-        CREATE ROLE sga_app WITH LOGIN PASSWORD 'sga_app_secure_pass_2026' NOSUPERUSER NOCREATEDB NOCREATEROLE;
+        CREATE ROLE sga_app WITH LOGIN PASSWORD '${sga_app_password}' NOSUPERUSER NOCREATEDB NOCREATEROLE;
     END IF;
 END $$;
 

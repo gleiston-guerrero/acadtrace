@@ -14,8 +14,10 @@ services:
       - DB_HOST=${DB_HOST:-192.0.2.1}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
-      - DB_USER=${DB_USER:-postgres}
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
+      - FLYWAY_USER=${FLYWAY_USER:-postgres}
+      - FLYWAY_PASSWORD=${FLYWAY_PASSWORD}
       - AUDIT=${AUDIT:-m2}
       - JWT_SECRET=${JWT_SECRET}
       - AES_SECRET_KEY=${AES_SECRET_KEY}
@@ -24,9 +26,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
       - MAIL_PASSWORD=${MAIL_PASSWORD}
-      - SPRING_FLYWAY_VALIDATE_ON_MIGRATE=false
-
-
+      
+      
     volumes:
       - ./sga-principal/uploads:/app/uploads
       - ${FIREBASE_CREDENTIALS_PATH:-/home/ubuntu/.secrets/acadtrace/firebase-admin.json}:/run/secrets/firebase-admin.json:ro
@@ -292,6 +293,21 @@ services:
     networks:
       - sga-distribuido-net
     restart: unless-stopped
+  # ─── DOZZLE (Visor de logs en tiempo real) ───
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8888:8080"
+    environment:
+      - DOZZLE_USERNAME=${DOZZLE_USERNAME}
+      - DOZZLE_PASSWORD=${DOZZLE_PASSWORD}
+    networks:
+      - sga-distribuido-net
+    restart: unless-stopped
+
 
 networks:
   sga-distribuido-net:

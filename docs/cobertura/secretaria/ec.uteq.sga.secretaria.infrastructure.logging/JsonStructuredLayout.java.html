@@ -40,7 +40,7 @@ import java.util.Map;
 <span class="fc" id="L40">        Map&lt;String, String&gt; mdc = event.getMDCPropertyMap();</span>
 <span class="pc bpc" id="L41" title="1 of 4 branches missed.">        if (mdc != null &amp;&amp; mdc.containsKey(&quot;traceId&quot;)) {</span>
 <span class="fc" id="L42">            json.put(&quot;traceId&quot;, mdc.get(&quot;traceId&quot;));</span>
-        } else {
+<span class="fc" id="L43">        } else {</span>
 <span class="fc" id="L44">            json.put(&quot;traceId&quot;, null);</span>
         }
 

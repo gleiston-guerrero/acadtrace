@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
  * Firma HMAC-SHA256 para filas de sga_principal.auditoria escritas desde
  * secretaria. Debe producir exactamente la misma firma que
  * ec.edu.uteq.sga.security.HmacService en sga-principal (mismo secreto
- * app.jwt.secret == jwt.secret, mismo orden de campos) para que una fila
+ * suministrado mediante configuracion externa) para que una fila
  * escrita por cualquiera de los dos servicios sea verificable por el otro.
  */
 @Component
@@ -21,21 +21,36 @@ public class HmacService {
 
     private final Mac mac;
 
-<span class="nc" id="L24">    public HmacService(@Value(&quot;${app.jwt.secret:REDACTED_SECRET}&quot;) String secret) {</span>
+<span class="fc" id="L24">    public HmacService(@Value(&quot;${app.jwt.secret}&quot;) String secret) {</span>
         try {
-<span class="nc" id="L26">            this.mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
-<span class="nc" id="L27">            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;));</span>
-<span class="nc" id="L28">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
+<span class="fc" id="L26">            this.mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="fc" id="L27">            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;));</span>
+<span class="pc" id="L28">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
 <span class="nc" id="L29">            throw new IllegalStateException(&quot;No se pudo inicializar HmacSHA256&quot;, e);</span>
-<span class="nc" id="L30">        }</span>
-<span class="nc" id="L31">    }</span>
+        }
+<span class="fc" id="L31">    }</span>
 
     public synchronized String firmar(String... campos) {
-<span class="nc" id="L34">        String canonical = String.join(&quot;|&quot;, campos);</span>
-<span class="nc" id="L35">        byte[] digest = mac.doFinal(canonical.getBytes(StandardCharsets.UTF_8));</span>
-<span class="nc" id="L36">        StringBuilder hex = new StringBuilder(digest.length * 2);</span>
-<span class="nc bnc" id="L37" title="All 2 branches missed.">        for (byte b : digest) hex.append(String.format(&quot;%02x&quot;, b));</span>
-<span class="nc" id="L38">        return hex.toString();</span>
+<span class="fc" id="L34">        String canonical = String.join(&quot;|&quot;, campos);</span>
+<span class="fc" id="L35">        byte[] digest = mac.doFinal(canonical.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L36">        StringBuilder hex = new StringBuilder(digest.length * 2);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        for (byte b : digest) hex.append(String.format(&quot;%02x&quot;, b));</span>
+<span class="fc" id="L38">        return hex.toString();</span>
+    }
+
+    /**
+     * Verifica si el HMAC coincide con los campos computados.
+     * Utiliza MessageDigest.isEqual en tiempo constante para prevenir ataques de temporizacion.
+     */
+    public boolean verificar(String hmacEsperado, String... campos) {
+<span class="pc bpc" id="L46" title="2 of 4 branches missed.">        if (hmacEsperado == null || hmacEsperado.isBlank()) {</span>
+<span class="nc" id="L47">            return false;</span>
+        }
+<span class="fc" id="L49">        String calculado = firmar(campos);</span>
+<span class="fc" id="L50">        return java.security.MessageDigest.isEqual(</span>
+<span class="fc" id="L51">                hmacEsperado.getBytes(StandardCharsets.UTF_8),</span>
+<span class="fc" id="L52">                calculado.getBytes(StandardCharsets.UTF_8)</span>
+        );
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
