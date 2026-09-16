@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
  * Firma HMAC-SHA256 para filas de sga_principal.auditoria escritas desde
  * secretaria. Debe producir exactamente la misma firma que
  * ec.edu.uteq.sga.security.HmacService en sga-principal (mismo secreto
- * app.jwt.secret == jwt.secret, mismo orden de campos) para que una fila
+ * suministrado mediante configuracion externa) para que una fila
  * escrita por cualquiera de los dos servicios sea verificable por el otro.
  */
 @Component
