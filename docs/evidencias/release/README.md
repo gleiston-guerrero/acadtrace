@@ -73,4 +73,4 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 
 No quedan pendientes de actualización entre las capturas de Secretaría, Soporte e IA.
 
-Docente y móvil también requieren confirmación contra el release final antes de considerarse evidencia definitiva. No se incluyen capturas de E10, Playwright, E2E ni pruebas de navegador en esta documentación.
+Docente y móvil también requieren confirmación contra el release final antes de considerarse evidencia definitiva. La evidencia E10 de Docente se conserva en evidencias/Bedon/microservicio-docente/04-E10-e2e-navegador/ y contiene seis capturas generadas automáticamente por Playwright junto con el resultado JUnit de una ejecución satisfactoria.
