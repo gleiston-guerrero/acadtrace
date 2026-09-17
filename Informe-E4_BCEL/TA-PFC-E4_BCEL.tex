@@ -570,7 +570,7 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \subsection{Pir\'amide de Pruebas de Cinco Niveles}
 La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \begin{enumerate}
-  \item \textbf{Unitarias:} Evidencia hist\'orica conservada de pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python): Cobertura parcial documentada en iteraciones previas, pendiente de consolidación final.
+  \item \textbf{Unitarias:} Evidencia hist\'orica conservada de pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python): Cobertura JaCoCo del modulo sga-principal: 48.1\% de instrucciones sobre el BUNDLE completo (excluyendo codigo generado gRPC, DTOs, entidades JPA y configuracion Spring). Compuerta CI configurada al 40\% minimo con \texttt{<element>BUNDLE</element>}, deuda tecnica documentada para elevar el umbral al 70\% en iteraciones posteriores.
   \item \textbf{Integraci\'on:} Validaci\'on de repositorios y transacciones con aislamiento de esquemas.
   \item \textbf{Contrato:} Pruebas con \textbf{Pact} (\texttt{portal-docente-microservicio-docente.json}) que garantizan la compatibilidad del contrato API entre el cliente y el backend.
   \item \textbf{Extremo a Extremo (E2E):} Verificaci\'on de flujos completos desde la autenticaci\'on hasta la consulta de datos.
