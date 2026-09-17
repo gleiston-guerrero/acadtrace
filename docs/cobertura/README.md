@@ -10,6 +10,21 @@ Esta tabla es la fuente central de cobertura documentada para E8. Una cifra marc
 | `microservicio-secretaria/backend` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 71,42 % (2217/3104) | 71,34 % (11048/15487) | 49,38 % (518/1049) | 70 % LINE | 2026-09-16 | Verificado contra `HEAD` actual con Eclipse Temurin JDK 21; cumple el umbral de 70 % LINE (94 pruebas ejecutadas) | Desde `microservicio-secretaria/backend`: `./mvnw test` en Linux/CI; `.\mvnw.cmd test` en Windows |
 | `microservicio-docente` | coverage.py | Ejecución sobre el paquete `docentes` con exclusiones declaradas en `.coveragerc` | 72,56 % | No aplica | No aplica | 70 % LINE (fail_under) | 2026-09-16 | Verificado contra `HEAD` actual con Python 3.12; cumple el umbral de 70 % LINE | Desde `microservicio-docente`: `python -m pytest --cov=docentes --cov-fail-under=70` |
 
+## Alcance oficial de Docente
+
+La medición oficial del microservicio Docente se ejecuta sobre el paquete `docentes` con `coverage.py` y la configuración versionada en `microservicio-docente/.coveragerc`. El comando reproducible es `python -m pytest --cov=docentes --cov-fail-under=70`. La medición registrada el 2026-09-16 con Python 3.12 fue 72,56 %, superando la compuerta mínima de 70 % configurada mediante `fail_under`.
+
+Las exclusiones de `.coveragerc` se interpretan de la siguiente manera:
+
+- `*/migrations/*`: migraciones generadas por Django; no representan lógica de negocio ejecutada por la aplicación.
+- `*/test_*.py`, `*/tests.py`, `*/tests_*.py` y `*/tests/*`: código de la propia suite de pruebas; se excluye para evitar que las pruebas incrementen artificialmente su propio denominador de cobertura.
+- `*/grpc_services/*_pb2.py` y `*/grpc_services/*_pb2_grpc.py`: artefactos Python generados a partir de las definiciones Protocol Buffers.
+- `*/grpc_services/server.py`: contiene el ensamblaje del servidor gRPC y también lógica productiva. Su exclusión forma parte del alcance actual de la métrica publicada y, por transparencia, el 72,56 % no debe interpretarse como cobertura de este archivo.
+- `*/grpc_services/fix_imports.py`: utilidad auxiliar de postprocesamiento de archivos gRPC generados; modifica imports de los módulos `*_pb2_grpc.py` y no forma parte del flujo de negocio en ejecución.
+- `*/management/commands/*`: puntos de entrada operativos de Django. En particular, `rungrpcserver.py` realiza el bootstrap del servidor gRPC y mantiene un bucle de ejecución; se considera infraestructura de arranque fuera del alcance de la métrica publicada.
+
+Estas exclusiones no significan que todo el código excluido sea generado ni que sea imposible probarlo. Definen explícitamente el alcance de la cifra publicada. En particular, `grpc_services/server.py` contiene lógica productiva y se declara expresamente como no incluida para evitar presentar el 72,56 % como cobertura de la totalidad del código del microservicio.
+
 ## Alcance oficial de Secretaría
 
 La cobertura fue regenerada y verificada el 2026-09-16 con Eclipse Temurin JDK 21 ejecutando la suite completa de 94 pruebas unitarias, de integración y gRPC in-process. El reporte actual registra 2217 de 3104 líneas cubiertas (71,42 %) y 11048 de 15487 instrucciones cubiertas (71,34 %), tomados directamente del contador de módulo del `jacoco.xml` generado. Se cumple formalmente con la regla enforceable a nivel de `BUNDLE` de mínimo 70 % LINE configurada en `pom.xml`.
