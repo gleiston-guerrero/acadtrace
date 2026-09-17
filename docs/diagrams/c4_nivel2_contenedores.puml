@@ -14,6 +14,7 @@ System_Boundary(acadtrace, "AcadTrace") {
     Container(web_principal, "Frontend principal", "React / JavaScript (JSX) / Vite", "Interfaz web del núcleo académico.")
     Container(web_docente, "Frontend docente", "React / Vite", "Interfaz web de asistencia y calificaciones.")
     Container(web_secretaria, "Frontend de Secretaría", "React / JavaScript (JSX) / Vite", "Interfaz web de matrículas, expedientes y reportes.")
+    Container(web_soporte, "Frontend de Soporte", "React / JavaScript (JSX) / Vite", "Interfaz web de gestión de tickets y reportes de soporte.")
     Container(haproxy, "HAProxy", "HAProxy 2.9 / Docker", "Balancea Principal, Docente, Secretaría e IA; publica métricas en :8404.")
 
     Container(sga_principal, "sga-principal (2 réplicas)", "Java 21 / Spring Boot", "Núcleo académico, autenticación JWT y gRPC :9092.")
@@ -44,6 +45,8 @@ Rel(app_movil, haproxy, "Peticiones REST", "HTTP :8080 / :8081")
 Rel(web_principal, haproxy, "Peticiones REST", "HTTP :8080 / :8082 / :8084")
 Rel(web_docente, haproxy, "Peticiones REST", "HTTP :8081")
 Rel(web_secretaria, ms_secretaria, "Consume /api/secretario", "HTTP / JSON")
+
+Rel(web_soporte, ms_soporte, "Consume /api/soporte", "HTTP / JSON")
 
 Rel(haproxy, sga_principal, "Enruta REST", "HTTP :8080")
 Rel(haproxy, ms_docente, "Enruta REST", "HTTP :8081")
