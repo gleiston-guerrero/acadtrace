@@ -29,6 +29,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class AuditoriaCadenaConcurrencyE3Test {
 
+    private static final String SGA_APP_PASSWORD =
+            System.getenv().getOrDefault("SGA_APP_PASSWORD_TEST",
+                    "test-" + java.util.UUID.randomUUID().toString());
+
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:16-alpine")
@@ -57,7 +62,7 @@ class AuditoriaCadenaConcurrencyE3Test {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
-                .placeholders(java.util.Map.of("sga_app_password", "sga_app_secure_pass_2026"))
+                .placeholders(java.util.Map.of("sga_app_password", SGA_APP_PASSWORD))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
