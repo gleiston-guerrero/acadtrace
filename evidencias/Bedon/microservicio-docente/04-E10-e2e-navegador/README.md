@@ -4,6 +4,8 @@
 
 La evidencia de este directorio fue generada automáticamente por la suite E2E de Playwright durante una ejecución satisfactoria del flujo de integración continua.
 
+El job `E10 - Playwright Frontend Docente` construye y levanta los servicios necesarios para E10 antes de ejecutar los recorridos de navegador. Playwright ejecuta las pruebas contra ese sistema levantado por el propio flujo, en lugar de depender de un entorno E2E desplegado externamente.
+
 No se utilizan capturas elaboradas manualmente ni capturas de la configuración de GitHub Actions como evidencia de los recorridos.
 
 La suite ejecutó seis pruebas sobre el frontend Docente:
@@ -25,6 +27,7 @@ Resultado de la ejecución conservada:
 - Fallos: 0
 - Omitidas: 0
 - Errores: 0
+- Tiempo registrado: 45.952967 segundos
 
 ## Capturas generadas por Playwright
 
@@ -39,8 +42,24 @@ Las siguientes imágenes fueron generadas automáticamente por Playwright median
 
 Las capturas corresponden a los estados finales observados por el navegador durante los seis recorridos E2E.
 
+## Informe Playwright versionado
+
+El informe HTML generado por Playwright durante la ejecución satisfactoria se conserva en:
+
+`ejecucion-verde/playwright-report/index.html`
+
+De esta forma, el informe de la ejecución en verde queda almacenado en el árbol del repositorio junto con el resultado JUnit y las capturas producidas por la suite.
+
 ## Generación en CI
 
-El job `E10 - Playwright Frontend Docente` genera el reporte HTML y los resultados de prueba. El flujo conserva `playwright-report-docente` y `playwright-test-results-docente` incluso cuando la ejecución finaliza correctamente.
+El job `E10 - Playwright Frontend Docente`:
 
-La evidencia almacenada en `ejecucion-verde/` procede de una ejecución satisfactoria de esa suite y permite conservar en el árbol del repositorio el resultado verificable de E10.
+1. instala Playwright y Chromium;
+2. construye los servicios requeridos para E10;
+3. levanta los backends Principal y Docente;
+4. levanta los frontends Principal y Docente;
+5. espera a que el sistema esté disponible;
+6. ejecuta los seis recorridos E2E sobre ese sistema;
+7. conserva `playwright-report-docente` y `playwright-test-results-docente`.
+
+La evidencia almacenada en `ejecucion-verde/` procede de una ejecución satisfactoria de esa suite y conserva en el árbol del repositorio los artefactos producidos por Playwright.
