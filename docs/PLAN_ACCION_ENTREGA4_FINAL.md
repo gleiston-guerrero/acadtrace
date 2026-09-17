@@ -9,7 +9,7 @@
 
 ### Tareas obligatorias a realizar:
 1. **Ejecutar y generar el reporte de cobertura real:**
-   - Correr `pytest --cov=docentes --cov-report=html:docs/cobertura/docente/`
+   - Correr `pytest --cov=docentes --cov-fail-under=70 --cov-report=html:docs/cobertura/docente/`
    - Asegurar que el reporte HTML quede generado y versionado en `docs/cobertura/docente/index.html`.
 2. **Fijar el umbral de cobertura en configuración:**
    - Abrir `.coveragerc` o `pytest.ini` y configurar `fail_under = 70` de forma explícita.

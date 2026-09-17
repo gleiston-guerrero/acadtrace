@@ -1,0 +1,596 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ------------------------------------------------------------------------
+[INFO] os.detected.name: windows
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 10.0
+[INFO] os.detected.version.major: 10
+[INFO] os.detected.version.minor: 0
+[INFO] os.detected.classifier: windows-x86_64
+Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.pom
+Progress (1): 856 B
+Progress (1): 2.8 kB
+Progress (1): 4.4 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.pom (4.4 kB at 4.4 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.jar
+Progress (1): 0.9/112 kB
+Progress (1): 2.3/112 kB
+Progress (1): 3.6/112 kB
+Progress (1): 5.0/112 kB
+Progress (1): 6.4/112 kB
+Progress (1): 7.7/112 kB
+Progress (1): 9.1/112 kB
+Progress (1): 10/112 kB 
+Progress (1): 11/112 kB
+Progress (1): 13/112 kB
+Progress (1): 14/112 kB
+Progress (1): 15/112 kB
+Progress (1): 17/112 kB
+Progress (1): 18/112 kB
+Progress (1): 20/112 kB
+Progress (1): 21/112 kB
+Progress (1): 22/112 kB
+Progress (1): 24/112 kB
+Progress (1): 25/112 kB
+Progress (1): 26/112 kB
+Progress (1): 28/112 kB
+Progress (1): 29/112 kB
+Progress (1): 31/112 kB
+Progress (1): 32/112 kB
+Progress (1): 33/112 kB
+Progress (1): 35/112 kB
+Progress (1): 36/112 kB
+Progress (1): 37/112 kB
+Progress (1): 39/112 kB
+Progress (1): 40/112 kB
+Progress (1): 41/112 kB
+Progress (1): 43/112 kB
+Progress (1): 44/112 kB
+Progress (1): 46/112 kB
+Progress (1): 47/112 kB
+Progress (1): 48/112 kB
+Progress (1): 50/112 kB
+Progress (1): 51/112 kB
+Progress (1): 55/112 kB
+Progress (1): 60/112 kB
+Progress (1): 64/112 kB
+Progress (1): 68/112 kB
+Progress (1): 72/112 kB
+Progress (1): 76/112 kB
+Progress (1): 81/112 kB
+Progress (1): 85/112 kB
+Progress (1): 89/112 kB
+Progress (1): 93/112 kB
+Progress (1): 98/112 kB
+Progress (1): 98/112 kB
+Progress (1): 103/112 kB
+Progress (1): 107/112 kB
+Progress (1): 111/112 kB
+Progress (1): 112 kB    
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.jar (112 kB at 443 kB/s)
+[INFO] 
+[INFO] -------------------< ec.edu.uteq.sga:sga-principal >--------------------
+[INFO] Building sga-principal 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- flyway:9.22.3:migrate (default-cli) @ sga-principal ---
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.pom
+Progress (1): 1.0 kB
+Progress (1): 3.2 kB
+Progress (1): 3.5 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.pom (3.5 kB at 38 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformats-text/2.15.2/jackson-dataformats-text-2.15.2.pom
+Progress (1): 1.2 kB
+Progress (1): 3.0 kB
+Progress (1): 3.5 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformats-text/2.15.2/jackson-dataformats-text-2.15.2.pom (3.5 kB at 58 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.15.2/jackson-base-2.15.2.pom
+Progress (1): 921 B
+Progress (1): 2.4 kB
+Progress (1): 4.3 kB
+Progress (1): 6.3 kB
+Progress (1): 8.4 kB
+Progress (1): 10 kB 
+Progress (1): 11 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.15.2/jackson-base-2.15.2.pom (11 kB at 245 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.pom
+Progress (1): 975 B
+Progress (1): 2.4 kB
+Progress (1): 4.0 kB
+Progress (1): 6.5 kB
+Progress (1): 8.4 kB
+Progress (1): 10 kB 
+Progress (1): 14 kB
+Progress (1): 15 kB
+Progress (1): 16 kB
+Progress (1): 18 kB
+Progress (1): 19 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.pom (19 kB at 280 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.pom
+Progress (1): 946 B
+Progress (1): 2.4 kB
+Progress (1): 3.9 kB
+Progress (1): 6.3 kB
+Progress (1): 7.1 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.pom (7.1 kB at 94 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.pom
+Progress (1): 981 B
+Progress (1): 2.9 kB
+Progress (1): 6.7 kB
+Progress (1): 9.3 kB
+Progress (1): 9.8 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.pom (9.8 kB at 153 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.pom
+Progress (1): 742 B
+Progress (1): 2.2 kB
+Progress (1): 3.9 kB
+Progress (1): 6.7 kB
+Progress (1): 9.9 kB
+Progress (1): 14 kB 
+Progress (1): 17 kB
+Progress (1): 17 kB
+Progress (1): 20 kB
+Progress (1): 21 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.pom (21 kB at 88 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/54/commons-parent-54.pom
+Progress (1): 706 B
+Progress (1): 1.9 kB
+Progress (1): 3.1 kB
+Progress (1): 4.6 kB
+Progress (1): 6.4 kB
+Progress (1): 8.3 kB
+Progress (1): 10 kB 
+Progress (1): 11 kB
+Progress (1): 13 kB
+Progress (1): 16 kB
+Progress (1): 18 kB
+Progress (1): 20 kB
+Progress (1): 23 kB
+Progress (1): 26 kB
+Progress (1): 30 kB
+Progress (1): 33 kB
+Progress (1): 34 kB
+Progress (1): 39 kB
+Progress (1): 42 kB
+Progress (1): 45 kB
+Progress (1): 47 kB
+Progress (1): 50 kB
+Progress (1): 52 kB
+Progress (1): 56 kB
+Progress (1): 59 kB
+Progress (1): 60 kB
+Progress (1): 62 kB
+Progress (1): 66 kB
+Progress (1): 69 kB
+Progress (1): 76 kB
+Progress (1): 78 kB
+Progress (1): 82 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/54/commons-parent-54.pom (82 kB at 1.2 MB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.jar
+Progress (1): 3.8/56 kB
+Progress (1): 8.0/56 kB
+Progress (1): 11/56 kB 
+Progress (1): 28/56 kB
+Progress (1): 44/56 kB
+Progress (1): 56 kB   
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.jar (56 kB at 753 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.jar
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.jar
+Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar
+Progress (1): 7.7/76 kB
+Progress (1): 11/76 kB 
+Progress (1): 28/76 kB
+Progress (1): 44/76 kB
+Progress (1): 61/76 kB
+Progress (1): 76 kB   
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.jar (76 kB at 1.1 MB/s)
+Progress (1): 0.9/238 kB
+Progress (1): 2.3/238 kB
+Progress (1): 3.6/238 kB
+Progress (1): 5.0/238 kB
+Progress (1): 6.4/238 kB
+Progress (1): 7.7/238 kB
+Progress (1): 9.1/238 kB
+Progress (1): 10/238 kB 
+Progress (1): 12/238 kB
+Progress (1): 12/238 kB
+Progress (1): 14/238 kB
+Progress (1): 15/238 kB
+Progress (1): 16/238 kB
+Progress (1): 18/238 kB
+Progress (1): 19/238 kB
+Progress (1): 21/238 kB
+Progress (1): 22/238 kB
+Progress (1): 23/238 kB
+Progress (1): 25/238 kB
+Progress (1): 26/238 kB
+Progress (1): 27/238 kB
+Progress (1): 29/238 kB
+Progress (1): 30/238 kB
+Progress (1): 31/238 kB
+Progress (1): 33/238 kB
+Progress (1): 34/238 kB
+Progress (1): 36/238 kB
+Progress (1): 37/238 kB
+Progress (1): 38/238 kB
+Progress (1): 40/238 kB
+Progress (1): 41/238 kB
+Progress (1): 42/238 kB
+Progress (1): 44/238 kB
+Progress (1): 45/238 kB
+Progress (1): 47/238 kB
+Progress (1): 48/238 kB
+Progress (1): 49/238 kB
+Progress (2): 49/238 kB | 0/1.6 MB
+Progress (2): 51/238 kB | 0/1.6 MB
+Progress (2): 51/238 kB | 0/1.6 MB
+Progress (2): 51/238 kB | 0/1.6 MB
+Progress (2): 52/238 kB | 0/1.6 MB
+Progress (2): 53/238 kB | 0/1.6 MB
+Progress (2): 53/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 55/238 kB | 0/1.6 MB
+Progress (2): 59/238 kB | 0/1.6 MB
+Progress (2): 63/238 kB | 0/1.6 MB
+Progress (3): 63/238 kB | 0/1.6 MB | 0.9/549 kB
+Progress (3): 63/238 kB | 0/1.6 MB | 2.3/549 kB
+Progress (3): 63/238 kB | 0/1.6 MB | 3.6/549 kB
+Progress (3): 63/238 kB | 0/1.6 MB | 5.0/549 kB
+Progress (3): 63/238 kB | 0/1.6 MB | 6.4/549 kB
+Progress (3): 63/238 kB | 0/1.6 MB | 7.7/549 kB
+Progress (3): 63/238 kB | 0/1.6 MB | 9.1/549 kB
+Progress (3): 67/238 kB | 0/1.6 MB | 9.1/549 kB
+Progress (3): 67/238 kB | 0/1.6 MB | 10/549 kB 
+Progress (3): 72/238 kB | 0/1.6 MB | 10/549 kB
+Progress (3): 72/238 kB | 0/1.6 MB | 11/549 kB
+Progress (3): 76/238 kB | 0/1.6 MB | 11/549 kB
+Progress (3): 76/238 kB | 0/1.6 MB | 13/549 kB
+Progress (3): 76/238 kB | 0/1.6 MB | 14/549 kB
+Progress (3): 76/238 kB | 0/1.6 MB | 15/549 kB
+Progress (3): 76/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 80/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 84/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 89/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 89/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 93/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 93/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 93/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 97/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 97/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 97/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 101/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 105/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 105/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 105/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 110/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 110/238 kB | 0/1.6 MB | 17/549 kB
+Progress (3): 110/238 kB | 0/1.6 MB | 18/549 kB
+Progress (3): 110/238 kB | 0/1.6 MB | 18/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 18/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 20/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 20/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 21/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 21/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 22/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 22/549 kB
+Progress (3): 114/238 kB | 0/1.6 MB | 24/549 kB
+Progress (3): 114/238 kB | 0.1/1.6 MB | 24/549 kB
+Progress (3): 114/238 kB | 0.1/1.6 MB | 25/549 kB
+Progress (3): 114/238 kB | 0.1/1.6 MB | 25/549 kB
+Progress (3): 114/238 kB | 0.1/1.6 MB | 26/549 kB
+Progress (3): 114/238 kB | 0.1/1.6 MB | 28/549 kB
+Progress (3): 114/238 kB | 0.1/1.6 MB | 28/549 kB
+Progress (3): 118/238 kB | 0.1/1.6 MB | 28/549 kB
+Progress (3): 118/238 kB | 0.1/1.6 MB | 29/549 kB
+Progress (3): 118/238 kB | 0.1/1.6 MB | 31/549 kB
+Progress (3): 118/238 kB | 0.1/1.6 MB | 32/549 kB
+Progress (3): 122/238 kB | 0.1/1.6 MB | 32/549 kB
+Progress (3): 127/238 kB | 0.1/1.6 MB | 32/549 kB
+Progress (3): 131/238 kB | 0.1/1.6 MB | 32/549 kB
+Progress (3): 131/238 kB | 0.1/1.6 MB | 33/549 kB
+Progress (3): 131/238 kB | 0.1/1.6 MB | 35/549 kB
+Progress (3): 131/238 kB | 0.1/1.6 MB | 35/549 kB
+Progress (3): 131/238 kB | 0.1/1.6 MB | 35/549 kB
+Progress (3): 135/238 kB | 0.1/1.6 MB | 35/549 kB
+Progress (3): 135/238 kB | 0.1/1.6 MB | 36/549 kB
+Progress (3): 135/238 kB | 0.1/1.6 MB | 37/549 kB
+Progress (3): 139/238 kB | 0.1/1.6 MB | 37/549 kB
+Progress (3): 139/238 kB | 0.1/1.6 MB | 39/549 kB
+Progress (3): 139/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 143/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 143/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 143/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 148/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 152/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 152/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 152/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 156/238 kB | 0.1/1.6 MB | 40/549 kB
+Progress (3): 156/238 kB | 0.1/1.6 MB | 41/549 kB
+Progress (3): 156/238 kB | 0.1/1.6 MB | 41/549 kB
+Progress (3): 160/238 kB | 0.1/1.6 MB | 41/549 kB
+Progress (3): 160/238 kB | 0.1/1.6 MB | 43/549 kB
+Progress (3): 160/238 kB | 0.1/1.6 MB | 44/549 kB
+Progress (3): 160/238 kB | 0.1/1.6 MB | 44/549 kB
+Progress (3): 165/238 kB | 0.1/1.6 MB | 44/549 kB
+Progress (3): 165/238 kB | 0.1/1.6 MB | 46/549 kB
+Progress (3): 165/238 kB | 0.1/1.6 MB | 47/549 kB
+Progress (3): 165/238 kB | 0.1/1.6 MB | 47/549 kB
+Progress (3): 169/238 kB | 0.1/1.6 MB | 47/549 kB
+Progress (3): 169/238 kB | 0.1/1.6 MB | 48/549 kB
+Progress (3): 169/238 kB | 0.1/1.6 MB | 50/549 kB
+Progress (3): 173/238 kB | 0.1/1.6 MB | 50/549 kB
+Progress (3): 173/238 kB | 0.1/1.6 MB | 50/549 kB
+Progress (3): 173/238 kB | 0.1/1.6 MB | 51/549 kB
+Progress (3): 173/238 kB | 0.1/1.6 MB | 52/549 kB
+Progress (3): 177/238 kB | 0.1/1.6 MB | 52/549 kB
+Progress (3): 177/238 kB | 0.1/1.6 MB | 52/549 kB
+Progress (3): 177/238 kB | 0.1/1.6 MB | 54/549 kB
+Progress (3): 177/238 kB | 0.1/1.6 MB | 55/549 kB
+Progress (3): 177/238 kB | 0.1/1.6 MB | 55/549 kB
+Progress (3): 181/238 kB | 0.1/1.6 MB | 55/549 kB
+Progress (3): 181/238 kB | 0.1/1.6 MB | 59/549 kB
+Progress (3): 181/238 kB | 0.1/1.6 MB | 59/549 kB
+Progress (3): 186/238 kB | 0.1/1.6 MB | 59/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 59/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 59/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 64/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 68/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 72/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 76/549 kB
+Progress (3): 190/238 kB | 0.1/1.6 MB | 81/549 kB
+Progress (3): 194/238 kB | 0.1/1.6 MB | 81/549 kB
+Progress (3): 198/238 kB | 0.1/1.6 MB | 81/549 kB
+Progress (3): 198/238 kB | 0.1/1.6 MB | 85/549 kB
+Progress (3): 198/238 kB | 0.1/1.6 MB | 85/549 kB
+Progress (3): 203/238 kB | 0.1/1.6 MB | 85/549 kB
+Progress (3): 203/238 kB | 0.1/1.6 MB | 89/549 kB
+Progress (3): 203/238 kB | 0.1/1.6 MB | 89/549 kB
+Progress (3): 207/238 kB | 0.1/1.6 MB | 89/549 kB
+Progress (3): 207/238 kB | 0.1/1.6 MB | 93/549 kB
+Progress (3): 207/238 kB | 0.1/1.6 MB | 93/549 kB
+Progress (3): 211/238 kB | 0.1/1.6 MB | 93/549 kB
+Progress (3): 211/238 kB | 0.1/1.6 MB | 97/549 kB
+Progress (3): 215/238 kB | 0.1/1.6 MB | 97/549 kB
+Progress (3): 215/238 kB | 0.1/1.6 MB | 97/549 kB
+Progress (3): 215/238 kB | 0.1/1.6 MB | 102/549 kB
+Progress (3): 215/238 kB | 0.1/1.6 MB | 106/549 kB
+Progress (3): 215/238 kB | 0.1/1.6 MB | 106/549 kB
+Progress (3): 219/238 kB | 0.1/1.6 MB | 106/549 kB
+Progress (3): 219/238 kB | 0.1/1.6 MB | 106/549 kB
+Progress (3): 219/238 kB | 0.1/1.6 MB | 110/549 kB
+Progress (3): 224/238 kB | 0.1/1.6 MB | 110/549 kB
+Progress (3): 224/238 kB | 0.1/1.6 MB | 110/549 kB
+Progress (3): 224/238 kB | 0.1/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.1/1.6 MB | 110/549 kB    
+Progress (3): 238 kB | 0.1/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.1/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 114/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 114/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 119/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 123/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 126/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 126/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 130/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 130/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 130/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 135/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 135/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 135/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 139/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 139/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 139/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 143/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 143/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 147/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 151/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 156/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 156/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 160/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 164/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 168/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 173/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 177/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 181/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 185/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 189/549 kB
+Progress (3): 238 kB | 0.2/1.6 MB | 194/549 kB
+                                              
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar (238 kB at 842 kB/s)
+Progress (2): 0.3/1.6 MB | 194/549 kB
+Progress (2): 0.3/1.6 MB | 198/549 kB
+Progress (2): 0.3/1.6 MB | 202/549 kB
+Progress (2): 0.3/1.6 MB | 202/549 kB
+Progress (2): 0.3/1.6 MB | 206/549 kB
+Progress (2): 0.3/1.6 MB | 211/549 kB
+Progress (2): 0.3/1.6 MB | 211/549 kB
+Progress (2): 0.3/1.6 MB | 215/549 kB
+Progress (2): 0.3/1.6 MB | 215/549 kB
+Progress (2): 0.3/1.6 MB | 219/549 kB
+Progress (2): 0.3/1.6 MB | 219/549 kB
+Progress (2): 0.3/1.6 MB | 223/549 kB
+Progress (2): 0.3/1.6 MB | 223/549 kB
+Progress (2): 0.3/1.6 MB | 223/549 kB
+Progress (2): 0.3/1.6 MB | 240/549 kB
+Progress (2): 0.4/1.6 MB | 240/549 kB
+Progress (2): 0.4/1.6 MB | 256/549 kB
+Progress (2): 0.4/1.6 MB | 257/549 kB
+Progress (2): 0.4/1.6 MB | 274/549 kB
+Progress (2): 0.4/1.6 MB | 274/549 kB
+Progress (2): 0.4/1.6 MB | 274/549 kB
+Progress (2): 0.4/1.6 MB | 274/549 kB
+Progress (2): 0.4/1.6 MB | 274/549 kB
+Progress (2): 0.4/1.6 MB | 290/549 kB
+Progress (2): 0.4/1.6 MB | 290/549 kB
+Progress (2): 0.4/1.6 MB | 306/549 kB
+Progress (2): 0.5/1.6 MB | 306/549 kB
+Progress (2): 0.5/1.6 MB | 323/549 kB
+Progress (2): 0.5/1.6 MB | 339/549 kB
+Progress (2): 0.5/1.6 MB | 339/549 kB
+Progress (2): 0.5/1.6 MB | 355/549 kB
+Progress (2): 0.5/1.6 MB | 372/549 kB
+Progress (2): 0.5/1.6 MB | 372/549 kB
+Progress (2): 0.5/1.6 MB | 388/549 kB
+Progress (2): 0.5/1.6 MB | 388/549 kB
+Progress (2): 0.5/1.6 MB | 405/549 kB
+Progress (2): 0.5/1.6 MB | 405/549 kB
+Progress (2): 0.5/1.6 MB | 421/549 kB
+Progress (2): 0.5/1.6 MB | 421/549 kB
+Progress (2): 0.5/1.6 MB | 437/549 kB
+Progress (2): 0.6/1.6 MB | 437/549 kB
+Progress (2): 0.6/1.6 MB | 437/549 kB
+Progress (2): 0.6/1.6 MB | 437/549 kB
+Progress (2): 0.6/1.6 MB | 437/549 kB
+Progress (2): 0.6/1.6 MB | 454/549 kB
+Progress (2): 0.6/1.6 MB | 454/549 kB
+Progress (2): 0.6/1.6 MB | 454/549 kB
+Progress (2): 0.7/1.6 MB | 454/549 kB
+Progress (2): 0.7/1.6 MB | 454/549 kB
+Progress (2): 0.7/1.6 MB | 470/549 kB
+Progress (2): 0.7/1.6 MB | 487/549 kB
+Progress (2): 0.7/1.6 MB | 487/549 kB
+Progress (2): 0.7/1.6 MB | 487/549 kB
+Progress (2): 0.7/1.6 MB | 503/549 kB
+Progress (2): 0.7/1.6 MB | 503/549 kB
+Progress (2): 0.7/1.6 MB | 519/549 kB
+Progress (2): 0.7/1.6 MB | 519/549 kB
+Progress (2): 0.7/1.6 MB | 536/549 kB
+Progress (2): 0.7/1.6 MB | 549 kB    
+Progress (2): 0.8/1.6 MB | 549 kB
+Progress (2): 0.8/1.6 MB | 549 kB
+Progress (2): 0.8/1.6 MB | 549 kB
+Progress (2): 0.8/1.6 MB | 549 kB
+Progress (2): 0.8/1.6 MB | 549 kB
+Progress (2): 0.8/1.6 MB | 549 kB
+Progress (2): 0.9/1.6 MB | 549 kB
+Progress (2): 0.9/1.6 MB | 549 kB
+Progress (2): 0.9/1.6 MB | 549 kB
+Progress (2): 0.9/1.6 MB | 549 kB
+Progress (2): 0.9/1.6 MB | 549 kB
+Progress (2): 0.9/1.6 MB | 549 kB
+Progress (2): 1.0/1.6 MB | 549 kB
+Progress (2): 1.0/1.6 MB | 549 kB
+                                 
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.jar (549 kB at 1.5 MB/s)
+Progress (1): 1.0/1.6 MB
+Progress (1): 1.0/1.6 MB
+Progress (1): 1.0/1.6 MB
+Progress (1): 1.0/1.6 MB
+Progress (1): 1.0/1.6 MB
+Progress (1): 1.1/1.6 MB
+Progress (1): 1.1/1.6 MB
+Progress (1): 1.1/1.6 MB
+Progress (1): 1.1/1.6 MB
+Progress (1): 1.1/1.6 MB
+Progress (1): 1.1/1.6 MB
+Progress (1): 1.2/1.6 MB
+Progress (1): 1.2/1.6 MB
+Progress (1): 1.2/1.6 MB
+Progress (1): 1.2/1.6 MB
+Progress (1): 1.2/1.6 MB
+Progress (1): 1.2/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.3/1.6 MB
+Progress (1): 1.4/1.6 MB
+Progress (1): 1.4/1.6 MB
+Progress (1): 1.4/1.6 MB
+Progress (1): 1.4/1.6 MB
+Progress (1): 1.4/1.6 MB
+Progress (1): 1.4/1.6 MB
+Progress (1): 1.5/1.6 MB
+Progress (1): 1.5/1.6 MB
+Progress (1): 1.5/1.6 MB
+Progress (1): 1.5/1.6 MB
+Progress (1): 1.5/1.6 MB
+Progress (1): 1.5/1.6 MB
+Progress (1): 1.6/1.6 MB
+Progress (1): 1.6/1.6 MB
+Progress (1): 1.6/1.6 MB
+Progress (1): 1.6/1.6 MB
+Progress (1): 1.6 MB    
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.jar (1.6 MB at 3.9 MB/s)
+[INFO] Flyway Community Edition 9.22.3 by Redgate
+[INFO] See release notes here: https://rd.gt/416ObMi
+[INFO] 
+[INFO] Database: jdbc:postgresql://localhost:55432/sga (PostgreSQL 17.11)
+[WARNING] Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+[INFO] Schema history table "sga_principal"."flyway_schema_history" does not exist yet
+[INFO] Successfully validated 11 migrations (execution time 00:00.154s)
+[INFO] Creating Schema History table "sga_principal"."flyway_schema_history" with baseline ...
+[INFO] Successfully baselined schema with version: 8
+[INFO] Current version of schema "sga_principal": 8
+[INFO] Migrating schema "sga_principal" to version "9 - representante usuario y rol"
+[INFO] Migrating schema "sga_principal" to version "10 - vincular cuentas representante"
+[INFO] Migrating schema "sga_principal" to version "12 - notificaciones push fcm"
+[INFO] Migrating schema "sga_principal" to version "13 - trigger y revocacion auditoria"
+[INFO] DB: trigger "tg_auditoria_append_only" for relation "sga_principal.auditoria" does not exist, skipping
+[INFO] Migrating schema "sga_principal" to version "14 - cadena auditoria lamport"
+[INFO] Migrating schema "sga_principal" to version "15 - auditoria campos criptograficos"
+[WARNING] DB: column "hash_anterior" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+[WARNING] DB: column "hash_actual" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+[WARNING] DB: column "reloj_lamport" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+[INFO] Migrating schema "sga_principal" to version "16 - estado cadena auditoria"
+[INFO] Migrating schema "sga_principal" to version "17 - accion auditoria docente"
+[INFO] Migrating schema "sga_principal" to version "18 - rol aplicacion y revocacion auditoria"
+[INFO] Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
+[WARNING] DB: schema "sga_docente" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+[WARNING] DB: schema "sga_soporte" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+[INFO] Migrating schema "sga_principal" to version "20 - reparar checksum v18"
+[INFO] DB: V20: fila V18 marcada con checksum NULL para recalculo
+[INFO] Successfully applied 11 migrations to schema "sga_principal", now at version v20 (execution time 00:00.878s)
+[WARNING] Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  16.371 s
+[INFO] Finished at: 2026-09-17T07:29:19-05:00
+[INFO] ------------------------------------------------------------------------

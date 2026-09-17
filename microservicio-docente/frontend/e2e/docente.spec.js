@@ -52,7 +52,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     ).toBeVisible();
   });
 
-  test("registro de calificación restaura la nota original", async ({
+  test("registro de calificacion restaura el estado original", async ({
     page,
   }) => {
     // El recorrido puede revisar varios cursos, trimestres, semanas y actividades.
@@ -224,13 +224,13 @@ test.describe("Frontend Docente conectado al entorno real", () => {
               await candidata.inputValue()
             ).trim();
 
-            // E10 debe modificar una calificación que ya existe
-            // para poder restaurar exactamente el estado inicial.
-            if (valor === "") {
-              continue;
-            }
-
-            if (!Number.isFinite(Number(valor))) {
+            // Una nota existente se restaura con PATCH.
+            // Un campo vacio se puede usar como ultimo recurso:
+            // E10 crea la nota y luego elimina solo ese registro.
+            if (
+              valor !== "" &&
+              !Number.isFinite(Number(valor))
+            ) {
               continue;
             }
 
@@ -262,7 +262,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 
     expect(
       nota,
-      "No se encontro ninguna calificacion previa restaurable en los cursos disponibles"
+      "No se encontro ningun campo de calificacion editable en los cursos disponibles"
     ).not.toBeNull();
 
     expect(
@@ -286,8 +286,10 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       minAtributo === null
         ? 0
         : Number(minAtributo);
-
-    const actual = Number(original);
+    const teniaCalificacion = original !== "";
+    const actual = teniaCalificacion
+      ? Number(original)
+      : minimo;
 
     expect(
       Number.isFinite(actual),
@@ -504,6 +506,7 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       );
 
        let identidadCalificacion = null;
+    let calificacionCreada = null;
 
     /*
      * Guarda mediante la interfaz real y comprueba:
@@ -654,6 +657,56 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           identidadActual;
       }
 
+      if (
+        guardarIdentidad &&
+        !teniaCalificacion &&
+        respuesta.ok()
+      ) {
+        expect(
+          request.method(),
+          "Un campo originalmente vacio debe crear la calificacion con POST"
+        ).toBe("POST");
+
+        const cuerpo = await respuesta
+          .json()
+          .catch(() => null);
+
+        const idCreada =
+          cuerpo?.id_calificacion ??
+          cuerpo?.id ??
+          null;
+
+        expect(
+          idCreada,
+          "La API no devolvio el identificador de la calificacion creada"
+        ).not.toBeNull();
+
+        const cabecerasOriginales =
+          request.headers();
+
+        const cabecerasLimpieza = {};
+
+        for (const nombre of [
+          "authorization",
+          "x-csrftoken",
+        ]) {
+          if (cabecerasOriginales[nombre]) {
+            cabecerasLimpieza[nombre] =
+              cabecerasOriginales[nombre];
+          }
+        }
+
+        const urlColeccion =
+          respuesta.url().endsWith("/")
+            ? respuesta.url()
+            : `${respuesta.url()}/`;
+
+        calificacionCreada = {
+          url: `${urlColeccion}${idCreada}/`,
+          headers: cabecerasLimpieza,
+        };
+      }
+
       expect(
         respuesta.ok(),
         `La API respondió HTTP ${respuesta.status()} al guardar la calificación`
@@ -728,10 +781,45 @@ test.describe("Frontend Docente conectado al entorno real", () => {
        * se exige además que la segunda escritura corresponda
        * exactamente a la misma calificación.
        */
-      await guardarYVerificar(
-        original,
-        identidadCalificacion
-      );
+      if (teniaCalificacion) {
+        await guardarYVerificar(
+          original,
+          identidadCalificacion
+        );
+      } else {
+        expect(
+          calificacionCreada,
+          "E10 no pudo identificar la calificacion temporal creada"
+        ).not.toBeNull();
+
+        const eliminacion =
+          await page.context().request.delete(
+            calificacionCreada.url,
+            {
+              headers:
+                calificacionCreada.headers,
+            }
+          );
+
+        expect(
+          eliminacion.ok(),
+          `No se pudo restaurar la ausencia original; DELETE respondio ${eliminacion.status()}`
+        ).toBeTruthy();
+
+        const comprobacion =
+          await page.context().request.get(
+            calificacionCreada.url,
+            {
+              headers:
+                calificacionCreada.headers,
+            }
+          );
+
+        expect(
+          comprobacion.status(),
+          "La calificacion temporal sigue existiendo despues de restaurar"
+        ).toBe(404);
+      }
     }
 
     expect(
@@ -767,40 +855,60 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 test(
   "acceso sin autenticación a Asistencia es rechazado o redirigido al Login",
   async ({ page }) => {
-    test.skip(
-      !e2e.baseURL ||
-        !e2e.loginURL,
-      "Requiere E2E_BASE_URL y E2E_LOGIN_URL"
-    );
+    const asistenciaURL = new URL(
+      "/asistencia",
+      e2e.baseURL
+    ).toString();
 
-    await page.goto(
-      new URL(
-        "/asistencia",
-        e2e.baseURL
-      ).toString()
-    );
+    await page.goto(asistenciaURL, {
+      waitUntil: "domcontentloaded",
+    });
 
-    const loginOrigin =
-      new URL(
-        e2e.loginURL
-      ).origin;
+    const loginURL = new URL(
+      e2e.loginURL
+    );
 
     await expect
       .poll(
-        () =>
-          new URL(
+        () => {
+          const actual = new URL(
             page.url()
-          ).origin,
+          );
+
+          return {
+            origin: actual.origin,
+            pathname: actual.pathname,
+          };
+        },
         {
           timeout: 15_000,
+          message:
+            "El acceso sin autenticación a Asistencia no fue redirigido al Login",
         }
       )
-      .toBe(loginOrigin);
+      .toEqual({
+        origin: loginURL.origin,
+        pathname: loginURL.pathname,
+      });
 
     await expect(
       page.getByPlaceholder(
         /ingresa tu usuario/i
       )
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await expect(
+      page.getByPlaceholder(
+        /ingresa tu contraseña/i
+      )
     ).toBeVisible();
-   }
+
+    await expect(
+      page.getByRole("button", {
+        name: /ingresar/i,
+      })
+    ).toBeVisible();
+  }
 );

@@ -18,12 +18,12 @@ public final class PdfLayout {
 
 <span class="fc" id="L19">        canvas.rect(0, 0, pageWidth, 90, PdfTheme.PRIMARY);</span>
 <span class="fc" id="L20">        canvas.textAligned(40, 22, pageWidth - 80, theme.nombre(), Fonts.HELVETICA_BOLD, 16,</span>
-                PdfTheme.WHITE, PdfCanvas.Align.CENTER);
+<span class="fc" id="L21">                PdfTheme.WHITE, PdfCanvas.Align.CENTER);</span>
 <span class="fc" id="L22">        canvas.textAligned(40, 48, pageWidth - 80, titulo.toUpperCase(Locale.ROOT), Fonts.HELVETICA, 11,</span>
-                PdfTheme.HEADER_SUBTITLE, PdfCanvas.Align.CENTER);
+<span class="fc" id="L23">                PdfTheme.HEADER_SUBTITLE, PdfCanvas.Align.CENTER);</span>
 <span class="pc bpc" id="L24" title="1 of 4 branches missed.">        if (subtitulo != null &amp;&amp; !subtitulo.isBlank()) {</span>
 <span class="fc" id="L25">            canvas.textAligned(40, 66, pageWidth - 80, subtitulo, Fonts.HELVETICA, 9,</span>
-                    PdfTheme.HEADER_SUBSUBTITLE, PdfCanvas.Align.CENTER);
+<span class="fc" id="L26">                    PdfTheme.HEADER_SUBSUBTITLE, PdfCanvas.Align.CENTER);</span>
         }
 <span class="fc" id="L28">        canvas.rect(0, 90, pageWidth, 4, PdfTheme.ACCENT);</span>
 
@@ -38,7 +38,7 @@ public final class PdfLayout {
 <span class="fc" id="L38">        String fecha = LocalDate.now().format(FOOTER_DATE_FORMAT);</span>
 <span class="fc" id="L39">        canvas.text(40, y, theme.ciudad() + &quot; — Generado el &quot; + fecha, Fonts.HELVETICA, 8, PdfTheme.MUTED);</span>
 <span class="fc" id="L40">        canvas.textAligned(40, y, pageWidth - 80, &quot;Documento generado por SGA&quot;, Fonts.HELVETICA, 8,</span>
-                PdfTheme.MUTED, PdfCanvas.Align.RIGHT);
+<span class="fc" id="L41">                PdfTheme.MUTED, PdfCanvas.Align.RIGHT);</span>
 <span class="fc" id="L42">    }</span>
 
     public static float drawSectionTitle(PdfCanvas canvas, String title, float y) throws IOException {

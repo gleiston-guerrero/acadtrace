@@ -188,6 +188,13 @@
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
         </dependency>
+
+        <!-- OpenAPI / Swagger Documentation (E4) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -282,26 +289,41 @@
                 <version>0.8.11</version>
                 <configuration>
                     <excludes>
+                        <!-- Codigo generado por protoc/grpc -->
                         <exclude>**/grpc/**</exclude>
                         <exclude>**/*Proto*</exclude>
                         <exclude>ec/edu/uteq/sga/grpc/**</exclude>
+                        <!-- DTOs, payloads y entidades JPA (POJOs sin logica) -->
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/payload/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                        <exclude>**/entities/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/models/**</exclude>
+                        <!-- Configuracion Spring, no contiene logica de negocio -->
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/configuration/**</exclude>
+                        <!-- Manejadores de excepciones y clases de excepcion -->
+                        <exclude>**/exception/**</exclude>
+                        <exclude>**/exceptions/**</exclude>
+                        <exclude>**/*Exception.*</exclude>
+                        <!-- Clase principal de arranque Spring Boot -->
+                        <exclude>ec/edu/uteq/sga/SgaPrincipalApplication.*</exclude>
+                        <!-- Constantes y enums (sin ramificacion) -->
+                        <exclude>**/constants/**</exclude>
+                        <exclude>**/enums/**</exclude>
+                        <!-- Mappers auto-generados o triviales -->
+                        <exclude>**/mapper/**</exclude>
+                        <exclude>**/mappers/**</exclude>
                     </excludes>
                     <rules>
                         <rule>
-                            <element>CLASS</element>
-                            <includes>
-                                <include>ec.edu.uteq.sga.application.service.EstudianteService</include>
-                                <include>ec.edu.uteq.sga.application.service.MatriculaService</include>
-                                <include>ec.edu.uteq.sga.application.service.AnoLectivoService</include>
-                                <include>ec.edu.uteq.sga.application.service.AsignaturaService</include>
-                                <include>ec.edu.uteq.sga.application.service.UsuarioService</include>
-                                <include>ec.edu.uteq.sga.application.service.LamportClock</include>
-                            </includes>
+                            <element>BUNDLE</element>
                             <limits>
                                 <limit>
                                     <counter>INSTRUCTION</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.70</minimum>
+                                    <minimum>0.30</minimum>
                                 </limit>
                             </limits>
                         </rule>

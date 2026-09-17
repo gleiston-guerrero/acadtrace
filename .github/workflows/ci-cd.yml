@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Suite, cobertura y comprobaciones Django
         env:
           GRPC_INTERNAL_TOKEN: test-internal-token
@@ -51,7 +51,7 @@ jobs:
           cd microservicio-docente
           python -m pip install -r requirements.txt
           python -m pytest -q
-          python -m pytest --cov=docentes --cov-report=term-missing --cov-report=html:../docs/cobertura/docente
+          python -m pytest --cov=docentes --cov-fail-under=70 --cov-report=term-missing --cov-report=html:../docs/cobertura/docente
           python manage.py check --settings=micro_docente.test_settings
           python manage.py makemigrations --check --dry-run --settings=micro_docente.test_settings
       - uses: actions/upload-artifact@v4
@@ -69,17 +69,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - name: Tests, JaCoCo, lint y APK debug
+      - name: Tests, JaCoCo y lint
         run: |
           cd app-movil-docente
-          curl --fail --location --output gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
-          ./gradlew testDebugUnitTest jacocoTestReport lintDebug assembleDebug --no-daemon
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: app-representante-debug
-          path: app-movil-docente/app/build/outputs/apk/debug/app-debug.apk
+          ./gradlew testDebugUnitTest jacocoTestReport lintDebug --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -183,10 +177,10 @@ jobs:
           distribution: "temurin"
           cache: "maven"
 
-      - name: Configurar Python 3.12
+      - name: Configurar Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Pruebas y Cobertura Python (Microservicio Docente)
         env:
@@ -295,7 +289,183 @@ jobs:
           path: microservicio-secretaria/backend/target/surefire-reports/
           retention-days: 7
 
-  # ─── 3. JOB TEST-WEB ───────────────────────────────────────────────────────
+  # ─── 2b. JOB CONTRACT-OPENAPI (E4) ─────────────────────────────────────────
+  contract-openapi:
+    name: E4 - Verificación de contrato OpenAPI
+    needs: test-secretaria-backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar PyYAML
+        run: python -m pip install PyYAML
+      - name: Empaquetar Secretaría sin repetir tests
+        working-directory: microservicio-secretaria/backend
+        run: |
+          bash mvnw -B -Dmaven.test.skip=true -Djacoco.skip=true package
+          test -s target/sga-secretaria-backend.jar
+      - name: Comparar OpenAPI con Secretaría y PostgreSQL efímeros
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          import secrets
+          import signal
+          import subprocess
+          import sys
+          import tempfile
+          import time
+          import urllib.error
+          import urllib.request
+
+          root = Path.cwd()
+          jar = root / "microservicio-secretaria/backend/target/sga-secretaria-backend.jar"
+          url = "http://localhost:5176/v3/api-docs"
+          container = "openapi-secretaria-" + secrets.token_hex(6)
+          backend = None
+          result = 2
+          failed = False
+          stage = "PostgreSQL"
+          ephemeral = {
+              "DB_PASSWORD": secrets.token_urlsafe(32),
+              "JWT_SECRET": secrets.token_hex(32),
+              "AES_SECRET_KEY": base64.b64encode(secrets.token_bytes(32)).decode(),
+              "GRPC_INTERNAL_TOKEN": secrets.token_urlsafe(32),
+          }
+          for value in ephemeral.values():
+              print("::add-mask::" + value, flush=True)
+          env = os.environ.copy()
+          env.update(ephemeral)
+          env.update({
+              "DB_HOST": "localhost", "DB_NAME": "sga",
+              "DB_USER": "postgres", "DB_SSL": "false", "PORT": "5176",
+              "POSTGRES_DB": "sga", "POSTGRES_USER": "postgres",
+              "POSTGRES_PASSWORD": ephemeral["DB_PASSWORD"],
+          })
+
+          def docker(*args, check=True):
+              return subprocess.run(
+                  ["docker", *args], env=env, capture_output=True,
+                  text=True, check=check, timeout=120,
+              )
+
+          def interrupted(signum, frame):
+              raise SystemExit(2)
+
+          signal.signal(signal.SIGTERM, interrupted)
+          signal.signal(signal.SIGINT, interrupted)
+
+          with tempfile.TemporaryDirectory(prefix="openapi-secretaria-") as temporary:
+              logfile = Path(temporary) / "backend.log"
+              try:
+                  # Sin mounts, SQL ni migraciones: base nueva y vacía.
+                  docker(
+                      "run", "--detach", "--name", container,
+                      "--publish", "127.0.0.1::5432",
+                      "--env", "POSTGRES_DB", "--env", "POSTGRES_USER",
+                      "--env", "POSTGRES_PASSWORD",
+                      "--health-cmd", "pg_isready -U postgres -d sga",
+                      "--health-interval", "2s", "--health-timeout", "3s",
+                      "--health-retries", "30", "postgres:15-alpine",
+                  )
+                  deadline = time.monotonic() + 60
+                  while True:
+                      state = json.loads(docker(
+                          "inspect", "--format", "{{json .State}}", container
+                      ).stdout)
+                      if not state["Running"] or state["Health"]["Status"] == "unhealthy":
+                          raise RuntimeError("PostgreSQL no saludable")
+                      if state["Health"]["Status"] == "healthy":
+                          break
+                      if time.monotonic() >= deadline:
+                          raise TimeoutError("PostgreSQL")
+                      time.sleep(1)
+                  mapping = docker("port", container, "5432/tcp").stdout.strip()
+                  env["DB_PORT"] = mapping.rsplit(":", 1)[1]
+
+                  stage = "startup/OpenAPI"
+                  # CWD temporal para no cargar un .env del repositorio.
+                  with logfile.open("wb") as output:
+                      backend = subprocess.Popen(
+                          ["java", "-jar", str(jar)], cwd=temporary, env=env,
+                          stdout=output, stderr=subprocess.STDOUT,
+                      )
+                  print(f"PID Secretaría: {backend.pid}", flush=True)
+                  deadline = time.monotonic() + 60
+                  while True:
+                      if backend.poll() is not None:
+                          raise RuntimeError("Java terminó antes de estar listo")
+                      remaining = deadline - time.monotonic()
+                      if remaining <= 0:
+                          raise TimeoutError("OpenAPI")
+                      try:
+                          with urllib.request.urlopen(url, timeout=min(2, remaining)) as response:
+                              if response.status != 200 or response.geturl() != url:
+                                  raise ValueError("HTTP inesperado")
+                              document = json.load(response)
+                              if not isinstance(document, dict) or not isinstance(document.get("paths"), dict):
+                                  raise ValueError("JSON sin paths")
+                          break
+                      except (urllib.error.URLError, TimeoutError, ValueError, OSError):
+                          time.sleep(min(1, max(0, deadline - time.monotonic())))
+                  if backend.poll() is not None:
+                      raise RuntimeError("Java terminó antes de la verificación")
+                  stage = "verificador"
+                  # El script existente valida OpenAPI y compara método + path.
+                  result = subprocess.run(
+                      [sys.executable, "scripts/verificar_openapi.py"],
+                      cwd=root, env=env, check=False, timeout=30,
+                  ).returncode
+                  failed = result == 2
+              except Exception as exc:
+                  print(f"ERROR en {stage}: {type(exc).__name__}", file=sys.stderr)
+                  result = 2
+                  failed = True
+              finally:
+                  # La limpieza no sustituye el exit code del verificador.
+                  try:
+                      if backend is not None and backend.poll() is None:
+                          backend.terminate()
+                          try:
+                              backend.wait(timeout=10)
+                          except subprocess.TimeoutExpired:
+                              backend.kill()
+                              backend.wait(timeout=5)
+                  finally:
+                      try:
+                          if failed:
+                              text = logfile.read_text(encoding="utf-8", errors="replace") if logfile.exists() else ""
+                              pg = docker("logs", "--tail", "40", container, check=False)
+                              text += "\nPostgreSQL:\n" + pg.stdout + pg.stderr
+                              for value in ephemeral.values():
+                                  text = text.replace(value, "[REDACTADO]")
+                              for line in text.splitlines()[-160:]:
+                                  print("diagnóstico | " + line)
+                      except Exception:
+                          print("No se pudieron recuperar todos los logs de diagnóstico.")
+                      finally:
+                          try:
+                              cleanup = docker("rm", "--force", "--volumes", container, check=False)
+                              if cleanup.returncode != 0:
+                                  print("::warning::Comprobar limpieza del contenedor efímero.")
+                          except Exception:
+                              print("::warning::No se pudo completar la limpieza Docker.")
+          sys.exit(result)
+          PY
+
   test-web:
     name: 3. Construcción y Validación Frontend Web
     runs-on: ubuntu-latest
@@ -312,19 +482,19 @@ jobs:
       - name: Compilar Frontend SGA Principal
         run: |
           cd sga-principal/sga-frontend
-          npm ci --no-audit --legacy-peer-deps
+          npm ci --no-audit
           npm run build
 
       - name: Compilar Frontend Docente
         run: |
           cd microservicio-docente/frontend
-          npm ci --no-audit --legacy-peer-deps
+          npm ci --no-audit
           npm run build
 
       - name: Compilar Frontend Soporte
         run: |
           cd microservicio-soporte
-          npm ci --no-audit --legacy-peer-deps
+          npm ci --no-audit
           npm run build
 
       - name: Compilar Frontend Secretaría (E12 con npm ci)
@@ -349,53 +519,177 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-     group: e10-docente-entorno-real
-     cancel-in-progress: false
+      group: e10-docente-entorno-real
+      cancel-in-progress: false
+
+    env:
+      DB_HOST: 192.0.2.1
+      DB_PORT: "5433"
+      DB_NAME: sga
+      DB_USER: postgres
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+      FCM_ENABLED: "false"
+      E2E_BASE_URL: http://127.0.0.1:3000
+      E2E_LOGIN_URL: http://127.0.0.1:5173/login
+      E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
+      E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
+      E2E_GRADO: ${{ vars.E2E_GRADO }}
+      E2E_CURSO: ${{ vars.E2E_CURSO }}
+      E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20.19.0"
           cache: npm
           cache-dependency-path: microservicio-docente/frontend/package-lock.json
-      - name: Validar configuración E2E
-        env:
-          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
-          E2E_LOGIN_URL: ${{ vars.E2E_LOGIN_URL }}
-          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
-          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
-          E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
-        run: |
-          test -n "$E2E_BASE_URL"
-          test -n "$E2E_LOGIN_URL"
-          test -n "$E2E_DOCENTE_USER"
-          test -n "$E2E_DOCENTE_PASSWORD"
-          test -n "$E2E_ACTIVIDAD"
+
       - name: Instalar frontend y Chromium
         working-directory: microservicio-docente/frontend
         run: |
           npm ci
           npx playwright install --with-deps chromium
+
+      - name: Validar configuracion E2E
+        shell: bash
+        run: |
+          test -n "$DB_PASSWORD"
+          test -n "$JWT_SECRET"
+          test -n "$E2E_DOCENTE_USER"
+          test -n "$E2E_DOCENTE_PASSWORD"
+          test -n "$E2E_ACTIVIDAD"
+
+      - name: Generar credenciales internas efimeras
+        shell: bash
+        run: |
+          echo "AES_SECRET_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+          echo "GRPC_INTERNAL_TOKEN=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Construir servicios de E10
+        shell: bash
+        run: |
+          docker network create e10-docente
+          docker build -t e10-sga-principal ./sga-principal
+          docker build -t e10-microservicio-docente ./microservicio-docente
+
+      - name: Levantar backend Principal
+        shell: bash
+        run: |
+          docker run -d \
+            --name sga-principal \
+            --network e10-docente \
+            -p 8080:8080 \
+            -e DB_HOST \
+            -e DB_PORT \
+            -e DB_NAME \
+            -e DB_USER \
+            -e DB_PASSWORD \
+            -e FLYWAY_USER \
+            -e FLYWAY_PASSWORD \
+            -e JWT_SECRET \
+            -e AES_SECRET_KEY \
+            -e GRPC_INTERNAL_TOKEN \
+            -e MAIL_PASSWORD \
+            -e FCM_ENABLED \
+            -e GOOGLE_APPLICATION_CREDENTIALS= \
+            -e grpc.client.docente-service.address=static://microservicio-docente:9091 \
+            e10-sga-principal
+
+      - name: Levantar backend Docente
+        shell: bash
+        run: |
+          docker run -d \
+            --name microservicio-docente \
+            --network e10-docente \
+            -p 8081:8000 \
+            -e DB_HOST \
+            -e DB_PORT \
+            -e DB_NAME \
+            -e DB_USER \
+            -e DB_PASSWORD \
+            -e GRPC_INTERNAL_TOKEN \
+            -e SGA_PRINCIPAL_URL=http://sga-principal:8080 \
+            -e SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092 \
+            e10-microservicio-docente
+
+      - name: Levantar frontend Principal
+        shell: bash
+        run: |
+          docker run -d \
+            --name sga-frontend \
+            --network e10-docente \
+            -p 5173:5173 \
+            -v "$PWD/sga-principal/sga-frontend:/app" \
+            -v /app/node_modules \
+            -w /app \
+            node:20-alpine \
+            sh -c "npm ci --no-audit && npm run dev -- --host 0.0.0.0"
+
+      - name: Levantar frontend Docente
+        shell: bash
+        run: |
+          docker run -d \
+            --name docente-frontend \
+            --network e10-docente \
+            -p 3000:3000 \
+            -v "$PWD/microservicio-docente/frontend:/app" \
+            -v /app/node_modules \
+            -w /app \
+            node:20-alpine \
+            sh -c "npm ci --no-audit && npm run dev -- --host 0.0.0.0 --port 3000"
+
+      - name: Esperar sistema levantado
+        shell: bash
+        run: |
+          esperar() {
+            nombre="$1"
+            url="$2"
+
+            for intento in {1..60}; do
+              if curl --fail --silent "$url" > /dev/null; then
+                echo "$nombre disponible en $url"
+                return 0
+              fi
+              sleep 2
+            done
+
+            echo "::error::$nombre no estuvo disponible en $url"
+            docker ps -a
+            docker logs sga-principal || true
+            docker logs microservicio-docente || true
+            docker logs sga-frontend || true
+            docker logs docente-frontend || true
+            return 1
+          }
+
+          esperar "Principal" "http://127.0.0.1:8080/actuator/health"
+          esperar "Docente" "http://127.0.0.1:8081/health"
+          esperar "Frontend Principal" "http://127.0.0.1:5173/login"
+          esperar "Frontend Docente" "http://127.0.0.1:3000"
+
       - name: Ejecutar recorridos E2E
         working-directory: microservicio-docente/frontend
-        env:
-          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
-          E2E_LOGIN_URL: ${{ vars.E2E_LOGIN_URL }}
-          E2E_DOCENTE_USER: ${{ secrets.E2E_DOCENTE_USER }}
-          E2E_DOCENTE_PASSWORD: ${{ secrets.E2E_DOCENTE_PASSWORD }}
-          E2E_GRADO: ${{ vars.E2E_GRADO }}
-          E2E_CURSO: ${{ vars.E2E_CURSO }}
-          E2E_ACTIVIDAD: ${{ vars.E2E_ACTIVIDAD }}
         run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+
+      - name: Subir informe Playwright
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report-docente
           path: microservicio-docente/frontend/playwright-report/
           retention-days: 7
-      - uses: actions/upload-artifact@v4
-        if: failure()
+
+      - name: Subir resultados Playwright
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: playwright-test-results-docente
           path: microservicio-docente/frontend/test-results/
@@ -424,9 +718,9 @@ jobs:
           GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           cd app-movil-docente
-          curl --fail --location --output gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
           ./gradlew testDebugUnitTest --no-daemon
+
 
   # ─── 5. JOB BUILD-IMAGES (GHCR) ────────────────────────────────────────────
   build-images:
@@ -441,13 +735,8 @@ jobs:
       - ci-docente
       - ci-movil-representante
       - test-mobile
-    # Validar ramas/PR aunque fallen pruebas; en main exigir todas las validaciones.
-    if: >-
-      ${{ !cancelled() &&
-          (github.ref != 'refs/heads/main' ||
-           (!contains(needs.*.result, 'failure') &&
-            !contains(needs.*.result, 'cancelled') &&
-            !contains(needs.*.result, 'skipped'))) }}
+      - e2e-docente
+      - contract-openapi
     strategy:
       fail-fast: false
       matrix:
@@ -508,13 +797,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.image-tags.outputs.tags }}
 
-      - name: Construir y Etiquetar Imagen Microservicio Secretaría (E14 GHCR)
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }} -t ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest -f microservicio-secretaria/backend/Dockerfile microservicio-secretaria/
-          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:${{ github.sha }}
-          docker push ghcr.io/${REPO_LOWER}/microservicio-secretaria:latest
 
   # ─── 6. JOB BUILD-MOBILE-APK ───────────────────────────────────────────────
   build-mobile-apk:
@@ -534,21 +816,103 @@ jobs:
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Compilar APK en modo Debug
+      - name: Validar secretos de Release
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          SGA_RELEASE_STORE_PASSWORD: ${{ secrets.SGA_RELEASE_STORE_PASSWORD }}
+          SGA_RELEASE_KEY_ALIAS: ${{ secrets.SGA_RELEASE_KEY_ALIAS }}
+          SGA_RELEASE_KEY_PASSWORD: ${{ secrets.SGA_RELEASE_KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$RELEASE_KEYSTORE_BASE64"
+          test -n "$SGA_RELEASE_STORE_PASSWORD"
+          test -n "$SGA_RELEASE_KEY_ALIAS"
+          test -n "$SGA_RELEASE_KEY_PASSWORD"
+          test -n "$GOOGLE_SERVICES_JSON_BASE64"
+
+      - name: Restaurar keystore de Release
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/acadtrace-release.jks"
+          test -s "$RUNNER_TEMP/acadtrace-release.jks"
+
+      - name: Validar keystore PKCS12 reconstruido
+        env:
+          SGA_RELEASE_STORE_PASSWORD: ${{ secrets.SGA_RELEASE_STORE_PASSWORD }}
+          SGA_RELEASE_KEY_ALIAS: ${{ secrets.SGA_RELEASE_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          KEYSTORE="$RUNNER_TEMP/acadtrace-release.jks"
+          EXPECTED_SIZE=2782
+          EXPECTED_SHA256="C076C5BDB2B017E8F2FC8F3AE5D1228B7B01331B032397EBBC2058DAC4DF9E9A"
+
+          test -s "$KEYSTORE"
+          ACTUAL_SIZE="$(stat -c '%s' "$KEYSTORE")"
+          printf 'Tamaño del keystore: %s bytes\n' "$ACTUAL_SIZE"
+          test "$ACTUAL_SIZE" -eq "$EXPECTED_SIZE"
+
+          ACTUAL_SHA256="$(sha256sum "$KEYSTORE" | awk '{print toupper($1)}')"
+          printf 'SHA-256 del keystore: %s\n' "$ACTUAL_SHA256"
+          test "$ACTUAL_SHA256" = "$EXPECTED_SHA256"
+
+          keytool -list \
+            -keystore "$KEYSTORE" \
+            -storetype PKCS12 \
+            -storepass "$SGA_RELEASE_STORE_PASSWORD" \
+            -alias "$SGA_RELEASE_KEY_ALIAS" \
+            > /dev/null
+
+      - name: Restaurar configuración Firebase
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$GOOGLE_SERVICES_JSON_BASE64"
+          printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app-movil-docente/app/google-services.json
+          test -s app-movil-docente/app/google-services.json
+
+      - name: Compilar APK y AAB Release firmados
         env:
           GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
+          SGA_RELEASE_STORE_FILE: ${{ runner.temp }}/acadtrace-release.jks
+          SGA_RELEASE_STORE_PASSWORD: ${{ secrets.SGA_RELEASE_STORE_PASSWORD }}
+          SGA_RELEASE_KEY_ALIAS: ${{ secrets.SGA_RELEASE_KEY_ALIAS }}
+          SGA_RELEASE_KEY_PASSWORD: ${{ secrets.SGA_RELEASE_KEY_PASSWORD }}
         run: |
           cd app-movil-docente
-          curl --fail --location --output gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew clean assembleRelease bundleRelease --no-daemon
 
-      - name: Subir APK como artefacto versionado
+      - name: Verificar firma y calcular SHA-256
+        run: |
+          set -euo pipefail
+          APK="app-movil-docente/app/build/outputs/apk/release/app-release.apk"
+          AAB="app-movil-docente/app/build/outputs/bundle/release/app-release.aab"
+
+          test -s "$APK"
+          test -s "$AAB"
+
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          test -n "$APKSIGNER"
+
+          "$APKSIGNER" verify --verbose "$APK"
+          jarsigner -verify "$AAB"
+
+          sha256sum "$APK" "$AAB" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Subir paquete móvil Release firmado
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: app-debug-sha-${{ github.sha }}
-          path: app-movil-docente/app/build/outputs/apk/debug/app-debug.apk
+          name: app-release-sha-${{ github.sha }}
+          path: |
+            app-movil-docente/app/build/outputs/apk/release/app-release.apk
+            app-movil-docente/app/build/outputs/bundle/release/app-release.aab
+            SHA256SUMS.txt
+          if-no-files-found: error
           retention-days: 14
 
   # ─── 7. JOB INTEGRATION & DEPLOY ───────────────────────────────────────────
@@ -586,7 +950,7 @@ jobs:
               local name=$2
               echo "Verificando $name en $url..."
               # Aumentamos a 30 intentos (150 segundos) porque AWS EC2 puede ser lento para iniciar Java
-              for i in {1..30}; do
+              for i in {1..60}; do
                 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $url)
                 if [ "$HTTP_STATUS" = "200" ]; then
                   echo "$name esta SANO (HTTP 200)."

@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Banners y fotos de perfil publicos para que todos los portales los carguen
                         .requestMatchers(HttpMethod.GET, "/api/uploads/banners").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()

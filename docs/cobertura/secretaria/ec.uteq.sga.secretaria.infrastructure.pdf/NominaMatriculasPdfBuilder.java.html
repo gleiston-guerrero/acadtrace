@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NominaMatriculasPdfBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">NominaMatriculasPdfBuilder.java</span></div><h1>NominaMatriculasPdfBuilder.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.pdf;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NominaMatriculasPdfBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">NominaMatriculasPdfBuilder.java</span></div><h1>NominaMatriculasPdfBuilder.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">package ec.uteq.sga.secretaria.infrastructure.pdf;</span>
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -17,16 +17,16 @@ import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.str;
 
 public final class NominaMatriculasPdfBuilder {
 
-<span class="fc" id="L20">    private record Col(String label, float x, float w) {}</span>
+    private record Col(String label, float x, float w) {}
 
 <span class="fc" id="L22">    private static final List&lt;Col&gt; COLS = List.of(</span>
-            new Col(&quot;N°&quot;, 40, 30),
-            new Col(&quot;Cédula&quot;, 70, 80),
-            new Col(&quot;Apellidos y Nombres&quot;, 150, 200),
-            new Col(&quot;Grado&quot;, 350, 80),
-            new Col(&quot;Paralelo&quot;, 430, 60),
-            new Col(&quot;Estado&quot;, 490, 70),
-            new Col(&quot;F. Matrícula&quot;, 560, 80)
+<span class="fc" id="L23">            new Col(&quot;N°&quot;, 40, 30),</span>
+<span class="fc" id="L24">            new Col(&quot;Cédula&quot;, 70, 80),</span>
+<span class="fc" id="L25">            new Col(&quot;Apellidos y Nombres&quot;, 150, 200),</span>
+<span class="fc" id="L26">            new Col(&quot;Grado&quot;, 350, 80),</span>
+<span class="fc" id="L27">            new Col(&quot;Paralelo&quot;, 430, 60),</span>
+<span class="fc" id="L28">            new Col(&quot;Estado&quot;, 490, 70),</span>
+<span class="fc" id="L29">            new Col(&quot;F. Matrícula&quot;, 560, 80)</span>
     );
 
     /** A4 landscape: se invierte el rectangulo en vez de usar page.setRotation, para dibujar sin transforms. */
@@ -49,7 +49,7 @@ public final class NominaMatriculasPdfBuilder {
 <span class="fc" id="L49">                canvas.rect(40, y, canvas.pageWidth() - 80, 18, PdfTheme.SECONDARY);</span>
 <span class="fc bfc" id="L50" title="All 2 branches covered.">                for (Col c : COLS) {</span>
 <span class="fc" id="L51">                    canvas.text(c.x(), y + 5, c.label(), Fonts.HELVETICA_BOLD, 8, PdfTheme.WHITE);</span>
-<span class="fc" id="L52">                }</span>
+                }
 <span class="fc" id="L53">                y += 20;</span>
 
 <span class="fc" id="L55">                int i = 0;</span>
@@ -76,7 +76,7 @@ public final class NominaMatriculasPdfBuilder {
 
 <span class="fc" id="L77">                    y += 16;</span>
 <span class="fc" id="L78">                    i++;</span>
-<span class="fc" id="L79">                }</span>
+                }
 
 <span class="fc" id="L81">                canvas.rect(40, y + 4, canvas.pageWidth() - 80, 1, PdfTheme.BORDER);</span>
 <span class="fc" id="L82">                canvas.text(40, y + 8, &quot;Total de estudiantes: &quot; + datos.size(), Fonts.HELVETICA_BOLD, 9, PdfTheme.PRIMARY);</span>

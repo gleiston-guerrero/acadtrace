@@ -71,21 +71,6 @@ export default function Login() {
     }
   };
 
-  const handleDevBypass = () => {
-    const sesion = {
-      token: "dev-token-secretaria-2026",
-      username: "admin_general",
-      roles: ["DIRECTOR", "SECRETARIA", "DOCENTE", "SOPORTE_TECNICO"],
-      idUsuario: 1,
-      primerIngreso: false,
-    };
-    localStorage.setItem("token", sesion.token);
-    localStorage.setItem("username", sesion.username);
-    localStorage.setItem("roles", JSON.stringify(sesion.roles));
-    localStorage.setItem("userId", "1");
-    navigate("/portales", { state: sesion });
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4 py-8 relative overflow-hidden">
       {/* Fondo decorativo institucional con halos */}
@@ -234,14 +219,6 @@ export default function Login() {
               </svg>
               <span>Ir al Portal Central SSO (Puerto 5173)</span>
             </a>
-
-            <button
-              type="button"
-              onClick={handleDevBypass}
-              className="text-[11px] font-semibold text-slate-500 hover:text-[#243A76] transition cursor-pointer underline underline-offset-2"
-            >
-              Ingresar con los 4 Roles (Ver Selector de Portales)
-            </button>
           </div>
         </div>
       </div>

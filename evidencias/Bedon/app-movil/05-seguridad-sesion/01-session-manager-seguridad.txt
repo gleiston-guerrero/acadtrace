@@ -1,0 +1,48 @@
+﻿EVIDENCIA: PROTECCIÓN Y RECUPERACIÓN DE LA SESIÓN LOCAL
+
+Objetivo
+--------
+Verificar que la aplicación móvil almacena la sesión mediante
+preferencias cifradas y que posee un mecanismo de recuperación
+cuando las preferencias existentes no pueden ser descifradas.
+
+Fuente
+------
+app-movil-docente/app/src/main/java/ec/edu/uteq/sga/representante/core/SessionManager.kt
+
+Mecanismos verificados
+----------------------
+- EncryptedSharedPreferences para almacenamiento cifrado.
+- MasterKey administrada mediante Android Security Crypto.
+- AES-256-GCM para la clave maestra.
+- AES-256-SIV para las claves de preferencias.
+- AES-256-GCM para los valores almacenados.
+- Lectura de las preferencias para detectar datos incompatibles.
+- Eliminación únicamente de las preferencias locales inválidas.
+- Recreación automática de las preferencias cifradas.
+
+Implementación relevante
+-------------------------
+Línea 5: import androidx.security.crypto.EncryptedSharedPreferences
+Línea 6: import androidx.security.crypto.MasterKey
+Línea 20: val masterKey = MasterKey.Builder(appContext)
+Línea 21: .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+Línea 24: return EncryptedSharedPreferences.create(
+Línea 27: masterKey,
+Línea 28: EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+Línea 29: EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+Línea 33: preferences.all
+Línea 40: appContext.deleteSharedPreferences(Constants.PREFS_NAME)
+
+Resultado
+---------
+La sesión sensible de la aplicación no utiliza SharedPreferences
+en texto plano. La implementación utiliza almacenamiento cifrado
+y contempla la recuperación ante preferencias que ya no puedan
+ser descifradas con la clave criptográfica disponible.
+
+Conclusión
+----------
+La aplicación implementa protección local de la sesión y un
+mecanismo controlado de recuperación sin modificar la información
+académica almacenada en el backend.

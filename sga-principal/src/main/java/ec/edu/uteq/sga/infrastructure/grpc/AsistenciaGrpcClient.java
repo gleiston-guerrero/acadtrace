@@ -17,7 +17,7 @@ public class AsistenciaGrpcClient {
     @Autowired
     private TeacherAuthorizationService authService;
 
-    @Value("")
+    @Value("${app.grpc.internal-token}")
     private String internalToken;
 
     private AsistenciaServiceGrpc.AsistenciaServiceBlockingStub getStubWithMetadata() {

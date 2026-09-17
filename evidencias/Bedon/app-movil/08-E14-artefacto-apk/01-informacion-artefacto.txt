@@ -1,0 +1,48 @@
+﻿EVIDENCIA: ARTEFACTO APK ANDROID
+
+Objetivo
+--------
+Documentar el artefacto Android generado por la compilación y permitir
+verificar su integridad y trazabilidad.
+
+Artefacto
+---------
+app-debug.apk
+
+Componente
+----------
+app-movil-docente
+
+Rama
+----
+devBedon
+
+Commit
+------
+d835e46b61c369882b1c5e36a5464c369185823e
+
+Comando de generación
+---------------------
+.\gradlew.bat assembleDebug --console=plain
+
+Resultado
+---------
+BUILD SUCCESSFUL
+
+Tamaño del artefacto
+--------------------
+19.82 MB
+
+SHA-256
+-------
+630895256B0DC5CB999D552F185E82CA5A505E200E496183AEBD0D7CBC7E6E43
+
+Archivo de checksum
+-------------------
+app-debug.sha256.txt
+
+Conclusión
+----------
+El APK almacenado en esta carpeta corresponde a una compilación real
+del proyecto y queda relacionado con un commit concreto y un checksum
+SHA-256 que permite comprobar su integridad.
