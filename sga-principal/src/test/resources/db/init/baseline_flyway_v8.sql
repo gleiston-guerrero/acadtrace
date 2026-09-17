@@ -14,22 +14,450 @@
 -- como en produccion.
 -- =============================================================================
 
-CREATE SCHEMA public;
 
-CREATE SCHEMA sga_docente;
+-- El esquema public existe por defecto en PostgreSQL; se conserva la
+-- linea como no-op para dejar constancia del volcado original.
+CREATE SCHEMA IF NOT EXISTS public;
 
-CREATE SCHEMA sga_principal;
+CREATE SCHEMA IF NOT EXISTS sga_docente;
 
-CREATE SCHEMA sga_soporte;
+CREATE SCHEMA IF NOT EXISTS sga_principal;
 
-CREATE TABLE public.auth_permission (
+CREATE SCHEMA IF NOT EXISTS sga_soporte;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_docente.categoria_seguimiento_t AS ENUM (
+    'ACADEMICO',
+    'CONDUCTUAL',
+    'DECE',
+    'MEDICO',
+    'FAMILIAR',
+    'OTRO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_docente.estado_asistencia_t AS ENUM (
+    'PRESENTE',
+    'AUSENTE',
+    'JUSTIFICADO',
+    'ATRASO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_docente.nota_cualitativa_t AS ENUM (
+    'A_MAS',
+    'A_MENOS',
+    'B_MAS',
+    'B_MENOS',
+    'C_MAS',
+    'C_MENOS',
+    'D'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_docente.tipo_actividad_t AS ENUM (
+    'LECCION_ORAL',
+    'LECCION_ESCRITA',
+    'TAREA',
+    'TALLER',
+    'CUADERNO',
+    'TRABAJO_INDIVIDUAL',
+    'EXPOSICION',
+    'PROYECTO_INTERDISCIPLINARIO',
+    'EXAMEN_TRIMESTRAL'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_docente.tipo_periodo_t AS ENUM (
+    'PRIMER_TRIMESTRE',
+    'SEGUNDO_TRIMESTRE',
+    'TERCER_TRIMESTRE'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.accion_auditoria_t AS ENUM (
+    'CREAR',
+    'EDITAR',
+    'ELIMINAR',
+    'LOGIN',
+    'LOGOUT',
+    'CAMBIO_PASSWORD',
+    'BLOQUEO',
+    'DESBLOQUEO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.dia_semana_t AS ENUM (
+    'LUNES',
+    'MARTES',
+    'MIERCOLES',
+    'JUEVES',
+    'VIERNES'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.estado_matricula_t AS ENUM (
+    'ACTIVA',
+    'RETIRADA',
+    'TRASLADADA',
+    'PROMOVIDA',
+    'REPROBADA'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.genero_t AS ENUM (
+    'MASCULINO',
+    'FEMENINO',
+    'OTRO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.nivel_educativo_t AS ENUM (
+    'INICIAL_1',
+    'INICIAL_2',
+    'PREPARATORIA',
+    'BASICA_ELEMENTAL',
+    'BASICA_MEDIA',
+    'BASICA_SUPERIOR'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.origen_listado_t AS ENUM (
+    'NUEVO',
+    'TRANSFERIDO_INTERNO',
+    'TRANSFERIDO_EXTERNO',
+    'REPITENTE',
+    'REINGRESO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.resultado_promocion_t AS ENUM (
+    'PROMOVIDO',
+    'REPROBADO',
+    'RETIRADO',
+    'TRASLADADO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.tipo_asignacion_t AS ENUM (
+    'TITULAR',
+    'ESPECIALIZADO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.tipo_documento_t AS ENUM (
+    'PARTIDA_NACIMIENTO',
+    'CEDULA_IDENTIDAD',
+    'FOTO',
+    'INFORME_PREVIO',
+    'CERTIFICADO_MEDICO',
+    'CARNET_DISCAPACIDAD',
+    'COMPROBANTE_DOMICILIO',
+    'OTRO'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    CREATE TYPE sga_principal.tipo_escala_t AS ENUM (
+    'CUANTITATIVA',
+    'CUALITATIVA',
+    'MIXTA'
+);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.actividades_id_actividad_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.asistencias_id_asistencia_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.calificaciones_id_calificacion_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.periodos_evaluacion_id_periodo_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.promedios_anuales_detalle_id_detalle_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.promedios_anuales_id_promedio_anual_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.promedios_trimestrales_id_promedio_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.resumen_asistencia_id_resumen_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_docente.seguimiento_academico_id_seguimiento_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.anos_lectivos_id_ano_lectivo_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.asignaciones_id_asignacion_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.asignaturas_id_asignatura_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.auditoria_id_auditoria_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.documentos_matricula_id_documento_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.escala_calificaciones_id_escala_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.estudiantes_id_estudiante_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.fichas_estudiante_id_ficha_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.grados_id_grado_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.historial_promocion_id_historial_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.horarios_id_horario_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.matriculas_id_matricula_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.niveles_educativos_id_nivel_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.paralelos_ano_lectivo_id_paralelo_al_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.paralelos_id_paralelo_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.periodos_diarios_id_periodo_diario_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.personas_id_persona_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.representantes_id_representante_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.roles_id_rol_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_principal.usuarios_id_usuario_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_soporte.comentarios_id_comentario_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS sga_soporte.tickets_id_ticket_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.auth_permission (
     id integer NOT NULL,
     name character varying(255) NOT NULL,
     content_type_id integer NOT NULL,
     codename character varying(100) NOT NULL
 );
 
-CREATE TABLE public.auth_user (
+CREATE TABLE IF NOT EXISTS public.auth_user (
     id integer NOT NULL,
     password character varying(128) NOT NULL,
     last_login timestamp with time zone,
@@ -43,19 +471,19 @@ CREATE TABLE public.auth_user (
     date_joined timestamp with time zone NOT NULL
 );
 
-CREATE TABLE public.auth_user_groups (
+CREATE TABLE IF NOT EXISTS public.auth_user_groups (
     id bigint NOT NULL,
     user_id integer NOT NULL,
     group_id integer NOT NULL
 );
 
-CREATE TABLE public.auth_user_user_permissions (
+CREATE TABLE IF NOT EXISTS public.auth_user_user_permissions (
     id bigint NOT NULL,
     user_id integer NOT NULL,
     permission_id integer NOT NULL
 );
 
-CREATE TABLE public.django_admin_log (
+CREATE TABLE IF NOT EXISTS public.django_admin_log (
     id integer NOT NULL,
     action_time timestamp with time zone NOT NULL,
     object_id text,
@@ -67,13 +495,13 @@ CREATE TABLE public.django_admin_log (
     CONSTRAINT django_admin_log_action_flag_check CHECK ((action_flag >= 0))
 );
 
-CREATE TABLE public.django_content_type (
+CREATE TABLE IF NOT EXISTS public.django_content_type (
     id integer NOT NULL,
     app_label character varying(100) NOT NULL,
     model character varying(100) NOT NULL
 );
 
-CREATE TABLE sga_docente.actividades (
+CREATE TABLE IF NOT EXISTS sga_docente.actividades (
     id_actividad integer NOT NULL,
     id_asignacion integer NOT NULL,
     id_periodo integer NOT NULL,
@@ -89,17 +517,7 @@ CREATE TABLE sga_docente.actividades (
     CONSTRAINT ponderacion_positiva CHECK (((ponderacion > (0)::numeric) AND (ponderacion <= (100)::numeric)))
 );
 
-CREATE SEQUENCE sga_docente.actividades_id_actividad_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.actividades_id_actividad_seq OWNED BY sga_docente.actividades.id_actividad;
-
-CREATE TABLE sga_docente.asistencias (
+CREATE TABLE IF NOT EXISTS sga_docente.asistencias (
     id_asistencia bigint NOT NULL,
     id_matricula integer NOT NULL,
     id_asignacion integer NOT NULL,
@@ -112,34 +530,25 @@ CREATE TABLE sga_docente.asistencias (
     fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_docente.asistencias_id_asistencia_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.asistencias_id_asistencia_seq OWNED BY sga_docente.asistencias.id_asistencia;
-
-CREATE TABLE sga_docente.auth_group (
+CREATE TABLE IF NOT EXISTS sga_docente.auth_group (
     id integer NOT NULL,
     name character varying(150) NOT NULL
 );
 
-CREATE TABLE sga_docente.auth_group_permissions (
+CREATE TABLE IF NOT EXISTS sga_docente.auth_group_permissions (
     id bigint NOT NULL,
     group_id integer NOT NULL,
     permission_id integer NOT NULL
 );
 
-CREATE TABLE sga_docente.auth_permission (
+CREATE TABLE IF NOT EXISTS sga_docente.auth_permission (
     id integer NOT NULL,
     name character varying(255) NOT NULL,
     content_type_id integer NOT NULL,
     codename character varying(100) NOT NULL
 );
 
-CREATE TABLE sga_docente.auth_user (
+CREATE TABLE IF NOT EXISTS sga_docente.auth_user (
     id integer NOT NULL,
     password character varying(128) NOT NULL,
     last_login timestamp with time zone,
@@ -153,19 +562,19 @@ CREATE TABLE sga_docente.auth_user (
     date_joined timestamp with time zone NOT NULL
 );
 
-CREATE TABLE sga_docente.auth_user_groups (
+CREATE TABLE IF NOT EXISTS sga_docente.auth_user_groups (
     id bigint NOT NULL,
     user_id integer NOT NULL,
     group_id integer NOT NULL
 );
 
-CREATE TABLE sga_docente.auth_user_user_permissions (
+CREATE TABLE IF NOT EXISTS sga_docente.auth_user_user_permissions (
     id bigint NOT NULL,
     user_id integer NOT NULL,
     permission_id integer NOT NULL
 );
 
-CREATE TABLE sga_docente.calificaciones (
+CREATE TABLE IF NOT EXISTS sga_docente.calificaciones (
     id_calificacion bigint NOT NULL,
     id_actividad integer NOT NULL,
     id_matricula integer NOT NULL,
@@ -178,16 +587,7 @@ CREATE TABLE sga_docente.calificaciones (
     CONSTRAINT nota_rango CHECK (((nota >= (0)::numeric) AND (nota <= (10)::numeric)))
 );
 
-CREATE SEQUENCE sga_docente.calificaciones_id_calificacion_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.calificaciones_id_calificacion_seq OWNED BY sga_docente.calificaciones.id_calificacion;
-
-CREATE TABLE sga_docente.django_admin_log (
+CREATE TABLE IF NOT EXISTS sga_docente.django_admin_log (
     id integer NOT NULL,
     action_time timestamp with time zone NOT NULL,
     object_id text,
@@ -199,20 +599,20 @@ CREATE TABLE sga_docente.django_admin_log (
     CONSTRAINT django_admin_log_action_flag_check CHECK ((action_flag >= 0))
 );
 
-CREATE TABLE sga_docente.django_content_type (
+CREATE TABLE IF NOT EXISTS sga_docente.django_content_type (
     id integer NOT NULL,
     app_label character varying(100) NOT NULL,
     model character varying(100) NOT NULL
 );
 
-CREATE TABLE sga_docente.django_migrations (
+CREATE TABLE IF NOT EXISTS sga_docente.django_migrations (
     id bigint NOT NULL,
     app character varying(255) NOT NULL,
     name character varying(255) NOT NULL,
     applied timestamp with time zone NOT NULL
 );
 
-CREATE TABLE sga_docente.periodos_evaluacion (
+CREATE TABLE IF NOT EXISTS sga_docente.periodos_evaluacion (
     id_periodo integer NOT NULL,
     id_ano_lectivo integer NOT NULL,
     tipo sga_docente.tipo_periodo_t NOT NULL,
@@ -222,17 +622,7 @@ CREATE TABLE sga_docente.periodos_evaluacion (
     activo boolean DEFAULT true NOT NULL
 );
 
-CREATE SEQUENCE sga_docente.periodos_evaluacion_id_periodo_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.periodos_evaluacion_id_periodo_seq OWNED BY sga_docente.periodos_evaluacion.id_periodo;
-
-CREATE TABLE sga_docente.promedios_anuales (
+CREATE TABLE IF NOT EXISTS sga_docente.promedios_anuales (
     id_promedio_anual integer NOT NULL,
     id_matricula integer NOT NULL,
     id_asignacion integer NOT NULL,
@@ -243,33 +633,13 @@ CREATE TABLE sga_docente.promedios_anuales (
     calculado_en timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE TABLE sga_docente.promedios_anuales_detalle (
+CREATE TABLE IF NOT EXISTS sga_docente.promedios_anuales_detalle (
     id_detalle integer NOT NULL,
     id_promedio_anual integer NOT NULL,
     id_promedio_trim integer NOT NULL
 );
 
-CREATE SEQUENCE sga_docente.promedios_anuales_detalle_id_detalle_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.promedios_anuales_detalle_id_detalle_seq OWNED BY sga_docente.promedios_anuales_detalle.id_detalle;
-
-CREATE SEQUENCE sga_docente.promedios_anuales_id_promedio_anual_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.promedios_anuales_id_promedio_anual_seq OWNED BY sga_docente.promedios_anuales.id_promedio_anual;
-
-CREATE TABLE sga_docente.promedios_trimestrales (
+CREATE TABLE IF NOT EXISTS sga_docente.promedios_trimestrales (
     id_promedio integer NOT NULL,
     id_matricula integer NOT NULL,
     id_asignacion integer NOT NULL,
@@ -281,17 +651,7 @@ CREATE TABLE sga_docente.promedios_trimestrales (
     calculado_en timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_docente.promedios_trimestrales_id_promedio_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.promedios_trimestrales_id_promedio_seq OWNED BY sga_docente.promedios_trimestrales.id_promedio;
-
-CREATE TABLE sga_docente.resumen_asistencia (
+CREATE TABLE IF NOT EXISTS sga_docente.resumen_asistencia (
     id_resumen integer NOT NULL,
     id_matricula integer NOT NULL,
     id_asignacion integer NOT NULL,
@@ -303,17 +663,7 @@ CREATE TABLE sga_docente.resumen_asistencia (
     calculado_en timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_docente.resumen_asistencia_id_resumen_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.resumen_asistencia_id_resumen_seq OWNED BY sga_docente.resumen_asistencia.id_resumen;
-
-CREATE TABLE sga_docente.seguimiento_academico (
+CREATE TABLE IF NOT EXISTS sga_docente.seguimiento_academico (
     id_seguimiento bigint NOT NULL,
     id_matricula integer NOT NULL,
     id_periodo integer NOT NULL,
@@ -326,16 +676,7 @@ CREATE TABLE sga_docente.seguimiento_academico (
     fecha_registro timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_docente.seguimiento_academico_id_seguimiento_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_docente.seguimiento_academico_id_seguimiento_seq OWNED BY sga_docente.seguimiento_academico.id_seguimiento;
-
-CREATE TABLE sga_principal.anos_lectivos (
+CREATE TABLE IF NOT EXISTS sga_principal.anos_lectivos (
     id_ano_lectivo integer NOT NULL,
     nombre character varying(20) NOT NULL,
     fecha_inicio date NOT NULL,
@@ -345,17 +686,7 @@ CREATE TABLE sga_principal.anos_lectivos (
     fecha_creacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.anos_lectivos_id_ano_lectivo_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.anos_lectivos_id_ano_lectivo_seq OWNED BY sga_principal.anos_lectivos.id_ano_lectivo;
-
-CREATE TABLE sga_principal.asignaciones (
+CREATE TABLE IF NOT EXISTS sga_principal.asignaciones (
     id_asignacion integer NOT NULL,
     id_docente integer NOT NULL,
     id_asignatura integer NOT NULL,
@@ -369,17 +700,7 @@ CREATE TABLE sga_principal.asignaciones (
     fecha_asignacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.asignaciones_id_asignacion_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.asignaciones_id_asignacion_seq OWNED BY sga_principal.asignaciones.id_asignacion;
-
-CREATE TABLE sga_principal.asignaturas (
+CREATE TABLE IF NOT EXISTS sga_principal.asignaturas (
     id_asignatura integer NOT NULL,
     nombre character varying(100) NOT NULL,
     codigo character varying(20),
@@ -389,23 +710,13 @@ CREATE TABLE sga_principal.asignaturas (
     fecha_creacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.asignaturas_id_asignatura_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.asignaturas_id_asignatura_seq OWNED BY sga_principal.asignaturas.id_asignatura;
-
-CREATE TABLE sga_principal.asignaturas_por_nivel (
+CREATE TABLE IF NOT EXISTS sga_principal.asignaturas_por_nivel (
     id_asignatura integer NOT NULL,
     id_nivel integer NOT NULL,
     tipo_escala sga_principal.tipo_escala_t NOT NULL
 );
 
-CREATE TABLE sga_principal.auditoria (
+CREATE TABLE IF NOT EXISTS sga_principal.auditoria (
     id_auditoria bigint NOT NULL,
     schema_origen character varying(20) DEFAULT 'PRINCIPAL'::character varying NOT NULL,
     id_usuario integer,
@@ -421,16 +732,7 @@ CREATE TABLE sga_principal.auditoria (
     CONSTRAINT auditoria_schema_origen_check CHECK (((schema_origen)::text = ANY (ARRAY[('PRINCIPAL'::character varying)::text, ('DOCENTE'::character varying)::text])))
 );
 
-CREATE SEQUENCE sga_principal.auditoria_id_auditoria_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.auditoria_id_auditoria_seq OWNED BY sga_principal.auditoria.id_auditoria;
-
-CREATE TABLE sga_principal.documentos_matricula (
+CREATE TABLE IF NOT EXISTS sga_principal.documentos_matricula (
     id_documento integer NOT NULL,
     id_matricula integer NOT NULL,
     tipo_documento sga_principal.tipo_documento_t NOT NULL,
@@ -440,17 +742,7 @@ CREATE TABLE sga_principal.documentos_matricula (
     subido_por integer
 );
 
-CREATE SEQUENCE sga_principal.documentos_matricula_id_documento_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.documentos_matricula_id_documento_seq OWNED BY sga_principal.documentos_matricula.id_documento;
-
-CREATE TABLE sga_principal.escala_calificaciones (
+CREATE TABLE IF NOT EXISTS sga_principal.escala_calificaciones (
     id_escala integer NOT NULL,
     id_ano_lectivo integer NOT NULL,
     id_nivel integer NOT NULL,
@@ -461,17 +753,7 @@ CREATE TABLE sga_principal.escala_calificaciones (
     CONSTRAINT escala_check CHECK ((nota_minima < nota_maxima))
 );
 
-CREATE SEQUENCE sga_principal.escala_calificaciones_id_escala_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.escala_calificaciones_id_escala_seq OWNED BY sga_principal.escala_calificaciones.id_escala;
-
-CREATE TABLE sga_principal.estudiantes (
+CREATE TABLE IF NOT EXISTS sga_principal.estudiantes (
     id_estudiante integer NOT NULL,
     cedula character varying(10),
     codigo_estudiante character varying(20),
@@ -503,17 +785,7 @@ CREATE TABLE sga_principal.estudiantes (
     CONSTRAINT porcentaje_disc_check CHECK (((porcentaje_disc >= 0) AND (porcentaje_disc <= 100)))
 );
 
-CREATE SEQUENCE sga_principal.estudiantes_id_estudiante_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.estudiantes_id_estudiante_seq OWNED BY sga_principal.estudiantes.id_estudiante;
-
-CREATE TABLE sga_principal.fichas_estudiante (
+CREATE TABLE IF NOT EXISTS sga_principal.fichas_estudiante (
     id_ficha integer NOT NULL,
     id_estudiante integer NOT NULL,
     tipo_sangre character varying(5),
@@ -527,17 +799,7 @@ CREATE TABLE sga_principal.fichas_estudiante (
     fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.fichas_estudiante_id_ficha_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.fichas_estudiante_id_ficha_seq OWNED BY sga_principal.fichas_estudiante.id_ficha;
-
-CREATE TABLE sga_principal.grados (
+CREATE TABLE IF NOT EXISTS sga_principal.grados (
     id_grado integer NOT NULL,
     id_nivel integer NOT NULL,
     nombre character varying(60) NOT NULL,
@@ -546,17 +808,7 @@ CREATE TABLE sga_principal.grados (
     activo boolean DEFAULT true NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.grados_id_grado_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.grados_id_grado_seq OWNED BY sga_principal.grados.id_grado;
-
-CREATE TABLE sga_principal.historial_promocion (
+CREATE TABLE IF NOT EXISTS sga_principal.historial_promocion (
     id_historial integer NOT NULL,
     id_matricula integer NOT NULL,
     id_estudiante integer NOT NULL,
@@ -569,34 +821,14 @@ CREATE TABLE sga_principal.historial_promocion (
     fecha_registro timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.historial_promocion_id_historial_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.historial_promocion_id_historial_seq OWNED BY sga_principal.historial_promocion.id_historial;
-
-CREATE TABLE sga_principal.horarios (
+CREATE TABLE IF NOT EXISTS sga_principal.horarios (
     id_horario integer NOT NULL,
     id_asignacion integer NOT NULL,
     id_periodo_diario integer NOT NULL,
     dia_semana sga_principal.dia_semana_t NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.horarios_id_horario_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.horarios_id_horario_seq OWNED BY sga_principal.horarios.id_horario;
-
-CREATE TABLE sga_principal.matriculas (
+CREATE TABLE IF NOT EXISTS sga_principal.matriculas (
     id_matricula integer NOT NULL,
     id_estudiante integer NOT NULL,
     id_grado integer NOT NULL,
@@ -610,17 +842,7 @@ CREATE TABLE sga_principal.matriculas (
     fecha_creacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.matriculas_id_matricula_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.matriculas_id_matricula_seq OWNED BY sga_principal.matriculas.id_matricula;
-
-CREATE TABLE sga_principal.niveles_educativos (
+CREATE TABLE IF NOT EXISTS sga_principal.niveles_educativos (
     id_nivel integer NOT NULL,
     nombre character varying(60) NOT NULL,
     tipo_escala sga_principal.tipo_escala_t NOT NULL,
@@ -628,24 +850,14 @@ CREATE TABLE sga_principal.niveles_educativos (
     grado_fin smallint NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.niveles_educativos_id_nivel_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.niveles_educativos_id_nivel_seq OWNED BY sga_principal.niveles_educativos.id_nivel;
-
-CREATE TABLE sga_principal.paralelos (
+CREATE TABLE IF NOT EXISTS sga_principal.paralelos (
     id_paralelo integer NOT NULL,
     id_grado integer NOT NULL,
     letra character(1) NOT NULL,
     activo boolean DEFAULT true NOT NULL
 );
 
-CREATE TABLE sga_principal.paralelos_ano_lectivo (
+CREATE TABLE IF NOT EXISTS sga_principal.paralelos_ano_lectivo (
     id_paralelo_al integer NOT NULL,
     id_paralelo integer NOT NULL,
     id_ano_lectivo integer NOT NULL,
@@ -653,27 +865,7 @@ CREATE TABLE sga_principal.paralelos_ano_lectivo (
     activo boolean DEFAULT true NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.paralelos_ano_lectivo_id_paralelo_al_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.paralelos_ano_lectivo_id_paralelo_al_seq OWNED BY sga_principal.paralelos_ano_lectivo.id_paralelo_al;
-
-CREATE SEQUENCE sga_principal.paralelos_id_paralelo_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.paralelos_id_paralelo_seq OWNED BY sga_principal.paralelos.id_paralelo;
-
-CREATE TABLE sga_principal.periodos_diarios (
+CREATE TABLE IF NOT EXISTS sga_principal.periodos_diarios (
     id_periodo_diario integer NOT NULL,
     numero smallint NOT NULL,
     hora_inicio time without time zone NOT NULL,
@@ -681,17 +873,7 @@ CREATE TABLE sga_principal.periodos_diarios (
     aplica_nivel sga_principal.nivel_educativo_t
 );
 
-CREATE SEQUENCE sga_principal.periodos_diarios_id_periodo_diario_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.periodos_diarios_id_periodo_diario_seq OWNED BY sga_principal.periodos_diarios.id_periodo_diario;
-
-CREATE TABLE sga_principal.personas (
+CREATE TABLE IF NOT EXISTS sga_principal.personas (
     id_persona integer NOT NULL,
     id_usuario integer NOT NULL,
     cedula character varying(10),
@@ -712,17 +894,7 @@ CREATE TABLE sga_principal.personas (
     fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.personas_id_persona_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.personas_id_persona_seq OWNED BY sga_principal.personas.id_persona;
-
-CREATE TABLE sga_principal.representantes (
+CREATE TABLE IF NOT EXISTS sga_principal.representantes (
     id_representante integer NOT NULL,
     cedula character varying(10),
     nombres character varying(100) NOT NULL,
@@ -736,17 +908,7 @@ CREATE TABLE sga_principal.representantes (
     fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.representantes_id_representante_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.representantes_id_representante_seq OWNED BY sga_principal.representantes.id_representante;
-
-CREATE TABLE sga_principal.roles (
+CREATE TABLE IF NOT EXISTS sga_principal.roles (
     id_rol integer NOT NULL,
     nombre character varying(30) NOT NULL,
     descripcion text,
@@ -754,24 +916,14 @@ CREATE TABLE sga_principal.roles (
     fecha_creacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.roles_id_rol_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.roles_id_rol_seq OWNED BY sga_principal.roles.id_rol;
-
-CREATE TABLE sga_principal.usuario_roles (
+CREATE TABLE IF NOT EXISTS sga_principal.usuario_roles (
     id_usuario integer NOT NULL,
     id_rol integer NOT NULL,
     asignado_por integer,
     asignado_el timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE TABLE sga_principal.usuarios (
+CREATE TABLE IF NOT EXISTS sga_principal.usuarios (
     id_usuario integer NOT NULL,
     uuid uuid DEFAULT gen_random_uuid() NOT NULL,
     username character varying(60) NOT NULL,
@@ -787,17 +939,7 @@ CREATE TABLE sga_principal.usuarios (
     fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE SEQUENCE sga_principal.usuarios_id_usuario_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_principal.usuarios_id_usuario_seq OWNED BY sga_principal.usuarios.id_usuario;
-
-CREATE TABLE sga_soporte.comentarios (
+CREATE TABLE IF NOT EXISTS sga_soporte.comentarios (
     id_comentario bigint NOT NULL,
     autor character varying(100) NOT NULL,
     contenido text NOT NULL,
@@ -806,16 +948,7 @@ CREATE TABLE sga_soporte.comentarios (
     id_ticket bigint NOT NULL
 );
 
-CREATE SEQUENCE sga_soporte.comentarios_id_comentario_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE sga_soporte.comentarios_id_comentario_seq OWNED BY sga_soporte.comentarios.id_comentario;
-
-CREATE TABLE sga_soporte.tickets (
+CREATE TABLE IF NOT EXISTS sga_soporte.tickets (
     id_ticket bigint NOT NULL,
     asignado_a character varying(100),
     categoria character varying(20) NOT NULL,
@@ -833,12 +966,65 @@ CREATE TABLE sga_soporte.tickets (
     CONSTRAINT tickets_prioridad_check CHECK (((prioridad)::text = ANY ((ARRAY['BAJO'::character varying, 'MEDIO'::character varying, 'ALTO'::character varying, 'CRITICO'::character varying])::text[])))
 );
 
-CREATE SEQUENCE sga_soporte.tickets_id_ticket_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+ALTER SEQUENCE sga_docente.actividades_id_actividad_seq OWNED BY sga_docente.actividades.id_actividad;
+
+ALTER SEQUENCE sga_docente.asistencias_id_asistencia_seq OWNED BY sga_docente.asistencias.id_asistencia;
+
+ALTER SEQUENCE sga_docente.calificaciones_id_calificacion_seq OWNED BY sga_docente.calificaciones.id_calificacion;
+
+ALTER SEQUENCE sga_docente.periodos_evaluacion_id_periodo_seq OWNED BY sga_docente.periodos_evaluacion.id_periodo;
+
+ALTER SEQUENCE sga_docente.promedios_anuales_detalle_id_detalle_seq OWNED BY sga_docente.promedios_anuales_detalle.id_detalle;
+
+ALTER SEQUENCE sga_docente.promedios_anuales_id_promedio_anual_seq OWNED BY sga_docente.promedios_anuales.id_promedio_anual;
+
+ALTER SEQUENCE sga_docente.promedios_trimestrales_id_promedio_seq OWNED BY sga_docente.promedios_trimestrales.id_promedio;
+
+ALTER SEQUENCE sga_docente.resumen_asistencia_id_resumen_seq OWNED BY sga_docente.resumen_asistencia.id_resumen;
+
+ALTER SEQUENCE sga_docente.seguimiento_academico_id_seguimiento_seq OWNED BY sga_docente.seguimiento_academico.id_seguimiento;
+
+ALTER SEQUENCE sga_principal.anos_lectivos_id_ano_lectivo_seq OWNED BY sga_principal.anos_lectivos.id_ano_lectivo;
+
+ALTER SEQUENCE sga_principal.asignaciones_id_asignacion_seq OWNED BY sga_principal.asignaciones.id_asignacion;
+
+ALTER SEQUENCE sga_principal.asignaturas_id_asignatura_seq OWNED BY sga_principal.asignaturas.id_asignatura;
+
+ALTER SEQUENCE sga_principal.auditoria_id_auditoria_seq OWNED BY sga_principal.auditoria.id_auditoria;
+
+ALTER SEQUENCE sga_principal.documentos_matricula_id_documento_seq OWNED BY sga_principal.documentos_matricula.id_documento;
+
+ALTER SEQUENCE sga_principal.escala_calificaciones_id_escala_seq OWNED BY sga_principal.escala_calificaciones.id_escala;
+
+ALTER SEQUENCE sga_principal.estudiantes_id_estudiante_seq OWNED BY sga_principal.estudiantes.id_estudiante;
+
+ALTER SEQUENCE sga_principal.fichas_estudiante_id_ficha_seq OWNED BY sga_principal.fichas_estudiante.id_ficha;
+
+ALTER SEQUENCE sga_principal.grados_id_grado_seq OWNED BY sga_principal.grados.id_grado;
+
+ALTER SEQUENCE sga_principal.historial_promocion_id_historial_seq OWNED BY sga_principal.historial_promocion.id_historial;
+
+ALTER SEQUENCE sga_principal.horarios_id_horario_seq OWNED BY sga_principal.horarios.id_horario;
+
+ALTER SEQUENCE sga_principal.matriculas_id_matricula_seq OWNED BY sga_principal.matriculas.id_matricula;
+
+ALTER SEQUENCE sga_principal.niveles_educativos_id_nivel_seq OWNED BY sga_principal.niveles_educativos.id_nivel;
+
+ALTER SEQUENCE sga_principal.paralelos_ano_lectivo_id_paralelo_al_seq OWNED BY sga_principal.paralelos_ano_lectivo.id_paralelo_al;
+
+ALTER SEQUENCE sga_principal.paralelos_id_paralelo_seq OWNED BY sga_principal.paralelos.id_paralelo;
+
+ALTER SEQUENCE sga_principal.periodos_diarios_id_periodo_diario_seq OWNED BY sga_principal.periodos_diarios.id_periodo_diario;
+
+ALTER SEQUENCE sga_principal.personas_id_persona_seq OWNED BY sga_principal.personas.id_persona;
+
+ALTER SEQUENCE sga_principal.representantes_id_representante_seq OWNED BY sga_principal.representantes.id_representante;
+
+ALTER SEQUENCE sga_principal.roles_id_rol_seq OWNED BY sga_principal.roles.id_rol;
+
+ALTER SEQUENCE sga_principal.usuarios_id_usuario_seq OWNED BY sga_principal.usuarios.id_usuario;
+
+ALTER SEQUENCE sga_soporte.comentarios_id_comentario_seq OWNED BY sga_soporte.comentarios.id_comentario;
 
 ALTER SEQUENCE sga_soporte.tickets_id_ticket_seq OWNED BY sga_soporte.tickets.id_ticket;
 
@@ -903,4 +1089,3 @@ ALTER TABLE ONLY sga_principal.usuarios ALTER COLUMN id_usuario SET DEFAULT next
 ALTER TABLE ONLY sga_soporte.comentarios ALTER COLUMN id_comentario SET DEFAULT nextval('sga_soporte.comentarios_id_comentario_seq'::regclass);
 
 ALTER TABLE ONLY sga_soporte.tickets ALTER COLUMN id_ticket SET DEFAULT nextval('sga_soporte.tickets_id_ticket_seq'::regclass);
-
