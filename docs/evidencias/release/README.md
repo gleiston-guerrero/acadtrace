@@ -57,7 +57,7 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 ### Secretaría
 
 - archivo: `release/screenshots/secretaria_portal.png`
-- estado: captura actual del dashboard de Secretaría. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
+- estado: captura real y actual del dashboard de Secretaría. Su trazabilidad está registrada en [manifest.yml](manifest.yml) y está integrada en el manuscrito; la copia utilizada por el informe está en `Informe-E4_BCEL/secretaria_portal.png`.
 
 ### Soporte
 
