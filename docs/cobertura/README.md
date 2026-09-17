@@ -16,12 +16,12 @@ La cobertura fue regenerada y verificada el 2026-09-16 con Eclipse Temurin JDK 2
 
 El reporte de Secretaría usa JaCoCo 0.8.11 con alcance `BUNDLE` y las siguientes exclusiones estándar de infraestructura y transporte en `microservicio-secretaria/backend/pom.xml`:
 
-- `**/ec/edu/uteq/sga/grpc/**` (stubs de gRPC generados)
-- `**/dto/**` (objetos planos de transferencia de datos)
-- `**/config/**` (clases de configuración de beans de Spring)
-- `**/exception/**` (definición de excepciones de dominio)
-- `**/payload/**` (modelos de solicitud/respuesta)
-- `**/entity/**` (entidades JPA puras sin lógica de negocio)
+- `**/ec/edu/uteq/sga/grpc/**`: stubs generados por `protoc` a partir de los `.proto`; sin lógica escrita a mano.
+- `**/dto/**`: objetos de transferencia con solo getters y setters generados por Lombok.
+- `**/config/**`: clases con anotaciones `@Configuration` y `@Bean`; su comportamiento se prueba integralmente vía `@SpringBootTest`.
+- `**/exception/**`: definiciones de excepciones custom, sin flujo condicional.
+- `**/payload/**`: modelos de solicitud/respuesta REST, equivalentes a DTOs.
+- `**/entity/**`: entidades JPA con solo mapeo `@Entity`, `@Column` y getters/setters.
 
 El reporte HTML, XML y CSV generado reside de forma unificada en `docs/cobertura/secretaria/`.
 
