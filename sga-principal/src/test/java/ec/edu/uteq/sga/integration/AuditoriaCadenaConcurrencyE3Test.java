@@ -78,9 +78,17 @@ class AuditoriaCadenaConcurrencyE3Test {
                 Connection connection = nuevaConexion();
                 Statement st = connection.createStatement()
         ) {
-            st.execute("""
-                    TRUNCATE TABLE sga_principal.auditoria RESTART IDENTITY CASCADE
-                    """);
+            /*
+             * V21 anadio un disparador BEFORE TRUNCATE que rechaza el TRUNCATE
+             * sobre la bitacora, asi que se desactivan los triggers de la tabla
+             * mientras se limpia, se resetea la secuencia manualmente y se
+             * vuelven a activar. Se conserva la limpieza atomica que la prueba
+             * de concurrencia necesita entre corridas.
+             */
+            st.execute("ALTER TABLE sga_principal.auditoria DISABLE TRIGGER ALL");
+            st.execute("DELETE FROM sga_principal.auditoria");
+            st.execute("ALTER SEQUENCE sga_principal.auditoria_id_auditoria_seq RESTART WITH 1");
+            st.execute("ALTER TABLE sga_principal.auditoria ENABLE TRIGGER ALL");
 
             st.execute("""
                     UPDATE sga_principal.estado_cadena_auditoria
@@ -283,7 +291,7 @@ class AuditoriaCadenaConcurrencyE3Test {
                                     """)
                 ) {
                     insert.setString(1, escritor);
-                    insert.setString(2, "MODIFICAR");
+                    insert.setString(2, "EDITAR");
                     insert.setLong(3, escritor.equals("PRINCIPAL") ? 101L : 102L);
                     insert.setString(4, hashAnterior);
                     insert.setString(5, hashActual);
