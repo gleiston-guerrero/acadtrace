@@ -291,7 +291,7 @@ class AuditoriaCadenaConcurrencyE3Test {
                                     """)
                 ) {
                     insert.setString(1, escritor);
-                    insert.setString(2, "MODIFICAR");
+                    insert.setString(2, "EDITAR");
                     insert.setLong(3, escritor.equals("PRINCIPAL") ? 101L : 102L);
                     insert.setString(4, hashAnterior);
                     insert.setString(5, hashActual);
