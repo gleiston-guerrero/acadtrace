@@ -43,22 +43,22 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && GRPC_INTERNAL_TOKEN=test-internal-token pytest` |
 | `src/secretaria` | [`microservicio-secretaria/`](microservicio-secretaria/) | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
 | `src/soporte` | [`microservicio-soporte/`](microservicio-soporte/) | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
-| Inteligencia artificial (complementario) | [`microservicio-ia/`](microservicio-ia/) | Microservicio de inteligencia artificial | No aplica al mapa |
+| Inteligencia artificial (complementario) | [`microservicio-ia/`](microservicio-ia/) | Microservicio FastAPI para diagnóstico académico y asistencia mediante inteligencia artificial | No aplica al mapa |
 | `apps/mobile` | [`app-movil-docente/`](app-movil-docente/) | Ruta física actual de la aplicación móvil para representantes; cliente Android (Kotlin/Jetpack Compose) con persistencia offline Room | `cd app-movil-docente && ./gradlew test` |
 | `apps/web` — Principal | [`sga-principal/sga-frontend/`](sga-principal/sga-frontend/) | Portal web de Principal en React y Vite | `cd sga-principal/sga-frontend && npm run build` |
 | `apps/web` — Secretaría | [`microservicio-secretaria/client/`](microservicio-secretaria/client/) | Interfaz web de Secretaría | No aplica al mapa |
 | `apps/web` — Docente | [`microservicio-docente/frontend/`](microservicio-docente/frontend/) | Interfaz web de Docente | No aplica al mapa |
 | `apps/web` — Soporte | [`microservicio-soporte/src/`](microservicio-soporte/src/) | Código fuente de la interfaz web de Soporte | No aplica al mapa |
-| Infraestructura (complementario) | [`infra/`](infra/) | Configuración de infraestructura del sistema: gateway y observabilidad | No aplica al mapa |
+| Infraestructura (complementario) | [`infra/`](infra/), [`docker-compose.yml`](docker-compose.yml) | Configuración de infraestructura del sistema, gateway y despliegue; el Compose raíz integra los servicios y componentes operativos | No aplica al mapa |
 | `infra/gateway` | [`infra/haproxy/`](infra/haproxy/) | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
-| `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/) | Métricas Prometheus (:9090) y tableros Grafana (:3001) | `docker compose up prometheus grafana -d` |
+| `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/), [`docker-compose.yml`](docker-compose.yml) | Observabilidad con Prometheus (:9090), Grafana (:3001) y Dozzle (:8888); el Compose raíz contiene su configuración de despliegue | `docker compose up prometheus grafana dozzle -d` |
 | Operación (complementario) | [`ops/`](ops/) | Recursos y configuración operativa de Prometheus y Grafana, en una ubicación distinta de la infraestructura agrupada en `infra/` | No aplica al mapa |
 | `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Scripts de verificación de bitácora y datasets de reproducibilidad | `python experimentos/verificador_cadena.py` |
-| Documentación técnica (complementario) | [`docs/`](docs/) | Arquitectura, seguridad, API y evidencias | No aplica al mapa |
-| Utilidades (complementario) | [`scripts/`](scripts/) | Scripts y utilidades del proyecto | No aplica al mapa |
+| Documentación técnica (complementario) | [`docs/`](docs/), [`docs/api/openapi.yaml`](docs/api/openapi.yaml), [`docs/api/README.md`](docs/api/README.md) | Arquitectura, seguridad, documentación API y contrato OpenAPI versionado | No aplica al mapa |
+| Utilidades (complementario) | [`scripts/`](scripts/), [`scripts/verificar_openapi.py`](scripts/verificar_openapi.py), [`docs/api/validate_openapi.py`](docs/api/validate_openapi.py) | Utilidades del proyecto; verificación del contrato OpenAPI runtime y validación estática del contrato versionado | No aplica al mapa |
 | Entregables (complementario) | [`release/`](release/) | Artefactos y capturas asociados al release; no acredita un release final confirmado | No aplica al mapa |
 | Trazabilidad del release (complementario) | [`docs/evidencias/release/`](docs/evidencias/release/) | Manifiesto y documentación de las evidencias del release | No aplica al mapa |
-| Informe académico (complementario) | [`Informe-E4_BCEL/`](Informe-E4_BCEL/) | Informe académico del proyecto y sus recursos | No aplica al mapa |
+| Informe académico (complementario) | [`Informe-E4_BCEL/`](Informe-E4_BCEL/), [`TA-PFC-E4_BCEL.tex`](Informe-E4_BCEL/TA-PFC-E4_BCEL.tex) | Informe académico acumulativo del proyecto y sus recursos | No aplica al mapa |
 | Evidencias (complementario) | [`evidencias/`](evidencias/) | Evidencias organizadas del proyecto y por integrantes | No aplica al mapa |
 | Pruebas generales (complementario) | [`tests/`](tests/) | Pruebas generales del proyecto | No aplica al mapa |
 
