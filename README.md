@@ -36,7 +36,7 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | Estructura Prescrita | Carpeta en AcadTrace | Contenido y Responsabilidad | Comando de Reproducción |
 | :--- | :--- | :--- | :--- |
 | `src/core` | [`sga-principal/`](sga-principal/) | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
-| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && pytest` |
+| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && GRPC_INTERNAL_TOKEN=test-internal-token pytest` |
 | `src/secretaria` | [`microservicio-secretaria/`](microservicio-secretaria/) | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
 | `src/soporte` | [`microservicio-soporte/`](microservicio-soporte/) | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
 | Inteligencia artificial (complementario) | [`microservicio-ia/`](microservicio-ia/) | Microservicio de inteligencia artificial | No aplica al mapa |
@@ -57,6 +57,11 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | Informe académico (complementario) | [`Informe-E4_BCEL/`](Informe-E4_BCEL/) | Informe académico del proyecto y sus recursos | No aplica al mapa |
 | Evidencias (complementario) | [`evidencias/`](evidencias/) | Evidencias organizadas del proyecto y por integrantes | No aplica al mapa |
 | Pruebas generales (complementario) | [`tests/`](tests/) | Pruebas generales del proyecto | No aplica al mapa |
+
+> Nota E16: el comando de `microservicio-docente` requiere la variable
+> `GRPC_INTERNAL_TOKEN`. El valor `test-internal-token` es el mismo que fija
+> `.github/workflows/ci-cd.yml` para las corridas de pytest. En Windows
+> PowerShell usar `$env:GRPC_INTERNAL_TOKEN="test-internal-token"; pytest`.
 
 ---
 
