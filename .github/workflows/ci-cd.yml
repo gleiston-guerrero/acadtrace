@@ -565,7 +565,7 @@ jobs:
           path: microservicio-docente/frontend/playwright-report/
           retention-days: 7
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: playwright-test-results-docente
           path: microservicio-docente/frontend/test-results/
