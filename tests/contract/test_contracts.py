@@ -99,7 +99,7 @@ class TestOpenApiContract:
             data = yaml.safe_load(f)
         paths = data.get("paths", {})
 
-        expected_paths = ["/actuator/health", "/api/auditoria", "/api/secretaria/matriculas", "/api/secretaria/estudiantes"]
+        expected_paths = ["/actuator/health", "/api/auditoria", "/api/secretario/matriculas", "/api/secretario/estudiantes"]
         for p in expected_paths:
             assert p in paths, f"Ruta contractual '{p}' ausente en openapi.yaml"
 
