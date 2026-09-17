@@ -622,6 +622,7 @@ jobs:
             --network e10-docente \
             -p 5173:5173 \
             -v "$PWD/sga-principal/sga-frontend:/app" \
+            -v /app/node_modules \
             -w /app \
             node:20-alpine \
             sh -c "npm ci --no-audit && npm run dev -- --host 0.0.0.0"
@@ -634,6 +635,7 @@ jobs:
             --network e10-docente \
             -p 3000:3000 \
             -v "$PWD/microservicio-docente/frontend:/app" \
+            -v /app/node_modules \
             -w /app \
             node:20-alpine \
             sh -c "npm ci --no-audit && npm run dev -- --host 0.0.0.0 --port 3000"
