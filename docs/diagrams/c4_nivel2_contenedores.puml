@@ -11,7 +11,7 @@ Person(soporte_usuario, "Soporte técnico", "Usuario de soporte")
 
 System_Boundary(acadtrace, "AcadTrace") {
     Container(app_movil, "Aplicación móvil de representantes", "Android / Kotlin / Jetpack Compose", "Consulta académica móvil con persistencia local Room.")
-    Container(web_principal, "Frontend principal", "React / TypeScript / Vite", "Interfaz web del núcleo académico.")
+    Container(web_principal, "Frontend principal", "React / JavaScript (JSX) / Vite", "Interfaz web del núcleo académico.")
     Container(web_docente, "Frontend docente", "React / Vite", "Interfaz web de asistencia y calificaciones.")
     Container(haproxy, "HAProxy", "HAProxy 2.9 / Docker", "Balancea Principal, Docente, Secretaría e IA; publica métricas en :8404.")
 
