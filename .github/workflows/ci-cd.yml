@@ -51,7 +51,7 @@ jobs:
           cd microservicio-docente
           python -m pip install -r requirements.txt
           python -m pytest -q
-          python -m pytest --cov=docentes --cov-report=term-missing --cov-report=html:../docs/cobertura/docente
+          python -m pytest --cov=docentes --cov-fail-under=70 --cov-report=term-missing --cov-report=html:../docs/cobertura/docente
           python manage.py check --settings=micro_docente.test_settings
           python manage.py makemigrations --check --dry-run --settings=micro_docente.test_settings
       - uses: actions/upload-artifact@v4
