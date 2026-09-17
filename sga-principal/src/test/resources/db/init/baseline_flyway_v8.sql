@@ -1543,3 +1543,29 @@ DO $$ BEGIN
     END IF;
 END $$;
 
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- =============================================================================
+-- Columnas de auditoria añadidas al baseline para alinearlo con la entidad
+-- JPA de sga-principal. En el volcado original estas columnas viven en la
+-- misma tabla; se añaden aquí como ALTER TABLE ADD COLUMN IF NOT EXISTS
+-- para mantener idempotencia.
+-- =============================================================================
+
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS resultado           varchar(10) NOT NULL DEFAULT 'EXITO';
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS trace_id            uuid NOT NULL DEFAULT gen_random_uuid();
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS hash_actual         varchar(64);
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS hash_anterior       varchar(64);
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS contenido_canonico  text;
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS reloj_lamport       bigint;
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS vector_reloj        text;
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS version_canonica    varchar(20);
