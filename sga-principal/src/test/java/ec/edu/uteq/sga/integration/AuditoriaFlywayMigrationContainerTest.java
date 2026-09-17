@@ -25,6 +25,10 @@ class AuditoriaFlywayMigrationContainerTest {
     private static final String DB_PASSWORD =
             UUID.randomUUID().toString();
 
+    private static final String SGA_APP_PASSWORD =
+            System.getenv().getOrDefault("SGA_APP_PASSWORD_TEST",
+                    "test-" + UUID.randomUUID());
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:16-alpine")
@@ -76,7 +80,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
-                .placeholders(java.util.Map.of("sga_app_password", "sga_app_secure_pass_2026"))
+                .placeholders(java.util.Map.of("sga_app_password", SGA_APP_PASSWORD))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
@@ -207,7 +211,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
-                .placeholders(java.util.Map.of("sga_app_password", "sga_app_secure_pass_2026"))
+                .placeholders(java.util.Map.of("sga_app_password", SGA_APP_PASSWORD))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
@@ -243,7 +247,7 @@ class AuditoriaFlywayMigrationContainerTest {
         // 4. Conectarse con el usuario de aplicacion sga_app creado por la migracion
         try {
             try (Connection appConn = DriverManager.getConnection(
-                    POSTGRES.getJdbcUrl(), "sga_app", "sga_app_secure_pass_2026")) {
+                    POSTGRES.getJdbcUrl(), "sga_app", SGA_APP_PASSWORD)) {
 
                 // Intento de UPDATE sin trigger: DEBE fallar por permisos a nivel de motor (42501 permission denied)
                 try (Statement stmt = appConn.createStatement()) {
