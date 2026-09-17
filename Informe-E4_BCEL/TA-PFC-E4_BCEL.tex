@@ -620,7 +620,7 @@ El archivo \texttt{.github/workflows/ci-cd.yml} orquesta siete trabajos bloquean
 \hline
 5 & \texttt{build-images} & Construcci\'on y publicaci\'on de im\'agenes en GHCR (\texttt{ghcr.io/...:sha}). \\
 \hline
-6 & \texttt{build-mobile-apk} & Compilaci\'on y publicaci\'on del APK debug como artefacto de release. \\
+6 & \texttt{build-mobile-apk} & Compilaci\'on, firma y verificaci\'on del APK/AAB de release; ante un tag de versi\'on v\'alido, publicaci\'on autom\'atica de los artefactos y sus sumas SHA-256 en GitHub Release. \\
 \hline
 7 & \texttt{integration} & Despliegue seguro v\'ia SSH a AWS EC2 condicionado al \'exito de los 6 jobs previos. \\
 \hline
