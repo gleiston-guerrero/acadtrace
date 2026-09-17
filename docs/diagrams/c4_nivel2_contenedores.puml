@@ -27,12 +27,14 @@ System_Boundary(acadtrace, "AcadTrace") {
     Container(etcd, "etcd0", "etcd v3.5.11", "Instancia declarada para elección de líder en :2379.")
     Container(prometheus, "Prometheus", "Prometheus v2.51.0", "Scraping cada 15 s y remote_write configurable.")
     Container(grafana, "Grafana", "Grafana v10.4.0", "Dashboards sobre Prometheus; publicado en :3001.")
+    Container(dozzle, "Dozzle", "amir20/dozzle:latest", "Visor web de logs de contenedores; publicado :8888 -> :8080.")
     Container(cadvisor, "cAdvisor", "cAdvisor v0.49.1", "Métricas de contenedores; interno :8080, publicado :8085.")
     Container(postgres_exporter, "postgres-exporter", "postgres-exporter v0.15.0", "Métricas de PostgreSQL; :9187.")
     Container(zipkin, "Zipkin", "OpenZipkin 2.24.3", "Recepción de trazas; :9411.")
     Container(spark, "Spark", "Apache Spark 3.5.1", "Procesamiento configurado en el despliegue; :7077 y :8090.")
 }
 
+System_Ext(docker_engine, "Motor Docker del host", "Infraestructura local accesible mediante /var/run/docker.sock.")
 System_Ext(gemini, "Google Gemini", "API externa usada por microservicio-ia.")
 
 Rel(docente, web_principal, "Usa", "HTTP :5173")
@@ -72,6 +74,7 @@ Rel(prometheus, haproxy, "Scrapea", "HTTP :8404/metrics")
 Rel(prometheus, etcd, "Scrapea", "HTTP :2379/metrics")
 Rel(prometheus, cadvisor, "Scrapea", "HTTP :8080")
 Rel(prometheus, postgres_exporter, "Scrapea", "HTTP :9187")
+Rel(dozzle, docker_engine, "Consulta logs de contenedores", "Socket Unix /var/run/docker.sock (montaje :ro)")
 Rel(grafana, prometheus, "Consulta métricas", "HTTP :9090")
 Rel(ms_soporte, zipkin, "Envía trazas", "HTTP :9411")
 Rel(spark, postgres, "Lee datos configurados", "PostgreSQL :5433")
