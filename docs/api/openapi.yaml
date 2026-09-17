@@ -222,6 +222,16 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'200': {description: Estudiante actualizado}}
+  /api/estudiantes/por-grado:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: idGrado, in: query, required: true, schema: {type: integer, format: int64}}
+        - {name: idAnoLectivo, in: query, required: true, schema: {type: integer, format: int64}}
+        - {name: idParalelo, in: query, required: false, schema: {type: integer, format: int64}}
+      responses: {'200': {description: Estudiantes por grado}}
   /api/matriculas:
     get:
       tags: [principal]
@@ -241,6 +251,35 @@ paths:
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'201': {description: Matricula creada}}
+  /api/matriculas/{id}:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Detalle de matricula}}
+  /api/matriculas/{id}/estado:
+    patch:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+        - {name: estado, in: query, required: true, schema: {type: string}}
+        - {name: observaciones, in: query, required: false, schema: {type: string}}
+      responses: {'204': {description: Estado actualizado}}
+  /api/matriculas/{id}/pdf:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses:
+        '200':
+          description: PDF de la matricula
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
   /api/auditoria:
     get:
       tags: [principal]
@@ -301,6 +340,20 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'204': {$ref: '#/components/responses/NoContent'}}
+  /api/secretario/estudiantes/{idEstudiante}/ficha:
+    get:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idEstudiante, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Ficha del estudiante}}
+    put:
+      tags: [secretaria]
+      servers: [{url: http://localhost:5176}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: idEstudiante, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'200': {description: Ficha guardada}}
   /api/secretario/matriculas:
     post:
       tags: [secretaria]
@@ -444,6 +497,17 @@ paths:
       security: [{bearerAuth: []}]
       parameters: [{name: idAno, in: path, required: true, schema: {type: integer, format: int64}}]
       responses: {'200': {description: Estadisticas}}
+  /api/docente/periodos-evaluacion/:
+    get:
+      tags: [docente]
+      servers: [{url: http://localhost:8081}]
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Lista DRF}}
+    post:
+      tags: [docente]
+      servers: [{url: http://localhost:8081}]
+      security: [{bearerAuth: []}]
+      responses: {'201': {description: Recurso creado}}
   /api/docente/periodos-evaluacion:
     get:
       tags: [docente]
@@ -476,7 +540,7 @@ paths:
       servers:
         - {url: http://localhost:8000, description: microservicio-docente}
         - {url: http://localhost:5176, description: microservicio-secretaria}
-        - {url: http://localhost:5178, description: microservicio-soporte}
+        - {url: http://localhost:8083, description: microservicio-soporte}
         - {url: http://localhost:8084, description: microservicio-ia}
       security: []
       responses: {'200': {description: Servicio saludable}}
