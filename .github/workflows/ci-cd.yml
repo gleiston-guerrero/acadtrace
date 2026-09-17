@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Suite, cobertura y comprobaciones Django
         env:
           GRPC_INTERNAL_TOKEN: test-internal-token
@@ -177,10 +177,10 @@ jobs:
           distribution: "temurin"
           cache: "maven"
 
-      - name: Configurar Python 3.12
+      - name: Configurar Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Pruebas y Cobertura Python (Microservicio Docente)
         env:
