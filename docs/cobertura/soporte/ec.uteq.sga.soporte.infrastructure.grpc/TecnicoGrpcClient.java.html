@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TecnicoGrpcClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.infrastructure.grpc</a> &gt; <span class="el_source">TecnicoGrpcClient.java</span></div><h1>TecnicoGrpcClient.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.infrastructure.grpc;
+
+import ec.uteq.sga.soporte.grpc.principal.ListarUsuariosRequest;
+import ec.uteq.sga.soporte.grpc.principal.ListarUsuariosResponse;
+import ec.uteq.sga.soporte.grpc.principal.Usuario;
+import ec.uteq.sga.soporte.grpc.principal.UsuarioServiceGrpc;
+import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
+import io.grpc.StatusRuntimeException;
+import io.grpc.stub.MetadataUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Cliente gRPC hacia sga-principal. Reemplaza el llamado REST directo que
+ * antes hacia el frontend (Usuarios.jsx -&gt; http://localhost:8080/api) por un
+ * llamado gRPC desde el backend de soporte, para no depender de acceso
+ * directo entre servicios que no sea a traves del contrato definido aqui.
+ *
+ * Los stubs (UsuarioServiceGrpc, Usuario, etc.) se generan automaticamente
+ * al compilar, a partir de src/main/proto/usuarios.proto.
+ *
+ * sga-principal exige un header &quot;internal_token&quot; en todo llamado gRPC
+ * entrante (ver InternalAuthInterceptor.java alla); se lo agregamos aqui con
+ * el mismo patron que ya usa DocenteGrpcClient del lado de sga-principal
+ * para llamar a MICRO-DOCENTE.
+ *
+ * Resiliencia (issue #8): deadline de 3s por intento, maximo 2 reintentos
+ * con backoff simple, y degradacion a lista vacia si sga-principal no
+ * responde, en vez de romper el request que disparo esta llamada.
+ */
+<span class="fc" id="L39">@Slf4j</span>
+@Service
+public class TecnicoGrpcClient {
+
+
+    private static final long   DEADLINE_SECONDS      = 3;
+    private static final int    MAX_REINTENTOS        = 2; // reintentos ADEMAS del intento inicial
+    private static final long   BACKOFF_BASE_MS        = 300; // 300ms, 600ms...
+
+    private final UsuarioServiceGrpc.UsuarioServiceBlockingStub stub;
+
+<span class="nc" id="L50">    public TecnicoGrpcClient(ManagedChannel principalGrpcChannel, @Value(&quot;${app.grpc.internal-token}&quot;) String internalToken) {</span>
+<span class="nc" id="L51">        Metadata metadata = new Metadata();</span>
+<span class="nc" id="L52">        metadata.put(Metadata.Key.of(&quot;internal_token&quot;, Metadata.ASCII_STRING_MARSHALLER), internalToken);</span>
+
+<span class="nc" id="L54">        this.stub = UsuarioServiceGrpc.newBlockingStub(principalGrpcChannel)</span>
+<span class="nc" id="L55">                .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));</span>
+<span class="nc" id="L56">    }</span>
+
+    /** Lista solo los usuarios con rol SOPORTE_TECNICO (para el dropdown de asignacion). */
+    public List&lt;Map&lt;String, Object&gt;&gt; listarTecnicos() {
+<span class="nc" id="L60">        return listarPorRol(&quot;SOPORTE_TECNICO&quot;);</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarPorRol(String rol) {
+<span class="nc" id="L64">        ListarUsuariosRequest request = ListarUsuariosRequest.newBuilder()</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                .setRol(rol == null ? &quot;&quot; : rol)</span>
+<span class="nc" id="L66">                .build();</span>
+
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        for (int intento = 0; intento &lt;= MAX_REINTENTOS; intento++) {</span>
+            try {
+<span class="nc" id="L70">                ListarUsuariosResponse response = stub</span>
+<span class="nc" id="L71">                        .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)</span>
+<span class="nc" id="L72">                        .listarUsuarios(request);</span>
+
+<span class="nc" id="L74">                return response.getUsuariosList().stream()</span>
+<span class="nc" id="L75">                        .map(this::aMapa)</span>
+<span class="nc" id="L76">                        .toList();</span>
+
+<span class="nc" id="L78">            } catch (StatusRuntimeException e) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                boolean quedanReintentos = intento &lt; MAX_REINTENTOS;</span>
+<span class="nc" id="L80">                log.error(&quot;Fallo al llamar a sga-principal (gRPC listarUsuarios, rol={}, intento={}/{}): {}&quot;,</span>
+<span class="nc" id="L81">                        rol, intento + 1, MAX_REINTENTOS + 1, e.getStatus());</span>
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                if (!quedanReintentos) {</span>
+<span class="nc" id="L84">                    log.error(&quot;Se agotaron los reintentos contra sga-principal, se degrada a lista vacia.&quot;);</span>
+<span class="nc" id="L85">                    return Collections.emptyList();</span>
+                }
+
+<span class="nc" id="L88">                esperarBackoff(intento);</span>
+            }
+        }
+
+        // Inalcanzable en la practica (el for siempre retorna o cae al degradado arriba),
+        // pero se deja como red de seguridad.
+<span class="nc" id="L94">        return Collections.emptyList();</span>
+    }
+
+    private void esperarBackoff(int intento) {
+<span class="nc" id="L98">        long esperaMs = BACKOFF_BASE_MS * (long) Math.pow(2, intento); // 300ms, 600ms...</span>
+        try {
+<span class="nc" id="L100">            Thread.sleep(esperaMs);</span>
+<span class="nc" id="L101">        } catch (InterruptedException ie) {</span>
+<span class="nc" id="L102">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L103">        }</span>
+<span class="nc" id="L104">    }</span>
+
+    private Map&lt;String, Object&gt; aMapa(Usuario u) {
+<span class="nc" id="L107">        Map&lt;String, Object&gt; m = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L108">        m.put(&quot;id&quot;, u.getId());</span>
+<span class="nc" id="L109">        m.put(&quot;username&quot;, u.getUsername());</span>
+<span class="nc" id="L110">        m.put(&quot;nombre&quot;, u.getNombre());</span>
+<span class="nc" id="L111">        m.put(&quot;apellido&quot;, u.getApellido());</span>
+<span class="nc" id="L112">        m.put(&quot;correo&quot;, u.getCorreo());</span>
+<span class="nc" id="L113">        m.put(&quot;activo&quot;, u.getActivo());</span>
+<span class="nc" id="L114">        m.put(&quot;roles&quot;, u.getRolesList());</span>
+<span class="nc" id="L115">        String nombreCompleto = (u.getNombre() + &quot; &quot; + u.getApellido()).trim();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        m.put(&quot;nombreCompleto&quot;, nombreCompleto.isEmpty() ? null : nombreCompleto);</span>
+<span class="nc" id="L117">        return m;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -4,6 +4,11 @@ Esta tabla es la fuente central de cobertura documentada para E8. Una cifra marc
 
 | Módulo | Herramienta | Alcance | LINE | INSTRUCTION | BRANCH | Umbral | Fecha | Estado | Comando |
 |---|---|---|---:|---:|---:|---|---|---|---|
+| `microservicio-soporte/backend` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 71,61 % (459/641) | 73,03 % (2323/3181) | 59,61 % (121/203) | 70 % LINE | 2026-09-17 | Reporte versionado en `a03d0abf`, generado con Maven 3.9.9 y Java 21; cumple el umbral de 70 % LINE | Desde `microservicio-soporte/backend`: `./mvnw clean verify` en Linux/CI; `./mvnw.cmd verify` en Windows |
+| `sga-principal` | JaCoCo | Alcance global del reporte histórico conservado | 30,31 % | No disponible en esta consolidación | No disponible en esta consolidación | Histórico; no sustituye el umbral actual | Fecha del reporte histórico conservado | Histórico/no regenerado; no es cobertura actual | Reporte histórico conservado |
+| `microservicio-secretaria/backend` | JaCoCo | Contador XML global histórico | 34,53 % | No disponible en esta consolidación | No disponible en esta consolidación | Histórico; no sustituye el umbral actual | Fecha del reporte histórico conservado | Histórico/no regenerado. El 34,52 % derivado de suma de CSV por clase no se usa como cifra global | Reporte histórico conservado |
+| `microservicio-docente` | coverage.py | HTML de coverage.py histórico | 78 % (evidencia HTML conservada) | No aplica | No aplica | Histórico; no es un umbral JaCoCo | Fecha del HTML conservado | Evidencia histórica conservada/no regenerada. Existe además una cifra histórica de 79,28 % de otra ejecución; la discrepancia no está resuelta | Reporte histórico conservado |
+
 | `microservicio-soporte/backend` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 71,61 % (459/641) | 73,05 % (2323/3180) | 59,61 % (121/203) | 70 % LINE | 2026-09-12 | Verificado contra `HEAD` actual con Eclipse Temurin JDK 21; cumple el umbral de 70 % LINE | Desde `microservicio-soporte/backend`: `./mvnw clean verify` en Linux/CI; `./mvnw.cmd verify` en Windows |
 | `app-movil-docente` | JaCoCo 0.8.13 (Android) | BUNDLE, con exclusiones estándar de recursos generados | Regenerar con `jacocoTestReport` | Regenerar con `jacocoTestReport` | No aplica | 10 % INSTRUCTION (compuerta `jacocoCoverageVerification`) | 2026-09-16 | Compuerta encadenada a `check` en `build.gradle.kts` | Desde `app-movil-docente`: `./gradlew clean testDebugUnitTest jacocoTestReport jacocoCoverageVerification` |
 | `sga-principal` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 31,6 % (1881 / 2752 líneas) | 30,9 % (4394 / 14202 instrucciones) | No disponible | 30 % INSTRUCTION | 2026-09-16 | Verificado contra `HEAD` actual con Eclipse Temurin JDK 17; cumple el umbral de 30 % INSTRUCTION | Desde `sga-principal`: `./mvnw clean test jacoco:report "-Dtest=!*ContainerTest,!*ConcurrencyE3Test"` |
@@ -42,9 +47,14 @@ El reporte HTML, XML y CSV generado reside de forma unificada en `docs/cobertura
 
 ## Alcance oficial de Soporte
 
-La cobertura fue regenerada y verificada el 2026-09-12 con Eclipse Temurin JDK 21. El reporte actual registra 459 de 641 líneas cubiertas (71,61 %), por lo que cumple el umbral mínimo de 70 % LINE.
+La cobertura fue regenerada el 2026-09-17 con Maven 3.9.9 y Java 21, y el reporte completo quedó versionado en el commit `a03d0abf`. El contador global `LINE` del reporte XML (alcance `BUNDLE`) registra 182 líneas no cubiertas y 459 cubiertas: 459/641 = 71,61 %, por lo que cumple el umbral mínimo de 70 % LINE. Esta cifra se obtiene del contador global, no de sumar filas por clase del CSV.
+
+Evidencia versionada: [reporte HTML](soporte/index.html), [CSV](soporte/jacoco.csv) y [XML con contadores globales](soporte/jacoco.xml).
 
 El reporte de Soporte usa JaCoCo 0.8.11 con alcance `BUNDLE` y estas exclusiones configuradas en `microservicio-soporte/backend/pom.xml`:
+
+- `ec/uteq/sga/soporte/grpc/incidencias/**`
+- `ec/uteq/sga/soporte/grpc/principal/**`
 
 - `ec/uteq/sga/soporte/grpc/incidencias/**` (stubs gRPC generados)
 - `ec/uteq/sga/soporte/grpc/principal/**` (stubs gRPC generados)

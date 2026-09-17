@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.application</a> &gt; <span class="el_source">TicketService.java</span></div><h1>TicketService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.application;
+
+import ec.uteq.sga.soporte.common.ApiException;
+import ec.uteq.sga.soporte.domain.port.TicketRepositoryPort;
+import ec.uteq.sga.soporte.dto.ActualizarTicketRequest;
+import ec.uteq.sga.soporte.dto.ComentarioRequest;
+import ec.uteq.sga.soporte.dto.EscalarTicketRequest;
+import ec.uteq.sga.soporte.dto.TicketRequest;
+import ec.uteq.sga.soporte.security.AuthenticatedUser;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Logica de negocio del modulo de soporte tecnico. Ya no habla con
+ * JdbcTemplate directamente: todo el acceso a datos pasa por
+ * TicketRepositoryPort (implementado en infrastructure/persistence/
+ * JdbcTicketRepository). Esta clase solo valida reglas de negocio y
+ * orquesta las llamadas al puerto.
+ */
+@Service
+public class TicketService {
+
+<span class="fc" id="L27">    private static final Set&lt;String&gt; ESTADOS = Set.of(&quot;ABIERTO&quot;, &quot;EN_PROCESO&quot;, &quot;RESUELTO&quot;, &quot;CERRADO&quot;);</span>
+<span class="fc" id="L28">    private static final Set&lt;String&gt; PRIORIDADES = Set.of(&quot;BAJO&quot;, &quot;MEDIO&quot;, &quot;ALTO&quot;, &quot;CRITICO&quot;);</span>
+<span class="fc" id="L29">    private static final Set&lt;String&gt; CATEGORIAS = Set.of(&quot;HARDWARE&quot;, &quot;SOFTWARE&quot;, &quot;RED&quot;, &quot;CUENTA&quot;, &quot;OTRO&quot;);</span>
+
+    private final TicketRepositoryPort tickets;
+
+<span class="fc" id="L33">    public TicketService(TicketRepositoryPort tickets) {</span>
+<span class="fc" id="L34">        this.tickets = tickets;</span>
+<span class="fc" id="L35">    }</span>
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listar(AuthenticatedUser user) {
+<span class="fc" id="L38">        exigirTecnicoODirector(user);</span>
+<span class="fc" id="L39">        return tickets.listarTodos();</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; misTickets(String username) {
+<span class="fc" id="L43">        return tickets.listarPorCreador(username);</span>
+    }
+
+    public Map&lt;String, Object&gt; estadisticas(AuthenticatedUser user) {
+<span class="fc" id="L47">        exigirTecnicoODirector(user);</span>
+<span class="fc" id="L48">        return tickets.estadisticas();</span>
+    }
+
+    /** Reportes de gestion: totales y tiempo promedio de resolucion (horas) por categoria y tecnico. */
+    public Map&lt;String, Object&gt; reportes(AuthenticatedUser user) {
+<span class="fc" id="L53">        exigirTecnicoODirector(user);</span>
+<span class="fc" id="L54">        return Map.of(</span>
+<span class="fc" id="L55">                &quot;porCategoria&quot;, tickets.reportePorCategoria(),</span>
+<span class="fc" id="L56">                &quot;porTecnico&quot;, tickets.reportePorTecnico(),</span>
+<span class="fc" id="L57">                &quot;general&quot;, tickets.reporteGeneral()</span>
+        );
+    }
+
+    /** Lanza 403 si el usuario no es del equipo de soporte (SOPORTE_TECNICO/DIRECTOR/ADMINISTRADOR). */
+    private void exigirTecnicoODirector(AuthenticatedUser user) {
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">        if (user == null || !user.isTecnicoOrDirector()) {</span>
+<span class="fc" id="L64">            throw ApiException.forbidden(&quot;Accion exclusiva del equipo de soporte&quot;);</span>
+        }
+<span class="fc" id="L66">    }</span>
+
+    public Map&lt;String, Object&gt; obtener(long id) {
+<span class="fc" id="L69">        return tickets.buscarPorId(id)</span>
+<span class="fc" id="L70">                .orElseThrow(() -&gt; ApiException.notFound(&quot;Ticket no encontrado&quot;));</span>
+    }
+
+    public Map&lt;String, Object&gt; obtener(long id, AuthenticatedUser user) {
+<span class="fc" id="L74">        Map&lt;String, Object&gt; ticket = obtener(id);</span>
+<span class="pc bpc" id="L75" title="1 of 4 branches missed.">        if (user == null || !user.isTecnicoOrDirector()) {</span>
+<span class="fc" id="L76">            String creadoPor = (String) ticket.get(&quot;creadoPor&quot;);</span>
+<span class="pc bpc" id="L77" title="2 of 6 branches missed.">            if (user == null || creadoPor == null || !creadoPor.equals(user.username())) {</span>
+<span class="fc" id="L78">                throw ApiException.forbidden(&quot;No tiene acceso a este ticket&quot;);</span>
+            }
+        }
+<span class="fc" id="L81">        return ticket;</span>
+    }
+
+    @Transactional
+    public Map&lt;String, Object&gt; crear(TicketRequest req, String creadoPor) {
+<span class="fc" id="L86">        String prioridad = req.prioridad().toUpperCase();</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (!PRIORIDADES.contains(prioridad)) {</span>
+<span class="fc" id="L88">            throw ApiException.badRequest(&quot;Prioridad inválida (BAJO, MEDIO, ALTO, CRITICO)&quot;);</span>
+        }
+<span class="fc" id="L90">        String categoria = req.categoria().toUpperCase();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (!CATEGORIAS.contains(categoria)) {</span>
+<span class="fc" id="L92">            throw ApiException.badRequest(&quot;Categoría inválida (HARDWARE, SOFTWARE, RED, CUENTA, OTRO)&quot;);</span>
+        }
+
+<span class="fc" id="L95">        String numero = &quot;TK-&quot; + System.currentTimeMillis();</span>
+<span class="fc" id="L96">        long id = tickets.crear(numero, req.titulo(), req.descripcion(), categoria, prioridad, creadoPor);</span>
+<span class="fc" id="L97">        return obtener(id);</span>
+    }
+
+    /**
+     * Creacion automatica de tickets reportados por OTRO microservicio
+     * (Principal, Docente, Secretaria) via gRPC (ver IncidenciaGrpcServer),
+     * cuando ese servicio detecta una falla propia. A diferencia de crear(),
+     * es tolerante: si la categoria/prioridad que manda el servicio de
+     * origen no es una de las validas, cae a un valor por defecto en lugar
+     * de rechazar el reporte -- perder una incidencia real por un typo de
+     * otro equipo es peor que clasificarla mal.
+     */
+    @Transactional
+    public Map&lt;String, Object&gt; crearDesdeIncidencia(String servicioOrigen, String titulo, String descripcion,
+                                                      String categoriaSugerida, String prioridadSugerida) {
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        String categoria = categoriaSugerida == null ? &quot;&quot; : categoriaSugerida.toUpperCase();</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (!CATEGORIAS.contains(categoria)) categoria = &quot;OTRO&quot;;</span>
+
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        String prioridad = prioridadSugerida == null ? &quot;&quot; : prioridadSugerida.toUpperCase();</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        if (!PRIORIDADES.contains(prioridad)) prioridad = &quot;ALTO&quot;; // falla reportada por un servicio: se asume urgente</span>
+
+<span class="pc bpc" id="L118" title="2 of 4 branches missed.">        String creadoPor = &quot;sistema:&quot; + (servicioOrigen == null || servicioOrigen.isBlank() ? &quot;desconocido&quot; : servicioOrigen);</span>
+<span class="fc" id="L119">        String numero = &quot;TK-&quot; + System.currentTimeMillis();</span>
+<span class="fc" id="L120">        long id = tickets.crear(numero, titulo, descripcion, categoria, prioridad, creadoPor);</span>
+<span class="fc" id="L121">        return obtener(id);</span>
+    }
+
+    @Transactional
+    public Map&lt;String, Object&gt; actualizar(long id, ActualizarTicketRequest req, AuthenticatedUser user) {
+<span class="fc" id="L126">        exigirTecnicoODirector(user);</span>
+<span class="fc" id="L127">        String modificadoPor = user.username();</span>
+<span class="fc" id="L128">        String estado = req.estado().toUpperCase();</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (!ESTADOS.contains(estado)) {</span>
+<span class="fc" id="L130">            throw ApiException.badRequest(&quot;Estado inválido (ABIERTO, EN_PROCESO, RESUELTO, CERRADO)&quot;);</span>
+        }
+
+<span class="fc" id="L133">        Map&lt;String, Object&gt; actual = obtener(id); // valida existencia y trae valores previos</span>
+<span class="fc" id="L134">        String estadoAnterior = (String) actual.get(&quot;estado&quot;);</span>
+<span class="fc" id="L135">        String asignadoAnterior = (String) actual.get(&quot;asignadoA&quot;);</span>
+
+<span class="fc" id="L137">        tickets.actualizarEstado(id, estado, req.asignadoA(), req.solucionAplicada());</span>
+
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (!estado.equals(estadoAnterior)) {</span>
+<span class="fc" id="L140">            tickets.registrarHistorial(id, &quot;ESTADO&quot;, estadoAnterior, estado, modificadoPor);</span>
+        }
+<span class="pc bpc" id="L142" title="2 of 4 branches missed.">        if (req.asignadoA() != null &amp;&amp; !req.asignadoA().equals(asignadoAnterior)) {</span>
+<span class="fc" id="L143">            tickets.registrarHistorial(id, &quot;ASIGNADO_A&quot;, asignadoAnterior, req.asignadoA(), modificadoPor);</span>
+        }
+
+<span class="fc" id="L146">        return obtener(id);</span>
+    }
+
+    /**
+     * Escalamiento: sube la prioridad y/o reasigna el ticket a un tecnico
+     * superior. Requiere al menos uno de los dos cambios y siempre deja el
+     * motivo registrado como nota interna en el timeline del ticket.
+     */
+    @Transactional
+    public Map&lt;String, Object&gt; escalar(long id, EscalarTicketRequest req, AuthenticatedUser user) {
+<span class="fc" id="L156">        exigirTecnicoODirector(user);</span>
+<span class="fc" id="L157">        String actor = user.username();</span>
+<span class="fc" id="L158">        Map&lt;String, Object&gt; actual = obtener(id); // valida existencia y trae valores previos</span>
+<span class="fc" id="L159">        String estadoActual = (String) actual.get(&quot;estado&quot;);</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        if (&quot;CERRADO&quot;.equals(estadoActual)) {</span>
+<span class="fc" id="L161">            throw ApiException.badRequest(&quot;No se puede escalar un ticket cerrado&quot;);</span>
+        }
+
+<span class="pc bpc" id="L164" title="1 of 4 branches missed.">        String nuevaPrioridad = req.nuevaPrioridad() == null || req.nuevaPrioridad().isBlank()</span>
+<span class="fc" id="L165">                ? null : req.nuevaPrioridad().toUpperCase();</span>
+<span class="pc bpc" id="L166" title="1 of 4 branches missed.">        if (nuevaPrioridad != null &amp;&amp; !PRIORIDADES.contains(nuevaPrioridad)) {</span>
+<span class="nc" id="L167">            throw ApiException.badRequest(&quot;Prioridad inválida (BAJO, MEDIO, ALTO, CRITICO)&quot;);</span>
+        }
+<span class="pc bpc" id="L169" title="1 of 4 branches missed.">        String nuevoAsignado = req.nuevoAsignado() == null || req.nuevoAsignado().isBlank()</span>
+<span class="fc" id="L170">                ? null : req.nuevoAsignado();</span>
+
+<span class="pc bpc" id="L172" title="1 of 4 branches missed.">        if (nuevaPrioridad == null &amp;&amp; nuevoAsignado == null) {</span>
+<span class="fc" id="L173">            throw ApiException.badRequest(&quot;El escalamiento debe cambiar la prioridad y/o reasignar el ticket&quot;);</span>
+        }
+
+<span class="fc" id="L176">        String prioridadAnterior = (String) actual.get(&quot;prioridad&quot;);</span>
+<span class="fc" id="L177">        String asignadoAnterior = (String) actual.get(&quot;asignadoA&quot;);</span>
+
+<span class="fc" id="L179">        tickets.actualizarPrioridadYAsignado(id, nuevaPrioridad, nuevoAsignado);</span>
+
+<span class="pc bpc" id="L181" title="2 of 4 branches missed.">        if (nuevaPrioridad != null &amp;&amp; !nuevaPrioridad.equals(prioridadAnterior)) {</span>
+<span class="fc" id="L182">            tickets.registrarHistorial(id, &quot;PRIORIDAD&quot;, prioridadAnterior, nuevaPrioridad, actor);</span>
+        }
+<span class="pc bpc" id="L184" title="2 of 4 branches missed.">        if (nuevoAsignado != null &amp;&amp; !nuevoAsignado.equals(asignadoAnterior)) {</span>
+<span class="fc" id="L185">            tickets.registrarHistorial(id, &quot;ASIGNADO_A&quot;, asignadoAnterior, nuevoAsignado, actor);</span>
+        }
+
+<span class="fc" id="L188">        tickets.agregarComentario(id, actor, &quot;Escalamiento: &quot; + req.motivo(), true);</span>
+
+<span class="fc" id="L190">        return obtener(id);</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarHistorial(long idTicket, AuthenticatedUser user) {
+<span class="fc" id="L194">        obtener(idTicket, user); // valida existencia y autorizacion</span>
+<span class="fc" id="L195">        return tickets.listarHistorial(idTicket);</span>
+    }
+
+    public List&lt;Map&lt;String, Object&gt;&gt; listarComentarios(long idTicket) {
+<span class="fc" id="L199">        obtener(idTicket); // valida existencia</span>
+<span class="fc" id="L200">        return tickets.listarComentarios(idTicket);</span>
+    }
+
+    @Transactional
+    public Map&lt;String, Object&gt; comentar(long idTicket, ComentarioRequest req, AuthenticatedUser user) {
+<span class="fc" id="L205">        obtener(idTicket); // valida existencia</span>
+<span class="pc bpc" id="L206" title="2 of 6 branches missed.">        boolean notaInterna = req.notaInterna() != null &amp;&amp; req.notaInterna() &amp;&amp; user.isTecnicoOrDirector();</span>
+<span class="fc" id="L207">        return tickets.agregarComentario(idTicket, user.username(), req.contenido(), notaInterna);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

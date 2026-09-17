@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Ticket.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.domain</a> &gt; <span class="el_source">Ticket.java</span></div><h1>Ticket.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.domain;
+
+import java.time.LocalDateTime;
+
+/**
+ * Entidad de dominio pura. Sin anotaciones de framework (ni JPA ni Spring
+ * Data): el mapeo a la tabla sga_soporte.tickets vive en infrastructure/,
+ * no aqui. Esta clase solo conoce las reglas del negocio de soporte.
+ */
+public class Ticket {
+
+    private Long id;
+    private String numeroTicket;
+    private String titulo;
+    private String descripcion;
+    private String categoria;
+    private String prioridad;
+    private String estado;
+    private String creadoPor;
+    private String asignadoA;
+    private String solucionAplicada;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaResolucion;
+
+<span class="fc" id="L25">    public Ticket() {</span>
+<span class="fc" id="L26">        this.fechaCreacion = LocalDateTime.now();</span>
+<span class="fc" id="L27">        this.estado = EstadoTicket.ABIERTO.name();</span>
+<span class="fc" id="L28">        this.prioridad = PrioridadTicket.MEDIO.name();</span>
+<span class="fc" id="L29">    }</span>
+
+    // Getters y Setters
+<span class="fc" id="L32">    public Long getId() { return id; }</span>
+<span class="fc" id="L33">    public void setId(Long id) { this.id = id; }</span>
+
+<span class="fc" id="L35">    public String getNumeroTicket() { return numeroTicket; }</span>
+<span class="fc" id="L36">    public void setNumeroTicket(String numeroTicket) { this.numeroTicket = numeroTicket; }</span>
+
+<span class="fc" id="L38">    public String getTitulo() { return titulo; }</span>
+<span class="fc" id="L39">    public void setTitulo(String titulo) { this.titulo = titulo; }</span>
+
+<span class="fc" id="L41">    public String getDescripcion() { return descripcion; }</span>
+<span class="fc" id="L42">    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }</span>
+
+<span class="fc" id="L44">    public String getCategoria() { return categoria; }</span>
+<span class="fc" id="L45">    public void setCategoria(String categoria) { this.categoria = categoria; }</span>
+
+<span class="fc" id="L47">    public String getPrioridad() { return prioridad; }</span>
+<span class="fc" id="L48">    public void setPrioridad(String prioridad) { this.prioridad = prioridad; }</span>
+
+<span class="fc" id="L50">    public String getEstado() { return estado; }</span>
+<span class="fc" id="L51">    public void setEstado(String estado) { this.estado = estado; }</span>
+
+<span class="fc" id="L53">    public String getCreadoPor() { return creadoPor; }</span>
+<span class="fc" id="L54">    public void setCreadoPor(String creadoPor) { this.creadoPor = creadoPor; }</span>
+
+<span class="fc" id="L56">    public String getAsignadoA() { return asignadoA; }</span>
+<span class="fc" id="L57">    public void setAsignadoA(String asignadoA) { this.asignadoA = asignadoA; }</span>
+
+<span class="fc" id="L59">    public String getSolucionAplicada() { return solucionAplicada; }</span>
+<span class="fc" id="L60">    public void setSolucionAplicada(String solucionAplicada) { this.solucionAplicada = solucionAplicada; }</span>
+
+<span class="fc" id="L62">    public LocalDateTime getFechaCreacion() { return fechaCreacion; }</span>
+<span class="fc" id="L63">    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }</span>
+
+<span class="fc" id="L65">    public LocalDateTime getFechaResolucion() { return fechaResolucion; }</span>
+<span class="fc" id="L66">    public void setFechaResolucion(LocalDateTime fechaResolucion) { this.fechaResolucion = fechaResolucion; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
