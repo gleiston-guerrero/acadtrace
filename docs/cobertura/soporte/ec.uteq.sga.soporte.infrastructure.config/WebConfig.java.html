@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.infrastructure.config</a> &gt; <span class="el_source">WebConfig.java</span></div><h1>WebConfig.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.infrastructure.config;
+
+import ec.uteq.sga.soporte.security.CurrentUserArgumentResolver;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+
+import java.io.IOException;
+import java.util.List;
+
+@Configuration
+<span class="fc" id="L19">public class WebConfig implements WebMvcConfigurer {</span>
+
+    @Value(&quot;${app.cors.origin}&quot;)
+    private String corsOrigin;
+
+    @Value(&quot;${app.frontend.dist-path}&quot;)
+    private String frontendDistPath;
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+<span class="fc" id="L29">        registry.addMapping(&quot;/**&quot;)</span>
+<span class="fc" id="L30">                .allowedOriginPatterns(corsOrigin.split(&quot;,&quot;))</span>
+<span class="fc" id="L31">                .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;PATCH&quot;, &quot;DELETE&quot;)</span>
+<span class="fc" id="L32">                .allowedHeaders(&quot;Content-Type&quot;, &quot;Authorization&quot;);</span>
+<span class="fc" id="L33">    }</span>
+
+    @Override
+    public void addArgumentResolvers(List&lt;HandlerMethodArgumentResolver&gt; resolvers) {
+<span class="fc" id="L37">        resolvers.add(new CurrentUserArgumentResolver());</span>
+<span class="fc" id="L38">    }</span>
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+<span class="nc" id="L42">        registry.addViewController(&quot;/&quot;).setViewName(&quot;forward:/index.html&quot;);</span>
+<span class="nc" id="L43">    }</span>
+
+    /**
+     * Sirve el frontend compilado (dist) sin copiarlo al classpath. Cualquier ruta
+     * que no sea un archivo real ni empiece con api/ devuelve index.html (catch-all SPA).
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+<span class="nc" id="L51">        String location = &quot;file:&quot; + frontendDistPath.replaceAll(&quot;/+$&quot;, &quot;&quot;) + &quot;/&quot;;</span>
+<span class="nc" id="L52">        registry.addResourceHandler(&quot;/**&quot;)</span>
+<span class="nc" id="L53">                .addResourceLocations(location)</span>
+<span class="nc" id="L54">                .resourceChain(true)</span>
+<span class="nc" id="L55">                .addResolver(new PathResourceResolver() {</span>
+                    @Override
+                    protected Resource getResource(String resourcePath, Resource baseLocation) throws IOException {
+<span class="nc bnc" id="L58" title="All 4 branches missed.">                        if (resourcePath.startsWith(&quot;api/&quot;) || resourcePath.equals(&quot;health&quot;)) {</span>
+<span class="nc" id="L59">                            return null;</span>
+                        }
+<span class="nc" id="L61">                        Resource requested = super.getResource(resourcePath, baseLocation);</span>
+<span class="nc bnc" id="L62" title="All 6 branches missed.">                        if (requested != null &amp;&amp; requested.exists() &amp;&amp; requested.isReadable()) {</span>
+<span class="nc" id="L63">                            return requested;</span>
+                        }
+<span class="nc" id="L65">                        return new FileSystemResource(frontendDistPath.replaceAll(&quot;/+$&quot;, &quot;&quot;) + &quot;/index.html&quot;);</span>
+                    }
+                });
+<span class="nc" id="L68">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
