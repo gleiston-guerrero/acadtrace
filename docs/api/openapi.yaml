@@ -2819,10 +2819,9 @@ paths:
       responses: {'200': {description: Asistencia procesada}, '400': {description: Peticion invalida}, '409': {description: Registro duplicado}}
   /health:
     get:
-      tags: [docente, secretaria, soporte, ia]
+      tags: [docente, soporte, ia]
       servers:
         - {url: http://localhost:8000, description: microservicio-docente}
-        - {url: http://localhost:5176, description: microservicio-secretaria}
         - {url: http://localhost:5178, description: microservicio-soporte}
         - {url: http://localhost:8084, description: microservicio-ia}
       security: []

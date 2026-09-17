@@ -109,7 +109,10 @@ class AuditoriaFlywayMigrationContainerTest {
                     "15",
                     "16",
                     "17",
-                    "18"
+                    "18",
+                    "19",
+                    "20",
+                    "21"
             )) {
 
                 assertThat(
@@ -185,6 +188,26 @@ class AuditoriaFlywayMigrationContainerTest {
                     WHERE id_auditoria = %d
                     """.formatted(idAuditoria)
             );
+
+            /*
+             * TRUNCATE tambien debe ser rechazado por el disparador
+             * BEFORE TRUNCATE creado en V21. Los disparadores de fila (V13)
+             * no cubren TRUNCATE, por eso V21 anade uno de sentencia.
+             */
+            comprobarOperacionRechazada(
+                    "TRUNCATE sga_principal.auditoria"
+            );
+
+            /*
+             * El registro debe continuar existiendo despues del intento
+             * de TRUNCATE.
+             */
+            assertThat(
+                    contarRegistro(
+                            connection,
+                            idAuditoria
+                    )
+            ).isEqualTo(1L);
 
             /*
              * El registro debe continuar existiendo despues
