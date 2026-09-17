@@ -552,6 +552,12 @@ jobs:
           cache: npm
           cache-dependency-path: microservicio-docente/frontend/package-lock.json
 
+      - name: Instalar frontend y Chromium
+        working-directory: microservicio-docente/frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
       - name: Validar configuracion E2E
         shell: bash
         run: |
@@ -668,12 +674,6 @@ jobs:
           esperar "Docente" "http://127.0.0.1:8081/health"
           esperar "Frontend Principal" "http://127.0.0.1:5173/login"
           esperar "Frontend Docente" "http://127.0.0.1:3000"
-
-      - name: Instalar frontend y Chromium
-        working-directory: microservicio-docente/frontend
-        run: |
-          npm ci
-          npx playwright install --with-deps chromium
 
       - name: Ejecutar recorridos E2E
         working-directory: microservicio-docente/frontend
