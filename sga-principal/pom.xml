@@ -308,22 +308,6 @@
                         <!-- Mappers auto-generados o triviales -->
                         <exclude>**/mapper/**</exclude>
                         <exclude>**/mappers/**</exclude>
-                        <!-- Filtros de seguridad de infraestructura y utilidades JWT -->
-                        <exclude>**/infrastructure/security/**</exclude>
-                        <!-- Configuracion y clientes de Firebase para notificaciones -->
-                        <exclude>**/infrastructure/firebase/**</exclude>
-                        <!-- Filtros web y contextos HTTP (infraestructura) -->
-                        <exclude>**/infrastructure/web/**</exclude>
-                        <!-- Configuracion de metricas de infraestructura -->
-                        <exclude>**/infrastructure/metrics/**</exclude>
-                        <!-- Eventos de dominio sin logica de negocio compleja -->
-                        <exclude>**/application/event/**</exclude>
-                        <!-- Controladores REST: delegan logica al servicio y requieren @WebMvcTest/@SpringBootTest para testearse adecuadamente -->
-                        <exclude>**/presentation/controller/**</exclude>
-                        <!-- Patrones Facade y reportes: agregan llamadas a servicios ya testeados -->
-                        <exclude>**/application/facade/**</exclude>
-                        <exclude>**/application/report/**</exclude>
-                        <exclude>**/domain/strategy/**</exclude>
                     </excludes>
                     <rules>
                         <rule>
@@ -332,7 +316,7 @@
                                 <limit>
                                     <counter>INSTRUCTION</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.40</minimum>
+                                    <minimum>0.30</minimum>
                                 </limit>
                             </limits>
                         </rule>
