@@ -526,7 +526,7 @@ jobs:
       DB_HOST: 3.23.195.43
       DB_PORT: "5433"
       DB_NAME: sga
-      DB_USER: sga_app
+      DB_USER: postgres
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       FLYWAY_USER: postgres
       FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
