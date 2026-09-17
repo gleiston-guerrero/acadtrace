@@ -647,7 +647,7 @@ jobs:
               local name=$2
               echo "Verificando $name en $url..."
               # Aumentamos a 30 intentos (150 segundos) porque AWS EC2 puede ser lento para iniciar Java
-              for i in {1..30}; do
+              for i in {1..60}; do
                 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $url)
                 if [ "$HTTP_STATUS" = "200" ]; then
                   echo "$name esta SANO (HTTP 200)."
