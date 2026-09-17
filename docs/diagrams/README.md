@@ -25,8 +25,8 @@ if (-not (Test-Path $jar)) {
 }
 
 Push-Location docs/diagrams
-java -jar $jar -tsvg c4_nivel1_contexto.puml c4_nivel2_contenedores.puml c4_nivel3_componentes.puml
-java -jar $jar -tpng c4_nivel1_contexto.puml c4_nivel2_contenedores.puml c4_nivel3_componentes.puml
+java -jar $jar -charset UTF-8 -tsvg c4_nivel1_contexto.puml c4_nivel2_contenedores.puml c4_nivel3_componentes.puml
+java -jar $jar -charset UTF-8 -tpng c4_nivel1_contexto.puml c4_nivel2_contenedores.puml c4_nivel3_componentes.puml
 Pop-Location
 
 Copy-Item docs/diagrams/c4_nivel1_contexto.svg Informe-E4_BCEL/c4_nivel1_contexto.svg -Force
