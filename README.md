@@ -11,14 +11,18 @@ Los tres niveles C4 canónicos y sus instrucciones de regeneración están docum
 
 ## Arquitectura General y Mapeo de Puertos
 
-El sistema esta compuesto por un modulo principal y tres microservicios autonomos:
+El sistema está compuesto por un módulo principal y cuatro microservicios autónomos:
 
-| Servicio | Tecnologia Backend | Puerto REST | Puerto gRPC | Puerto Frontend | Responsabilidad Principal |
+| Servicio | Tecnología Backend | Puerto REST | Puerto gRPC | Puerto Frontend | Responsabilidad Principal |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **SGA Principal** | Java 21 (Spring Boot) | 8080 | 9092 | 5173 | Core Academico, Usuarios, Autenticacion y Modulos |
-| **Microservicio Docente** | Python 3.12 (Django REST) | 8081 | 9091 | 5174 | Gestion de Asistencia, Evaluaciones y Calificaciones |
-| **Microservicio Secretaria** | Java 21 (Spring Boot) | 8082 | 9093 | 5176 | Control de Tramites, Certificados, Matricula y Auditoria HMAC |
-| **Microservicio Soporte** | Java 17 (Spring Boot) | 8083 | 9094 | 8083 | Tickets de Incidencias, Eleccion de Lider etcd y Actuator |
+| **SGA Principal** | Java 21 (Spring Boot) | 8080 | 9092 | 5173 | Core Académico, Usuarios, Autenticación y Módulos |
+| **Microservicio Docente** | Python 3.12 (Django REST) | 8081 | 9091 | 5174 | Gestión de Asistencia, Evaluaciones y Calificaciones |
+| **Microservicio Secretaría** | Java 21 (Spring Boot) | 8082 | 9093 | 5176 | Control de Trámites, Certificados, Matrícula y Auditoría HMAC |
+| **Microservicio Soporte** | Java 17 (Spring Boot) | 8083 | 9094 | 8083 | Tickets de Incidencias, Elección de Líder etcd y Actuator |
+| **Microservicio IA** | Python (FastAPI) | 8084 | — | — | Diagnóstico académico y asistencia mediante inteligencia artificial |
+
+> **Nota sobre puertos:** Los puertos REST corresponden a los servicios backend. Los puertos de frontend pueden representar el acceso publicado por Docker Compose o el servidor de desarrollo Vite, según el modo de ejecución de cada componente.
+
 
 ---
 ## 🔐 Seguridad y Gestión de Variables de Entorno
@@ -138,7 +142,7 @@ mvn spring-boot:run
 ```
 * Servidor activo en: http://localhost:8083
 
-#### 5. Frontend Unificado React
+#### 5. Frontend de Principal (React)
 ```bash
 cd sga-principal/sga-frontend
 npm ci --no-audit
