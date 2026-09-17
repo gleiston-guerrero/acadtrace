@@ -290,6 +290,182 @@ jobs:
           retention-days: 7
 
   # ─── 3. JOB TEST-WEB ───────────────────────────────────────────────────────
+  contract-openapi-secretaria:
+    name: Contrato OpenAPI runtime de Secretaría
+    needs: test-secretaria-backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar PyYAML
+        run: python -m pip install PyYAML
+      - name: Empaquetar Secretaría sin repetir tests
+        working-directory: microservicio-secretaria/backend
+        run: |
+          bash mvnw -B -Dmaven.test.skip=true -Djacoco.skip=true package
+          test -s target/sga-secretaria-backend.jar
+      - name: Comparar OpenAPI con Secretaría y PostgreSQL efímeros
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          import secrets
+          import signal
+          import subprocess
+          import sys
+          import tempfile
+          import time
+          import urllib.error
+          import urllib.request
+
+          root = Path.cwd()
+          jar = root / "microservicio-secretaria/backend/target/sga-secretaria-backend.jar"
+          url = "http://localhost:5176/v3/api-docs"
+          container = "openapi-secretaria-" + secrets.token_hex(6)
+          backend = None
+          result = 2
+          failed = False
+          stage = "PostgreSQL"
+          ephemeral = {
+              "DB_PASSWORD": secrets.token_urlsafe(32),
+              "JWT_SECRET": secrets.token_hex(32),
+              "AES_SECRET_KEY": base64.b64encode(secrets.token_bytes(32)).decode(),
+              "GRPC_INTERNAL_TOKEN": secrets.token_urlsafe(32),
+          }
+          for value in ephemeral.values():
+              print("::add-mask::" + value, flush=True)
+          env = os.environ.copy()
+          env.update(ephemeral)
+          env.update({
+              "DB_HOST": "localhost", "DB_NAME": "sga",
+              "DB_USER": "postgres", "DB_SSL": "false", "PORT": "5176",
+              "POSTGRES_DB": "sga", "POSTGRES_USER": "postgres",
+              "POSTGRES_PASSWORD": ephemeral["DB_PASSWORD"],
+          })
+
+          def docker(*args, check=True):
+              return subprocess.run(
+                  ["docker", *args], env=env, capture_output=True,
+                  text=True, check=check, timeout=120,
+              )
+
+          def interrupted(signum, frame):
+              raise SystemExit(2)
+
+          signal.signal(signal.SIGTERM, interrupted)
+          signal.signal(signal.SIGINT, interrupted)
+
+          with tempfile.TemporaryDirectory(prefix="openapi-secretaria-") as temporary:
+              logfile = Path(temporary) / "backend.log"
+              try:
+                  # Sin mounts, SQL ni migraciones: base nueva y vacía.
+                  docker(
+                      "run", "--detach", "--name", container,
+                      "--publish", "127.0.0.1::5432",
+                      "--env", "POSTGRES_DB", "--env", "POSTGRES_USER",
+                      "--env", "POSTGRES_PASSWORD",
+                      "--health-cmd", "pg_isready -U postgres -d sga",
+                      "--health-interval", "2s", "--health-timeout", "3s",
+                      "--health-retries", "30", "postgres:15-alpine",
+                  )
+                  deadline = time.monotonic() + 60
+                  while True:
+                      state = json.loads(docker(
+                          "inspect", "--format", "{{json .State}}", container
+                      ).stdout)
+                      if not state["Running"] or state["Health"]["Status"] == "unhealthy":
+                          raise RuntimeError("PostgreSQL no saludable")
+                      if state["Health"]["Status"] == "healthy":
+                          break
+                      if time.monotonic() >= deadline:
+                          raise TimeoutError("PostgreSQL")
+                      time.sleep(1)
+                  mapping = docker("port", container, "5432/tcp").stdout.strip()
+                  env["DB_PORT"] = mapping.rsplit(":", 1)[1]
+
+                  stage = "startup/OpenAPI"
+                  # CWD temporal para no cargar un .env del repositorio.
+                  with logfile.open("wb") as output:
+                      backend = subprocess.Popen(
+                          ["java", "-jar", str(jar)], cwd=temporary, env=env,
+                          stdout=output, stderr=subprocess.STDOUT,
+                      )
+                  print(f"PID Secretaría: {backend.pid}", flush=True)
+                  deadline = time.monotonic() + 60
+                  while True:
+                      if backend.poll() is not None:
+                          raise RuntimeError("Java terminó antes de estar listo")
+                      remaining = deadline - time.monotonic()
+                      if remaining <= 0:
+                          raise TimeoutError("OpenAPI")
+                      try:
+                          with urllib.request.urlopen(url, timeout=min(2, remaining)) as response:
+                              if response.status != 200 or response.geturl() != url:
+                                  raise ValueError("HTTP inesperado")
+                              document = json.load(response)
+                              if not isinstance(document, dict) or not isinstance(document.get("paths"), dict):
+                                  raise ValueError("JSON sin paths")
+                          break
+                      except (urllib.error.URLError, TimeoutError, ValueError, OSError):
+                          time.sleep(min(1, max(0, deadline - time.monotonic())))
+                  if backend.poll() is not None:
+                      raise RuntimeError("Java terminó antes de la verificación")
+                  stage = "verificador"
+                  # El script existente valida OpenAPI y compara método + path.
+                  result = subprocess.run(
+                      [sys.executable, "scripts/verificar_openapi.py"],
+                      cwd=root, env=env, check=False, timeout=30,
+                  ).returncode
+                  failed = result == 2
+              except Exception as exc:
+                  print(f"ERROR en {stage}: {type(exc).__name__}", file=sys.stderr)
+                  result = 2
+                  failed = True
+              finally:
+                  # La limpieza no sustituye el exit code del verificador.
+                  try:
+                      if backend is not None and backend.poll() is None:
+                          backend.terminate()
+                          try:
+                              backend.wait(timeout=10)
+                          except subprocess.TimeoutExpired:
+                              backend.kill()
+                              backend.wait(timeout=5)
+                  finally:
+                      try:
+                          if failed:
+                              text = logfile.read_text(encoding="utf-8", errors="replace") if logfile.exists() else ""
+                              pg = docker("logs", "--tail", "40", container, check=False)
+                              text += "\nPostgreSQL:\n" + pg.stdout + pg.stderr
+                              for value in ephemeral.values():
+                                  text = text.replace(value, "[REDACTADO]")
+                              for line in text.splitlines()[-160:]:
+                                  print("diagnóstico | " + line)
+                      except Exception:
+                          print("No se pudieron recuperar todos los logs de diagnóstico.")
+                      finally:
+                          try:
+                              cleanup = docker("rm", "--force", "--volumes", container, check=False)
+                              if cleanup.returncode != 0:
+                                  print("::warning::Comprobar limpieza del contenedor efímero.")
+                          except Exception:
+                              print("::warning::No se pudo completar la limpieza Docker.")
+          sys.exit(result)
+          PY
+
   test-web:
     name: 3. Construcción y Validación Frontend Web
     runs-on: ubuntu-latest

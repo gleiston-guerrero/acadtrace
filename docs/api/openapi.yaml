@@ -164,6 +164,424 @@ components:
       properties:
         pregunta: {type: string}
         contexto_materia: {type: string, nullable: true, default: General}
+    SecretariaAnoLectivoRequest:
+      type: object
+      required:
+      - nombre
+      - fechaInicio
+      - fechaFin
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        fechaInicio:
+          type: string
+          format: date
+        fechaFin:
+          type: string
+          format: date
+    SecretariaPeriodoEvaluacionRequest:
+      type: object
+      required:
+      - nombre
+      - fechaInicio
+      - fechaFin
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        tipo:
+          type: string
+        fechaInicio:
+          type: string
+          format: date
+        fechaFin:
+          type: string
+          format: date
+        orden:
+          type: integer
+          format: int32
+    SecretariaAsignaturaRequest:
+      type: object
+      required:
+      - nombre
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        codigo:
+          type: string
+        descripcion:
+          type: string
+        horasSemanales:
+          type: integer
+          format: int32
+    SecretariaLoginRequest:
+      type: object
+      required:
+      - username
+      - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        password:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+    SecretariaFichaEstudianteRequest:
+      type: object
+      properties:
+        tipo_sangre:
+          type: string
+        enfermedad_catastrofica:
+          type: boolean
+        detalle_enfermedad:
+          type: string
+        medicacion_permanente:
+          type: string
+        alergias:
+          type: string
+        contacto_emergencia:
+          type: string
+        telefono_emergencia:
+          type: string
+        direccion_referencia:
+          type: string
+    SecretariaGradoRequest:
+      type: object
+      required:
+      - nombre
+      - orden
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        orden:
+          type: integer
+          format: int32
+        capacidad_max:
+          type: integer
+          format: int32
+        id_nivel:
+          type: integer
+          format: int64
+    SecretariaPromocionRequest:
+      type: object
+      required:
+      - id_matricula
+      - resultado
+      properties:
+        id_matricula:
+          type: integer
+          format: int64
+          description: Tambien acepta el alias idMatricula.
+        resultado:
+          type: string
+          pattern: ^(?:PROMOVIDO|REPROBADO|NO_PROMOVIDO|RETIRADO|TRASLADADO)$
+        promedio_anual:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 10.0
+          description: Tambien acepta el alias promedioAnual.
+        observaciones:
+          type: string
+    SecretariaIaDiagnosticoRequest:
+      type: object
+      properties:
+        idMatricula:
+          type: integer
+          format: int64
+        estudiante:
+          type: string
+        grado:
+          type: string
+        paralelo:
+          type: string
+        materia:
+          type: string
+        trimestre:
+          type: integer
+          format: int32
+        promedio:
+          type: number
+          format: double
+        porcentajeAsistencia:
+          type: number
+          format: double
+        detalleNotas:
+          type: object
+          additionalProperties: true
+    SecretariaIaDiagnosticoResponse:
+      type: object
+      properties:
+        idMatricula:
+          type: integer
+          format: int64
+        estudiante:
+          type: string
+        materia:
+          type: string
+        promedio:
+          type: number
+          format: double
+        escalaCualitativa:
+          type: string
+        nivelRiesgo:
+          type: string
+        fortalezas:
+          type: array
+          items:
+            type: string
+        areasDeMejora:
+          type: array
+          items:
+            type: string
+        recomendacionPedagogica:
+          type: string
+        alertaRepresentante:
+          type: boolean
+        citacionSugerida:
+          type: string
+        motorIa:
+          type: string
+        fechaAnalisis:
+          type: string
+    SecretariaIaChatRequest:
+      type: object
+      properties:
+        pregunta:
+          type: string
+        contexto:
+          type: string
+    SecretariaIaCitacionRequest:
+      type: object
+      properties:
+        idMatricula:
+          type: integer
+          format: int64
+        estudiante:
+          type: string
+        representante:
+          type: string
+        motivo:
+          type: string
+        fechaCitacion:
+          type: string
+        horaCitacion:
+          type: string
+    SecretariaImportacionResultado:
+      type: object
+      properties:
+        estudiantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecretariaImportacionEstudianteRow'
+        totalFilas:
+          type: integer
+          format: int32
+        filasValidas:
+          type: integer
+          format: int32
+        filasConError:
+          type: integer
+          format: int32
+    SecretariaImportacionEstudianteRow:
+      type: object
+      properties:
+        fila:
+          type: integer
+          format: int32
+        cedula:
+          type: string
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        correo:
+          type: string
+        yaExiste:
+          type: boolean
+        error:
+          type: string
+    SecretariaConfirmarImportacionRequest:
+      type: object
+      properties:
+        estudiantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecretariaImportacionEstudianteRow'
+        id_grado:
+          type: integer
+          format: int64
+        id_paralelo:
+          type: integer
+          format: int64
+        id_ano_lectivo:
+          type: integer
+          format: int64
+    SecretariaMallaRequest:
+      type: object
+      required:
+      - idGrado
+      - idAsignatura
+      - idAnoLectivo
+      - horasSemana
+      properties:
+        idGrado:
+          type: integer
+          format: int64
+        idAsignatura:
+          type: integer
+          format: int64
+        idAnoLectivo:
+          type: integer
+          format: int64
+        horasSemana:
+          type: integer
+          format: int32
+        diasSemana:
+          type: integer
+          format: int32
+        duracion:
+          type: integer
+          format: int32
+    SecretariaActualizarHorasGradoRequest:
+      type: object
+      required:
+      - idGrado
+      - idAnoLectivo
+      properties:
+        idGrado:
+          type: integer
+          format: int64
+        idAnoLectivo:
+          type: integer
+          format: int64
+        cambios:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    SecretariaRepresentanteRequest:
+      type: object
+      required:
+      - nombres
+      - apellidos
+      - telefono_principal
+      properties:
+        cedula:
+          type: string
+        nombres:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        apellidos:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        parentesco:
+          type: string
+        telefono_principal:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        telefono_alt:
+          type: string
+        correo:
+          type: string
+          format: email
+        direccion:
+          type: string
+        fecha_nacimiento:
+          type: string
+        genero:
+          type: string
+        estado_civil:
+          type: string
+        nacionalidad:
+          type: string
+        ocupacion:
+          type: string
+        lugar_trabajo:
+          type: string
+        telefono_trabajo:
+          type: string
+        cargo:
+          type: string
+        nivel_instruccion:
+          type: string
+        ingreso_mensual:
+          type: number
+        convive_con_estudiante:
+          type: boolean
+        contacto_emergencia_nombre:
+          type: string
+        contacto_emergencia_telefono:
+          type: string
+        observaciones:
+          type: string
+    SecretariaUsuarioRequest:
+      type: object
+      required:
+      - username
+      - correo
+      - nombres
+      - apellidos
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        correo:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+          format: email
+        nombres:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        apellidos:
+          type: string
+          minLength: 1
+          description: No puede estar vacio ni contener solo espacios.
+        cedula:
+          type: string
+        telefono:
+          type: string
+        cargo:
+          type: string
+        titulo_academico:
+          type: string
+        especializacion:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    SecretariaCambiarEstadoRequest:
+      type: object
+      required:
+      - estado
+      properties:
+        estado:
+          type: boolean
+    SecretariaAsignarRolesRequest:
+      type: object
+      required:
+      - roles
+      properties:
+        roles:
+          type: array
+          items:
+            type: string
   responses:
     OkObject:
       description: Respuesta JSON del controlador.
@@ -222,16 +640,6 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'200': {description: Estudiante actualizado}}
-  /api/estudiantes/por-grado:
-    get:
-      tags: [principal]
-      servers: [{url: http://localhost:8080}]
-      security: [{bearerAuth: []}]
-      parameters:
-        - {name: idGrado, in: query, required: true, schema: {type: integer, format: int64}}
-        - {name: idAnoLectivo, in: query, required: true, schema: {type: integer, format: int64}}
-        - {name: idParalelo, in: query, required: false, schema: {type: integer, format: int64}}
-      responses: {'200': {description: Estudiantes por grado}}
   /api/matriculas:
     get:
       tags: [principal]
@@ -251,35 +659,6 @@ paths:
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'201': {description: Matricula creada}}
-  /api/matriculas/{id}:
-    get:
-      tags: [principal]
-      servers: [{url: http://localhost:8080}]
-      security: [{bearerAuth: []}]
-      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
-      responses: {'200': {description: Detalle de matricula}}
-  /api/matriculas/{id}/estado:
-    patch:
-      tags: [principal]
-      servers: [{url: http://localhost:8080}]
-      security: [{bearerAuth: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
-        - {name: estado, in: query, required: true, schema: {type: string}}
-        - {name: observaciones, in: query, required: false, schema: {type: string}}
-      responses: {'204': {description: Estado actualizado}}
-  /api/matriculas/{id}/pdf:
-    get:
-      tags: [principal]
-      servers: [{url: http://localhost:8080}]
-      security: [{bearerAuth: []}]
-      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
-      responses:
-        '200':
-          description: PDF de la matricula
-          content:
-            application/pdf:
-              schema: {type: string, format: binary}
   /api/auditoria:
     get:
       tags: [principal]
@@ -340,20 +719,6 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'204': {$ref: '#/components/responses/NoContent'}}
-  /api/secretario/estudiantes/{idEstudiante}/ficha:
-    get:
-      tags: [secretaria]
-      servers: [{url: http://localhost:5176}]
-      security: [{bearerAuth: []}]
-      parameters: [{name: idEstudiante, in: path, required: true, schema: {type: integer, format: int64}}]
-      responses: {'200': {description: Ficha del estudiante}}
-    put:
-      tags: [secretaria]
-      servers: [{url: http://localhost:5176}]
-      security: [{bearerAuth: []}]
-      parameters: [{name: idEstudiante, in: path, required: true, schema: {type: integer, format: int64}}]
-      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
-      responses: {'200': {description: Ficha guardada}}
   /api/secretario/matriculas:
     post:
       tags: [secretaria]
@@ -497,17 +862,1935 @@ paths:
       security: [{bearerAuth: []}]
       parameters: [{name: idAno, in: path, required: true, schema: {type: integer, format: int64}}]
       responses: {'200': {description: Estadisticas}}
-  /api/docente/periodos-evaluacion/:
+  /api/secretario/anos-lectivos:
     get:
-      tags: [docente]
-      servers: [{url: http://localhost:8081}]
-      security: [{bearerAuth: []}]
-      responses: {'200': {description: Lista DRF}}
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listar
+      description: Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
     post:
-      tags: [docente]
-      servers: [{url: http://localhost:8081}]
-      security: [{bearerAuth: []}]
-      responses: {'201': {description: Recurso creado}}
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crear
+      description: 'Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaAnoLectivoRequest'
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/anos-lectivos/actual:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtenerActual
+      description: 'Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/anos-lectivos/{id}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtener
+      description: 'Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    put:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizar
+      description: 'Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaAnoLectivoRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/anos-lectivos/{id}/activar:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: activar
+      description: Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/anos-lectivos/{id}/periodos:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listarPeriodos
+      description: Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crearPeriodo
+      description: 'Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaPeriodoEvaluacionRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/anos-lectivos/periodos/{idPeriodo}:
+    put:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizarPeriodo
+      description: Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaPeriodoEvaluacionRequest'
+      parameters:
+      - name: idPeriodo
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    delete:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: eliminarPeriodo
+      description: Declarado en AnoLectivoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idPeriodo
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/asignaturas:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listar
+      description: Declarado en AsignaturaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crear
+      description: 'Declarado en AsignaturaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaAsignaturaRequest'
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/asignaturas/activas:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listarActivas
+      description: Declarado en AsignaturaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/asignaturas/{id}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtener
+      description: 'Declarado en AsignaturaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    put:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizar
+      description: 'Declarado en AsignaturaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaAsignaturaRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/asignaturas/{id}/estado:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: cambiarEstado
+      description: Declarado en AsignaturaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: activo
+        in: query
+        required: true
+        schema:
+          type: boolean
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/asistencias/asignacion/{idAsignacion}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: porAsignacion
+      description: Declarado en AsistenciaConsultaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAsignacion
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asistencias:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/auth/login:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: login
+      description: 'Declarado en AuthController.java. Respuesta Map<String, Object>: campos dinamicos sin DTO de respuesta
+        cerrado.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaLoginRequest'
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  idUsuario:
+                    type: integer
+                    format: int64
+                  username:
+                    type: string
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                  primerIngreso:
+                    type: boolean
+        '400':
+          description: 'Error declarado por el controlador: badRequest.'
+        '401':
+          description: 'Error declarado por el controlador: unauthorized.'
+        '403':
+          description: 'Error declarado por el controlador: forbidden.'
+  /api/secretario/calificaciones/cursos:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listarCursos
+      description: Declarado en CalificacionConsultaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAnoLectivo
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: idGrado
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/calificaciones/periodos:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listarPeriodos
+      description: Declarado en CalificacionConsultaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAnoLectivo
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/calificaciones/matriz/{idAsignacion}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtenerMatriz
+      description: 'Declarado en CalificacionConsultaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+        Respuesta Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAsignacion
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: idPeriodo
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/estudiantes/{idEstudiante}/ficha:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtener
+      description: 'Declarado en FichaEstudianteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idEstudiante
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    put:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: guardar
+      description: 'Declarado en FichaEstudianteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaFichaEstudianteRequest'
+      parameters:
+      - name: idEstudiante
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/uploads/foto:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: subirFoto
+      description: Declarado en FotoUploadController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Archivo no
+        vacio, maximo 5 MiB; formatos image/jpeg, image/png e image/webp.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - archivo
+              properties:
+                archivo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+        '400':
+          description: 'Error declarado por el controlador: badRequest.'
+        '500':
+          description: 'Error declarado por el controlador: internal.'
+  /api/secretario/uploads/fotos/{filename}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: verFoto
+      description: 'Declarado en FotoUploadController.java. Mapping Spring original: {filename:.+}; filename conserva
+        el nombre y requiere uno o mas caracteres. MIME detectado del archivo; fallback application/octet-stream.'
+      security: []
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^.+$
+      x-spring-mapping: /api/secretario/uploads/fotos/{filename:.+}
+      responses:
+        '200':
+          description: Contenido binario de la foto; Content-Type determinado mediante Files.probeContentType.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: inline; filename con el nombre del recurso.
+        '404':
+          description: 'Error declarado por el controlador: notFound.'
+  /api/secretario/grados:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listar
+      description: Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crear
+      description: 'Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta Map<String,
+        Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaGradoRequest'
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/grados/{idGrado}/paralelos:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listarParalelos
+      description: Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idGrado
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crearParalelo
+      description: 'Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta Map<String,
+        Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idGrado
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: letra
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/grados/{id}:
+    put:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizar
+      description: 'Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta Map<String,
+        Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaGradoRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/grados/{id}/estado:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: cambiarEstado
+      description: Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: activo
+        in: query
+        required: true
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/grados/paralelos/{idParalelo}/estado:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: cambiarEstadoParalelo
+      description: Declarado en GradoController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idParalelo
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: activo
+        in: query
+        required: true
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial/estudiante/{id}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: historialEstudiante
+      description: 'Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial/ano-lectivo/{idAno}/resumen:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: resumen
+      description: Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAno
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial/ano-lectivo/{idAno}/sin-promocion:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: sinPromocion
+      description: Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAno
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial/ano-lectivo/{idAno}/nomina:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: nomina
+      description: Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAno
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: id_grado
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: id_paralelo
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: estado
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: registrar
+      description: 'Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaPromocionRequest'
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial/masivo:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: registrarMasivo
+      description: 'Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SecretariaPromocionRequest'
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/historial/{idHistorial}:
+    delete:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: eliminar
+      description: Declarado en HistorialController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idHistorial
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/ia/diagnostico-estudiante:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: diagnosticar
+      description: Declarado en IaSecretariaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaIaDiagnosticoRequest'
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretariaIaDiagnosticoResponse'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/ia/diagnostico-matricula/{idMatricula}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: diagnosticarPorMatricula
+      description: Declarado en IaSecretariaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idMatricula
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretariaIaDiagnosticoResponse'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/ia/asistente:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: asistenteChat
+      description: 'Declarado en IaSecretariaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaIaChatRequest'
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/ia/generar-citacion:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: generarCitacion
+      description: 'Declarado en IaSecretariaController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaIaCitacionRequest'
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/importacion-estudiantes/parsear:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: parsear
+      description: Declarado en ImportacionEstudiantesController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - archivo
+              properties:
+                archivo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretariaImportacionResultado'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/importacion-estudiantes/confirmar:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: confirmar
+      description: 'Declarado en ImportacionEstudiantesController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+        Respuesta Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaConfirmarImportacionRequest'
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/malla/grado/{idGrado}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: porGrado
+      description: 'Declarado en MallaCurricularController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idGrado
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: idAnoLectivo
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/malla/resumen-grados:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: resumenGrados
+      description: Declarado en MallaCurricularController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idAnoLectivo
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/malla:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: agregar
+      description: Declarado en MallaCurricularController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaMallaRequest'
+      responses:
+        '201':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/malla/{id}:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizarHoras
+      description: Declarado en MallaCurricularController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: horasSemana
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    delete:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: eliminar
+      description: Declarado en MallaCurricularController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/malla/actualizar-horas-grado:
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizarHorasGrado
+      description: Declarado en MallaCurricularController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaActualizarHorasGradoRequest'
+      responses:
+        '200':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/representantes/grpc/{id}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtenerViaGrpc
+      description: Declarado en RepresentanteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  idRepresentante:
+                    type: integer
+                    format: int64
+                  cedula:
+                    type: string
+                  nombres:
+                    type: string
+                  apellidos:
+                    type: string
+                  parentesco:
+                    type: string
+                  telefonoPrincipal:
+                    type: string
+                  telefonoAlt:
+                    type: string
+                  correo:
+                    type: string
+                  direccion:
+                    type: string
+                  fuente:
+                    type: string
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/representantes:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listar
+      description: Declarado en RepresentanteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crear
+      description: 'Declarado en RepresentanteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaRepresentanteRequest'
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/representantes/{id}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtener
+      description: 'Declarado en RepresentanteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    put:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: actualizar
+      description: 'Declarado en RepresentanteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta
+        Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaRepresentanteRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/representantes/{id}/estudiantes:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listarEstudiantes
+      description: Declarado en RepresentanteController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/usuarios:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: listar
+      description: Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+    post:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: crear
+      description: 'Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Esta operacion
+        exige DIRECTOR. Respuesta Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaUsuarioRequest'
+      responses:
+        '201':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/usuarios/roles:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: roles
+      description: Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/usuarios/{id}:
+    get:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: obtener
+      description: 'Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Respuesta Map<String,
+        Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/usuarios/{id}/reset-password:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: resetPassword
+      description: 'Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Esta operacion
+        exige DIRECTOR. Respuesta Map<String, Object>: campos dinamicos sin DTO de respuesta cerrado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Respuesta JSON del controlador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/usuarios/{id}/estado:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: cambiarEstado
+      description: Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Esta operacion
+        exige DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaCambiarEstadoRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
+  /api/secretario/usuarios/{id}/roles:
+    patch:
+      tags:
+      - secretaria
+      servers:
+      - url: http://localhost:5176
+      summary: asignarRoles
+      description: Declarado en UsuarioController.java. Requiere Bearer y rol SECRETARIA o DIRECTOR. Esta operacion
+        exige DIRECTOR.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretariaAsignarRolesRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: Operacion completada sin cuerpo.
+        '401':
+          description: Bearer ausente, invalido o expirado.
+        '403':
+          description: Rol no autorizado.
   /api/docente/periodos-evaluacion:
     get:
       tags: [docente]
@@ -540,7 +2823,7 @@ paths:
       servers:
         - {url: http://localhost:8000, description: microservicio-docente}
         - {url: http://localhost:5176, description: microservicio-secretaria}
-        - {url: http://localhost:8083, description: microservicio-soporte}
+        - {url: http://localhost:5178, description: microservicio-soporte}
         - {url: http://localhost:8084, description: microservicio-ia}
       security: []
       responses: {'200': {description: Servicio saludable}}
