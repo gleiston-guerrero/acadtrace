@@ -77,24 +77,23 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         indiceCurso
       );
 
+    const semana = page.getByRole("spinbutton").first();
     const trimestre = page.getByRole("combobox").first();
 
-      await expect(trimestre).toBeVisible();
+    await expect(semana).toBeVisible();
+    await expect(trimestre).toBeVisible();
 
-      const periodos = await trimestre
-        .locator("option")
-        .evaluateAll((options) =>
-          options
-            .map((option) => option.value)
-            .filter((value) => value !== "")
-        );
+    const periodos = await trimestre
+      .locator("option")
+      .evaluateAll((options) =>
+        options
+          .map((option) => option.value)
+          .filter((value) => value !== "")
+      );
 
       if (periodos.length === 0) {
         return;
       }
-
-      const semana = page.getByRole("spinbutton").first();
-      await expect(semana).toBeVisible();
 
     for (const periodo of periodos) {
       if (nota) {
