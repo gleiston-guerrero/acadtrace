@@ -50,7 +50,7 @@ sga-soporte/
    ```
 4. Frontend:
    ```
-   npm install
+   npm ci --no-audit
    npm run dev
    ```
 
