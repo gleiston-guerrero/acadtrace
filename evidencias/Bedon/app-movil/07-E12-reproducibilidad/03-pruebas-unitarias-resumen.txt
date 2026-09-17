@@ -1,0 +1,50 @@
+﻿EVIDENCIA: PRUEBAS UNITARIAS DE LA APLICACIÓN ANDROID
+
+Objetivo
+--------
+Verificar que las pruebas unitarias de la variante Debug pueden
+ejecutarse correctamente mediante el Gradle Wrapper incluido
+en el repositorio.
+
+Componente
+----------
+app-movil-docente
+
+Rama
+----
+devBedon
+
+Commit
+------
+d835e46b61c369882b1c5e36a5464c369185823e
+
+Comando ejecutado
+-----------------
+.\gradlew.bat testDebugUnitTest --console=plain
+
+Resultado
+---------
+BUILD SUCCESSFUL
+
+Duración
+--------
+1m 49s
+
+Tareas ejecutadas
+-----------------
+26 actionable tasks: 26 executed
+
+Observaciones
+-------------
+Durante la compilación se mostraron advertencias de Kotlin relacionadas
+con elementos obsoletos y parámetros no utilizados. Estas advertencias
+no impidieron la compilación ni la ejecución de las pruebas.
+
+Log completo
+------------
+03-testDebugUnitTest.log
+
+Conclusión
+----------
+Las pruebas unitarias Android de la variante Debug se ejecutaron
+correctamente mediante el Gradle Wrapper del proyecto.

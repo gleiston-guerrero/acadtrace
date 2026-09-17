@@ -66,7 +66,8 @@ class AuditoriaInmutabilidadTest {
         assertNotNull(dataSource, "El DataSource debe estar inyectado y disponible; la prueba no puede omitirse");
 
         String appUser = "sga_app";
-        String appPass = "sga_app_secure_pass_2026";
+        String appPass = System.getenv().getOrDefault("SGA_APP_PASSWORD_TEST",
+                "test-" + java.util.UUID.randomUUID());
 
         try (Connection adminConn = dataSource.getConnection()) {
             String jdbcUrl = adminConn.getMetaData().getURL();

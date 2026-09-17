@@ -1,0 +1,31 @@
+﻿EVIDENCIA: VERIFICACIÓN DEL APK GENERADO
+
+Objetivo
+--------
+Comprobar que existe el artefacto producido por la compilación Android
+y verificar su integridad mediante SHA-256.
+
+Artefacto
+---------
+app-debug.apk
+
+Ubicación de evidencia
+-----------------------
+evidencias/Bedon/app-movil/08-E14-artefacto-apk/app-debug.apk
+
+Tamaño
+------
+19.82 MB
+
+SHA-256 verificado
+------------------
+630895256B0DC5CB999D552F185E82CA5A505E200E496183AEBD0D7CBC7E6E43
+
+Resultado
+---------
+El APK existe y su huella SHA-256 puede ser calculada correctamente.
+
+Conclusión
+----------
+El artefacto generado por la compilación se encuentra disponible y
+puede verificarse criptográficamente.

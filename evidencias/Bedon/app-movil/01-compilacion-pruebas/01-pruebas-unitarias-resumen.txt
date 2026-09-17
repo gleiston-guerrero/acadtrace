@@ -1,0 +1,38 @@
+﻿EVIDENCIA: PRUEBAS UNITARIAS ANDROID
+
+Objetivo
+--------
+Comprobar que las pruebas unitarias de la aplicación móvil pueden
+ejecutarse mediante el Gradle Wrapper incluido en el proyecto.
+
+Componente
+----------
+app-movil-docente
+
+Comando ejecutado
+-----------------
+.\gradlew.bat testDebugUnitTest --console=plain
+
+Resultado
+---------
+BUILD SUCCESSFUL
+
+Duración observada
+------------------
+1m 49s
+
+Tareas ejecutadas
+-----------------
+26 actionable tasks: 26 executed
+
+Log completo
+------------
+01-testDebugUnitTest.log
+
+Conclusión
+----------
+Las pruebas unitarias correspondientes a la variante Debug finalizaron
+correctamente.
+
+Las advertencias mostradas durante la compilación no impidieron la
+ejecución exitosa de las pruebas.

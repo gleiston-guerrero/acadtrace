@@ -182,6 +182,13 @@
       <artifactId>javax.annotation-api</artifactId>
       <version>1.3.2</version>
     </dependency>
+
+    <!-- OpenAPI / Swagger Documentation (E4) -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.5.0</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -222,27 +229,7 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Asegurar que las fuentes generadas de protobuf estén en el classpath de pruebas -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.5.0</version>
-        <executions>
-          <execution>
-            <id>add-protobuf-sources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>${project.build.directory}/generated-sources/protobuf/java</source>
-                <source>${project.build.directory}/generated-sources/protobuf/grpc-java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -266,22 +253,18 @@
         <configuration>
           <excludes>
             <exclude>**/ec/edu/uteq/sga/grpc/**</exclude>
+            <exclude>**/dto/**</exclude>
+            <exclude>**/config/**</exclude>
+            <exclude>**/exception/**</exclude>
+            <exclude>**/payload/**</exclude>
+            <exclude>**/entity/**</exclude>
           </excludes>
           <rules>
             <rule>
-              <element>CLASS</element>
-              <includes>
-                <include>ec.uteq.sga.secretaria.application.service.EstudianteService</include>
-                <include>ec.uteq.sga.secretaria.application.service.MatriculaService</include>
-                <include>ec.uteq.sga.secretaria.application.service.ReportesService</include>
-                <include>ec.uteq.sga.secretaria.application.service.LamportClock</include>
-                <include>ec.uteq.sga.secretaria.infrastructure.security.CryptoService</include>
-                <include>ec.uteq.sga.secretaria.infrastructure.security.JwtService</include>
-                <include>ec.uteq.sga.secretaria.infrastructure.logging.JsonStructuredLayout</include>
-              </includes>
+              <element>BUNDLE</element>
               <limits>
                 <limit>
-                  <counter>INSTRUCTION</counter>
+                  <counter>LINE</counter>
                   <value>COVEREDRATIO</value>
                   <minimum>0.70</minimum>
                 </limit>

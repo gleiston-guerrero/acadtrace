@@ -45,10 +45,23 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 
 ## 3. Firmas Criptográficas (SHA-256) de los Resultados CSV
 
+### 3.1. Conjunto Oficial Declarado (Corrida A)
 | Archivo | Hash SHA-256 |
 |---|---|
-| `docs/locust/escenario1_nominal_stats.csv` | `D78900791C05745794BED0787AF8B3AE3EC4B0544453B96ABB8578B92666D9B1` |
-| `docs/locust/escenario2_estres_stats.csv` | `DF099D3AEB6030FB9730D0853594262F3FFCC318783B5EB3270B1092BE9CE8FA` |
+| `microservicio-soporte/locust_esc1_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
+| `microservicio-soporte/locust_esc1_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
+| `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
+| `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+
+### 3.2. Conjuntos No Oficiales / Históricos (B, C, D, E)
+| Archivo | Hash SHA-256 |
+|---|---|
+| `experimentos/resultados/locust_esc1_stats.csv` | `FC63845A59A397EAEA6E9EA15746BCDEBEA7A479EB09582B4691B016371903EA` |
+| `docs/locust/escenario1_nominal_stats.csv` | `539C7F827F950FE572178A8CED7E25ACD3976E5C0289066896ECEC870B323B03` |
+| `docs/locust/escenario2_estres_stats.csv` | `2AD7C788EA7E13DD48424F591DD170E2A8B3C7600C1EA0FAF24BFC25BB06B143` |
+| `docs/locust/resultados_carga_stats.csv` | `D9C99B33A05DA637B7C1AEB2743FD5E2F98FFF06FAC4CDB8FCC9C15D9B501AE6` |
+
+> Todas las cifras oficiales pueden reproducirse deterministamente con el guion `scripts/recalcular_metricas_carga.py`.
 
 ---
 

@@ -8,10 +8,22 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -87,11 +99,21 @@ fun SecurityScreen(session: SessionManager, back: () -> Unit) {
         if (!granted) message = "El permiso de notificaciones no fue concedido."
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Seguridad y notificaciones") }, navigationIcon = {
-        TextButton(onClick = back) { Text("Volver") }
-    }) }) { padding ->
-        Column(Modifier.padding(padding).padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-            SettingSwitch("Usar biometría para desbloquear", biometricEnabled) { enabled ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+        topBar = { TopAppBar(title = { Text("Seguridad", fontWeight = FontWeight.SemiBold) }, navigationIcon = {
+            IconButton(onClick = back) { Icon(Icons.Default.ArrowBack, "Volver") }
+        }) }
+    ) { padding ->
+        Column(
+            Modifier.padding(padding).padding(horizontal = 16.dp, vertical = 14.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("Protección y alertas", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text("Administre cómo protege su acceso y recibe avisos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            SecuritySection("Biometría", Icons.Default.Fingerprint, MaterialTheme.colorScheme.primary) {
+                SettingSwitch("Usar biometría para desbloquear", biometricEnabled) { enabled ->
                 if (!enabled) {
                     biometricEnabled = false
                     session.setBiometricEnabled(false)
@@ -104,10 +126,16 @@ fun SecurityScreen(session: SessionManager, back: () -> Unit) {
                         message = "Desbloqueo biométrico activado."
                     }) { message = it }
                 }
+                }
+                Text("La biometría solo desbloquea una sesión JWT local que siga vigente.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text("La biometría solo desbloquea una sesión JWT local que siga vigente.")
 
-            SettingSwitch("Avisarme cuando la sesión expire", notificationsEnabled) { enabled ->
+            SecuritySection("Sesión", Icons.Default.Security, Color(0xFF0D9488)) {
+                Text("Su acceso permanece protegido mientras la sesión local siga vigente.", style = MaterialTheme.typography.bodyMedium)
+            }
+
+            SecuritySection("Notificaciones", Icons.Default.Notifications, Color(0xFFD97706)) {
+                SettingSwitch("Avisarme cuando la sesión expire", notificationsEnabled) { enabled ->
                 if (!enabled) {
                     notificationsEnabled = false
                     session.setNotificationsEnabled(false)
@@ -119,17 +147,38 @@ fun SecurityScreen(session: SessionManager, back: () -> Unit) {
                     session.setNotificationsEnabled(true)
                     NotificationSupport.schedule(activity)
                 }
+                }
+                Text("Las alertas de expiración son locales. Las notificaciones académicas push se reciben mediante Firebase Cloud Messaging (FCM).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text("Las alertas de expiración son locales. Las notificaciones académicas push se reciben mediante Firebase Cloud Messaging (FCM).")
-            message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+            message?.let {
+                Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.09f), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(12.dp))
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun SettingSwitch(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, modifier = Modifier.weight(1f))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun SecuritySection(title: String, icon: ImageVector, accent: Color, content: @Composable ColumnScope.() -> Unit) {
+    ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Surface(color = accent.copy(alpha = 0.12f), shape = RoundedCornerShape(12.dp), modifier = Modifier.size(42.dp)) {
+                    Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = accent, modifier = Modifier.size(23.dp)) }
+                }
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))
+            content()
+        }
     }
 }

@@ -992,29 +992,32 @@ con los siguientes archivos:
 
 ---
 
-# 33. Integración continua de la aplicación móvil
+# 33. Paquete móvil publicado en release
 
-Las evidencias del pipeline se almacenan en:
-
-```text
-app-movil/06-ci-cd/
-```
-
-La aplicación se encuentra integrada al workflow del repositorio.
-
-Durante las ejecuciones observadas se ejecutaron satisfactoriamente jobs relacionados con:
+La publicación se realizó desde el commit exacto de `main`:
 
 ```text
-CI Aplicación Móvil Representante
-Pruebas Unitarias App Móvil
-Compilación de Paquete APK Android
+9941f993ba9c8794a239685f2e2844bf374f2e88
 ```
 
-También se verificó una ejecución general del pipeline con estado:
+El GitHub Actions run `35049103743` finalizó con resultado `SUCCESS`. En esa ejecución quedaron verdes `CI Aplicación Móvil Representante`, `E10 - Playwright Frontend Docente`, `4. Pruebas Unitarias App Móvil`, `6. Compilación de Paquete APK Android` e `Integración y Despliegue`.
+
+El job móvil ejecutó `assembleRelease` y `bundleRelease` y generó el artefacto:
 
 ```text
-Success
+app-release-sha-9941f993ba9c8794a239685f2e2844bf374f2e88
 ```
+
+Este contiene `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt`. Los paquetes Release se firmaron con un certificado propio suministrado mediante GitHub Actions Secrets. Antes de compilar, el flujo comprobó la existencia del keystore, su tamaño de 2782 bytes, su SHA-256 `C076C5BDB2B017E8F2FC8F3AE5D1228B7B01331B032397EBBC2058DAC4DF9E9A`, el formato PKCS12 y el alias configurado. Gradle declara explícitamente `storeType = "PKCS12"`, y el pipeline falla cuando no está disponible la configuración necesaria para la firma Release.
+
+La firma del APK se verificó mediante `apksigner verify --verbose` y la del AAB mediante `jarsigner -verify`. El archivo `SHA256SUMS.txt` registra los hashes finales:
+
+```text
+39082d5e29ad3646bf13acefe2b946ea43d0a8f180dc3e0252236513abba2a21  app-release.apk
+bc6897ab80ab8316de46ca75be5cf14d417529859d4459c361e36aefe795e7d0  app-release.aab
+```
+
+La trazabilidad queda cerrada con la publicación [AcadTrace v1.0.0](https://github.com/gleiston-guerrero/acadtrace/releases/tag/v1.0.0), cuyos assets son `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt`.
 
 ---
 

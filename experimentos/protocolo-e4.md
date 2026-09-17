@@ -43,7 +43,7 @@ Para garantizar la reproducibilidad científica estricta de las mediciones, se d
 | **Python** | `3.14.6` (Local) / `3.12.3` (Docente) | Ejecución de Locust, análisis estadístico y Django |
 | **JaCoCo Plugin** | `0.8.11` | Umbral mínimo de 70 % de cobertura de líneas (LINE) para módulos Java configurados; no es un resultado medido |
 | **Locust** | `2.46.4` | Generador de carga distribuida y estrés |
-| **SciPy** | `1.18.1` | Pruebas estadísticas (Mann-Whitney U, Bootstrap) |
+| **Biblioteca estándar de Python** | Incluida con Python | Lectura CSV, mediana, percentil y Bootstrap reproducible de la mediana |
 | **Pandas** | `3.0.5` | Procesamiento y persistencia de CSVs de telemetría |
 | **NumPy** | `2.5.1` | Manejo vectorial y generadores pseudoaleatorios |
 | **Matplotlib** | `3.11.1` | Generación de diagramas boxplot en 300 DPI |
@@ -139,44 +139,33 @@ Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para s
 
 ---
 
-## 6. Métodos Estadísticos Inferenciales No Paramétricos
+## 6. Análisis Estadístico Reproducible de Latencias
 
-Dado que las distribuciones de latencia en sistemas distribuidos no siguen una distribución normal (gaussiana) debido a colas largas y fluctuaciones de red, se emplearon métodos estadísticos no paramétricos rigurosos:
+La fuente única del bloque evaluado es `experimentos/resultados/exp1_concurrencia.csv`. El archivo contiene 160 registros: 40 observaciones para cada mecanismo M0, M1, M2 y M3. El análisis usa exclusivamente la columna `latencia_mediana_ms`; su entrada y su salida están expresadas directamente en milisegundos (ms), sin multiplicar ni dividir por 1000.
 
-1. **Estimador de Tendencia Central:** Mediana ($MD$) y Percentil 95 ($P_{95}$).
-2. **Intervalos de Confianza (IC 95\%):** Calculados mediante remuestreo **Bootstrap no paramétrico** con $B = 10{,}000$ réplicas sintéticas.
-3. **Prueba de Hipótesis de Mann-Whitney $U$:** Prueba bilateral para determinar si las distribuciones de latencia entre mecanismos difieren significativamente ($p < 0.05$).
-4. **Magnitud del Efecto de Vargha-Delaney ($\hat{A}_{12}$):**
-   $$\hat{A}_{12} = \frac{R_1 - \frac{n_1(n_1 + 1)}{2}}{n_1 n_2}$$
-   - $|\hat{A}_{12} - 0.5| < 0.06$: Despreciable.
-   - $0.06 \le |\hat{A}_{12} - 0.5| < 0.14$: Pequeño.
-   - $0.14 \le |\hat{A}_{12} - 0.5| < 0.21$: Mediano.
-   - $|\hat{A}_{12} - 0.5| \ge 0.21$: **Grande**.
-
-### Resultados del Análisis:
-- **$M_0$ vs $M_2$:** $U = 0.0$, $p = 1.08 \times 10^{-50}$ $\to$ $\hat{A}_{12} = 1.000$ (Efecto Grande).
-- **$M_1$ vs $M_2$:** $U = 311.0$, $p = 5.01 \times 10^{-48}$ $\to$ $\hat{A}_{12} = 0.986$ (Efecto Grande).
-- **$M_2$ vs $M_3$:** $U = 917.5$, $p = 4.88 \times 10^{-43}$ $\to$ $\hat{A}_{12} = 0.959$ (Efecto Grande).
+1. **Estimadores descriptivos:** mediana y percentil 95 ($P_{95}$) de las 40 observaciones por mecanismo.
+2. **Intervalos de confianza (IC 95\%):** Bootstrap no paramétrico de la **mediana**, con $B = 10{,}000$ remuestras y semilla fija `20260831`.
+3. **Generación documental:** `experimentos/generar_tabla_latencias.py` valida la estructura del CSV y genera `Informe-E4_BCEL/tabla_latencias_generada.tex` y `Informe-E4_BCEL/boxplot_latencia.png` desde la misma fuente.
+4. **Resultados inferenciales históricos:** los contrastes Mann-Whitney $U$, valores $p$ y tamaños de efecto Vargha-Delaney asociados a otra fuente no forman parte de los resultados vigentes y no se publican en la tabla regenerada.
 
 ---
 
 ## 7. Instrucciones de Reproducción
 
-Para ejecutar y validar todo el banco experimental en una nueva máquina:
+Para regenerar la tabla y el boxplot del punto 21 desde el CSV oficial versionado:
 
 ```powershell
 # 1. Clonar el repositorio y situarse en la raíz
 cd C:\Users\DEYNER\acadtrace
 
-# 2. Instalar dependencias estadísticas y Locust
-pip install pandas scipy locust matplotlib numpy
+# 2. Instalar la dependencia gráfica fijada por el proyecto
+python -m pip install -r experimentos/requirements.txt
 
-# 3. Ejecutar el banco experimental completo (Módulo G)
-python experimentos/run_experimentos.py
+# 3. Generar la tabla LaTeX y el boxplot desde exp1_concurrencia.csv
+python experimentos/generar_tabla_latencias.py
 
-# 4. Verificar los artefactos generados
-ls experimentos/resultados/
-# deteccion.csv, manipulaciones.csv, iso25010.csv, boxplot_latencia.png
+# 4. Verificar los artefactos documentales generados
+ls Informe-E4_BCEL/tabla_latencias_generada.tex Informe-E4_BCEL/boxplot_latencia.png
 
 # 5. Comando histórico de carga; NO ejecutar sobre evidencias conservadas
 locust -f tests/load/locustfile.py --headless -u 50 -r 5 -t 5m --csv=<directorio-nuevo>/locust_esc1

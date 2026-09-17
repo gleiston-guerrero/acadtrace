@@ -19,24 +19,15 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.jupiter.api.condition.EnabledIf;
-import org.testcontainers.DockerClientFactory;
-
-@Testcontainers(disabledWithoutDocker = true)
-@EnabledIf("isDockerAvailable")
+@Testcontainers
 class AuditoriaFlywayMigrationContainerTest {
-
-    static boolean isDockerAvailable() {
-        try {
-            DockerClientFactory.instance().client();
-            return true;
-        } catch (Throwable ex) {
-            return false;
-        }
-    }
 
     private static final String DB_PASSWORD =
             UUID.randomUUID().toString();
+
+    private static final String SGA_APP_PASSWORD =
+            System.getenv().getOrDefault("SGA_APP_PASSWORD_TEST",
+                    "test-" + UUID.randomUUID());
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES =
@@ -89,6 +80,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
+                .placeholders(java.util.Map.of("sga_app_password", SGA_APP_PASSWORD))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
@@ -117,7 +109,10 @@ class AuditoriaFlywayMigrationContainerTest {
                     "15",
                     "16",
                     "17",
-                    "18"
+                    "18",
+                    "19",
+                    "20",
+                    "21"
             )) {
 
                 assertThat(
@@ -195,6 +190,26 @@ class AuditoriaFlywayMigrationContainerTest {
             );
 
             /*
+             * TRUNCATE tambien debe ser rechazado por el disparador
+             * BEFORE TRUNCATE creado en V21. Los disparadores de fila (V13)
+             * no cubren TRUNCATE, por eso V21 anade uno de sentencia.
+             */
+            comprobarOperacionRechazada(
+                    "TRUNCATE sga_principal.auditoria"
+            );
+
+            /*
+             * El registro debe continuar existiendo despues del intento
+             * de TRUNCATE.
+             */
+            assertThat(
+                    contarRegistro(
+                            connection,
+                            idAuditoria
+                    )
+            ).isEqualTo(1L);
+
+            /*
              * El registro debe continuar existiendo despues
              * de los intentos de UPDATE y DELETE.
              */
@@ -219,6 +234,7 @@ class AuditoriaFlywayMigrationContainerTest {
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword()
                 )
+                .placeholders(java.util.Map.of("sga_app_password", SGA_APP_PASSWORD))
                 .schemas("sga_principal")
                 .defaultSchema("sga_principal")
                 .locations("classpath:db/migration")
@@ -254,7 +270,7 @@ class AuditoriaFlywayMigrationContainerTest {
         // 4. Conectarse con el usuario de aplicacion sga_app creado por la migracion
         try {
             try (Connection appConn = DriverManager.getConnection(
-                    POSTGRES.getJdbcUrl(), "sga_app", "sga_app_secure_pass_2026")) {
+                    POSTGRES.getJdbcUrl(), "sga_app", SGA_APP_PASSWORD)) {
 
                 // Intento de UPDATE sin trigger: DEBE fallar por permisos a nivel de motor (42501 permission denied)
                 try (Statement stmt = appConn.createStatement()) {
