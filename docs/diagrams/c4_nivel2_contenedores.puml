@@ -52,7 +52,7 @@ Rel(haproxy, ms_ia, "Enruta IA", "HTTP :8084")
 Rel(ms_soporte, sga_principal, "Consulta usuarios y roles", "gRPC :9092")
 Rel(sga_principal, ms_docente, "Consulta y notifica operaciones docentes", "gRPC :9091")
 Rel(ms_secretaria, sga_principal, "Consulta servicios académicos", "gRPC :9092")
-Rel(ms_secretaria, ms_ia, "Solicita generación asistida", "HTTP :8084")
+Rel(web_secretaria, ms_ia, "Solicita diagnóstico del estudiante", "HTTP POST / JSON :8084")
 Rel(ms_ia, gemini, "Solicita inferencia", "HTTP / JSON")
 
 Rel(sga_principal, postgres, "Persiste", "PostgreSQL :5433 / sga_principal")
