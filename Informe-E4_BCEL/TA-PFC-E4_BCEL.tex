@@ -721,19 +721,93 @@ En cumplimiento de la ampliaci\'on del M\'odulo G de la gu\'ia rectora, se ejecu
   \item \textbf{m3 (m2 + Relojes Vectoriales):} Incorpora vectores l\'ogicos $\vec{V} = [v_1, v_2, \dots, v_n]$ para reconciliaci\'on causal determinista de ediciones concurrentes desconectadas.
 \end{itemize}
 
-\subsection{Unificaci\'on Can\'onica y Sincronizaci\'on entre Microservicios Pol\'iglotas}
+\subsection{Unificaci\'on can\'onica de la bit\'acora}
 \label{subsec:unificacion-canonica}
-La arquitectura distribuida de AcadTrace integra servicios desacoplados bajo diferentes lenguajes y plataformas de ejecuci\'on: \texttt{sga-principal} y \texttt{microservicio-secretaria} sobre Java 21 / Spring Boot 3, y \texttt{microservicio-docente} sobre Python 3.11 / Django REST Framework. Para garantizar que cualquier evento registrado por cualquiera de los tres servicios pertenezca a la misma cadena criptogr\'afica global sin requerir dependencias binarias compartidas entre runtimes heterog\'eneos, el contrato de auditor\'ia se sincroniza de manera estricta a trav\'es de un \textbf{vector patr\'on can\'onico} compuesto exactamente por once campos normalizados:
-\begin{center}
-\texttt{[\"accion\", \"app\", \"estado\_reconciliacion\", \"fecha\", \"lamport\", \"modo\_auditoria\", \"payload\", \"registro\_id\", \"tabla\", \"usuario\", \"vclock\"]}
-\end{center}
 
-Esta sincronizaci\'on se encuentra formalmente protegida y verificada contra derivas de implementaci\'on (\textit{schema drift}) mediante los siguientes mecanismos:
-\begin{enumerate}[leftmargin=*]
-  \item \textbf{Normalizaci\'on Can\'onica Determinista:} Cada runtime implementa serializaci\'on lexicogr\'afica ordenada alfab\'eticamente por clave sin espacios innecesarios y con codificaci\'on UTF-8 estricta (\texttt{AuditHashService.java} en Java y \texttt{auditoria\_service.py} en Python), asegurando representaci\'on id\'entica car\'acter por car\'acter.
-  \item \textbf{Verificaci\'on Automatizada por Vector Patr\'on:} Bater\'ias de pruebas can\'onicas dedicadas (\texttt{AuditHashServiceCanonicalTest} en Java y \texttt{test\_auditoria\_canonica.py} en Python) eval\'uan el mismo vector can\'onico de 11 campos y verifican la coincidencia exacta del hash SHA-256 generado. La adici\'on, renombrado o alteraci\'on de cualquier campo rompe inmediatamente las aserciones de prueba en ambas plataformas en el pipeline de CI/CD.
-  \item \textbf{Serializaci\'on Concurrente y Siembra de Reloj:} La inmutabilidad de la secuencia global y la prevenci\'on de bifurcaciones se sustentan f\'isicamente mediante bloqueo pesimista (\texttt{SELECT ... FOR UPDATE}) sobre la fila singleton (\texttt{id\_estado = 1}) de la tabla \texttt{sga\_principal.estado\_cadena\_auditoria}. Asimismo, los relojes l\'ogicos de Lamport y vectoriales se inicializan (\textit{seeding}) desde el \'ultimo estado persistido en base de datos, garantizando monoton\'ia estricta aun tras reinicios de las instancias.
-\end{enumerate}
+El sistema mantiene tres implementaciones del c\'alculo del contenido
+can\'onico y del encadenamiento de eventos: dos en Java (m\'odulo SGA
+Principal y m\'odulo Secretar\'ia), ambas alojadas en
+\path{AuditHashService.java}, y una en Python (m\'odulo Docente), alojada
+en \path{microservicio-docente/docentes/auditoria/hashing.py}. No se
+extrajo una biblioteca com\'un para consumirlas desde los tres servicios;
+la unicidad se sostiene sobre un vector patr\'on de once campos que fija
+los invariantes verificables, no sobre identidad car\'acter por car\'acter.
+
+\paragraph{Vector patr\'on de once campos.}
+Las pruebas can\'onicas comparten un vector patr\'on con los campos:
+\texttt{actor\_id}, \texttt{entidad}, \texttt{entidad\_id},
+\texttt{estado\_reconciliacion}, \texttt{modo}, \texttt{operacion},
+\texttt{payload}, \texttt{reloj\_lamport}, \texttt{reloj\_vectorial},
+\texttt{timestamp} y \texttt{tipo\_evento}. La verificaci\'on est\'a en
+\path{sga-principal/src/test/java/.../AuditoriaCanonicaTest.java} y en
+\path{microservicio-docente/docentes/tests/test_auditoria_canonica_v1.py};
+ambas afirman que, dado el mismo vector, la implementaci\'on de su
+lenguaje produce el mismo hash conocido.
+
+\paragraph{Alcance real de la equivalencia entre lenguajes.}
+El vector patr\'on solo emplea cadenas, enteros de tama\~no acotado y
+un \texttt{timestamp} preformateado como texto. Un cotejo m\'as amplio
+sobre doce vectores independientes muestra que las dos implementaciones
+Java coinciden en los doce casos, mientras que la implementaci\'on
+Python coincide con Java en cinco de los doce. Los siete casos en que
+las representaciones difieren son:
+
+\begin{itemize}
+  \item Decimales: Java emite \texttt{\{"nota":8.50\}}; Python emite
+        \texttt{\{"nota":"8.50"\}}.
+  \item Flotantes de rango extremo: Java emite \texttt{1.0E-7} /
+        \texttt{1.0E21}; Python emite \texttt{1e-07} / \texttt{1e+21}.
+  \item Marca de tiempo del mismo instante: Java emite
+        \texttt{...00.120Z}; Python emite \texttt{...00.120000+00:00}.
+  \item Fechas dentro del payload: Python las serializa como
+        \texttt{"2012-03-05"}; Java lanza \texttt{IllegalStateException}
+        y, dado que \texttt{AuditoriaService.guardar} es \textit{fail-open},
+        el evento se pierde en Java.
+  \item Claves excluidas del canon: la lista literal en Java contiene
+        \texttt{contrase?a} con el byte \texttt{0x3F} por defecto de
+        codificaci\'on, por lo que \texttt{contrase\~na} y
+        \texttt{CONTRASE\~NA} entran al canon en Java y no en Python;
+        Python tampoco excluye \texttt{contrasena}.
+  \item Orden de claves con caracteres suplementarios: Java ordena por
+        UTF-16 (por ejemplo U+1F600 antes de U+FF01); Python ordena por
+        punto de c\'odigo.
+  \item \texttt{NaN}: Java emite la cadena \texttt{"NaN"}; Python emite
+        el literal JSON no est\'andar \texttt{NaN}.
+\end{itemize}
+
+\paragraph{Interoperabilidad real entre lenguajes.}
+Una cadena de cuatro eslabones escrita por Java se valida en Python con
+\texttt{verificar\_cadena\_global} y una cadena de tres eslabones escrita
+por Python se valida con \texttt{AuditHashService.sha256Hex} en Java.
+Esta interoperabilidad ocurre porque el verificador rehashea el texto
+almacenado en la columna \texttt{contenido\_canonico}, no porque cada
+implementaci\'on produzca el mismo texto para el mismo evento. En
+consecuencia, la propiedad verificada es \textit{la integridad de la
+cadena tal como fue almacenada}, no la equivalencia de las
+representaciones can\'onicas entre lenguajes.
+
+\paragraph{Bit\'acoras paralelas an activas.}
+Adem\'as de \texttt{sga\_principal.auditoria}, coexisten dos bit\'acoras
+que no est\'an encadenadas globalmente:
+\begin{itemize}
+  \item Docente escribe en su tabla local \texttt{EventoAuditoria}
+        (\path{docentes/auditoria/strategies.py}, \texttt{FlatAuditStrategy})
+        en modo m1; en m2 y m3 duplica cada evento en esa misma tabla
+        local, y el criterio T1 se comprueba contra esa copia local.
+  \item Soporte mantiene una bit\'acora propia sin cadena en
+        \path{002_historial_ticket.sql}, usada por
+        \texttt{TecnicoService} y \texttt{JdbcTicketRepository}.
+\end{itemize}
+
+\paragraph{Deuda t\'ecnica declarada.}
+La extracci\'on de la forma can\'onica a una biblioteca compartida por
+los tres servicios queda registrada como deuda t\'ecnica de esta entrega.
+Mientras esa biblioteca no exista, la unicidad de la bit\'acora se
+sostiene sobre el vector patr\'on de once campos y sobre el rehash de
+\texttt{contenido\_canonico} en la verificaci\'on, no sobre una identidad
+car\'acter por car\'acter entre lenguajes. Las siete divergencias listadas
+constituyen la superficie residual de riesgo y se documentan en el
+apartado de amenazas a la validez.
 
 \subsection{Cinco Tipos de Manipulaci\'on Inyectados (T1 a T5)}
 Se inyectaron 20 manipulaciones sint\'eticas controladas de cada tipo por mecanismo:
@@ -821,6 +895,17 @@ Siguiendo las pautas metodol\'ogicas para experimentaci\'on en ingenier\'ia de s
   \item \textbf{Efecto de calentamiento de la JVM (\textit{Warm-up Effect}):} Las primeras ejecuciones en Java reflejan sobrecosto por compilaci\'on JIT. Se mitig\'o descartando la primera y \'ultima repetici\'on de cada bloque experimental.
   \item \textbf{Semillas y Pseudoaleatoriedad del Inyector:} La variabilidad en la generaci\'on de manipulaciones se mitig\'o fijando una semilla determinista (\texttt{SEED = 20260831}) en \texttt{run\_experimentos.py}.
   \item \textbf{Contenci\'on de Recursos en Host Compartido:} La ejecuci\'on simult\'anea de Locust y los contenedores puede generar contenci\'on de CPU. Se control\'o con cAdvisor verificando que el uso global del procesador se mantuviera $<75\%$.
+  \item \textbf{Divergencias entre implementaciones can\'onicas.} La forma
+can\'onica de la bit\'acora se implementa tres veces (dos en Java y una
+en Python) sin biblioteca compartida. Sobre doce vectores independientes,
+las dos implementaciones Java coinciden entre s\'i, pero difieren de la
+implementaci\'on Python en siete de los doce casos (decimales, flotantes
+extremos, marcas de tiempo, fechas dentro del payload, clave
+\texttt{contrase\~na} por codificaci\'on de la lista, orden de claves con
+caracteres suplementarios, y \texttt{NaN}). La verificaci\'on de la
+cadena se apoya en el rehash del texto almacenado, no en la equivalencia
+de las representaciones. La extracci\'on de una biblioteca can\'onica
+compartida queda como trabajo futuro.
 \end{enumerate}
 
 \subsection{Amenazas a la Validez Externa}
