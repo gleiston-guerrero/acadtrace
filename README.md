@@ -141,7 +141,7 @@ mvn spring-boot:run
 #### 5. Frontend Unificado React
 ```bash
 cd sga-principal/sga-frontend
-npm install
+npm ci --no-audit
 npm run dev
 ```
 * Aplicacion web lista en: http://localhost:5173
@@ -234,7 +234,7 @@ integrar y enviar los cambios. La modificación local no acredita publicación.
 
 * **Java JDK:** 17 o superior
 * **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
-* **Node.js:** v18.0.0 o superior (npm v9+)
+* **Node.js:** ^20.19.0 || >= 22.12.0 (recomendado LTS v22.x, npm v10+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
 
 ---
