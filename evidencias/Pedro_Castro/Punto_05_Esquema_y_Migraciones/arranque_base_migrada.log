@@ -1,0 +1,89 @@
+===============================================================================
+Escenario: base ya migrada con V18 del 13/09
+Fecha:     2026-09-17T13:08:51Z
+Postgres:  17 en contenedor efimero pfc-e5-migrada:55433
+===============================================================================
+
+===============================================================================
+PASO 1  Estado inicial: V9..V18 aplicadas con V18 vieja del commit 78b0d175
+===============================================================================
+ version |  checksum   | success |              description              
+---------+-------------+---------+---------------------------------------
+ 8       |             | t       | << Flyway Baseline >>
+ 9       |   -28737681 | t       | representante usuario y rol
+ 10      |  -877754385 | t       | vincular cuentas representante
+ 12      |  1764344342 | t       | notificaciones push fcm
+ 13      |  -825957691 | t       | trigger y revocacion auditoria
+ 14      |  -193375823 | t       | cadena auditoria lamport
+ 15      |  2014659661 | t       | auditoria campos criptograficos
+ 16      |   360741646 | t       | estado cadena auditoria
+ 17      | -1587529564 | t       | accion auditoria docente
+ 18      |   361159887 | t       | rol aplicacion y revocacion auditoria
+(10 rows)
+
+
+===============================================================================
+PASO 2  Intento de migrate con V18 nueva + V19 + V20 SIN repair previo
+        Reproduce el fallo reportado por el ingeniero
+===============================================================================
+WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
+
+Flyway Community Edition 9.22.3 by Redgate
+See release notes here: https://rd.gt/416ObMi
+
+Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
+WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+exit=1
+
+===============================================================================
+PASO 3  Ejecutando flyway.repair() equivalente al FlywayMigrationStrategy
+        que sga-principal ejecuta en el arranque (FlywayConfig.java)
+===============================================================================
+WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
+
+Flyway Community Edition 9.22.3 by Redgate
+See release notes here: https://rd.gt/416ObMi
+
+Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
+WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+Repair of failed migration in Schema History table "sga_principal"."flyway_schema_history" not necessary. No failed migration detected.
+Repairing Schema History table for version 18 (Description: rol aplicacion y revocacion auditoria, Type: SQL, Checksum: -78359442)  ...
+Successfully repaired schema history table "sga_principal"."flyway_schema_history" (execution time 00:00.434s).
+
+===============================================================================
+PASO 4  Repetir migrate DESPUES de repair. Debe cerrar en Successfully applied
+===============================================================================
+WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
+
+Flyway Community Edition 9.22.3 by Redgate
+See release notes here: https://rd.gt/416ObMi
+
+Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
+WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+Successfully validated 12 migrations (execution time 00:00.248s)
+Current version of schema "sga_principal": 18
+Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
+Migrating schema "sga_principal" to version "20 - reparar checksum v18"
+DB: V20: marca de reparacion aplicada. El checksum de V18 fue reparado por FlywayMigrationStrategy en el arranque de sga-principal.
+Successfully applied 2 migrations to schema "sga_principal", now at version v20 (execution time 00:00.165s)
+A Flyway report has been generated here: /flyway/report.html
+
+===============================================================================
+PASO 5  Estado final del historial. V18 con checksum recalculado, V19 y V20 OK
+===============================================================================
+ version |  checksum   | success |              description              
+---------+-------------+---------+---------------------------------------
+ 8       |             | t       | << Flyway Baseline >>
+ 9       |   -28737681 | t       | representante usuario y rol
+ 10      |  -877754385 | t       | vincular cuentas representante
+ 12      |  1764344342 | t       | notificaciones push fcm
+ 13      |  -825957691 | t       | trigger y revocacion auditoria
+ 14      |  -193375823 | t       | cadena auditoria lamport
+ 15      |  2014659661 | t       | auditoria campos criptograficos
+ 16      |   360741646 | t       | estado cadena auditoria
+ 17      | -1587529564 | t       | accion auditoria docente
+ 18      |   -78359442 | t       | rol aplicacion y revocacion auditoria
+ 19      |  -554118186 | t       | ampliar permisos sga app
+ 20      |  -386259163 | t       | reparar checksum v18
+(12 rows)
+
