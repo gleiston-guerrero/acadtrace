@@ -1569,3 +1569,15 @@ ALTER TABLE sga_principal.auditoria
     ADD COLUMN IF NOT EXISTS vector_reloj        text;
 ALTER TABLE sga_principal.auditoria
     ADD COLUMN IF NOT EXISTS version_canonica    varchar(20);
+
+-- =============================================================================
+-- Ampliar el CHECK de schema_origen a los 4 modulos reales de produccion.
+-- El volcado antiguo solo contemplaba PRINCIPAL y DOCENTE, pero Secretaria
+-- y Soporte tambien escriben en sga_principal.auditoria en el sistema real.
+-- Alinear el baseline con esta realidad es lo que exige el ingeniero para #44.
+-- =============================================================================
+ALTER TABLE sga_principal.auditoria
+    DROP CONSTRAINT IF EXISTS auditoria_schema_origen_check;
+ALTER TABLE sga_principal.auditoria
+    ADD CONSTRAINT auditoria_schema_origen_check
+    CHECK (schema_origen IN ('PRINCIPAL', 'DOCENTE', 'SECRETARIA', 'SOPORTE'));
