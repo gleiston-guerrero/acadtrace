@@ -2822,7 +2822,7 @@ paths:
       tags: [docente, soporte, ia]
       servers:
         - {url: http://localhost:8000, description: microservicio-docente}
-        - {url: http://localhost:5178, description: microservicio-soporte}
+        - {url: http://localhost:8083, description: microservicio-soporte}
         - {url: http://localhost:8084, description: microservicio-ia}
       security: []
       responses: {'200': {description: Servicio saludable}}
