@@ -1,0 +1,46 @@
+<testsuites id="" name="" tests="6" failures="0" skipped="0" errors="0" time="38.155229999999996">
+<testsuite name="docente.spec.js" timestamp="2026-09-17T15:04:17.294Z" hostname="chromium" tests="6" failures="0" skipped="0" time="35.637" errors="0">
+<testcase name="Frontend Docente conectado al entorno real › login docente autentica y muestra el dashboard" classname="docente.spec.js" time="4.899">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|docente-Frontend-Docente-c-06f89-tica-y-muestra-el-dashboard-chromium/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Frontend Docente conectado al entorno real › consulta de cursos navega mediante la interfaz real" classname="docente.spec.js" time="3.811">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|docente-Frontend-Docente-c-76766-a-mediante-la-interfaz-real-chromium/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Frontend Docente conectado al entorno real › consulta de asistencia muestra la información del curso" classname="docente.spec.js" time="3.416">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|docente-Frontend-Docente-c-ba3db-ra-la-información-del-curso-chromium/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Frontend Docente conectado al entorno real › registro de calificacion restaura el estado original" classname="docente.spec.js" time="18.995">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|docente-Frontend-Docente-c-ce6a5-restaura-el-estado-original-chromium/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Frontend Docente conectado al entorno real › cierre de sesión vuelve al Login" classname="docente.spec.js" time="2.654">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|docente-Frontend-Docente-c-19413-e-de-sesión-vuelve-al-Login-chromium/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="acceso sin autenticación a Asistencia es rechazado o redirigido al Login" classname="docente.spec.js" time="1.862">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|docente-acceso-sin-autenti-8f2bf-azado-o-redirigido-al-Login-chromium/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>
