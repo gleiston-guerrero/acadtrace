@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.security</a> &gt; <span class="el_source">JwtAuthFilter.java</span></div><h1>JwtAuthFilter.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.security;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Autentica (no autoriza por rol) para /api/soporte/*.
+ *
+ * Cualquier usuario con un JWT valido emitido por sga-principal (DIRECTOR,
+ * SECRETARIA, DOCENTE, SOPORTE_TECNICO, ESTUDIANTE, etc.) puede entrar al
+ * modulo: todos pueden crear tickets, ver los suyos y conversar en ellos.
+ * Las acciones exclusivas de soporte (listar TODOS los tickets, asignar,
+ * escalar, cerrar, notas internas) se validan aparte, dentro de
+ * TicketService/TicketController con AuthenticatedUser.isTecnicoOrDirector().
+ */
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+    private final ObjectMapper objectMapper;
+
+<span class="fc" id="L30">    public JwtAuthFilter(JwtService jwtService, ObjectMapper objectMapper) {</span>
+<span class="fc" id="L31">        this.jwtService = jwtService;</span>
+<span class="fc" id="L32">        this.objectMapper = objectMapper;</span>
+<span class="fc" id="L33">    }</span>
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+<span class="fc" id="L38">        String authHeader = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="pc bpc" id="L39" title="1 of 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="fc" id="L40">            writeError(response, 401, &quot;Token no proporcionado&quot;);</span>
+<span class="fc" id="L41">            return;</span>
+        }
+
+<span class="fc" id="L44">        String token = authHeader.substring(7);</span>
+        AuthenticatedUser user;
+        try {
+<span class="fc" id="L47">            user = jwtService.parse(token);</span>
+<span class="fc" id="L48">        } catch (JwtException | IllegalArgumentException e) {</span>
+<span class="fc" id="L49">            writeError(response, 401, &quot;Token invalido o expirado&quot;);</span>
+<span class="fc" id="L50">            return;</span>
+<span class="fc" id="L51">        }</span>
+
+<span class="fc" id="L53">        request.setAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE, user);</span>
+<span class="fc" id="L54">        chain.doFilter(request, response);</span>
+<span class="fc" id="L55">    }</span>
+
+    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+<span class="fc" id="L58">        response.setStatus(status);</span>
+<span class="fc" id="L59">        response.setContentType(&quot;application/json&quot;);</span>
+<span class="fc" id="L60">        response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="fc" id="L61">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L62">        body.put(&quot;error&quot;, message);</span>
+<span class="fc" id="L63">        objectMapper.writeValue(response.getWriter(), body);</span>
+<span class="fc" id="L64">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

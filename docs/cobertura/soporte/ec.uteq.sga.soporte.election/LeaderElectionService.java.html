@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LeaderElectionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.election</a> &gt; <span class="el_source">LeaderElectionService.java</span></div><h1>LeaderElectionService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.election;
+
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.Election;
+import io.etcd.jetcd.Lease;
+import io.etcd.jetcd.election.LeaderKey;
+import io.etcd.jetcd.election.LeaderResponse;
+import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.support.CloseableClient;
+import io.grpc.stub.StreamObserver;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+/**
+ * Eleccion de lider entre replicas de sga-soporte usando la Election API
+ * nativa de etcd (io.etcd.jetcd.Election), no una implementacion casera de
+ * Raft: etcd ya corre Raft internamente, esta clase solo es cliente de esa
+ * API.
+ *
+ * Como funciona:
+ *  1. Al arrancar, esta instancia pide un lease (TTL corto) y &quot;compite&quot; por
+ *     el nombre de eleccion (etcd.election.name, por defecto /sga/leader)
+ *     proponiendo su propio id como valor.
+ *  2. campaign() no resuelve hasta que esta instancia efectivamente gana
+ *     la eleccion: si ya hay un lider, se queda en cola (isLeader() = false)
+ *     hasta que el lider actual se caiga (lease expira) o resigne.
+ *  3. Mientras el proceso siga vivo, el lease se renueva solo (keepAlive);
+ *     si el proceso muere o se corta la red, el lease expira solo (TTL
+ *     segundos) y la siguiente replica en cola gana la eleccion.
+ *  4. isLeader() es lo que deben consultar los @Scheduled que solo deben
+ *     correr en una replica (ver TicketScheduledTasks).
+ *
+ * Verificacion en la demo: `docker exec etcd etcdctl get --prefix /sga/leader`
+ */
+@Service
+<span class="nc" id="L46">public class LeaderElectionService {</span>
+
+<span class="fc" id="L48">    private static final Logger log = LoggerFactory.getLogger(LeaderElectionService.class);</span>
+
+    @Value(&quot;${etcd.endpoints}&quot;)
+    private String endpoints;
+
+    @Value(&quot;${etcd.election.name}&quot;)
+    private String electionName;
+
+    @Value(&quot;${etcd.lease.ttl-seconds}&quot;)
+    private long leaseTtlSeconds;
+
+    @Value(&quot;${app.instance.id:}&quot;)
+    private String configuredInstanceId;
+
+    private String instanceId;
+    private Client client;
+    private Lease leaseClient;
+    private Election electionClient;
+    private long leaseId;
+    private CloseableClient keepAliveHandle;
+
+<span class="nc" id="L69">    private final AtomicBoolean isLeader = new AtomicBoolean(false);</span>
+<span class="nc" id="L70">    private final AtomicReference&lt;LeaderKey&gt; leaderKey = new AtomicReference&lt;&gt;();</span>
+<span class="nc" id="L71">    private final AtomicReference&lt;String&gt; currentLeaderId = new AtomicReference&lt;&gt;(&quot;desconocido&quot;);</span>
+
+    @PostConstruct
+    public void iniciar() {
+<span class="nc bnc" id="L75" title="All 4 branches missed.">        instanceId = (configuredInstanceId == null || configuredInstanceId.isBlank())</span>
+<span class="nc" id="L76">                ? &quot;soporte-&quot; + UUID.randomUUID().toString().substring(0, 8)</span>
+<span class="nc" id="L77">                : configuredInstanceId;</span>
+
+<span class="nc" id="L79">        client = Client.builder().endpoints(endpoints.split(&quot;,&quot;)).build();</span>
+<span class="nc" id="L80">        leaseClient = client.getLeaseClient();</span>
+<span class="nc" id="L81">        electionClient = client.getElectionClient();</span>
+
+<span class="nc" id="L83">        ByteSequence election = ByteSequence.from(electionName, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L84">        ByteSequence proposal = ByteSequence.from(instanceId, StandardCharsets.UTF_8);</span>
+
+        try {
+<span class="nc" id="L87">            leaseId = leaseClient.grant(leaseTtlSeconds).get().getID();</span>
+<span class="nc" id="L88">        } catch (Exception e) {</span>
+<span class="nc" id="L89">            log.error(&quot;[election] No se pudo obtener un lease de etcd en {}: {}&quot;, endpoints, e.getMessage());</span>
+<span class="nc" id="L90">            return; // sin etcd disponible, la instancia sencillamente nunca sera lider</span>
+<span class="nc" id="L91">        }</span>
+
+        // Mantiene el lease vivo mientras el proceso siga arriba. Si el
+        // proceso muere (kill -9, docker stop, crash), nadie vuelve a
+        // llamar a esto y el lease expira solo tras leaseTtlSeconds.
+<span class="nc" id="L96">        keepAliveHandle = leaseClient.keepAlive(leaseId, new StreamObserver&lt;&gt;() {</span>
+            @Override
+            public void onNext(LeaseKeepAliveResponse response) {
+                // nada que hacer: mientras sigan llegando, el lease sigue vivo
+<span class="nc" id="L100">            }</span>
+
+            @Override
+            public void onError(Throwable t) {
+<span class="nc" id="L104">                log.warn(&quot;[election] keepAlive del lease se corto ({}): {}&quot;, instanceId, t.getMessage());</span>
+<span class="nc" id="L105">            }</span>
+
+            @Override
+            public void onCompleted() {
+<span class="nc" id="L109">                log.warn(&quot;[election] keepAlive del lease finalizo ({})&quot;, instanceId);</span>
+<span class="nc" id="L110">            }</span>
+        });
+
+<span class="nc" id="L113">        log.info(&quot;[election] {} entrando a la eleccion '{}' (lease {}s)...&quot;, instanceId, electionName, leaseTtlSeconds);</span>
+
+        // campaign() no resuelve hasta ganar: si ya hay lider, esta instancia
+        // se queda candidata (isLeader() = false) hasta que le toque. No
+        // bloqueamos el arranque del servicio esperando a ganar la eleccion.
+<span class="nc" id="L118">        electionClient.campaign(election, leaseId, proposal)</span>
+<span class="nc" id="L119">                .thenAccept(resp -&gt; {</span>
+<span class="nc" id="L120">                    leaderKey.set(resp.getLeader());</span>
+<span class="nc" id="L121">                    currentLeaderId.set(instanceId);</span>
+<span class="nc" id="L122">                    isLeader.set(true);</span>
+<span class="nc" id="L123">                    log.info(&quot;[election] {} es ahora LIDER de '{}'&quot;, instanceId, electionName);</span>
+<span class="nc" id="L124">                })</span>
+<span class="nc" id="L125">                .exceptionally(err -&gt; {</span>
+<span class="nc" id="L126">                    log.error(&quot;[election] {} fallo al competir por el liderazgo: {}&quot;, instanceId, err.getMessage());</span>
+<span class="nc" id="L127">                    return null;</span>
+                });
+
+<span class="nc" id="L130">        observarCambiosDeLider(election);</span>
+<span class="nc" id="L131">    }</span>
+
+    /**
+     * Observa el valor actual del lider (para loguear/exponer quien es el
+     * lider incluso en las replicas que no lo son). Si esta instancia deja
+     * de ser el valor observado, se apaga su propio isLeader.
+     */
+    private void observarCambiosDeLider(ByteSequence election) {
+<span class="nc" id="L139">        electionClient.observe(election, new Election.Listener() {</span>
+            @Override
+            public void onNext(LeaderResponse response) {
+<span class="nc" id="L142">                String liderActual = response.getKv().getValue().toString(StandardCharsets.UTF_8);</span>
+<span class="nc" id="L143">                currentLeaderId.set(liderActual);</span>
+<span class="nc" id="L144">                boolean soyYo = liderActual.equals(instanceId);</span>
+<span class="nc bnc" id="L145" title="All 4 branches missed.">                if (isLeader.get() &amp;&amp; !soyYo) {</span>
+<span class="nc" id="L146">                    log.warn(&quot;[election] {} perdio el liderazgo, ahora es {}&quot;, instanceId, liderActual);</span>
+                }
+<span class="nc" id="L148">                isLeader.set(soyYo);</span>
+<span class="nc" id="L149">            }</span>
+
+            @Override
+            public void onError(Throwable throwable) {
+<span class="nc" id="L153">                log.warn(&quot;[election] observe() de '{}' fallo: {}&quot;, electionName, throwable.getMessage());</span>
+<span class="nc" id="L154">            }</span>
+
+            @Override
+            public void onCompleted() {
+                // la eleccion quedo sin lider (todas las replicas cayeron); nada que hacer
+<span class="nc" id="L159">            }</span>
+        });
+<span class="nc" id="L161">    }</span>
+
+    /** Consultado por los @Scheduled: solo la replica lider debe ejecutar. */
+    public boolean isLeader() {
+<span class="nc" id="L165">        return isLeader.get();</span>
+    }
+
+    public String instanceId() {
+<span class="nc" id="L169">        return instanceId;</span>
+    }
+
+    public String currentLeaderId() {
+<span class="nc" id="L173">        return currentLeaderId.get();</span>
+    }
+
+    @PreDestroy
+    public void detener() {
+        try {
+<span class="nc" id="L179">            LeaderKey lk = leaderKey.get();</span>
+<span class="nc bnc" id="L180" title="All 4 branches missed.">            if (lk != null &amp;&amp; electionClient != null) {</span>
+<span class="nc" id="L181">                electionClient.resign(lk).get(); // renuncia limpia, otro puede ganar de inmediato</span>
+            }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (keepAliveHandle != null) keepAliveHandle.close();</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">            if (leaseClient != null &amp;&amp; leaseId != 0) leaseClient.revoke(leaseId).get();</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            if (client != null) client.close();</span>
+<span class="nc" id="L186">            log.info(&quot;[election] {} salio de la eleccion '{}'&quot;, instanceId, electionName);</span>
+<span class="nc" id="L187">        } catch (Exception e) {</span>
+<span class="nc" id="L188">            log.warn(&quot;[election] error cerrando la eleccion de forma limpia: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L189">        }</span>
+<span class="nc" id="L190">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
