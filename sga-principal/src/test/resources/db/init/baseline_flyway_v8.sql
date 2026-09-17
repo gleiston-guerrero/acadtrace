@@ -1089,3 +1089,457 @@ ALTER TABLE ONLY sga_principal.usuarios ALTER COLUMN id_usuario SET DEFAULT next
 ALTER TABLE ONLY sga_soporte.comentarios ALTER COLUMN id_comentario SET DEFAULT nextval('sga_soporte.comentarios_id_comentario_seq'::regclass);
 
 ALTER TABLE ONLY sga_soporte.tickets ALTER COLUMN id_ticket SET DEFAULT nextval('sga_soporte.tickets_id_ticket_seq'::regclass);
+
+-- =============================================================================
+-- Restricciones PRIMARY KEY de las 42 tablas.
+-- En el volcado original de pg_dump vienen como ALTER TABLE tras los CREATE.
+-- Se aplican con guardas idempotentes para tolerar re-ejecucion del script.
+-- =============================================================================
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'actividades_pkey') THEN
+        ALTER TABLE sga_docente.actividades ADD CONSTRAINT actividades_pkey PRIMARY KEY (id_actividad);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'asistencias_pkey') THEN
+        ALTER TABLE sga_docente.asistencias ADD CONSTRAINT asistencias_pkey PRIMARY KEY (id_asistencia);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_group_permissions_pkey') THEN
+        ALTER TABLE sga_docente.auth_group_permissions ADD CONSTRAINT auth_group_permissions_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_group_pkey') THEN
+        ALTER TABLE sga_docente.auth_group ADD CONSTRAINT auth_group_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_permission_pkey') THEN
+        ALTER TABLE sga_docente.auth_permission ADD CONSTRAINT auth_permission_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_user_groups_pkey') THEN
+        ALTER TABLE sga_docente.auth_user_groups ADD CONSTRAINT auth_user_groups_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_user_pkey') THEN
+        ALTER TABLE sga_docente.auth_user ADD CONSTRAINT auth_user_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_user_user_permissions_pkey') THEN
+        ALTER TABLE sga_docente.auth_user_user_permissions ADD CONSTRAINT auth_user_user_permissions_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'calificaciones_pkey') THEN
+        ALTER TABLE sga_docente.calificaciones ADD CONSTRAINT calificaciones_pkey PRIMARY KEY (id_calificacion);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'django_admin_log_pkey') THEN
+        ALTER TABLE sga_docente.django_admin_log ADD CONSTRAINT django_admin_log_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'django_content_type_pkey') THEN
+        ALTER TABLE sga_docente.django_content_type ADD CONSTRAINT django_content_type_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'django_migrations_pkey') THEN
+        ALTER TABLE sga_docente.django_migrations ADD CONSTRAINT django_migrations_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'periodos_evaluacion_pkey') THEN
+        ALTER TABLE sga_docente.periodos_evaluacion ADD CONSTRAINT periodos_evaluacion_pkey PRIMARY KEY (id_periodo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'promedios_anuales_detalle_pkey') THEN
+        ALTER TABLE sga_docente.promedios_anuales_detalle ADD CONSTRAINT promedios_anuales_detalle_pkey PRIMARY KEY (id_detalle);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'promedios_anuales_pkey') THEN
+        ALTER TABLE sga_docente.promedios_anuales ADD CONSTRAINT promedios_anuales_pkey PRIMARY KEY (id_promedio_anual);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'promedios_trimestrales_pkey') THEN
+        ALTER TABLE sga_docente.promedios_trimestrales ADD CONSTRAINT promedios_trimestrales_pkey PRIMARY KEY (id_promedio);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'resumen_asistencia_pkey') THEN
+        ALTER TABLE sga_docente.resumen_asistencia ADD CONSTRAINT resumen_asistencia_pkey PRIMARY KEY (id_resumen);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'seguimiento_academico_pkey') THEN
+        ALTER TABLE sga_docente.seguimiento_academico ADD CONSTRAINT seguimiento_academico_pkey PRIMARY KEY (id_seguimiento);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'anos_lectivos_pkey') THEN
+        ALTER TABLE sga_principal.anos_lectivos ADD CONSTRAINT anos_lectivos_pkey PRIMARY KEY (id_ano_lectivo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'asignaciones_pkey') THEN
+        ALTER TABLE sga_principal.asignaciones ADD CONSTRAINT asignaciones_pkey PRIMARY KEY (id_asignacion);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'asignaturas_pkey') THEN
+        ALTER TABLE sga_principal.asignaturas ADD CONSTRAINT asignaturas_pkey PRIMARY KEY (id_asignatura);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'asignaturas_por_nivel_pkey') THEN
+        ALTER TABLE sga_principal.asignaturas_por_nivel ADD CONSTRAINT asignaturas_por_nivel_pkey PRIMARY KEY (id_asignatura, id_nivel);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auditoria_pkey') THEN
+        ALTER TABLE sga_principal.auditoria ADD CONSTRAINT auditoria_pkey PRIMARY KEY (id_auditoria);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'documentos_matricula_pkey') THEN
+        ALTER TABLE sga_principal.documentos_matricula ADD CONSTRAINT documentos_matricula_pkey PRIMARY KEY (id_documento);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'escala_calificaciones_pkey') THEN
+        ALTER TABLE sga_principal.escala_calificaciones ADD CONSTRAINT escala_calificaciones_pkey PRIMARY KEY (id_escala);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'estudiantes_pkey') THEN
+        ALTER TABLE sga_principal.estudiantes ADD CONSTRAINT estudiantes_pkey PRIMARY KEY (id_estudiante);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fichas_estudiante_pkey') THEN
+        ALTER TABLE sga_principal.fichas_estudiante ADD CONSTRAINT fichas_estudiante_pkey PRIMARY KEY (id_ficha);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'grados_pkey') THEN
+        ALTER TABLE sga_principal.grados ADD CONSTRAINT grados_pkey PRIMARY KEY (id_grado);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'historial_promocion_pkey') THEN
+        ALTER TABLE sga_principal.historial_promocion ADD CONSTRAINT historial_promocion_pkey PRIMARY KEY (id_historial);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'horarios_pkey') THEN
+        ALTER TABLE sga_principal.horarios ADD CONSTRAINT horarios_pkey PRIMARY KEY (id_horario);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'matriculas_pkey') THEN
+        ALTER TABLE sga_principal.matriculas ADD CONSTRAINT matriculas_pkey PRIMARY KEY (id_matricula);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'niveles_educativos_pkey') THEN
+        ALTER TABLE sga_principal.niveles_educativos ADD CONSTRAINT niveles_educativos_pkey PRIMARY KEY (id_nivel);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'paralelos_ano_lectivo_pkey') THEN
+        ALTER TABLE sga_principal.paralelos_ano_lectivo ADD CONSTRAINT paralelos_ano_lectivo_pkey PRIMARY KEY (id_paralelo_al);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'paralelos_pkey') THEN
+        ALTER TABLE sga_principal.paralelos ADD CONSTRAINT paralelos_pkey PRIMARY KEY (id_paralelo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'periodos_diarios_pkey') THEN
+        ALTER TABLE sga_principal.periodos_diarios ADD CONSTRAINT periodos_diarios_pkey PRIMARY KEY (id_periodo_diario);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'personas_pkey') THEN
+        ALTER TABLE sga_principal.personas ADD CONSTRAINT personas_pkey PRIMARY KEY (id_persona);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'representantes_pkey') THEN
+        ALTER TABLE sga_principal.representantes ADD CONSTRAINT representantes_pkey PRIMARY KEY (id_representante);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'roles_pkey') THEN
+        ALTER TABLE sga_principal.roles ADD CONSTRAINT roles_pkey PRIMARY KEY (id_rol);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuario_roles_pkey') THEN
+        ALTER TABLE sga_principal.usuario_roles ADD CONSTRAINT usuario_roles_pkey PRIMARY KEY (id_usuario, id_rol);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_pkey') THEN
+        ALTER TABLE sga_principal.usuarios ADD CONSTRAINT usuarios_pkey PRIMARY KEY (id_usuario);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'comentarios_pkey') THEN
+        ALTER TABLE sga_soporte.comentarios ADD CONSTRAINT comentarios_pkey PRIMARY KEY (id_comentario);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_pkey') THEN
+        ALTER TABLE sga_soporte.tickets ADD CONSTRAINT tickets_pkey PRIMARY KEY (id_ticket);
+    END IF;
+END $$;
+
+
+-- =============================================================================
+-- Restricciones UNIQUE.
+-- =============================================================================
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'asistencias_id_matricula_id_asignacion_fecha_key') THEN
+        ALTER TABLE sga_docente.asistencias ADD CONSTRAINT asistencias_id_matricula_id_asignacion_fecha_key UNIQUE (id_matricula, id_asignacion, fecha);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_group_name_key') THEN
+        ALTER TABLE sga_docente.auth_group ADD CONSTRAINT auth_group_name_key UNIQUE (name);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_group_permissions_group_id_permission_id_0cd325b0_uniq') THEN
+        ALTER TABLE sga_docente.auth_group_permissions ADD CONSTRAINT auth_group_permissions_group_id_permission_id_0cd325b0_uniq UNIQUE (group_id, permission_id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_permission_content_type_id_codename_01ab375a_uniq') THEN
+        ALTER TABLE sga_docente.auth_permission ADD CONSTRAINT auth_permission_content_type_id_codename_01ab375a_uniq UNIQUE (content_type_id, codename);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_user_groups_user_id_group_id_94350c0c_uniq') THEN
+        ALTER TABLE sga_docente.auth_user_groups ADD CONSTRAINT auth_user_groups_user_id_group_id_94350c0c_uniq UNIQUE (user_id, group_id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_user_user_permissions_user_id_permission_id_14a6b632_uniq') THEN
+        ALTER TABLE sga_docente.auth_user_user_permissions ADD CONSTRAINT auth_user_user_permissions_user_id_permission_id_14a6b632_uniq UNIQUE (user_id, permission_id);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_user_username_key') THEN
+        ALTER TABLE sga_docente.auth_user ADD CONSTRAINT auth_user_username_key UNIQUE (username);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'calificaciones_id_actividad_id_matricula_key') THEN
+        ALTER TABLE sga_docente.calificaciones ADD CONSTRAINT calificaciones_id_actividad_id_matricula_key UNIQUE (id_actividad, id_matricula);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'django_content_type_app_label_model_76bd3d3b_uniq') THEN
+        ALTER TABLE sga_docente.django_content_type ADD CONSTRAINT django_content_type_app_label_model_76bd3d3b_uniq UNIQUE (app_label, model);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'periodos_evaluacion_id_ano_lectivo_tipo_key') THEN
+        ALTER TABLE sga_docente.periodos_evaluacion ADD CONSTRAINT periodos_evaluacion_id_ano_lectivo_tipo_key UNIQUE (id_ano_lectivo, tipo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'promedios_anuales_detalle_unique') THEN
+        ALTER TABLE sga_docente.promedios_anuales_detalle ADD CONSTRAINT promedios_anuales_detalle_unique UNIQUE (id_promedio_anual, id_promedio_trim);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'promedios_anuales_id_matricula_id_asignacion_id_ano_lectivo_key') THEN
+        ALTER TABLE sga_docente.promedios_anuales ADD CONSTRAINT promedios_anuales_id_matricula_id_asignacion_id_ano_lectivo_key UNIQUE (id_matricula, id_asignacion, id_ano_lectivo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'promedios_trimestrales_id_matricula_id_asignacion_id_period_key') THEN
+        ALTER TABLE sga_docente.promedios_trimestrales ADD CONSTRAINT promedios_trimestrales_id_matricula_id_asignacion_id_period_key UNIQUE (id_matricula, id_asignacion, id_periodo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'resumen_asistencia_id_matricula_id_asignacion_id_periodo_key') THEN
+        ALTER TABLE sga_docente.resumen_asistencia ADD CONSTRAINT resumen_asistencia_id_matricula_id_asignacion_id_periodo_key UNIQUE (id_matricula, id_asignacion, id_periodo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'anos_lectivos_nombre_key') THEN
+        ALTER TABLE sga_principal.anos_lectivos ADD CONSTRAINT anos_lectivos_nombre_key UNIQUE (nombre);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'asignaciones_asignatura_paralelo_ano_key') THEN
+        ALTER TABLE sga_principal.asignaciones ADD CONSTRAINT asignaciones_asignatura_paralelo_ano_key UNIQUE (id_asignatura, id_paralelo, id_ano_lectivo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'escala_ano_nivel_rango_unique') THEN
+        ALTER TABLE sga_principal.escala_calificaciones ADD CONSTRAINT escala_ano_nivel_rango_unique UNIQUE (id_ano_lectivo, id_nivel, nota_minima);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'estudiantes_cedula_key') THEN
+        ALTER TABLE sga_principal.estudiantes ADD CONSTRAINT estudiantes_cedula_key UNIQUE (cedula);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'estudiantes_codigo_estudiante_key') THEN
+        ALTER TABLE sga_principal.estudiantes ADD CONSTRAINT estudiantes_codigo_estudiante_key UNIQUE (codigo_estudiante);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fichas_estudiante_id_estudiante_key') THEN
+        ALTER TABLE sga_principal.fichas_estudiante ADD CONSTRAINT fichas_estudiante_id_estudiante_key UNIQUE (id_estudiante);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'historial_matricula_unique') THEN
+        ALTER TABLE sga_principal.historial_promocion ADD CONSTRAINT historial_matricula_unique UNIQUE (id_matricula);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'horarios_id_asignacion_id_periodo_diario_dia_semana_key') THEN
+        ALTER TABLE sga_principal.horarios ADD CONSTRAINT horarios_id_asignacion_id_periodo_diario_dia_semana_key UNIQUE (id_asignacion, id_periodo_diario, dia_semana);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'matriculas_id_estudiante_id_ano_lectivo_key') THEN
+        ALTER TABLE sga_principal.matriculas ADD CONSTRAINT matriculas_id_estudiante_id_ano_lectivo_key UNIQUE (id_estudiante, id_ano_lectivo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'paralelos_ano_lectivo_unique') THEN
+        ALTER TABLE sga_principal.paralelos_ano_lectivo ADD CONSTRAINT paralelos_ano_lectivo_unique UNIQUE (id_paralelo, id_ano_lectivo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'paralelos_id_grado_letra_key') THEN
+        ALTER TABLE sga_principal.paralelos ADD CONSTRAINT paralelos_id_grado_letra_key UNIQUE (id_grado, letra);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'personas_cedula_key') THEN
+        ALTER TABLE sga_principal.personas ADD CONSTRAINT personas_cedula_key UNIQUE (cedula);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'personas_id_usuario_key') THEN
+        ALTER TABLE sga_principal.personas ADD CONSTRAINT personas_id_usuario_key UNIQUE (id_usuario);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'roles_nombre_key') THEN
+        ALTER TABLE sga_principal.roles ADD CONSTRAINT roles_nombre_key UNIQUE (nombre);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_correo_key') THEN
+        ALTER TABLE sga_principal.usuarios ADD CONSTRAINT usuarios_correo_key UNIQUE (correo);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_username_key') THEN
+        ALTER TABLE sga_principal.usuarios ADD CONSTRAINT usuarios_username_key UNIQUE (username);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_uuid_key') THEN
+        ALTER TABLE sga_principal.usuarios ADD CONSTRAINT usuarios_uuid_key UNIQUE (uuid);
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_k0msfrh058q2goawy9u1sig33') THEN
+        ALTER TABLE sga_soporte.tickets ADD CONSTRAINT uk_k0msfrh058q2goawy9u1sig33 UNIQUE (numero_ticket);
+    END IF;
+END $$;
+
