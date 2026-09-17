@@ -114,6 +114,29 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     executionData.setFrom(fileTree(layout.buildDirectory) { include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec", "jacoco/testDebugUnitTest.exec") })
 }
 
+tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
+    dependsOn("jacocoTestReport")
+    val generated = listOf("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "**/*_Impl*.*")
+    classDirectories.setFrom(files(
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) { exclude(generated) },
+        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) { exclude(generated) }
+    ))
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    executionData.setFrom(fileTree(layout.buildDirectory) { include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec", "jacoco/testDebugUnitTest.exec") })
+    violationRules {
+        rule {
+            element = "BUNDLE"
+            limit {
+                counter = "INSTRUCTION"
+                value = "COVEREDRATIO"
+                minimum = "0.10".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.named("check").configure { dependsOn("jacocoCoverageVerification") }
+
 gradle.taskGraph.whenReady {
     val requestsReleasePackage = allTasks.any {
         it.path == ":app:assembleRelease" || it.path == ":app:bundleRelease"
