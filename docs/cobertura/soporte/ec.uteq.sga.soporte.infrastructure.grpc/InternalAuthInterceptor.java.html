@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InternalAuthInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.infrastructure.grpc</a> &gt; <span class="el_source">InternalAuthInterceptor.java</span></div><h1>InternalAuthInterceptor.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.infrastructure.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
+import io.grpc.Status;
+import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+
+/**
+ * Valida el &quot;internal_token&quot; de las llamadas gRPC entrantes al servidor de
+ * sga-soporte (por ejemplo, sga-principal/docente/secretaria reportando una
+ * incidencia via IncidenciaService). Mismo patron y mismo token de
+ * desarrollo que usa sga-principal para validar sus propias llamadas
+ * entrantes (ver InternalAuthInterceptor alla) -- asi el contrato de
+ * autenticacion interna es el mismo en toda la malla de microservicios.
+ */
+@GrpcGlobalServerInterceptor
+<span class="nc" id="L22">public class InternalAuthInterceptor implements ServerInterceptor {</span>
+
+<span class="nc" id="L24">    private static final Logger log = LoggerFactory.getLogger(InternalAuthInterceptor.class);</span>
+
+    private static final String INTERNAL_TOKEN_KEY = &quot;internal_token&quot;;
+
+    @Value(&quot;${app.grpc.internal-token}&quot;)
+    private String expectedToken;
+
+    @Override
+    public &lt;ReqT, RespT&gt; ServerCall.Listener&lt;ReqT&gt; interceptCall(
+            ServerCall&lt;ReqT, RespT&gt; call,
+            Metadata headers,
+            ServerCallHandler&lt;ReqT, RespT&gt; next) {
+
+<span class="nc" id="L37">        String token = headers.get(Metadata.Key.of(INTERNAL_TOKEN_KEY, Metadata.ASCII_STRING_MARSHALLER));</span>
+
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if (token == null || !token.equals(expectedToken)) {</span>
+<span class="nc" id="L40">            log.warn(&quot;[grpc] Llamada rechazada: internal_token invalido o ausente (metodo {})&quot;,</span>
+<span class="nc" id="L41">                    call.getMethodDescriptor().getFullMethodName());</span>
+<span class="nc" id="L42">            call.close(Status.UNAUTHENTICATED.withDescription(&quot;Invalid or missing internal token&quot;), headers);</span>
+<span class="nc" id="L43">            return new ServerCall.Listener&lt;&gt;() {};</span>
+        }
+
+<span class="nc" id="L46">        return next.startCall(call, headers);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

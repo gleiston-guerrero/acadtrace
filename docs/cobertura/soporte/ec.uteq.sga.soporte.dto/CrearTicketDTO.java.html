@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CrearTicketDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.dto</a> &gt; <span class="el_source">CrearTicketDTO.java</span></div><h1>CrearTicketDTO.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+<span class="fc" id="L6">public class CrearTicketDTO {</span>
+
+    @NotBlank(message = &quot;El título es obligatorio&quot;)
+    private String titulo;
+
+    @NotBlank(message = &quot;La descripción es obligatoria&quot;)
+    private String descripcion;
+
+    @NotNull(message = &quot;La categoría es obligatoria&quot;)
+    private Long categoriaId;
+
+    private String prioridad; // Opcional, por defecto será MEDIA
+
+    // Getters y Setters
+<span class="fc" id="L20">    public String getTitulo() { return titulo; }</span>
+<span class="fc" id="L21">    public void setTitulo(String titulo) { this.titulo = titulo; }</span>
+
+<span class="fc" id="L23">    public String getDescripcion() { return descripcion; }</span>
+<span class="fc" id="L24">    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }</span>
+
+<span class="fc" id="L26">    public Long getCategoriaId() { return categoriaId; }</span>
+<span class="fc" id="L27">    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }</span>
+
+<span class="fc" id="L29">    public String getPrioridad() { return prioridad; }</span>
+<span class="fc" id="L30">    public void setPrioridad(String prioridad) { this.prioridad = prioridad; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

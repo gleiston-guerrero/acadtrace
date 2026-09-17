@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JdbcTicketRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.infrastructure.persistence</a> &gt; <span class="el_source">JdbcTicketRepository.java</span></div><h1>JdbcTicketRepository.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.infrastructure.persistence;
+
+import ec.uteq.sga.soporte.domain.port.TicketRepositoryPort;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
+
+import java.sql.PreparedStatement;
+import java.util.*;
+
+@Repository
+public class JdbcTicketRepository implements TicketRepositoryPort {
+
+    private final JdbcTemplate jdbc;
+
+<span class="fc" id="L17">    public JdbcTicketRepository(JdbcTemplate jdbc) {</span>
+<span class="fc" id="L18">        this.jdbc = jdbc;</span>
+<span class="fc" id="L19">    }</span>
+
+    private static final String SELECT_BASE =
+        &quot;SELECT id_ticket AS \&quot;id\&quot;, numero_ticket AS \&quot;numeroTicket\&quot;, titulo, descripcion, &quot; +
+        &quot;categoria, prioridad, estado, creado_por AS \&quot;creadoPor\&quot;, asignado_a AS \&quot;asignadoA\&quot;, &quot; +
+        &quot;solucion_aplicada AS \&quot;solucionAplicada\&quot;, fecha_creacion AS \&quot;fechaCreacion\&quot;, &quot; +
+        &quot;fecha_resolucion AS \&quot;fechaResolucion\&quot; FROM sga_soporte.tickets &quot;;
+
+    @Override
+    public List&lt;Map&lt;String, Object&gt;&gt; listarTodos() {
+<span class="fc" id="L29">        return jdbc.queryForList(SELECT_BASE + &quot;ORDER BY id_ticket DESC&quot;);</span>
+    }
+
+    @Override
+    public List&lt;Map&lt;String, Object&gt;&gt; listarPorCreador(String username) {
+<span class="fc" id="L34">        return jdbc.queryForList(SELECT_BASE + &quot;WHERE creado_por = ? ORDER BY id_ticket DESC&quot;, username);</span>
+    }
+
+    @Override
+    public Optional&lt;Map&lt;String, Object&gt;&gt; buscarPorId(long id) {
+<span class="fc" id="L39">        List&lt;Map&lt;String, Object&gt;&gt; res = jdbc.queryForList(SELECT_BASE + &quot;WHERE id_ticket = ?&quot;, id);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; estadisticas() {
+<span class="fc" id="L45">        String sql = &quot;SELECT count(*) AS total, &quot; +</span>
+                &quot;count(*) FILTER (WHERE estado = 'ABIERTO') AS abiertos, &quot; +
+                &quot;count(*) FILTER (WHERE estado = 'EN_PROCESO') AS en_proceso, &quot; +
+                &quot;count(*) FILTER (WHERE estado = 'RESUELTO') AS resueltos, &quot; +
+                &quot;count(*) FILTER (WHERE estado = 'CERRADO') AS cerrados &quot; +
+                &quot;FROM sga_soporte.tickets&quot;;
+<span class="fc" id="L51">        Map&lt;String, Object&gt; row = jdbc.queryForMap(sql);</span>
+<span class="fc" id="L52">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L53">        result.put(&quot;total&quot;, row.get(&quot;total&quot;));</span>
+<span class="fc" id="L54">        result.put(&quot;abiertos&quot;, row.get(&quot;abiertos&quot;));</span>
+<span class="fc" id="L55">        result.put(&quot;enProceso&quot;, row.get(&quot;en_proceso&quot;));</span>
+<span class="fc" id="L56">        result.put(&quot;resueltos&quot;, row.get(&quot;resueltos&quot;));</span>
+<span class="fc" id="L57">        result.put(&quot;cerrados&quot;, row.get(&quot;cerrados&quot;));</span>
+<span class="fc" id="L58">        return result;</span>
+    }
+
+    @Override
+    public List&lt;Map&lt;String, Object&gt;&gt; reportePorCategoria() {
+<span class="fc" id="L63">        String sql = &quot;SELECT categoria, count(*) AS total, &quot; +</span>
+                &quot;ROUND(AVG(EXTRACT(EPOCH FROM (fecha_resolucion - fecha_creacion))/3600.0)::numeric, 2) AS tiempo_promedio_horas &quot; +
+                &quot;FROM sga_soporte.tickets GROUP BY categoria&quot;;
+<span class="fc" id="L66">        return jdbc.queryForList(sql);</span>
+    }
+
+    @Override
+    public List&lt;Map&lt;String, Object&gt;&gt; reportePorTecnico() {
+<span class="fc" id="L71">        String sql = &quot;SELECT COALESCE(asignado_a, 'Sin Asignar') AS tecnico, count(*) AS total, &quot; +</span>
+                &quot;ROUND(AVG(EXTRACT(EPOCH FROM (fecha_resolucion - fecha_creacion))/3600.0)::numeric, 2) AS tiempo_promedio_horas &quot; +
+                &quot;FROM sga_soporte.tickets GROUP BY asignado_a&quot;;
+<span class="fc" id="L74">        return jdbc.queryForList(sql);</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; reporteGeneral() {
+<span class="fc" id="L79">        String sql = &quot;SELECT count(*) AS total_tickets, &quot; +</span>
+                &quot;ROUND(AVG(EXTRACT(EPOCH FROM (fecha_resolucion - fecha_creacion))/3600.0)::numeric, 2) AS tiempo_promedio_resolucion_global &quot; +
+                &quot;FROM sga_soporte.tickets WHERE fecha_resolucion IS NOT NULL&quot;;
+<span class="fc" id="L82">        List&lt;Map&lt;String, Object&gt;&gt; list = jdbc.queryForList(sql);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        return list.isEmpty() ? Map.of(&quot;totalTickets&quot;, 0, &quot;tiempoPromedioGlobal&quot;, 0) : list.get(0);</span>
+    }
+
+    @Override
+    public long crear(String numeroTicket, String titulo, String descripcion, String categoria, String prioridad, String creadoPor) {
+<span class="fc" id="L88">        String sql = &quot;INSERT INTO sga_soporte.tickets (numero_ticket, titulo, descripcion, categoria, prioridad, estado, creado_por, fecha_creacion) &quot; +</span>
+                &quot;VALUES (?, ?, ?, ?, ?, 'ABIERTO', ?, NOW())&quot;;
+<span class="fc" id="L90">        KeyHolder keyHolder = new GeneratedKeyHolder();</span>
+<span class="fc" id="L91">        jdbc.update(connection -&gt; {</span>
+<span class="nc" id="L92">            PreparedStatement ps = connection.prepareStatement(sql, new String[]{&quot;id_ticket&quot;});</span>
+<span class="nc" id="L93">            ps.setString(1, numeroTicket);</span>
+<span class="nc" id="L94">            ps.setString(2, titulo);</span>
+<span class="nc" id="L95">            ps.setString(3, descripcion);</span>
+<span class="nc" id="L96">            ps.setString(4, categoria);</span>
+<span class="nc" id="L97">            ps.setString(5, prioridad);</span>
+<span class="nc" id="L98">            ps.setString(6, creadoPor);</span>
+<span class="nc" id="L99">            return ps;</span>
+        }, keyHolder);
+<span class="fc" id="L101">        return Objects.requireNonNull(keyHolder.getKey()).longValue();</span>
+    }
+
+    @Override
+    public void actualizarEstado(long id, String estado, String asignadoA, String solucionAplicada) {
+<span class="pc bpc" id="L106" title="1 of 4 branches missed.">        if (&quot;RESUELTO&quot;.equals(estado) || &quot;CERRADO&quot;.equals(estado)) {</span>
+<span class="fc" id="L107">            String sql = &quot;UPDATE sga_soporte.tickets SET estado = ?, asignado_a = COALESCE(?, asignado_a), solucion_aplicada = ?, fecha_resolucion = NOW() WHERE id_ticket = ?&quot;;</span>
+<span class="fc" id="L108">            jdbc.update(sql, estado, asignadoA, solucionAplicada, id);</span>
+<span class="fc" id="L109">        } else {</span>
+<span class="fc" id="L110">            String sql = &quot;UPDATE sga_soporte.tickets SET estado = ?, asignado_a = COALESCE(?, asignado_a), solucion_aplicada = ? WHERE id_ticket = ?&quot;;</span>
+<span class="fc" id="L111">            jdbc.update(sql, estado, asignadoA, solucionAplicada, id);</span>
+        }
+<span class="fc" id="L113">    }</span>
+
+    @Override
+    public void actualizarPrioridadYAsignado(long id, String prioridad, String asignadoA) {
+<span class="fc bfc" id="L117" title="All 4 branches covered.">        if (prioridad != null &amp;&amp; asignadoA != null) {</span>
+<span class="fc" id="L118">            jdbc.update(&quot;UPDATE sga_soporte.tickets SET prioridad = ?, asignado_a = ? WHERE id_ticket = ?&quot;, prioridad, asignadoA, id);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        } else if (prioridad != null) {</span>
+<span class="fc" id="L120">            jdbc.update(&quot;UPDATE sga_soporte.tickets SET prioridad = ? WHERE id_ticket = ?&quot;, prioridad, id);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        } else if (asignadoA != null) {</span>
+<span class="fc" id="L122">            jdbc.update(&quot;UPDATE sga_soporte.tickets SET asignado_a = ? WHERE id_ticket = ?&quot;, asignadoA, id);</span>
+        }
+<span class="fc" id="L124">    }</span>
+
+    @Override
+    public void registrarHistorial(long idTicket, String campo, String valorAnterior, String valorNuevo, String modificadoPor) {
+<span class="fc" id="L128">        String sql = &quot;INSERT INTO sga_soporte.historial_ticket (id_ticket, campo, valor_anterior, valor_nuevo, modificado_por, fecha_modificacion) VALUES (?, ?, ?, ?, ?, NOW())&quot;;</span>
+<span class="fc" id="L129">        jdbc.update(sql, idTicket, campo, valorAnterior, valorNuevo, modificadoPor);</span>
+<span class="fc" id="L130">    }</span>
+
+    @Override
+    public List&lt;Map&lt;String, Object&gt;&gt; listarHistorial(long idTicket) {
+<span class="fc" id="L134">        String sql = &quot;SELECT id_historial AS \&quot;id\&quot;, id_ticket AS \&quot;idTicket\&quot;, campo, valor_anterior AS \&quot;valorAnterior\&quot;, valor_nuevo AS \&quot;valorNuevo\&quot;, modificado_por AS \&quot;modificadoPor\&quot;, fecha_modificacion AS \&quot;fechaModificacion\&quot; FROM sga_soporte.historial_ticket WHERE id_ticket = ? ORDER BY id_historial DESC&quot;;</span>
+<span class="fc" id="L135">        return jdbc.queryForList(sql, idTicket);</span>
+    }
+
+    @Override
+    public List&lt;Map&lt;String, Object&gt;&gt; listarComentarios(long idTicket) {
+<span class="fc" id="L140">        String sql = &quot;SELECT id_comentario AS \&quot;id\&quot;, id_ticket AS \&quot;idTicket\&quot;, autor, contenido, nota_interna AS \&quot;notaInterna\&quot;, fecha_creacion AS \&quot;fechaCreacion\&quot; FROM sga_soporte.comentarios WHERE id_ticket = ? ORDER BY id_comentario ASC&quot;;</span>
+<span class="fc" id="L141">        return jdbc.queryForList(sql, idTicket);</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; agregarComentario(long idTicket, String autor, String contenido, boolean notaInterna) {
+<span class="fc" id="L146">        String sql = &quot;INSERT INTO sga_soporte.comentarios (id_ticket, autor, contenido, nota_interna, fecha_creacion) VALUES (?, ?, ?, ?, NOW())&quot;;</span>
+<span class="fc" id="L147">        KeyHolder keyHolder = new GeneratedKeyHolder();</span>
+<span class="fc" id="L148">        jdbc.update(connection -&gt; {</span>
+<span class="nc" id="L149">            PreparedStatement ps = connection.prepareStatement(sql, new String[]{&quot;id_comentario&quot;});</span>
+<span class="nc" id="L150">            ps.setLong(1, idTicket);</span>
+<span class="nc" id="L151">            ps.setString(2, autor);</span>
+<span class="nc" id="L152">            ps.setString(3, contenido);</span>
+<span class="nc" id="L153">            ps.setBoolean(4, notaInterna);</span>
+<span class="nc" id="L154">            return ps;</span>
+        }, keyHolder);
+<span class="fc" id="L156">        long idComentario = Objects.requireNonNull(keyHolder.getKey()).longValue();</span>
+<span class="fc" id="L157">        return Map.of(&quot;id&quot;, idComentario, &quot;idTicket&quot;, idTicket, &quot;autor&quot;, autor, &quot;contenido&quot;, contenido, &quot;notaInterna&quot;, notaInterna, &quot;fechaCreacion&quot;, new Date());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

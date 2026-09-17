@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.presentation</a> &gt; <span class="el_source">LogController.java</span></div><h1>LogController.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.presentation;
+
+import ec.uteq.sga.soporte.infrastructure.logging.MemoryLogAppender;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Expone los últimos errores/warnings de ESTE proceso (sga-soporte) para el
+ * panel &quot;Logs de fallos&quot; del Dashboard, evitando tener que revisar logs por
+ * SSH/docker logs. Protegido por JwtAuthFilter (SOPORTE_TECNICO/DIRECTOR) al
+ * vivir bajo /api/soporte/*.
+ *
+ * NOTA: hoy solo cubre sga-soporte. Para que el Dashboard muestre también
+ * los fallos de sga-principal, sga-docente y sga-secretaria, cada uno
+ * necesita un endpoint equivalente (mismo formato de respuesta); el
+ * frontend ya está preparado para agregarlos apenas existan (ver
+ * FUENTES_LOGS en Dashboard.jsx).
+ */
+@RestController
+<span class="fc" id="L24">public class LogController {</span>
+
+    @GetMapping(&quot;/api/soporte/logs&quot;)
+    public List&lt;Map&lt;String, Object&gt;&gt; logsRecientes(@RequestParam(defaultValue = &quot;50&quot;) int limite) {
+<span class="fc" id="L28">        int limiteSeguro = Math.min(Math.max(limite, 1), 200);</span>
+<span class="fc" id="L29">        return MemoryLogAppender.ultimos(limiteSeguro);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
