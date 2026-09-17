@@ -434,6 +434,7 @@ jobs:
       - ci-docente
       - ci-movil-representante
       - test-mobile
+      - e2e-docente
     strategy:
       fail-fast: false
       matrix:
