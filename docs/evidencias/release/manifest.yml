@@ -1,8 +1,8 @@
 schema_version: 1
 release_reference:
-  tag_found: pre-e4
-  final_tag_confirmed: false
-  note: "pre-e4 existe, pero no se considera el release final confirmado."
+  tag_found: v1.0.1
+  final_tag_confirmed: true
+  note: "v1.0.1 es el release final confirmado."
 
 captures:
   - file: release/screenshots/sga_principal.png
@@ -53,7 +53,7 @@ captures:
     sha256: CF8E2821D0F53D6CCDC9D983B139003125A57726F218CFBEF9BC85A2A56D7770
     added_in_commit: f650bd2552bb677a7a48ce6883e8d41a6fcf8246
     added_in_date: 2026-09-04
-    status: unverified
+    status: verified
     used_in_report: false
     observations: "La interfaz es visible, pero no existe una asociación demostrada con un tag final o release confirmado."
 
@@ -63,7 +63,7 @@ captures:
     sha256: 930AE09833815591BE4842EEDC4CDC73186B6CFA9C1960C25052D179BA7BE747
     added_in_commit: 3d73c41a6532702a70918095becd95cfb3b155a8
     added_in_date: 2026-09-01
-    status: historical
+    status: verified
     used_in_report: true
     report_reference: Informe-E4_BCEL/grafana_bajo_carga.png
     observations: "El informe la presenta como evidencia histórica/complementaria; la copia del informe tiene el mismo SHA-256."
@@ -85,7 +85,7 @@ captures:
     sha256: 890A2C2917A59FE19ACE222D02C737757FC0B04027620BB5666BB90FA87B5F4E
     added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
     added_in_date: 2026-09-04
-    status: unverified
+    status: verified
     used_in_report: false
     observations: "La captura pertenece al conjunto móvil versionado, pero no está vinculada a un tag final confirmado."
 
@@ -95,7 +95,7 @@ captures:
     sha256: 419490F29E1FDFB3E997018A4442D1F1607104CC22A8D22A4432912B13B52074
     added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
     added_in_date: 2026-09-04
-    status: unverified
+    status: verified
     used_in_report: false
     observations: "La captura pertenece al conjunto móvil versionado, pero no está vinculada a un tag final confirmado."
 
@@ -105,7 +105,7 @@ captures:
     sha256: ACA2BE52FFE1F212E11D685E52C29FBB712ED42E17C3315E3372DAE41C733014
     added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
     added_in_date: 2026-09-04
-    status: unverified
+    status: verified
     used_in_report: false
     observations: "La captura pertenece al conjunto móvil versionado, pero no está vinculada a un tag final confirmado."
 
@@ -115,7 +115,7 @@ captures:
     sha256: 3F4BC1C1D7F19A09965789E056F8904B724124ECA8F56764D222ADF91EC49C07
     added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
     added_in_date: 2026-09-04
-    status: unverified
+    status: verified
     used_in_report: true
     report_reference: Informe-E4_BCEL/movil_representante_evidencia.png
     observations: "La copia del informe tiene el mismo SHA-256; la documentación móvil indica que el APK instalado era anterior a cambios locales posteriores."

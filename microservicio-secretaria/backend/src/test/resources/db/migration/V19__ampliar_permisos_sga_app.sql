@@ -27,7 +27,11 @@ GRANT USAGE ON SCHEMA sga_soporte     TO sga_app;
 -- 2. Permisos operativos sobre las tablas existentes en cada esquema
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_docente     TO sga_app;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_secretaria  TO sga_app;
+GRANT ALL ON ALL TABLES IN SCHEMA sga_secretaria                             TO sga_app;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_soporte     TO sga_app;
+
+-- 2b. Permiso explicito de insercion en bitacora de auditoria
+GRANT INSERT ON sga_principal.auditoria TO sga_app;
 
 -- 3. Permisos sobre secuencias existentes en cada esquema
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA sga_docente     TO sga_app;

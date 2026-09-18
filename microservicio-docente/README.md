@@ -68,7 +68,7 @@ SHA256(hash_anterior + JSON_CANONICO(evento, timestamp, payload, Lamport y vecto
 ### Verificación y experimentos
 
 ```powershell
-python -m pytest
+$env:GRPC_INTERNAL_TOKEN="<valor>"
 python -m pytest --cov=docentes --cov-fail-under=70 --cov-report=term-missing --cov-report=html:..\docs\cobertura\docente
 python experimentos/verificador_cadena.py
 python experimentos/generador_sintetico.py --salida dataset-docente.json
