@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Entities.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.local.entity</a> &gt; <span class="el_source">Entities.kt</span></div><h1>Entities.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.local.entity
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+<span class="nc" id="L7">@Entity(tableName = &quot;representados_cache&quot;)</span>
+<span class="nc" id="L8">data class RepresentadoCacheEntity(@PrimaryKey val idEstudiante: Long, val json: String, val lastUpdated: Long = System.currentTimeMillis())</span>
+
+<span class="nc" id="L10">@Entity(tableName = &quot;calificaciones_representado_cache&quot;)</span>
+<span class="nc" id="L11">data class CalificacionesRepresentadoCacheEntity(@PrimaryKey val idEstudiante: Long, val json: String, val lastUpdated: Long = System.currentTimeMillis())</span>
+
+<span class="nc" id="L13">@Entity(tableName = &quot;asistencia_hijo_cache&quot;)</span>
+<span class="nc" id="L14">data class AsistenciaHijoCacheEntity(@PrimaryKey val idEstudiante: Long, val json: String, val lastUpdated: Long = System.currentTimeMillis())</span>
+
+<span class="nc" id="L16">@Entity(tableName = &quot;comunicados_representante_cache&quot;)</span>
+<span class="nc" id="L17">data class ComunicadosRepresentanteCacheEntity(@PrimaryKey val id: Long = 1, val json: String, val lastUpdated: Long = System.currentTimeMillis())</span>
+
+<span class="nc" id="L19">@Entity(</span>
+    tableName = &quot;asignaciones&quot;,
+    indices = [
+        Index(value = [&quot;asignaturaId&quot;]),
+        Index(value = [&quot;gradoId&quot;]),
+        Index(value = [&quot;paraleloId&quot;]),
+        Index(value = [&quot;anoLectivoId&quot;])
+    ]
+)
+<span class="nc" id="L28">data class AsignacionEntity(</span>
+<span class="nc" id="L29">    @PrimaryKey val idAsignacion: Long,</span>
+<span class="nc" id="L30">    val asignaturaId: Long,</span>
+<span class="nc" id="L31">    val asignaturaNombre: String,</span>
+<span class="nc" id="L32">    val gradoId: Long,</span>
+<span class="nc" id="L33">    val gradoNombre: String,</span>
+<span class="nc" id="L34">    val paraleloId: Long,</span>
+<span class="nc" id="L35">    val paraleloLetra: String,</span>
+<span class="nc" id="L36">    val anoLectivoId: Long,</span>
+<span class="nc" id="L37">    val anoLectivoNombre: String,</span>
+<span class="nc" id="L38">    val cantidadEstudiantes: Int = 0,</span>
+<span class="nc" id="L39">    val porcentajeAsistencia: Double? = null,</span>
+<span class="nc" id="L40">    val promedioCalificaciones: Double? = null,</span>
+<span class="nc" id="L41">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L42">)</span>
+
+<span class="nc" id="L44">@Entity(</span>
+    tableName = &quot;estudiantes&quot;,
+    primaryKeys = [&quot;idMatricula&quot;, &quot;idAsignacion&quot;],
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;estudianteId&quot;]),
+        Index(value = [&quot;cedula&quot;])
+    ]
+)
+<span class="nc" id="L53">data class EstudianteEntity(</span>
+<span class="nc" id="L54">    val idMatricula: Long,</span>
+<span class="nc" id="L55">    val idAsignacion: Long,</span>
+<span class="nc" id="L56">    val estudianteId: Long,</span>
+<span class="nc" id="L57">    val nombres: String,</span>
+<span class="nc" id="L58">    val apellidos: String,</span>
+<span class="nc" id="L59">    val cedula: String = &quot;&quot;,</span>
+<span class="nc" id="L60">    val estadoMatricula: String = &quot;ACTIVA&quot;,</span>
+<span class="nc" id="L61">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L62">)</span>
+
+<span class="nc" id="L64">@Entity(</span>
+    tableName = &quot;periodos&quot;,
+    indices = [
+        Index(value = [&quot;idAnoLectivo&quot;]),
+        Index(value = [&quot;activo&quot;])
+    ]
+)
+<span class="nc" id="L71">data class PeriodoEntity(</span>
+<span class="nc" id="L72">    @PrimaryKey val idPeriodo: Long,</span>
+<span class="nc" id="L73">    val idAnoLectivo: Long,</span>
+<span class="nc" id="L74">    val tipo: String,</span>
+<span class="nc" id="L75">    val nombre: String,</span>
+<span class="nc" id="L76">    val fechaInicio: String,</span>
+<span class="nc" id="L77">    val fechaFin: String,</span>
+<span class="nc" id="L78">    val activo: Boolean = true</span>
+<span class="nc" id="L79">)</span>
+
+<span class="nc" id="L81">@Entity(</span>
+    tableName = &quot;actividades&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;idPeriodo&quot;]),
+        Index(value = [&quot;idAsignacion&quot;, &quot;idPeriodo&quot;]),
+        Index(value = [&quot;isPendingSync&quot;])
+    ]
+)
+<span class="nc" id="L90">data class ActividadEntity(</span>
+<span class="nc" id="L91">    @PrimaryKey val idActividad: Long, // Puede ser id temporal negativo para creadas offline</span>
+<span class="nc" id="L92">    val idAsignacion: Long,</span>
+<span class="nc" id="L93">    val idPeriodo: Long,</span>
+<span class="nc" id="L94">    val tipo: String,</span>
+<span class="nc" id="L95">    val nombre: String,</span>
+<span class="nc" id="L96">    val descripcion: String? = null,</span>
+<span class="nc" id="L97">    val fechaEntrega: String,</span>
+<span class="nc" id="L98">    val ponderacion: Double = 0.0,</span>
+<span class="nc" id="L99">    val notaMaxima: Double = 10.0,</span>
+<span class="nc" id="L100">    val esSumativa: Boolean = false,</span>
+<span class="nc" id="L101">    val isPendingSync: Boolean = false,</span>
+<span class="nc" id="L102">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L103">)</span>
+
+<span class="nc" id="L105">@Entity(</span>
+    tableName = &quot;calificaciones&quot;,
+    indices = [
+        Index(value = [&quot;idActividad&quot;]),
+        Index(value = [&quot;idMatricula&quot;]),
+        Index(value = [&quot;idActividad&quot;, &quot;idMatricula&quot;]),
+        Index(value = [&quot;isPendingSync&quot;])
+    ]
+)
+<span class="nc" id="L114">data class CalificacionEntity(</span>
+<span class="nc" id="L115">    @PrimaryKey val idCalificacion: Long, // Id temporal negativo si es offline</span>
+<span class="nc" id="L116">    val idActividad: Long,</span>
+<span class="nc" id="L117">    val idMatricula: Long,</span>
+<span class="nc" id="L118">    val nota: Double,</span>
+<span class="nc" id="L119">    val notaCualitativa: String? = null,</span>
+<span class="nc" id="L120">    val observacion: String? = null,</span>
+<span class="nc" id="L121">    val registradoPor: Long? = null,</span>
+<span class="nc" id="L122">    val fechaRegistro: String? = null,</span>
+<span class="nc" id="L123">    val isPendingSync: Boolean = false,</span>
+<span class="nc" id="L124">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L125">)</span>
+
+<span class="nc" id="L127">@Entity(</span>
+    tableName = &quot;asistencias&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;idMatricula&quot;]),
+        Index(value = [&quot;idAsignacion&quot;, &quot;fecha&quot;]),
+        Index(value = [&quot;idMatricula&quot;, &quot;idAsignacion&quot;, &quot;fecha&quot;]),
+        Index(value = [&quot;isPendingSync&quot;])
+    ]
+)
+<span class="nc" id="L137">data class AsistenciaEntity(</span>
+<span class="nc" id="L138">    @PrimaryKey val idAsistencia: Long, // Id temporal negativo si es offline</span>
+<span class="nc" id="L139">    val idMatricula: Long,</span>
+<span class="nc" id="L140">    val idAsignacion: Long,</span>
+<span class="nc" id="L141">    val idPeriodo: Long,</span>
+<span class="nc" id="L142">    val fecha: String,</span>
+<span class="nc" id="L143">    val estado: String, // PRESENTE, AUSENTE, JUSTIFICADO, ATRASO</span>
+<span class="nc" id="L144">    val justificacion: String? = null,</span>
+<span class="nc" id="L145">    val registradoPor: Long? = null,</span>
+<span class="nc" id="L146">    val isPendingSync: Boolean = false,</span>
+<span class="nc" id="L147">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L148">)</span>
+
+<span class="nc" id="L150">@Entity(</span>
+    tableName = &quot;resumenes_asistencia&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;idMatricula&quot;]),
+        Index(value = [&quot;idAsignacion&quot;, &quot;idPeriodo&quot;])
+    ]
+)
+<span class="nc" id="L158">data class ResumenAsistenciaEntity(</span>
+<span class="nc" id="L159">    @PrimaryKey val idResumen: Long,</span>
+<span class="nc" id="L160">    val idMatricula: Long,</span>
+<span class="nc" id="L161">    val idAsignacion: Long,</span>
+<span class="nc" id="L162">    val idPeriodo: Long,</span>
+<span class="nc" id="L163">    val totalPresentes: Int = 0,</span>
+<span class="nc" id="L164">    val totalAusentes: Int = 0,</span>
+<span class="nc" id="L165">    val totalJustificados: Int = 0,</span>
+<span class="nc" id="L166">    val totalAtrasos: Int = 0,</span>
+<span class="nc" id="L167">    val calculadoEn: String? = null</span>
+<span class="nc" id="L168">)</span>
+
+<span class="nc" id="L170">@Entity(</span>
+    tableName = &quot;promedios_trimestrales&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;idMatricula&quot;]),
+        Index(value = [&quot;idAsignacion&quot;, &quot;idPeriodo&quot;])
+    ]
+)
+<span class="nc" id="L178">data class PromedioTrimestralEntity(</span>
+<span class="nc" id="L179">    @PrimaryKey val idPromedio: Long,</span>
+<span class="nc" id="L180">    val idMatricula: Long,</span>
+<span class="nc" id="L181">    val idAsignacion: Long,</span>
+<span class="nc" id="L182">    val idPeriodo: Long,</span>
+<span class="nc" id="L183">    val promedioFormativo: Double = 0.0,</span>
+<span class="nc" id="L184">    val notaSumativa: Double = 0.0,</span>
+<span class="nc" id="L185">    val promedioTrimestral: Double = 0.0,</span>
+<span class="nc" id="L186">    val notaCualitativa: String = &quot;D&quot;,</span>
+<span class="nc" id="L187">    val calculadoEn: String? = null</span>
+<span class="nc" id="L188">)</span>
+
+<span class="nc" id="L190">@Entity(</span>
+    tableName = &quot;promedios_anuales&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;idMatricula&quot;]),
+        Index(value = [&quot;idAsignacion&quot;, &quot;idAnoLectivo&quot;])
+    ]
+)
+<span class="nc" id="L198">data class PromedioAnualEntity(</span>
+<span class="nc" id="L199">    @PrimaryKey val idPromedioAnual: Long,</span>
+<span class="nc" id="L200">    val idMatricula: Long,</span>
+<span class="nc" id="L201">    val idAsignacion: Long,</span>
+<span class="nc" id="L202">    val idAnoLectivo: Long,</span>
+<span class="nc" id="L203">    val promedioAnual: Double = 0.0,</span>
+<span class="nc" id="L204">    val notaCualitativa: String = &quot;D&quot;,</span>
+<span class="nc" id="L205">    val registradoPor: Long? = null,</span>
+<span class="nc" id="L206">    val calculadoEn: String? = null</span>
+<span class="nc" id="L207">)</span>
+
+<span class="nc" id="L209">@Entity(</span>
+    tableName = &quot;seguimiento_academico&quot;,
+    indices = [
+        Index(value = [&quot;idMatricula&quot;]),
+        Index(value = [&quot;idPeriodo&quot;]),
+        Index(value = [&quot;fechaEvento&quot;]),
+        Index(value = [&quot;isPendingSync&quot;])
+    ]
+)
+<span class="nc" id="L218">data class SeguimientoEntity(</span>
+<span class="nc" id="L219">    @PrimaryKey val idSeguimiento: Long,</span>
+<span class="nc" id="L220">    val idMatricula: Long,</span>
+<span class="nc" id="L221">    val idPeriodo: Long,</span>
+<span class="nc" id="L222">    val categoria: String,</span>
+<span class="nc" id="L223">    val descripcion: String,</span>
+<span class="nc" id="L224">    val accionesTomadas: String? = null,</span>
+<span class="nc" id="L225">    val requiereFollowup: Boolean = false,</span>
+<span class="nc" id="L226">    val fechaEvento: String,</span>
+<span class="nc" id="L227">    val registradoPor: Long? = null,</span>
+<span class="nc" id="L228">    val fechaRegistro: String? = null,</span>
+<span class="nc" id="L229">    val isPendingSync: Boolean = false,</span>
+<span class="nc" id="L230">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L231">)</span>
+
+<span class="nc" id="L233">@Entity(</span>
+    tableName = &quot;anuncios&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;fijado&quot;]),
+        Index(value = [&quot;fecha&quot;]),
+        Index(value = [&quot;isPendingSync&quot;])
+    ]
+)
+<span class="nc" id="L242">data class AnuncioEntity(</span>
+<span class="nc" id="L243">    @PrimaryKey val idAnuncio: Long,</span>
+<span class="nc" id="L244">    val idAsignacion: Long,</span>
+<span class="nc" id="L245">    val titulo: String?,</span>
+<span class="nc" id="L246">    val contenido: String?,</span>
+<span class="nc" id="L247">    val autorId: Long? = null,</span>
+<span class="nc" id="L248">    val fecha: String? = null,</span>
+<span class="nc" id="L249">    val fijado: Boolean = false,</span>
+<span class="nc" id="L250">    val isPendingSync: Boolean = false,</span>
+<span class="nc" id="L251">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L252">)</span>
+
+<span class="nc" id="L254">@Entity(</span>
+    tableName = &quot;materiales&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;fecha&quot;]),
+        Index(value = [&quot;isPendingSync&quot;])
+    ]
+)
+<span class="nc" id="L262">data class MaterialEntity(</span>
+<span class="nc" id="L263">    @PrimaryKey val idMaterial: Long,</span>
+<span class="nc" id="L264">    val idAsignacion: Long,</span>
+<span class="nc" id="L265">    val tipo: String? = null,</span>
+<span class="nc" id="L266">    val titulo: String?,</span>
+<span class="nc" id="L267">    val descripcion: String? = null,</span>
+<span class="nc" id="L268">    val url: String,</span>
+<span class="nc" id="L269">    val tamanoBytes: Long? = null,</span>
+<span class="nc" id="L270">    val fecha: String? = null,</span>
+<span class="nc" id="L271">    val isPendingSync: Boolean = false,</span>
+<span class="nc" id="L272">    val lastUpdated: Long = System.currentTimeMillis()</span>
+<span class="nc" id="L273">)</span>
+
+<span class="nc" id="L275">@Entity(</span>
+    tableName = &quot;horarios&quot;,
+    indices = [
+        Index(value = [&quot;idAsignacion&quot;]),
+        Index(value = [&quot;diaSemana&quot;])
+    ]
+)
+<span class="nc" id="L282">data class HorarioEntity(</span>
+<span class="nc" id="L283">    @PrimaryKey val idHorario: Long,</span>
+<span class="nc" id="L284">    val idAsignacion: Long,</span>
+<span class="nc" id="L285">    val diaSemana: Int,</span>
+<span class="nc" id="L286">    val idPeriodo: Int,</span>
+<span class="nc" id="L287">    val horaInicio: String,</span>
+<span class="nc" id="L288">    val horaFin: String,</span>
+<span class="nc" id="L289">    val aula: String? = null,</span>
+<span class="nc" id="L290">    val asignatura: String,</span>
+<span class="nc" id="L291">    val docente: String,</span>
+<span class="nc" id="L292">    val grado: String,</span>
+<span class="nc" id="L293">    val paralelo: String</span>
+<span class="nc" id="L294">)</span>
+
+// ─── COLA DE SINCRONIZACIÓN OFFLINE ────────────────────────────────────
+<span class="nc" id="L297">@Entity(</span>
+    tableName = &quot;pending_sync&quot;,
+    indices = [
+        Index(value = [&quot;entityType&quot;]),
+        Index(value = [&quot;actionType&quot;]),
+        Index(value = [&quot;createdAt&quot;])
+    ]
+)
+<span class="nc" id="L305">data class PendingSyncEntity(</span>
+<span class="nc" id="L306">    @PrimaryKey(autoGenerate = true) val id: Long = 0,</span>
+<span class="nc" id="L307">    val entityType: String, // ACTIVIDAD, CALIFICACION, ASISTENCIA, SEGUIMIENTO, ANUNCIO, MATERIAL</span>
+<span class="nc" id="L308">    val actionType: String, // CREATE, UPDATE, DELETE</span>
+<span class="nc" id="L309">    val localId: Long,</span>
+<span class="nc" id="L310">    val remoteId: Long? = null,</span>
+<span class="nc" id="L311">    val payloadJson: String,</span>
+<span class="nc" id="L312">    val createdAt: Long = System.currentTimeMillis(),</span>
+<span class="nc" id="L313">    val attempts: Int = 0,</span>
+<span class="nc" id="L314">    val lastError: String? = null</span>
+<span class="nc" id="L315">)</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResumenAsistenciaScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.asistencia</a> &gt; <span class="el_source">ResumenAsistenciaScreen.kt</span></div><h1>ResumenAsistenciaScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.asistencia
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+@Composable
+fun ResumenAsistenciaScreen(
+    idAsignacion: Long,
+    viewModel: AsistenciaViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L24">) {</span>
+<span class="nc" id="L25">    val state by viewModel.uiState.collectAsState()</span>
+
+<span class="nc" id="L27">    LaunchedEffect(idAsignacion) {</span>
+<span class="nc" id="L28">        viewModel.loadResumenAsistencias(idAsignacion)</span>
+<span class="nc" id="L29">    }</span>
+
+<span class="nc" id="L31">    Scaffold(</span>
+<span class="nc" id="L32">        topBar = {</span>
+<span class="nc" id="L33">            SgaTopAppBar(</span>
+<span class="nc" id="L34">                title = &quot;Resumen de Asistencia&quot;,</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">                subtitle = state.selectedAsignacion?.let { &quot;${it.asignaturaNombre} • ${it.gradoNombre} \&quot;${it.paraleloLetra}\&quot;&quot; },</span>
+<span class="nc" id="L36">                showBackButton = true,</span>
+<span class="nc" id="L37">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L40">    ) { padding -&gt;</span>
+<span class="nc" id="L41">        Column(</span>
+<span class="nc" id="L42">            modifier = Modifier</span>
+<span class="nc" id="L43">                .fillMaxSize()</span>
+<span class="nc" id="L44">                .padding(padding)</span>
+<span class="nc" id="L45">                .background(BackgroundSlate)</span>
+        ) {
+<span class="nc" id="L47">            OfflineBanner(isOffline = state.isOffline)</span>
+
+<span class="nc bnc" id="L49" title="All 2 branches missed.">            if (state.resumenes.isEmpty()) {</span>
+<span class="nc" id="L50">                EmptyStateView(</span>
+<span class="nc" id="L51">                    title = &quot;No hay registros estadísticos&quot;,</span>
+<span class="nc" id="L52">                    subtitle = &quot;Toma asistencia en varios días para ver los resúmenes acumulados.&quot;</span>
+                )
+<span class="nc" id="L54">            } else {</span>
+<span class="nc" id="L55">                LazyColumn(</span>
+<span class="nc" id="L56">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L57">                    contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L58">                    verticalArrangement = Arrangement.spacedBy(10.dp)</span>
+<span class="nc" id="L59">                ) {</span>
+<span class="nc" id="L60">                    items(state.resumenes) { res -&gt;</span>
+<span class="nc" id="L61">                        Card(</span>
+<span class="nc" id="L62">                            modifier = Modifier</span>
+<span class="nc" id="L63">                                .fillMaxWidth()</span>
+<span class="nc" id="L64">                                .shadow(1.dp, RoundedCornerShape(14.dp)),</span>
+<span class="nc" id="L65">                            shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L66">                            colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L67">                            border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L68">                        ) {</span>
+<span class="nc" id="L69">                            Column(modifier = Modifier.padding(14.dp)) {</span>
+<span class="nc" id="L70">                                Row(</span>
+<span class="nc" id="L71">                                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L72">                                    horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L73">                                    verticalAlignment = Alignment.CenterVertically</span>
+                                ) {
+<span class="nc" id="L75">                                    Text(</span>
+<span class="nc" id="L76">                                        text = &quot;Matrícula #${res.idMatricula}&quot;,</span>
+<span class="nc" id="L77">                                        style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L78">                                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L79">                                        color = TextPrimary</span>
+                                    )
+<span class="nc" id="L81">                                    Surface(</span>
+<span class="nc" id="L82">                                        shape = RoundedCornerShape(8.dp),</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                                        color = if (res.porcentajeAsistencia &gt;= 75.0) ModuloAsistenciaBg else DangerRed.copy(alpha = 0.12f)</span>
+<span class="nc" id="L84">                                    ) {</span>
+<span class="nc" id="L85">                                        Text(</span>
+<span class="nc" id="L86">                                            text = &quot;${String.format(&quot;%.1f&quot;, res.porcentajeAsistencia)}%&quot;,</span>
+<span class="nc" id="L87">                                            fontWeight = FontWeight.Bold,</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                                            color = if (res.porcentajeAsistencia &gt;= 75.0) AccentGreen else DangerRed,</span>
+<span class="nc" id="L89">                                            fontSize = 14.sp,</span>
+<span class="nc" id="L90">                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)</span>
+                                        )
+                                    }
+<span class="nc" id="L93">                                }</span>
+
+<span class="nc" id="L95">                                Spacer(modifier = Modifier.height(10.dp))</span>
+<span class="nc" id="L96">                                HorizontalDivider(color = SlateBorder.copy(alpha = 0.6f))</span>
+<span class="nc" id="L97">                                Spacer(modifier = Modifier.height(8.dp))</span>
+
+<span class="nc" id="L99">                                Row(</span>
+<span class="nc" id="L100">                                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L101">                                    horizontalArrangement = Arrangement.SpaceBetween</span>
+                                ) {
+<span class="nc" id="L103">                                    Text(&quot;Presentes: ${res.totalPresentes}&quot;, color = ChipPresente, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)</span>
+<span class="nc" id="L104">                                    Text(&quot;Ausentes: ${res.totalAusentes}&quot;, color = ChipAusente, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)</span>
+<span class="nc" id="L105">                                    Text(&quot;Justificados: ${res.totalJustificados}&quot;, color = ChipJustificado, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)</span>
+<span class="nc" id="L106">                                    Text(&quot;Atrasos: ${res.totalAtrasos}&quot;, color = ChipAtraso, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)</span>
+<span class="nc" id="L107">                                }</span>
+<span class="nc" id="L108">                            }</span>
+                        }
+<span class="nc" id="L110">                    }</span>
+<span class="nc" id="L111">                }</span>
+            }
+<span class="nc" id="L113">        }</span>
+    }
+<span class="nc" id="L115">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

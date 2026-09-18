@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnunciosScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.anuncios</a> &gt; <span class="el_source">AnunciosScreen.kt</span></div><h1>AnunciosScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.anuncios
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.domain.model.AnuncioCurso
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+@Composable
+fun AnunciosScreen(
+    idAsignacion: Long,
+    viewModel: AnunciosViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L29">) {</span>
+<span class="nc" id="L30">    val state by viewModel.uiState.collectAsState()</span>
+<span class="nc" id="L31">    var showCreateDialog by remember { mutableStateOf(false) }</span>
+
+<span class="nc" id="L33">    LaunchedEffect(idAsignacion) {</span>
+<span class="nc" id="L34">        viewModel.init(idAsignacion)</span>
+<span class="nc" id="L35">    }</span>
+
+<span class="nc" id="L37">    Scaffold(</span>
+<span class="nc" id="L38">        topBar = {</span>
+<span class="nc" id="L39">            SgaTopAppBar(</span>
+<span class="nc" id="L40">                title = &quot;Anuncios y Comunicados&quot;,</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">                subtitle = state.selectedAsignacion?.let { &quot;${it.asignaturaNombre} • ${it.gradoNombre} \&quot;${it.paraleloLetra}\&quot;&quot; },</span>
+<span class="nc" id="L42">                showBackButton = true,</span>
+<span class="nc" id="L43">                onBackClick = onBackClick</span>
+            )
+        },
+<span class="nc" id="L46">        floatingActionButton = {</span>
+<span class="nc" id="L47">            FloatingActionButton(</span>
+<span class="nc" id="L48">                onClick = { showCreateDialog = true },</span>
+<span class="nc" id="L49">                containerColor = PrimaryNavy,</span>
+<span class="nc" id="L50">                contentColor = Color.White</span>
+<span class="nc" id="L51">            ) {</span>
+<span class="nc" id="L52">                Icon(Icons.Default.Add, contentDescription = &quot;Nuevo Anuncio&quot;)</span>
+            }
+        }
+<span class="nc" id="L55">    ) { padding -&gt;</span>
+<span class="nc" id="L56">        Column(</span>
+<span class="nc" id="L57">            modifier = Modifier</span>
+<span class="nc" id="L58">                .fillMaxSize()</span>
+<span class="nc" id="L59">                .padding(padding)</span>
+<span class="nc" id="L60">                .background(BackgroundSlate)</span>
+        ) {
+<span class="nc" id="L62">            OfflineBanner(isOffline = state.isOffline)</span>
+
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+<span class="nc bnc" id="L65" title="All 4 branches missed.">            if (state.asignaciones.isNotEmpty()) {</span>
+<span class="nc" id="L66">                Surface(</span>
+<span class="nc" id="L67">                    color = CardSurface,</span>
+<span class="nc" id="L68">                    shadowElevation = 1.dp</span>
+<span class="nc" id="L69">                ) {</span>
+<span class="nc" id="L70">                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {</span>
+<span class="nc" id="L71">                        Text(</span>
+<span class="nc" id="L72">                            text = &quot;Curso seleccionado:&quot;,</span>
+<span class="nc" id="L73">                            fontSize = 11.sp,</span>
+<span class="nc" id="L74">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L75">                            color = TextSecondary,</span>
+<span class="nc" id="L76">                            modifier = Modifier.padding(horizontal = 16.dp)</span>
+                        )
+<span class="nc" id="L78">                        LazyRow(</span>
+<span class="nc" id="L79">                            modifier = Modifier</span>
+<span class="nc" id="L80">                                .fillMaxWidth()</span>
+<span class="nc" id="L81">                                .padding(horizontal = 16.dp, vertical = 6.dp),</span>
+<span class="nc" id="L82">                            horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                        ) {
+<span class="nc" id="L84">                            items(state.asignaciones) { asig -&gt;</span>
+<span class="nc" id="L85">                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion</span>
+<span class="nc" id="L86">                                FilterChip(</span>
+<span class="nc" id="L87">                                    selected = isSelected,</span>
+<span class="nc" id="L88">                                    onClick = { viewModel.selectAsignacion(asig) },</span>
+<span class="nc" id="L89">                                    label = {</span>
+<span class="nc" id="L90">                                        Text(</span>
+<span class="nc" id="L91">                                            text = &quot;${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})&quot;,</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,</span>
+<span class="nc" id="L93">                                            fontSize = 12.sp</span>
+                                        )
+                                    },
+<span class="nc" id="L96">                                    colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L97">                                        selectedContainerColor = ModuloAnunciosBg,</span>
+<span class="nc" id="L98">                                        selectedLabelColor = ModuloAnunciosText</span>
+                                    )
+                                )
+<span class="nc" id="L101">                            }</span>
+<span class="nc" id="L102">                        }</span>
+<span class="nc" id="L103">                    }</span>
+                }
+            }
+
+<span class="nc bnc" id="L107" title="All 4 branches missed.">            if (state.isLoading &amp;&amp; state.anuncios.isEmpty()) {</span>
+<span class="nc" id="L108">                LoadingView(&quot;Cargando anuncios...&quot;)</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            } else if (state.anuncios.isEmpty()) {</span>
+<span class="nc" id="L110">                EmptyStateView(</span>
+<span class="nc" id="L111">                    icon = Icons.Default.Campaign,</span>
+<span class="nc" id="L112">                    title = &quot;No hay anuncios publicados&quot;,</span>
+<span class="nc" id="L113">                    subtitle = &quot;Comparte comunicados oficiales y avisos con este paralelo.&quot;,</span>
+<span class="nc" id="L114">                    actionButtonText = &quot;Publicar Primer Anuncio&quot;,</span>
+<span class="nc" id="L115">                    onActionClick = { showCreateDialog = true }</span>
+                )
+<span class="nc" id="L117">            } else {</span>
+<span class="nc" id="L118">                LazyColumn(</span>
+<span class="nc" id="L119">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L120">                    contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L121">                    verticalArrangement = Arrangement.spacedBy(12.dp)</span>
+                ) {
+<span class="nc" id="L123">                    items(state.anuncios) { anuncio -&gt;</span>
+<span class="nc" id="L124">                        AnuncioCard(</span>
+<span class="nc" id="L125">                            anuncio = anuncio,</span>
+<span class="nc" id="L126">                            onDelete = { viewModel.eliminarAnuncio(anuncio.idAnuncio) }</span>
+                        )
+<span class="nc" id="L128">                    }</span>
+<span class="nc" id="L129">                }</span>
+            }
+<span class="nc" id="L131">        }</span>
+    }
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    if (showCreateDialog) {</span>
+<span class="nc" id="L135">        DialogoNuevoAnuncio(</span>
+<span class="nc" id="L136">            onDismiss = { showCreateDialog = false },</span>
+            onPublicar = { titulo, contenido, fijado -&gt;
+<span class="nc" id="L138">                viewModel.publicarAnuncio(titulo, contenido, fijado)</span>
+<span class="nc" id="L139">                showCreateDialog = false</span>
+<span class="nc" id="L140">            }</span>
+        )
+    }
+<span class="nc" id="L143">}</span>
+
+@Composable
+fun AnuncioCard(
+    anuncio: AnuncioCurso,
+    onDelete: () -&gt; Unit
+<span class="nc" id="L149">) {</span>
+<span class="nc" id="L150">    Card(</span>
+<span class="nc" id="L151">        modifier = Modifier</span>
+<span class="nc" id="L152">            .fillMaxWidth()</span>
+<span class="nc" id="L153">            .shadow(2.dp, RoundedCornerShape(14.dp)),</span>
+<span class="nc" id="L154">        shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L155">        colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L156">        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L157">    ) {</span>
+<span class="nc" id="L158">        Column(modifier = Modifier.padding(16.dp)) {</span>
+<span class="nc" id="L159">            Row(</span>
+<span class="nc" id="L160">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L161">                horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L162">                verticalAlignment = Alignment.CenterVertically</span>
+            ) {
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                if (anuncio.fijado) {</span>
+<span class="nc" id="L165">                    Surface(</span>
+<span class="nc" id="L166">                        shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L167">                        color = ModuloAnunciosBg</span>
+<span class="nc" id="L168">                    ) {</span>
+<span class="nc" id="L169">                        Row(</span>
+<span class="nc" id="L170">                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),</span>
+<span class="nc" id="L171">                            verticalAlignment = Alignment.CenterVertically</span>
+                        ) {
+<span class="nc" id="L173">                            Icon(Icons.Default.PushPin, contentDescription = null, tint = ModuloAnunciosText, modifier = Modifier.size(14.dp))</span>
+<span class="nc" id="L174">                            Spacer(modifier = Modifier.width(4.dp))</span>
+<span class="nc" id="L175">                            Text(&quot;Fijado&quot;, color = ModuloAnunciosText, fontWeight = FontWeight.Bold, fontSize = 11.sp)</span>
+<span class="nc" id="L176">                        }</span>
+                    }
+<span class="nc" id="L178">                } else {</span>
+<span class="nc" id="L179">                    Surface(</span>
+<span class="nc" id="L180">                        shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L181">                        color = BackgroundSlate</span>
+<span class="nc" id="L182">                    ) {</span>
+<span class="nc" id="L183">                        Text(</span>
+<span class="nc" id="L184">                            text = &quot;Aviso General&quot;,</span>
+<span class="nc" id="L185">                            fontSize = 11.sp,</span>
+<span class="nc" id="L186">                            fontWeight = FontWeight.Medium,</span>
+<span class="nc" id="L187">                            color = TextMuted,</span>
+<span class="nc" id="L188">                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)</span>
+                        )
+                    }
+                }
+
+<span class="nc" id="L193">                IconButton(onClick = onDelete) {</span>
+<span class="nc" id="L194">                    Icon(Icons.Default.DeleteOutline, contentDescription = &quot;Eliminar&quot;, tint = DangerRed)</span>
+                }
+<span class="nc" id="L196">            }</span>
+
+<span class="nc" id="L198">            Spacer(modifier = Modifier.height(8.dp))</span>
+
+<span class="nc" id="L200">            Text(</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                text = anuncio.titulo ?: &quot;Aviso del Curso&quot;,</span>
+<span class="nc" id="L202">                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L203">                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L204">                color = TextPrimary</span>
+            )
+
+<span class="nc" id="L207">            Spacer(modifier = Modifier.height(6.dp))</span>
+
+<span class="nc" id="L209">            Text(</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                text = anuncio.contenido ?: &quot;&quot;,</span>
+<span class="nc" id="L211">                style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L212">                color = TextSecondary,</span>
+<span class="nc" id="L213">                lineHeight = 20.sp</span>
+            )
+
+<span class="nc bnc" id="L216" title="All 6 branches missed.">            if (!anuncio.fecha.isNullOrBlank()) {</span>
+<span class="nc" id="L217">                Spacer(modifier = Modifier.height(10.dp))</span>
+<span class="nc" id="L218">                HorizontalDivider(color = SlateBorder.copy(alpha = 0.6f))</span>
+<span class="nc" id="L219">                Spacer(modifier = Modifier.height(8.dp))</span>
+<span class="nc" id="L220">                Text(</span>
+<span class="nc" id="L221">                    text = &quot;Publicado: ${anuncio.fecha}&quot;,</span>
+<span class="nc" id="L222">                    fontSize = 11.sp,</span>
+<span class="nc" id="L223">                    color = TextMuted</span>
+                )
+            }
+<span class="nc" id="L226">        }</span>
+    }
+}
+
+@Composable
+fun DialogoNuevoAnuncio(
+    onDismiss: () -&gt; Unit,
+    onPublicar: (String, String, Boolean) -&gt; Unit
+<span class="nc" id="L234">) {</span>
+<span class="nc" id="L235">    var titulo by remember { mutableStateOf(&quot;&quot;) }</span>
+<span class="nc" id="L236">    var contenido by remember { mutableStateOf(&quot;&quot;) }</span>
+<span class="nc" id="L237">    var fijado by remember { mutableStateOf(false) }</span>
+
+<span class="nc" id="L239">    AlertDialog(</span>
+<span class="nc" id="L240">        onDismissRequest = onDismiss,</span>
+<span class="nc" id="L241">        title = { Text(&quot;Publicar Comunicado&quot;, fontWeight = FontWeight.Bold, color = TextPrimary) },</span>
+<span class="nc" id="L242">        text = {</span>
+<span class="nc" id="L243">            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L244">                OutlinedTextField(</span>
+<span class="nc" id="L245">                    value = titulo,</span>
+<span class="nc" id="L246">                    onValueChange = { titulo = it },</span>
+<span class="nc" id="L247">                    label = { Text(&quot;Título del Comunicado&quot;) },</span>
+<span class="nc" id="L248">                    singleLine = true,</span>
+<span class="nc" id="L249">                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L250">                    shape = RoundedCornerShape(10.dp),</span>
+<span class="nc" id="L251">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L252">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L253">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L254">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+
+<span class="nc" id="L258">                OutlinedTextField(</span>
+<span class="nc" id="L259">                    value = contenido,</span>
+<span class="nc" id="L260">                    onValueChange = { contenido = it },</span>
+<span class="nc" id="L261">                    label = { Text(&quot;Contenido / Mensaje&quot;) },</span>
+<span class="nc" id="L262">                    minLines = 3,</span>
+<span class="nc" id="L263">                    maxLines = 6,</span>
+<span class="nc" id="L264">                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L265">                    shape = RoundedCornerShape(10.dp),</span>
+<span class="nc" id="L266">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L267">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L268">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L269">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+
+<span class="nc" id="L273">                Row(</span>
+<span class="nc" id="L274">                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L275">                    horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L276">                    verticalAlignment = Alignment.CenterVertically</span>
+                ) {
+<span class="nc" id="L278">                    Text(&quot;Fijar en la parte superior&quot;, fontSize = 13.sp, color = TextPrimary)</span>
+<span class="nc" id="L279">                    Switch(checked = fijado, onCheckedChange = { fijado = it })</span>
+<span class="nc" id="L280">                }</span>
+<span class="nc" id="L281">            }</span>
+        },
+<span class="nc" id="L283">        confirmButton = {</span>
+<span class="nc" id="L284">            Button(</span>
+<span class="nc" id="L285">                onClick = {</span>
+<span class="nc bnc" id="L286" title="All 8 branches missed.">                    if (titulo.isNotBlank() &amp;&amp; contenido.isNotBlank()) {</span>
+<span class="nc" id="L287">                        onPublicar(titulo.trim(), contenido.trim(), fijado)</span>
+                    }
+<span class="nc" id="L289">                },</span>
+<span class="nc" id="L290">                colors = ButtonDefaults.buttonColors(containerColor = PrimaryNavy)</span>
+<span class="nc" id="L291">            ) {</span>
+<span class="nc" id="L292">                Text(&quot;Publicar&quot;, fontWeight = FontWeight.Bold, color = Color.White)</span>
+            }
+        },
+<span class="nc" id="L295">        dismissButton = {</span>
+<span class="nc" id="L296">            TextButton(onClick = onDismiss) {</span>
+<span class="nc" id="L297">                Text(&quot;Cancelar&quot;, color = TextSecondary)</span>
+            }
+        },
+<span class="nc" id="L300">        containerColor = CardSurface</span>
+    )
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

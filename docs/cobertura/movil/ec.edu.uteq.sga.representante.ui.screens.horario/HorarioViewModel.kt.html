@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HorarioViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.horario</a> &gt; <span class="el_source">HorarioViewModel.kt</span></div><h1>HorarioViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.horario
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.domain.model.HorarioItem
+import ec.edu.uteq.sga.representante.domain.repository.HorarioRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+<span class="nc" id="L14">data class HorarioUiState(</span>
+<span class="nc" id="L15">    val slots: List&lt;HorarioItem&gt; = emptyList(),</span>
+<span class="nc" id="L16">    val selectedDia: Int = 1, // 1=Lunes .. 5=Viernes</span>
+<span class="nc" id="L17">    val isLoading: Boolean = false,</span>
+<span class="nc" id="L18">    val isOffline: Boolean = false,</span>
+<span class="nc" id="L19">    val errorMessage: String? = null</span>
+<span class="nc" id="L20">)</span>
+
+<span class="nc" id="L22">class HorarioViewModel(</span>
+<span class="nc" id="L23">    private val horarioRepository: HorarioRepository,</span>
+<span class="nc" id="L24">    private val sessionManager: SessionManager</span>
+<span class="nc" id="L25">) : ViewModel() {</span>
+
+<span class="nc" id="L27">    private val _uiState = MutableStateFlow(HorarioUiState())</span>
+<span class="nc" id="L28">    val uiState: StateFlow&lt;HorarioUiState&gt; = _uiState.asStateFlow()</span>
+
+<span class="nc" id="L30">    init {</span>
+<span class="nc" id="L31">        loadHorario()</span>
+<span class="nc" id="L32">    }</span>
+
+    fun setDia(dia: Int) {
+<span class="nc" id="L35">        _uiState.value = _uiState.value.copy(selectedDia = dia)</span>
+<span class="nc" id="L36">    }</span>
+
+    private var loadHorarioJob: kotlinx.coroutines.Job? = null
+
+    fun loadHorario() {
+<span class="nc" id="L41">        val idPersona = sessionManager.getIdPersona()</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        loadHorarioJob?.cancel()</span>
+<span class="nc" id="L43">        loadHorarioJob = viewModelScope.launch {</span>
+<span class="nc" id="L44">            _uiState.value = _uiState.value.copy(isLoading = true)</span>
+<span class="nc" id="L45">            horarioRepository.getHorarios(idPersona = idPersona).collect { res -&gt;</span>
+<span class="nc" id="L46">                when (res) {</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                    is Resource.Success -&gt; {</span>
+<span class="nc" id="L48">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L49">                            slots = res.data,</span>
+<span class="nc" id="L50">                            isLoading = false,</span>
+<span class="nc" id="L51">                            isOffline = res.isOffline,</span>
+<span class="nc" id="L52">                            errorMessage = null</span>
+                        )
+                    }
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                    is Resource.Error -&gt; {</span>
+<span class="nc" id="L56">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L57">                            isLoading = false,</span>
+<span class="nc" id="L58">                            errorMessage = res.message</span>
+                        )
+                    }
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                    is Resource.Loading -&gt; {</span>
+<span class="nc" id="L62">                        _uiState.value = _uiState.value.copy(isLoading = true)</span>
+                    }
+                }
+<span class="nc" id="L65">            }</span>
+<span class="nc" id="L66">        }</span>
+<span class="nc" id="L67">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

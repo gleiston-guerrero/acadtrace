@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.repository</a> &gt; <span class="el_source">AuthRepositoryImpl.kt</span></div><h1>AuthRepositoryImpl.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.repository
+
+import ec.edu.uteq.sga.representante.core.Constants
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.data.remote.RetrofitClient
+import ec.edu.uteq.sga.representante.data.remote.dto.LoginRequest
+import ec.edu.uteq.sga.representante.domain.model.UserSession
+import ec.edu.uteq.sga.representante.domain.repository.AuthRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+<span class="nc" id="L13">class AuthRepositoryImpl(</span>
+<span class="nc" id="L14">    private val retrofitClient: RetrofitClient,</span>
+<span class="nc" id="L15">    private val sessionManager: SessionManager</span>
+) : AuthRepository {
+
+    override suspend fun login(username: String, password: String): Resource&lt;UserSession&gt; =
+<span class="nc" id="L19">        withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L20">            try {</span>
+<span class="nc" id="L21">                val api = retrofitClient.getAuthApi()</span>
+<span class="nc" id="L22">                val response = api.login(LoginRequest(username = username, password = password))</span>
+
+<span class="nc bnc" id="L24" title="All 4 branches missed.">                if (response.isSuccessful &amp;&amp; response.body() != null) {</span>
+<span class="nc" id="L25">                    val body = response.body()!!</span>
+<span class="nc" id="L26">                    val isRepresentante = RepresentanteAccessPolicy.isAllowed(body.roles)</span>
+
+<span class="nc bnc" id="L28" title="All 2 branches missed.">                    if (!isRepresentante) {</span>
+<span class="nc" id="L29">                        return@withContext Resource.Error(&quot;Acceso denegado. Esta aplicación requiere el rol REPRESENTANTE.&quot;)</span>
+                    }
+
+<span class="nc" id="L32">                    sessionManager.saveSession(</span>
+<span class="nc" id="L33">                        token = body.token,</span>
+<span class="nc" id="L34">                        idUsuario = body.idUsuario,</span>
+<span class="nc" id="L35">                        username = body.username,</span>
+<span class="nc" id="L36">                        correo = body.correo,</span>
+<span class="nc" id="L37">                        roles = body.roles,</span>
+<span class="nc" id="L38">                        primerIngreso = body.primerIngreso</span>
+                    )
+
+<span class="nc" id="L41">                    Resource.Success(</span>
+<span class="nc" id="L42">                        UserSession(</span>
+<span class="nc" id="L43">                            token = body.token,</span>
+<span class="nc" id="L44">                            idUsuario = body.idUsuario,</span>
+<span class="nc" id="L45">                            username = body.username,</span>
+<span class="nc" id="L46">                            correo = body.correo,</span>
+<span class="nc" id="L47">                            roles = body.roles,</span>
+<span class="nc" id="L48">                            primerIngreso = body.primerIngreso</span>
+                        )
+                    )
+                } else {
+<span class="nc bnc" id="L52" title="All 4 branches missed.">                    val errorBody = response.errorBody()?.string() ?: &quot;&quot;</span>
+<span class="nc" id="L53">                    val msg = when {</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                        errorBody.contains(&quot;Bad credentials&quot;, ignoreCase = true) -&gt;</span>
+<span class="nc" id="L55">                            &quot;Usuario o contraseña incorrectos. Verifica tus credenciales.&quot;</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">                        response.code() == 401 || response.code() == 403 -&gt;</span>
+<span class="nc" id="L57">                            &quot;Credenciales incorrectas o usuario no autorizado.&quot;</span>
+                        else -&gt;
+<span class="nc" id="L59">                            &quot;Error al iniciar sesión (${response.code()}): $errorBody&quot;</span>
+                    }
+<span class="nc" id="L61">                    Resource.Error(msg)</span>
+                }
+<span class="nc" id="L63">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                Resource.Error(&quot;No se pudo conectar con el servidor: ${e.localizedMessage ?: e.message}&quot;, e)</span>
+            }
+<span class="nc" id="L66">        }</span>
+
+    override fun logout() {
+<span class="nc" id="L69">        sessionManager.clearSession()</span>
+<span class="nc" id="L70">    }</span>
+
+<span class="nc" id="L72">    override fun isUserLoggedIn(): Boolean = sessionManager.isLoggedIn.value</span>
+
+<span class="nc" id="L74">    override fun isRepresentante(): Boolean = sessionManager.isRepresentante()</span>
+
+<span class="nc" id="L76">    override fun getUserId(): Long = sessionManager.getUserId()</span>
+}
+
+object RepresentanteAccessPolicy {
+    fun isAllowed(roles: List&lt;String&gt;): Boolean =
+<span class="fc" id="L81">        roles.any { it == Constants.ROL_REPRESENTANTE_LOGIN }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

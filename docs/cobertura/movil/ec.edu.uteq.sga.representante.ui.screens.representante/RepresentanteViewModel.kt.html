@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepresentanteViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.representante</a> &gt; <span class="el_source">RepresentanteViewModel.kt</span></div><h1>RepresentanteViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.representante
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import android.util.Log
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.domain.model.*
+import ec.edu.uteq.sga.representante.domain.repository.RepresentanteRepository
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+
+<span class="fc" id="L12">data class ConsultaUiState&lt;T&gt;(val loading: Boolean = false, val data: T? = null, val error: String? = null, val isOffline: Boolean = false)</span>
+
+<span class="fc" id="L14">class RepresentanteViewModel(private val repository: RepresentanteRepository) : ViewModel() {</span>
+<span class="fc" id="L15">    private val _representados = MutableStateFlow(ConsultaUiState&lt;List&lt;Representado&gt;&gt;())</span>
+<span class="fc" id="L16">    val representados = _representados.asStateFlow()</span>
+<span class="fc" id="L17">    private val _calificaciones = MutableStateFlow(ConsultaUiState&lt;CalificacionesRepresentado&gt;())</span>
+<span class="pc" id="L18">    val calificaciones = _calificaciones.asStateFlow()</span>
+<span class="fc" id="L19">    private val _periodoSeleccionado = MutableStateFlow&lt;Long?&gt;(null)</span>
+<span class="fc" id="L20">    val periodoSeleccionado = _periodoSeleccionado.asStateFlow()</span>
+<span class="fc" id="L21">    private val _asistencia = MutableStateFlow(ConsultaUiState&lt;AsistenciaRepresentado&gt;())</span>
+<span class="pc" id="L22">    val asistencia = _asistencia.asStateFlow()</span>
+<span class="fc" id="L23">    private val _comunicados = MutableStateFlow(ConsultaUiState&lt;List&lt;Comunicado&gt;&gt;())</span>
+<span class="fc" id="L24">    val comunicados = _comunicados.asStateFlow()</span>
+
+<span class="fc" id="L26">    init { cargarRepresentados() }</span>
+<span class="fc" id="L27">    fun cargarRepresentados() = collect(repository.getRepresentados(), _representados)</span>
+<span class="fc" id="L28">    fun cargarCalificaciones(id: Long) = viewModelScope.launch {</span>
+<span class="fc" id="L29">        var terminal = false</span>
+<span class="fc" id="L30">        repository.getCalificaciones(id)</span>
+<span class="pc" id="L31">            .catch { emit(Resource.Error(&quot;Error local inesperado (${it::class.java.simpleName})&quot;, it)) }</span>
+<span class="fc" id="L32">            .collect { result -&gt;</span>
+<span class="fc" id="L33">                _calificaciones.value = ConsultaStateReducer.reduce(result)</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">                terminal = result !is Resource.Loading</span>
+<span class="pc bpc" id="L35" title="2 of 4 branches missed.">                if (result is Resource.Success &amp;&amp; _periodoSeleccionado.value !in result.data.periodos.map { it.idPeriodo }) {</span>
+<span class="fc" id="L36">                    _periodoSeleccionado.value = result.data.periodoInicial()</span>
+                }
+<span class="fc" id="L38">            }</span>
+<span class="pc bpc" id="L39" title="3 of 4 branches missed.">        if (!terminal &amp;&amp; _calificaciones.value.loading) _calificaciones.value = ConsultaUiState(error = &quot;La consulta terminó sin respuesta del servicio&quot;)</span>
+<span class="fc" id="L40">    }</span>
+<span class="fc" id="L41">    fun seleccionarPeriodo(idPeriodo: Long) { _periodoSeleccionado.value = idPeriodo }</span>
+<span class="nc" id="L42">    fun cargarAsistencia(id: Long) = collect(repository.getAsistencia(id), _asistencia)</span>
+<span class="fc" id="L43">    fun cargarComunicados() = collect(repository.getComunicados(), _comunicados)</span>
+
+<span class="fc" id="L45">    private fun &lt;T&gt; collect(source: Flow&lt;Resource&lt;T&gt;&gt;, state: MutableStateFlow&lt;ConsultaUiState&lt;T&gt;&gt;) = viewModelScope.launch {</span>
+<span class="fc" id="L46">        var terminalStateReceived = false</span>
+<span class="fc" id="L47">        source</span>
+<span class="fc" id="L48">            .catch { error -&gt;</span>
+<span class="pc" id="L49">                runCatching { Log.e(TAG, &quot;Consulta finalizada por excepción local: ${error::class.java.simpleName}: ${error.message}&quot;) }</span>
+<span class="fc" id="L50">                terminalStateReceived = true</span>
+<span class="fc" id="L51">                emit(Resource.Error(&quot;Error local inesperado (${error::class.java.simpleName})&quot;, error))</span>
+<span class="fc" id="L52">            }</span>
+<span class="fc" id="L53">            .collect { result -&gt;</span>
+<span class="fc" id="L54">                state.value = ConsultaStateReducer.reduce(result)</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                terminalStateReceived = result !is Resource.Loading</span>
+<span class="fc" id="L56">            }</span>
+<span class="pc bpc" id="L57" title="1 of 4 branches missed.">        if (!terminalStateReceived &amp;&amp; state.value.loading) {</span>
+<span class="fc" id="L58">            state.value = ConsultaUiState(error = &quot;La consulta terminó sin respuesta del servicio&quot;)</span>
+        }
+<span class="fc" id="L60">    }</span>
+
+    private companion object { const val TAG = &quot;RepresentanteViewModel&quot; }
+}
+
+object ConsultaStateReducer {
+<span class="fc" id="L66">    fun &lt;T&gt; reduce(result: Resource&lt;T&gt;): ConsultaUiState&lt;T&gt; = when (result) {</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        Resource.Loading -&gt; ConsultaUiState(loading = true)</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        is Resource.Success -&gt; ConsultaUiState(data = result.data, isOffline = result.isOffline)</span>
+<span class="fc" id="L69">        is Resource.Error -&gt; ConsultaUiState(error = result.message)</span>
+<span class="fc" id="L70">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
