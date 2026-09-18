@@ -300,11 +300,14 @@ sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recomm
 ### Compilación limpia del informe maestro:
 ```bash
 cd Informe-E4_BCEL
+python ../generar_matriz.py --write-latex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 bibtex TA-PFC-E4_BCEL
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 ```
+`generar_matriz.py` deriva la evidencia ISO 25010 de los CSV de carga de Soporte y genera `Informe-E4_BCEL/matriz_iso25010_generada.tex` antes de compilar el manuscrito, que la incorpora mediante `\input{matriz_iso25010_generada.tex}`.
+
 *(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
 
 ## Resultados oficiales de carga — E5
