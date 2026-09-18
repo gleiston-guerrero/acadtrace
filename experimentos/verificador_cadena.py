@@ -178,6 +178,24 @@ def main():
             print(f"[AVISO] Hay {filas_fuera_alcance} fila(s) fuera del alcance del verificador "
                   "(sin hash o con version_canonica != 'v1'). No se garantiza su integridad.")
 
+        # Deteccion de INSERT falso sin hash con rol restringido (criterio E43).
+        # Una fila con version_canonica='v1' pero hash_actual NULL indica que
+        # alguien inserto una fila sin sellarla criptograficamente. Con el rol
+        # sga_app esto es posible sin desactivar el trigger, por lo que se
+        # trata como ERROR fuerte y no como aviso.
+        filas_v1_sin_hash = [
+            f for f in todas_las_filas
+            if f.get("version_canonica") == "v1" and not f.get("hash_actual")
+        ]
+        if filas_v1_sin_hash:
+            ids_sospechosos = [f.get("id_auditoria") for f in filas_v1_sin_hash]
+            print(f"[ERROR] Se detectaron {len(filas_v1_sin_hash)} fila(s) con "
+                  f"version_canonica='v1' pero sin hash_actual. IDs sospechosos: "
+                  f"{ids_sospechosos}. Estas filas pueden ser INSERTs falsos "
+                  "producidos por el rol restringido sga_app sin sello "
+                  "criptografico.")
+            return 2
+
         GENESIS = "0" * 64
         if filas_v1_con_hash:
             primer_hash_anterior = filas_v1_con_hash[0].get("hash_anterior")
@@ -185,6 +203,37 @@ def main():
                 print(f"[ERROR] Primer eslabon (id={filas_v1_con_hash[0]['id_auditoria']}) tiene "
                       f"hash_anterior={primer_hash_anterior!r} en lugar del GENESIS. "
                       "Alguien borro los eslabones anteriores.")
+                return 2
+
+        # Deteccion de retroceso de cabeza (criterio E43).
+        # estado_cadena_auditoria.ultimo_hash debe coincidir con el hash_actual
+        # del ultimo eslabon v1 con hash. Si un atacante borra el ultimo eslabon
+        # y retrocede la cabeza para que "cuadre", esta comprobacion lo detecta.
+        if filas_v1_con_hash:
+            ultimo_hash_esperado = filas_v1_con_hash[-1].get("hash_actual")
+            try:
+                with connection.cursor() as cur_cabeza:
+                    cur_cabeza.execute(
+                        "SELECT ultimo_hash FROM sga_principal.estado_cadena_auditoria "
+                        "WHERE id_estado = 1"
+                    )
+                    fila_cabeza = cur_cabeza.fetchone()
+                    if fila_cabeza is None:
+                        print("[ERROR] No existe fila singleton en "
+                              "sga_principal.estado_cadena_auditoria (id_estado=1). "
+                              "La cabeza de cadena no puede verificarse.")
+                        return 2
+                    cabeza_almacenada = fila_cabeza[0]
+                    if cabeza_almacenada != ultimo_hash_esperado:
+                        print(f"[ERROR] Retroceso de cabeza detectado. La cabeza "
+                              f"almacenada es {cabeza_almacenada[:16]!r}... pero el "
+                              f"ultimo eslabon v1 tiene hash "
+                              f"{ultimo_hash_esperado[:16]!r}... "
+                              "Alguien borro eslabones y ajusto la cabeza.")
+                        return 2
+            except Exception as exc_cabeza:
+                print(f"[ERROR] No se pudo consultar la cabeza de cadena en "
+                      f"estado_cadena_auditoria: {exc_cabeza}")
                 return 2
 
         for fila in filas_v1_con_hash:
