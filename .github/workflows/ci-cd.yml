@@ -759,7 +759,7 @@ jobs:
           set -euo pipefail
 
           docker exec microservicio-docente \
-            python manage.py migrate --noinput
+            python manage.py migrate --fake-initial --noinput
 
       - name: Esperar backend Docente
         shell: bash
