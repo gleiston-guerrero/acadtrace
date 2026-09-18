@@ -33,7 +33,8 @@ captures:
     added_in_commit: fcd56457
     added_in_date: 2026-09-15
     status: current
-    used_in_report: false
+    used_in_report: true
+    report_reference: Informe-E4_BCEL/soporte_tickets.png
     observations: "Captura real y actual del Módulo de Tickets obtenida en entorno local de demostración, localhost:8083/soporte; muestra el tablero Kanban con tarjetas visibles y el indicador de 150 tickets encontrados."
 
   - file: release/screenshots/microservicio_ia.png
