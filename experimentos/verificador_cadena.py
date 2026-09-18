@@ -54,8 +54,8 @@ if not os.environ.get("DJANGO_SETTINGS_MODULE"):
             )
             import django
             django.setup()
-    except Exception:
-        pass
+    except Exception as exc:
+        raise SystemExit(f"[ERROR] No se pudo configurar Django: {exc}")
 
 
 from docentes.auditoria.hashing import (  # noqa: E402
@@ -89,49 +89,131 @@ __all__ = [
 ]
 
 
-def main():
-    print("=== AcadTrace: Verificador de Cadena de Auditoría (Criterio E2) ===")
-    print("[OK] Funciones criptográficas y verificador de producción cargados correctamente.")
-    print(f"[OK] Bloque génesis configurado: {GENESIS_HASH[:16]}... (longitud: {len(GENESIS_HASH)})")
+import json
 
-    # E2 / Punto 43:
-    # El verificador debe leer la cadena real persistida en la base de datos
-    # de producción en lugar de fabricar un eslabón sintético en memoria.
-    print("[INFO] Leyendo cadena de auditoría real desde la base de datos de producción...")
+def cotejar_columnas_visibles(fila):
+    """Devuelve la lista de columnas cuyo valor visible difiere del canonico.
+
+    contenido_canonico es un JSON con los campos reales del evento. Si el
+    canonico dice descripcion='X' pero la columna descripcion dice 'Y',
+    alguien alteró la fila visible sin recalcular el hash: manipulacion.
+    """
     try:
+        canonico = json.loads(fila["contenido_canonico"])
+    except (TypeError, ValueError):
+        return ["contenido_canonico"]
+
+    payload = canonico.get("payload", {}) if isinstance(canonico, dict) else {}
+    discrepancias = []
+
+    # Descripcion vive en payload segun el esquema v1
+    desc_canonico = payload.get("descripcion") if isinstance(payload, dict) else None
+    if desc_canonico is not None and fila.get("descripcion") != desc_canonico:
+        discrepancias.append("descripcion")
+
+    # Fecha del canonico es timestamp del evento
+    ts_canonico = canonico.get("timestamp") if isinstance(canonico, dict) else None
+    if ts_canonico is not None and fila.get("fecha") is not None:
+        # Comparar en ISO string sin milisegundos para tolerar formato
+        try:
+            fecha_col = fila["fecha"].isoformat().split(".")[0]
+            fecha_can = str(ts_canonico).split(".")[0].split("+")[0].rstrip("Z")
+            if fecha_col != fecha_can:
+                discrepancias.append("fecha")
+        except AttributeError:
+            pass
+
+    # Actor y entidad_id
+    actor_canonico = canonico.get("actor_id") if isinstance(canonico, dict) else None
+    if actor_canonico is not None and fila.get("username") != actor_canonico:
+        discrepancias.append("username")
+
+    entidad_id_canonico = canonico.get("entidad_id") if isinstance(canonico, dict) else None
+    if entidad_id_canonico is not None and fila.get("registro_id") != entidad_id_canonico:
+        # entidad_id puede venir como str; comparar por texto
+        if str(fila.get("registro_id")) != str(entidad_id_canonico):
+            discrepancias.append("registro_id")
+
+    # Reloj lamport
+    lamport_canonico = canonico.get("reloj_lamport") if isinstance(canonico, dict) else None
+    if lamport_canonico is not None and fila.get("reloj_lamport") != lamport_canonico:
+        discrepancias.append("reloj_lamport")
+
+    return discrepancias
+
+def main():
+    print("=== AcadTrace: Verificador de Cadena de Auditoria (Criterio E2) ===")
+    print("[OK] Funciones criptograficas y verificador de produccion cargados correctamente.")
+    print(f"[OK] Bloque genesis configurado: {GENESIS_HASH[:16]}... (longitud: {len(GENESIS_HASH)})")
+
+    print("[INFO] Leyendo cadena de auditoria real desde la base de datos de produccion...")
+    from django.db import connection
+    try:
+        with connection.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM sga_principal.auditoria")
+            total_filas = cur.fetchone()[0]
+
+            cur.execute("""
+                SELECT
+                    id_auditoria,
+                    descripcion,
+                    fecha,
+                    username,
+                    registro_id,
+                    reloj_lamport,
+                    contenido_canonico,
+                    hash_anterior,
+                    hash_actual,
+                    version_canonica
+                FROM sga_principal.auditoria
+                ORDER BY reloj_lamport ASC, id_auditoria ASC
+            """)
+            columnas = [col[0] for col in cur.description]
+            todas_las_filas = [dict(zip(columnas, fila)) for fila in cur.fetchall()]
+
+        filas_v1_con_hash = [f for f in todas_las_filas if f.get("version_canonica") == "v1" and f.get("hash_actual")]
+        filas_fuera_alcance = total_filas - len(filas_v1_con_hash)
+
+        if filas_fuera_alcance > 0:
+            print(f"[AVISO] Hay {filas_fuera_alcance} fila(s) fuera del alcance del verificador "
+                  "(sin hash o con version_canonica != 'v1'). No se garantiza su integridad.")
+
+        GENESIS = "0" * 64
+        if filas_v1_con_hash:
+            primer_hash_anterior = filas_v1_con_hash[0].get("hash_anterior")
+            if primer_hash_anterior != GENESIS:
+                print(f"[ERROR] Primer eslabon (id={filas_v1_con_hash[0]['id_auditoria']}) tiene "
+                      f"hash_anterior={primer_hash_anterior!r} en lugar del GENESIS. "
+                      "Alguien borro los eslabones anteriores.")
+                return 2
+
+        for fila in filas_v1_con_hash:
+            discrepancias = cotejar_columnas_visibles(fila)
+            if discrepancias:
+                print(f"[ERROR] Eslabon id={fila['id_auditoria']}: columnas alteradas fuera del hash: {discrepancias}")
+                return 2
+
         resultado = verificar_cadena_global()
-        print(f"[INFO] Eslabones leídos y comprobados: {resultado.registros_verificados}")
+        print(f"[INFO] Eslabones leidos y comprobados: {resultado.registros_verificados}")
         if resultado.valido:
-            print(f"[OK] Verificación completada: {resultado.registros_verificados} eslabón(es) validado(s).")
-            print(f"=== Resultado: Cadena global íntegra ({resultado.registros_verificados} eslabones confirmados) ===")
+            print(f"[OK] Verificacion completada: {len(filas_v1_con_hash)} eslabon(es) validado(s), "
+                  f"{filas_fuera_alcance} fila(s) fuera del alcance.")
+            if filas_fuera_alcance == 0:
+                print(f"=== Resultado: Cadena global integra sobre {len(filas_v1_con_hash)} eslabones (sin filas fuera del alcance) ===")
+            else:
+                print(f"=== Resultado: Cadena global integra sobre {len(filas_v1_con_hash)} eslabones; "
+                      f"{filas_fuera_alcance} fila(s) fuera del alcance no verificadas ===")
             return 0
         else:
-            print(f"[ERROR] Inconsistencia detectada en eslabón {resultado.primer_eslabon_roto}: {resultado.tipo_inconsistencia}")
-            print(f"=== Resultado: Cadena inválida ({resultado.registros_verificados} eslabones válidos antes de la ruptura) ===")
+            print(f"[ERROR] Inconsistencia detectada en eslabon {resultado.primer_eslabon_roto}: {resultado.tipo_inconsistencia}")
+            print(f"=== Resultado: Cadena invalida ({resultado.registros_verificados} eslabones validos antes de la ruptura) ===")
             return 2
-    except Exception as exc:
-        try:
-            from docentes.models import EstadoCadenaAuditoria, EventoAuditoria
-            estado = EstadoCadenaAuditoria.objects.filter(id_estado=1).first()
-            eventos = list(EventoAuditoria.objects.filter(modo__in=["m2", "m3"]).order_by("id_evento"))
-            resultado = verificar_cadena(
-                eventos,
-                hash_cabeza=estado.ultimo_hash if estado else None,
-                lamport_cabeza=estado.ultimo_lamport if estado else None,
-            )
-            print(f"[INFO] Eslabones locales leídos de base de datos: {resultado.registros_verificados}")
-            if resultado.valido:
-                print(f"[OK] Verificación completada: {resultado.registros_verificados} eslabón(es) locales validado(s).")
-                print(f"=== Resultado: Cadena local íntegra ({resultado.registros_verificados} eslabones confirmados) ===")
-                return 0
-            else:
-                print(f"[ERROR] Inconsistencia en eslabón {resultado.primer_eslabon_roto}: {resultado.tipo_inconsistencia}")
-                print(f"=== Resultado: Cadena local inválida ({resultado.registros_verificados} eslabones válidos) ===")
-                return 2
-        except Exception as local_exc:
-            print(f"[ERROR] Error al consultar la cadena de auditoría en la base de datos: {exc} (local: {local_exc})")
-            return 1
 
+    except Exception as exc:
+        print(f"[ERROR] Fallo la consulta a sga_principal.auditoria: {exc}")
+        print("[ERROR] NO se recurre a la cadena local de Docente como fallback silencioso.")
+        print("[ERROR] Revisa las variables DB_HOST/DB_PORT/DB_USER/DB_PASSWORD y vuelve a ejecutar.")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())

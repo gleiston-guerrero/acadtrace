@@ -1,304 +1,210 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Deriva el conjunto A. Solo --generate-latex escribe un archivo.
+
+--check-latex valida las afirmaciones numéricas explícitas de los párrafos
+oficiales y filas nominales del manuscrito actual; no es un parser general
+de LaTeX ni certifica resultados históricos o causas de fallos.
+Salidas: 0 correcto, 1 discrepancias, 2 entrada inválida.
 """
-recalcular_metricas_carga.py
-----------------------------
-Guion de derivación determinista de métricas de pruebas de carga Locust (E5/E14).
-
-Lee exclusivamente el conjunto de datos OFICIAL declarado:
-    microservicio-soporte/locust_esc1_stats.csv
-    microservicio-soporte/locust_esc1_stats_history.csv
-
-Calcula y presenta:
-1. Métricas agregadas exactas (Total peticiones, fallos, RPS, promedio, percentiles P50, P95, P99, max).
-2. Desglose detallado por endpoint (tickets, health, election/status, actuator).
-3. Clasificación formal de los 5 conjuntos de datos del repositorio (1 oficial, 4 no oficiales/retirados).
-4. Verificación de consistencia cruzada contra el manuscrito LaTeX (Informe-E4_BCEL/TA-PFC-E4_BCEL.tex).
-
-Uso:
-    python scripts/recalcular_metricas_carga.py
-    python scripts/recalcular_metricas_carga.py --check-latex
-    python scripts/recalcular_metricas_carga.py --json
-"""
-
-import sys
-import os
+import argparse
 import csv
 import json
-import argparse
+import re
+import sys
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 
-# Rutas estándar del repositorio
-REPO_ROOT = Path(__file__).resolve().parent.parent
-OFFICIAL_STATS = REPO_ROOT / "microservicio-soporte" / "locust_esc1_stats.csv"
-OFFICIAL_HISTORY = REPO_ROOT / "microservicio-soporte" / "locust_esc1_stats_history.csv"
-OFFICIAL_FAILURES = REPO_ROOT / "microservicio-soporte" / "locust_esc1_failures.csv"
-OFFICIAL_EXCEPTIONS = REPO_ROOT / "microservicio-soporte" / "locust_esc1_exceptions.csv"
-LATEX_REPORT = REPO_ROOT / "Informe-E4_BCEL" / "TA-PFC-E4_BCEL.tex"
-
-# Inventario de los 5 conjuntos de datos identificados en el PFC (E5)
-DATASET_INVENTORY = [
-    {
-        "id": "A",
-        "estado": "OFICIAL NOMINAL",
-        "archivo": "microservicio-soporte/locust_esc1_stats.csv",
-        "peticiones": 12994,
-        "fallos": 0,
-        "rps": 43.537580,
-        "p50": 6,
-        "p95": 440,
-        "p99": 850,
-        "motivo": "Único conjunto oficial declarado con JWT instrumentado, 0 fallos HTTP y 5 minutos nominales."
-    },
-    {
-        "id": "B",
-        "estado": "PRELIMINAR / HISTÓRICA (NO OFICIAL)",
-        "archivo": "experimentos/resultados/locust_esc1_stats.csv",
-        "peticiones": 12236,
-        "fallos": 0,
-        "rps": 40.92,
-        "p50": 110,
-        "p95": 370,
-        "p99": 460,
-        "motivo": "Corrida previa descartada; conservada sin carácter oficial en el historial experimental."
-    },
-    {
-        "id": "C",
-        "estado": "PRELIMINAR / HISTÓRICA (NO OFICIAL)",
-        "archivo": "docs/locust/escenario1_nominal_stats.csv",
-        "peticiones": 13606,
-        "fallos": 0,
-        "rps": 45.54,
-        "p50": 6,
-        "p95": 340,
-        "p99": 450,
-        "motivo": "Corrida exploratoria anterior; retractada como oficial, no sustituye al conjunto A."
-    },
-    {
-        "id": "D",
-        "estado": "FALLIDA / HISTÓRICA (NO OFICIAL)",
-        "archivo": "docs/locust/escenario2_estres_stats.csv",
-        "peticiones": 106735,
-        "fallos": 26,
-        "rps": 178.29,
-        "p50": 7,
-        "p95": 230,
-        "p99": 370,
-        "motivo": "Prueba de estrés fallida (15 HTTP 500 y 11 HTTP 503). No satisface criterio de 0 fallos."
-    },
-    {
-        "id": "E",
-        "estado": "PRELIMINAR (NO OFICIAL)",
-        "archivo": "docs/locust/resultados_carga_stats.csv",
-        "peticiones": 2419,
-        "fallos": 0,
-        "rps": 40.32,
-        "p50": 5,
-        "p95": 440,
-        "p99": 1100,
-        "motivo": "Corrida corta de calibración (59 s); no satisface el perfil nominal de 5 minutos."
-    }
-]
+ROOT = Path(__file__).resolve().parents[1]
+PREFIX = ROOT / "microservicio-soporte/locust_esc1"
+MANUSCRIPT = ROOT / "Informe-E4_BCEL/TA-PFC-E4_BCEL.tex"
+GENERATED = ROOT / "Informe-E4_BCEL/cifras_carga_generadas.tex"
+FIELDS = {
+    "peticiones": "Request Count", "fallos": "Failure Count",
+    "rps": "Requests/s", "media_ms": "Average Response Time",
+    "p50_ms": "50%", "p95_ms": "95%", "p99_ms": "99%",
+}
+MACROS = dict(zip((*FIELDS, "usuarios_maximos"), (
+    "CargaPeticiones", "CargaFallos", "CargaRPS", "CargaMediaMs",
+    "CargaPcinquentaMs", "CargaPnoventaCincoMs", "CargaPnoventaNueveMs",
+    "CargaUsuariosMaximos")))
 
 
-def cargar_estadisticas_csv(ruta_csv: Path):
-    """Lee y analiza el archivo CSV de estadísticas de Locust."""
-    if not ruta_csv.exists():
-        raise FileNotFoundError(f"No se encontró el archivo de estadísticas: {ruta_csv}")
+def read_csv(suffix, required):
+    path = Path(str(PREFIX) + suffix)
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream)
+        missing = set(required) - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError(f"{path.name}: faltan columnas {sorted(missing)}")
+        return list(reader)
 
+
+def number(value):
+    result = Decimal(value)
+    if not result.is_finite() or result < 0:
+        raise ValueError(f"Número no válido: {value!r}")
+    return result
+
+
+def count(value):
+    result = number(value)
+    if result != result.to_integral_value():
+        raise ValueError(f"Conteo no entero: {value!r}")
+    return result
+
+
+def statistics(row):
+    result = {key: number(row[column]) for key, column in FIELDS.items()}
+    for key in ("peticiones", "fallos"):
+        result[key] = count(result[key])
+    if result["fallos"] > result["peticiones"]:
+        raise ValueError("Failure Count supera Request Count")
+    optional = {"Median Response Time": "mediana_ms",
+                "Min Response Time": "minimo_ms", "Max Response Time": "maximo_ms"}
+    optional.update({column: "percentil_" + column[:-1] + "_ms"
+                     for column in row if re.fullmatch(r"[0-9]+(?:\.[0-9]+)?%", column)
+                     and column not in FIELDS.values()})
+    extra = {key: number(row[column]) for column, key in optional.items() if column in row}
+    return result, extra
+
+
+def derive():
+    rows = read_csv("_stats.csv", ["Type", "Name", *FIELDS.values()])
+    aggregate = [r for r in rows if r["Name"].strip() == "Aggregated"]
+    if len(aggregate) != 1:
+        raise ValueError("Se requiere exactamente una fila Aggregated en stats")
+    metrics, extra = statistics(aggregate[0])
     endpoints = []
-    aggregated = None
-
-    with open(ruta_csv, mode="r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            name = row.get("Name", "").strip()
-            item = {
-                "type": row.get("Type", "").strip(),
-                "name": name,
-                "request_count": int(row.get("Request Count", 0)),
-                "failure_count": int(row.get("Failure Count", 0)),
-                "median_response_time": float(row.get("Median Response Time", 0)),
-                "avg_response_time": float(row.get("Average Response Time", 0)),
-                "min_response_time": float(row.get("Min Response Time", 0)),
-                "max_response_time": float(row.get("Max Response Time", 0)),
-                "requests_per_sec": float(row.get("Requests/s", 0)),
-                "failures_per_sec": float(row.get("Failures/s", 0)),
-                "p50": float(row.get("50%", 0)),
-                "p66": float(row.get("66%", 0)),
-                "p75": float(row.get("75%", 0)),
-                "p80": float(row.get("80%", 0)),
-                "p90": float(row.get("90%", 0)),
-                "p95": float(row.get("95%", 0)),
-                "p98": float(row.get("98%", 0)),
-                "p99": float(row.get("99%", 0)),
-                "p99_9": float(row.get("99.9%", 0)),
-                "p100": float(row.get("100%", 0))
-            }
-            if name == "Aggregated":
-                aggregated = item
-            else:
-                endpoints.append(item)
-
-    if aggregated is None:
-        raise ValueError(f"No se encontró la fila 'Aggregated' en {ruta_csv}")
-
-    return aggregated, endpoints
+    for row in rows:
+        if row["Name"].strip() == "Aggregated":
+            continue
+        if not row["Name"].strip() or not row["Type"].strip():
+            raise ValueError("Endpoint sin Name o Type")
+        values, optional = statistics(row)
+        endpoints.append({"metodo": row["Type"], "endpoint": row["Name"],
+                          "metrics": values, "additional": optional})
+    history = read_csv("_stats_history.csv", ["Name", "User Count", "Timestamp"])
+    samples = [r for r in history if r["Name"].strip() == "Aggregated"]
+    if not samples:
+        raise ValueError("History no contiene muestras Aggregated")
+    metrics["usuarios_maximos"] = max(count(r["User Count"]) for r in samples)
+    timestamps = [int(count(r["Timestamp"])) for r in samples]
+    first, last = min(timestamps), max(timestamps)
+    window = {"inicio_utc": datetime.fromtimestamp(first, timezone.utc).isoformat(),
+              "fin_utc": datetime.fromtimestamp(last, timezone.utc).isoformat(),
+              "duracion_observada_s": last - first, "muestras": len(samples)}
+    failures = read_csv("_failures.csv", ["Occurrences"])
+    exceptions = read_csv("_exceptions.csv", ["Count"])
+    auxiliary = {"ocurrencias_fallos": sum((count(r["Occurrences"]) for r in failures), Decimal(0)),
+                 "excepciones": sum((count(r["Count"]) for r in exceptions), Decimal(0))}
+    return metrics, auxiliary, extra, endpoints, window
 
 
-def cargar_historial_csv(ruta_history: Path):
-    """Analiza la ventana temporal de la corrida desde stats_history."""
-    if not ruta_history.exists():
-        return None
-
-    timestamps = []
-    with open(ruta_history, mode="r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            ts = row.get("Timestamp")
-            if ts and ts.strip().isdigit():
-                timestamps.append(int(ts.strip()))
-
-    if not timestamps:
-        return None
-
-    min_ts = min(timestamps)
-    max_ts = max(timestamps)
-    dt_inicio = datetime.fromtimestamp(min_ts, timezone.utc)
-    dt_fin = datetime.fromtimestamp(max_ts, timezone.utc)
-    duracion_segundos = max_ts - min_ts
-
-    return {
-        "inicio_utc": dt_inicio.strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "fin_utc": dt_fin.strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "duracion_segundos": duracion_segundos,
-        "muestras": len(timestamps)
-    }
+def render(metrics):
+    return "% Generado desde el conjunto A por scripts/recalcular_metricas_carga.py\n" + "".join(
+        f"\\newcommand{{\\{MACROS[key]}}}{{{format(value, 'f')}}}\n"
+        for key, value in metrics.items())
 
 
-def verificar_contra_latex(aggregated, endpoints, ruta_latex: Path):
-    """Verifica que el manuscrito LaTeX contenga exactamente las cifras derivadas."""
-    if not ruta_latex.exists():
-        print(f"[AVISO] No se encontró el informe LaTeX en {ruta_latex}")
-        return []
-
-    with open(ruta_latex, mode="r", encoding="utf-8") as f:
-        content = f.read()
-
-    errores = []
-
-    # Validaciones obligatorias de cifras oficiales
-    req_str = f"{aggregated['request_count']:,}".replace(",", "{,}")
-    req_plain = str(aggregated['request_count'])
-
-    if req_str not in content and req_plain not in content and "12{,}994" not in content:
-        errores.append(f"El total de peticiones oficiales ({aggregated['request_count']}) no aparece con formato adecuado en el informe LaTeX.")
-
-    if "43.537580" not in content and "43.54" not in content and "43,537580" not in content:
-        errores.append(f"La tasa oficial de RPS ({aggregated['requests_per_sec']:.6f}) no aparece en el informe.")
-
-    if "109.113664" not in content and "109.11" not in content:
-        errores.append(f"La latencia promedio ({aggregated['avg_response_time']:.6f}) no aparece en el informe.")
-
-    # Verificar que no subsistan cifras inventadas/retractadas en tablas principales
-    cifras_prohibidas = ["12{,}265", "12,265", "12265", "12{,}735", "12,735", "12735"]
-    for cp in cifras_prohibidas:
-        if cp in content:
-            errores.append(f"Se detectó la cifra no oficial o retractada '{cp}' en el archivo LaTeX.")
-
-    # Validar endpoints en PI-2
-    tickets_ep = next((ep for ep in endpoints if "tickets" in ep["name"]), None)
-    if tickets_ep:
-        if str(tickets_ep['request_count']) not in content and f"{tickets_ep['request_count']:,}".replace(",", "{,}") not in content:
-            errores.append(f"Las peticiones de tickets ({tickets_ep['request_count']}) no se citan en la discusión de PI-2.")
-
-    return errores
+NUM = r"(?<![\d.,])([0-9]+(?:[.,][0-9]+)*)"
+PATTERNS = {
+    "peticiones": [NUM + r"\s*(?:peticiones|reqs\b)"],
+    "fallos": [NUM + r"\s*fallos\b"],
+    "rps": [NUM + r"\s*(?:req/s|RPS)"],
+    "media_ms": [r"(?:promedio|media)\s*" + NUM],
+    "p50_ms": [r"P_?50\s*=\s*" + NUM],
+    "p95_ms": [r"P_?95\s*=\s*" + NUM],
+    "p99_ms": [r"P_?99\s*=\s*" + NUM],
+    "usuarios_maximos": [NUM + r"\s*usuarios\s*(?:virtuales|máximos|concurrentes)"],
+}
 
 
-def imprimir_reporte(aggregated, endpoints, historial):
-    """Genera salida formateada en consola."""
-    print("=" * 78)
-    print(" REPORTE DETERMINISTA DE MÉTRICAS OFICIALES DE CARGA LOCUST -- ACADTRACE")
-    print("=" * 78)
-    print(f"Archivo oficial analizado: {OFFICIAL_STATS.relative_to(REPO_ROOT)}")
-    if historial:
-        print(f"Ventana de ejecución UTC : {historial['inicio_utc']} -> {historial['fin_utc']}")
-        print(f"Duración observada       : {historial['duracion_segundos']} segundos ({historial['muestras']} muestras)")
-    print("-" * 78)
+def matches(token, expected, integer):
+    # Decimales punto/coma; agrupación de miles solo con grupos de tres.
+    candidates = []
+    if re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", token):
+        candidates.append((Decimal(re.sub(r"[.,]", "", token)), 0))
+    if token.count(".") + token.count(",") <= 1:
+        normalized = token.replace(",", ".")
+        places = len(normalized.split(".")[1]) if "." in normalized else 0
+        candidates.append((Decimal(normalized), places))
+    elif "." in token and "," in token:
+        separator = "." if token.rfind(".") > token.rfind(",") else ","
+        whole, fraction = token.rsplit(separator, 1)
+        grouping = "," if separator == "." else "."
+        if re.fullmatch(r"\d{1,3}(?:" + re.escape(grouping) + r"\d{3})+", whole):
+            candidates.append((Decimal(whole.replace(grouping, "") + "." + fraction), len(fraction)))
+    return any(value == (expected if integer else expected.quantize(
+        Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)) for value, places in candidates)
 
-    print("\n[1] MÉTRICAS AGREGADAS NOMINALES (Fila 'Aggregated'):")
-    print(f"  * Peticiones Totales (Requests) : {aggregated['request_count']:,}".replace(",", "."))
-    print(f"  * Peticiones Fallidas (Failures): {aggregated['failure_count']}")
-    print(f"  * Tasa de Fallos                : {aggregated['failure_count'] / aggregated['request_count'] * 100:.4f}%")
-    print(f"  * Throughput (Requests/s)       : {aggregated['requests_per_sec']:.6f} req/s")
-    print(f"  * Latencia Promedio             : {aggregated['avg_response_time']:.6f} ms")
-    print(f"  * Latencia Mínima               : {aggregated['min_response_time']:.6f} ms")
-    print(f"  * Latencia Máxima               : {aggregated['max_response_time']:.6f} ms")
-    print("  * Percentiles de Latencia:")
-    print(f"      - Mediana (P50)             : {aggregated['p50']:.1f} ms")
-    print(f"      - P66                       : {aggregated['p66']:.1f} ms")
-    print(f"      - P75                       : {aggregated['p75']:.1f} ms")
-    print(f"      - P80                       : {aggregated['p80']:.1f} ms")
-    print(f"      - P90                       : {aggregated['p90']:.1f} ms")
-    print(f"      - P95                       : {aggregated['p95']:.1f} ms")
-    print(f"      - P98                       : {aggregated['p98']:.1f} ms")
-    print(f"      - P99                       : {aggregated['p99']:.1f} ms")
-    print(f"      - P99.9                     : {aggregated['p99_9']:.1f} ms")
-    print(f"      - P100 (Max)                : {aggregated['p100']:.1f} ms")
 
-    print("\n[2] DESGLOSE DETALLADO POR ENDPOINT:")
-    header = f"{'Método y Endpoint':<38} | {'Reqs':>6} | {'Fallos':>6} | {'RPS':>7} | {'Prom(ms)':>8} | {'P50':>5} | {'P95':>5} | {'P99':>5}"
-    print(header)
-    print("-" * len(header))
-    for ep in endpoints:
-        print(f"{ep['name']:<38} | {ep['request_count']:>6} | {ep['failure_count']:>6} | {ep['requests_per_sec']:>7.2f} | {ep['avg_response_time']:>8.2f} | {ep['p50']:>5.0f} | {ep['p95']:>5.0f} | {ep['p99']:>5.0f}")
-
-    print("\n[3] INVENTARIO Y CLASIFICACIÓN DE CONJUNTOS DE DATOS (E5):")
-    for ds in DATASET_INVENTORY:
-        marca = "[OFICIAL]   " if "OFICIAL" in ds["estado"] and "NO OFICIAL" not in ds["estado"] else "[DESCARTADO]"
-        print(f"  {marca} Conjunto {ds['id']}: {ds['archivo']}")
-        print(f"      Estado   : {ds['estado']}")
-        print(f"      Métricas : {ds['peticiones']:,} reqs, {ds['fallos']} fallos, {ds['rps']:.2f} RPS, P50={ds['p50']}ms, P95={ds['p95']}ms, P99={ds['p99']}ms".replace(",", "."))
-        print(f"      Dictamen : {ds['motivo']}")
-
-    print("\n" + "=" * 78)
+def check_latex(metrics, text):
+    errors, seen = [], set()
+    in_official_section = False
+    for line_no, raw in enumerate(text.splitlines(), 1):
+        if r"\subsection" in raw:
+            in_official_section = "Conjunto oficial de carga" in raw
+        # Revisar métricas oficiales; excluir discusiones históricas y endpoints.
+        selected = ("OFICIAL NOMINAL" in raw or "Nominal oficial:" in raw
+                    or "Nominal Esc-1:" in raw
+                    or (in_official_section and "El perfil configura" in raw))
+        if not selected:
+            continue
+        line = raw.split("Nominal Esc-1:", 1)[-1].split("Estrés Esc-2:", 1)[0]
+        if "Nominal oficial:" in line:
+            # Solo la celda de resultados agregados, no recomendaciones por endpoint.
+            line = line.split("Nominal oficial:", 1)[1].split("&", 1)[0]
+        line = line.replace(r"\,", " ").replace(r"\;", " ")
+        line = re.sub(r"\\[A-Za-z]+", "", line)
+        line = re.sub(r"[{}$]", "", line)
+        for key, patterns in PATTERNS.items():
+            for pattern in patterns:
+                for match in re.finditer(pattern, line, re.IGNORECASE):
+                    seen.add(key)
+                    token = match.group(1)
+                    if not matches(token, metrics[key], key in ("peticiones", "fallos", "usuarios_maximos")):
+                        errors.append(f"Línea {line_no}: {key}={token}; CSV={metrics[key]}")
+    errors.extend(f"No se encontró una afirmación oficial verificable para {key}" for key in metrics if key not in seen)
+    return errors
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Derivación determinista de métricas de carga Locust (E5).")
-    parser.add_argument("--csv", type=Path, default=OFFICIAL_STATS, help="Ruta al archivo CSV de Locust")
-    parser.add_argument("--check-latex", action="store_true", help="Validar consistencia con el manuscrito LaTeX")
-    parser.add_argument("--json", action="store_true", help="Imprimir salida en formato JSON")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--generate-latex", action="store_true")
+    parser.add_argument("--check-latex", action="store_true")
     args = parser.parse_args()
-
-    aggregated, endpoints = cargar_estadisticas_csv(args.csv)
-    historial = cargar_historial_csv(OFFICIAL_HISTORY)
-
-    if args.json:
-        data = {
-            "aggregated": aggregated,
-            "endpoints": endpoints,
-            "history": historial,
-            "inventory": DATASET_INVENTORY
-        }
-        print(json.dumps(data, indent=2))
-        return
-
-    imprimir_reporte(aggregated, endpoints, historial)
-
-    print("[4] AUDITORÍA DE CONSISTENCIA CON INFORME LATEX:")
-    errores = verificar_contra_latex(aggregated, endpoints, LATEX_REPORT)
-    if errores:
-        print("  [FALLO] Se detectaron inconsistencias:")
-        for err in errores:
-            print(f"    - {err}")
-        sys.exit(1)
-    else:
-        print("  [OK] El informe LaTeX está 100% alineado con las cifras derivadas del CSV oficial.")
-        print("  [OK] No existen cifras retractadas (12,265 o 12,735) en la matriz de calidad.")
-        print("=" * 78)
+    try:
+        metrics, auxiliary, extra, endpoints, window = derive()
+        if args.generate_latex:
+            GENERATED.write_text(render(metrics), encoding="utf-8")
+        if args.json:
+            print(json.dumps({"metrics": metrics, "auxiliary": auxiliary,
+                              "additional": extra, "endpoints": endpoints,
+                              "history": window}, default=str, ensure_ascii=False, indent=2))
+        else:
+            print("Conjunto A: microservicio-soporte/locust_esc1_stats.csv")
+            for key, value in {**metrics, **auxiliary, **extra}.items():
+                print(f"{key}: {value}")
+            print("Historial (muestras Aggregated; duracion entre muestras):")
+            for key, value in window.items():
+                print(f"  {key}: {value}")
+            for endpoint in endpoints:
+                print(f"Endpoint: {endpoint['metodo']} {endpoint['endpoint']}")
+                for key, value in {**endpoint['metrics'], **endpoint['additional']}.items():
+                    print(f"  {key}: {value}")
+        if args.check_latex:
+            errors = check_latex(metrics, MANUSCRIPT.read_text(encoding="utf-8"))
+            for error in errors:
+                print("ERROR: " + error, file=sys.stderr)
+            if errors:
+                return 1
+            print("OK: métricas oficiales explícitas coinciden con los CSV")
+        return 0
+    except (OSError, ValueError, InvalidOperation, KeyError, TypeError, AttributeError, OverflowError, csv.Error) as exc:
+        print(f"ERROR de entrada: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
