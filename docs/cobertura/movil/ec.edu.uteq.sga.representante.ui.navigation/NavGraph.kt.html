@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NavGraph.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.navigation</a> &gt; <span class="el_source">NavGraph.kt</span></div><h1>NavGraph.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.navigation
+
+import androidx.compose.runtime.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
+import ec.edu.uteq.sga.representante.SgaRepresentanteApp
+import ec.edu.uteq.sga.representante.ui.screens.login.LoginScreen
+import ec.edu.uteq.sga.representante.ui.screens.login.LoginViewModel
+import ec.edu.uteq.sga.representante.ui.screens.representante.*
+import ec.edu.uteq.sga.representante.ui.screens.security.*
+import ec.edu.uteq.sga.representante.data.sync.SyncWorker
+import ec.edu.uteq.sga.representante.notifications.AttendanceNotificationContext
+
+internal fun notificationRouteAfterStart(startDestination: String, notificationRoute: String?): String? =
+<span class="pc bpc" id="L20" title="2 of 4 branches missed.">    notificationRoute?.takeIf { startDestination == Screen.Home.route }</span>
+
+@Composable
+<span class="nc bnc" id="L23" title="All 4 branches missed.">fun RepresentanteNavGraph(nav: NavHostController, app: SgaRepresentanteApp, startDestination: String, notificationRoute: String? = null, attendanceContext: AttendanceNotificationContext? = null) {</span>
+<span class="nc" id="L24">    LaunchedEffect(startDestination, notificationRoute) {</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        notificationRouteAfterStart(startDestination, notificationRoute)?.let { nav.navigate(it) }</span>
+<span class="nc" id="L26">    }</span>
+<span class="nc" id="L27">    NavHost(nav, startDestination) {</span>
+<span class="nc" id="L28">        composable(Screen.Login.route) {</span>
+<span class="nc" id="L29">            val vm: LoginViewModel = factory { LoginViewModel(app.authRepository) }</span>
+<span class="nc" id="L30">            LoginScreen(vm, onLoginSuccess = {</span>
+<span class="nc" id="L31">                ec.edu.uteq.sga.representante.notifications.DeviceTokenRegistrar.refreshAndRegister(app)</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">                nav.navigate(notificationRoute ?: Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } }</span>
+<span class="nc" id="L33">            })</span>
+<span class="nc" id="L34">        }</span>
+<span class="nc" id="L35">        composable(Screen.BiometricUnlock.route) {</span>
+<span class="nc" id="L36">            BiometricUnlockScreen(app.sessionManager, onUnlocked = {</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">                nav.navigate(notificationRoute ?: Screen.Home.route) { popUpTo(Screen.BiometricUnlock.route) { inclusive = true } }</span>
+<span class="nc" id="L38">            }, onUseLogin = {</span>
+<span class="nc" id="L39">                nav.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }</span>
+<span class="nc" id="L40">            })</span>
+<span class="nc" id="L41">        }</span>
+<span class="nc" id="L42">        composable(Screen.BiometricFallback.route) {</span>
+<span class="nc" id="L43">            BiometricFallbackScreen(app.sessionManager) {</span>
+<span class="nc" id="L44">                nav.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }</span>
+<span class="nc" id="L45">            }</span>
+<span class="nc" id="L46">        }</span>
+<span class="nc" id="L47">        composable(Screen.Home.route) {</span>
+<span class="nc" id="L48">            HomeRepresentante(onRepresentados = { nav.navigate(Screen.MisRepresentados.route) }, onComunicados = {</span>
+<span class="nc" id="L49">                nav.navigate(Screen.Comunicados.route)</span>
+<span class="nc" id="L50">            }, onSecurity = {</span>
+<span class="nc" id="L51">                nav.navigate(Screen.Security.route)</span>
+<span class="nc" id="L52">            }, onLogout = {</span>
+<span class="nc" id="L53">                app.authRepository.logout(); nav.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }</span>
+<span class="nc" id="L54">            })</span>
+<span class="nc" id="L55">        }</span>
+<span class="nc" id="L56">        composable(Screen.Security.route) {</span>
+<span class="nc" id="L57">            SecurityScreen(app.sessionManager) { nav.popBackStack() }</span>
+<span class="nc" id="L58">        }</span>
+<span class="nc" id="L59">        composable(Screen.Comunicados.route) {</span>
+<span class="nc" id="L60">            val vm: RepresentanteViewModel = factory(&quot;comunicados&quot;) { RepresentanteViewModel(app.representanteRepository) }</span>
+<span class="nc" id="L61">            ComunicadosRepresentanteScreen(vm) { nav.popBackStack() }</span>
+<span class="nc" id="L62">        }</span>
+<span class="nc" id="L63">        composable(Screen.MisRepresentados.route) {</span>
+<span class="nc" id="L64">            val vm: RepresentanteViewModel = factory { RepresentanteViewModel(app.representanteRepository) }</span>
+<span class="nc" id="L65">            MisRepresentadosScreen(vm, { nav.popBackStack() }) { nav.navigate(Screen.ResumenRepresentado.create(it.idEstudiante, it.nombreCompleto)) }</span>
+<span class="nc" id="L66">        }</span>
+<span class="nc" id="L67">        composable(Screen.ResumenRepresentado.route, listOf(navArgument(&quot;id&quot;) { type = NavType.LongType }, navArgument(&quot;nombre&quot;) { type = NavType.StringType })) { entry -&gt;</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            val id = entry.arguments?.getLong(&quot;id&quot;) ?: return@composable</span>
+<span class="nc bnc" id="L69" title="All 4 branches missed.">            val nombre = java.net.URLDecoder.decode(entry.arguments?.getString(&quot;nombre&quot;).orEmpty(), Charsets.UTF_8.name())</span>
+<span class="nc" id="L70">            ResumenRepresentadoScreen(nombre, { nav.popBackStack() },</span>
+<span class="nc" id="L71">                { nav.navigate(Screen.Calificaciones.create(id)) }, { nav.navigate(Screen.Asistencia.create(id)) })</span>
+<span class="nc" id="L72">        }</span>
+<span class="nc" id="L73">        composable(Screen.Calificaciones.route, listOf(navArgument(&quot;id&quot;) { type = NavType.LongType })) { entry -&gt;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            val id = entry.arguments?.getLong(&quot;id&quot;) ?: return@composable</span>
+<span class="nc" id="L75">            val vm: RepresentanteViewModel = factory(&quot;calificaciones_$id&quot;) { RepresentanteViewModel(app.representanteRepository) }</span>
+<span class="nc" id="L76">            LaunchedEffect(id) { vm.cargarCalificaciones(id) }</span>
+<span class="nc" id="L77">            ConsultaCalificacionesRepresentante(vm, { nav.popBackStack() }) {</span>
+<span class="nc" id="L78">                vm.cargarCalificaciones(id)</span>
+<span class="nc" id="L79">                SyncWorker.triggerImmediateSync(app)</span>
+<span class="nc" id="L80">            }</span>
+<span class="nc" id="L81">        }</span>
+<span class="nc" id="L82">        composable(Screen.Asistencia.route, listOf(navArgument(&quot;id&quot;) { type = NavType.LongType })) { entry -&gt;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            val id = entry.arguments?.getLong(&quot;id&quot;) ?: return@composable</span>
+<span class="nc" id="L84">            val vm: RepresentanteViewModel = factory(&quot;asistencia_$id&quot;) { RepresentanteViewModel(app.representanteRepository) }</span>
+<span class="nc" id="L85">            LaunchedEffect(id) { vm.cargarAsistencia(id) }</span>
+<span class="nc bnc" id="L86" title="All 6 branches missed.">            AsistenciaHijoScreen(vm, { nav.popBackStack() }, attendanceContext?.takeIf { it.studentId == id }) {</span>
+<span class="nc" id="L87">                vm.cargarAsistencia(id)</span>
+<span class="nc" id="L88">                SyncWorker.triggerImmediateSync(app)</span>
+<span class="nc" id="L89">            }</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc" id="L91">    }</span>
+<span class="nc" id="L92">}</span>
+
+<span class="nc" id="L94">@Composable private inline fun &lt;reified T : ViewModel&gt; factory(key: String? = null, crossinline create: () -&gt; T): T =</span>
+<span class="nc" id="L95">    viewModel(key = key, factory = object : ViewModelProvider.Factory {</span>
+<span class="nc" id="L96">        @Suppress(&quot;UNCHECKED_CAST&quot;) override fun &lt;R : ViewModel&gt; create(modelClass: Class&lt;R&gt;): R = create() as R</span>
+    })
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

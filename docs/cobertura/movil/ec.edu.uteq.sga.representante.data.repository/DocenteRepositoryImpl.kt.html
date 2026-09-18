@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocenteRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.repository</a> &gt; <span class="el_source">DocenteRepositoryImpl.kt</span></div><h1>DocenteRepositoryImpl.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.repository
+
+import ec.edu.uteq.sga.representante.core.NetworkConnectivityObserver
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.data.local.AppDatabase
+import ec.edu.uteq.sga.representante.data.local.entity.AsignacionEntity
+import ec.edu.uteq.sga.representante.data.local.entity.EstudianteEntity
+import ec.edu.uteq.sga.representante.data.local.entity.PeriodoEntity
+import ec.edu.uteq.sga.representante.data.remote.RetrofitClient
+import ec.edu.uteq.sga.representante.domain.model.Asignacion
+import ec.edu.uteq.sga.representante.domain.model.Estudiante
+import ec.edu.uteq.sga.representante.domain.model.PeriodoEvaluacion
+import ec.edu.uteq.sga.representante.domain.repository.DocenteRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
+
+<span class="nc" id="L20">class DocenteRepositoryImpl(</span>
+<span class="nc" id="L21">    private val database: AppDatabase,</span>
+<span class="nc" id="L22">    private val retrofitClient: RetrofitClient,</span>
+<span class="nc" id="L23">    private val connectivityObserver: NetworkConnectivityObserver</span>
+) : DocenteRepository {
+
+<span class="nc" id="L26">    private val asignacionDao = database.asignacionDao()</span>
+<span class="nc" id="L27">    private val estudianteDao = database.estudianteDao()</span>
+<span class="nc" id="L28">    private val periodoDao = database.periodoDao()</span>
+
+<span class="nc" id="L30">    override fun getAsignaciones(): Flow&lt;Resource&lt;List&lt;Asignacion&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L31">        emit(Resource.Loading)</span>
+
+        // 1. Emitir caché local de inmediato si existe
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        val cachedEntities = asignacionDao.getAllAsignaciones().firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L35" title="All 4 branches missed.">        if (cachedEntities.isNotEmpty()) {</span>
+<span class="nc" id="L36">            val cachedDomain = cachedEntities.map { e -&gt;</span>
+<span class="nc" id="L37">                Asignacion(</span>
+<span class="nc" id="L38">                    idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L39">                    asignaturaNombre = e.asignaturaNombre,</span>
+<span class="nc" id="L40">                    gradoNombre = e.gradoNombre,</span>
+<span class="nc" id="L41">                    paraleloLetra = e.paraleloLetra,</span>
+<span class="nc" id="L42">                    anoLectivoNombre = e.anoLectivoNombre,</span>
+<span class="nc" id="L43">                    cantidadEstudiantes = e.cantidadEstudiantes,</span>
+<span class="nc" id="L44">                    porcentajeAsistencia = e.porcentajeAsistencia,</span>
+<span class="nc" id="L45">                    promedioCalificaciones = e.promedioCalificaciones</span>
+                )
+            }
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            emit(Resource.Success(cachedDomain, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+        // 2. Consultar red si hay conexión
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L53">            try {</span>
+<span class="nc" id="L54">                val api = retrofitClient.getPrincipalDocenteApi()</span>
+<span class="nc" id="L55">                val response = api.getMisAsignaciones()</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">                if (response.isSuccessful &amp;&amp; response.body() != null) {</span>
+<span class="nc" id="L57">                    val dtos = response.body()!!</span>
+<span class="nc" id="L58">                    val domainList = dtos.map { dto -&gt;</span>
+<span class="nc" id="L59">                        Asignacion(</span>
+<span class="nc" id="L60">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L61">                            asignaturaNombre = dto.asignatura.nombre,</span>
+<span class="nc" id="L62">                            gradoNombre = dto.grado.nombre,</span>
+<span class="nc" id="L63">                            paraleloLetra = dto.paralelo.letra,</span>
+<span class="nc" id="L64">                            anoLectivoNombre = dto.anoLectivo.nombre,</span>
+<span class="nc" id="L65">                            cantidadEstudiantes = dto.cantidadEstudiantes,</span>
+<span class="nc" id="L66">                            porcentajeAsistencia = dto.porcentajeAsistencia,</span>
+<span class="nc" id="L67">                            promedioCalificaciones = dto.promedioCalificaciones</span>
+                        )
+                    }
+
+<span class="nc" id="L71">                    val entities = dtos.map { dto -&gt;</span>
+<span class="nc" id="L72">                        AsignacionEntity(</span>
+<span class="nc" id="L73">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L74">                            asignaturaId = dto.asignatura.id,</span>
+<span class="nc" id="L75">                            asignaturaNombre = dto.asignatura.nombre,</span>
+<span class="nc" id="L76">                            gradoId = dto.grado.id,</span>
+<span class="nc" id="L77">                            gradoNombre = dto.grado.nombre,</span>
+<span class="nc" id="L78">                            paraleloId = dto.paralelo.id,</span>
+<span class="nc" id="L79">                            paraleloLetra = dto.paralelo.letra,</span>
+<span class="nc" id="L80">                            anoLectivoId = dto.anoLectivo.id,</span>
+<span class="nc" id="L81">                            anoLectivoNombre = dto.anoLectivo.nombre,</span>
+<span class="nc" id="L82">                            cantidadEstudiantes = dto.cantidadEstudiantes,</span>
+<span class="nc" id="L83">                            porcentajeAsistencia = dto.porcentajeAsistencia,</span>
+<span class="nc" id="L84">                            promedioCalificaciones = dto.promedioCalificaciones</span>
+                        )
+                    }
+
+<span class="nc" id="L88">                    try {</span>
+<span class="nc" id="L89">                        asignacionDao.clearAsignaciones()</span>
+<span class="nc" id="L90">                        asignacionDao.insertAsignaciones(entities)</span>
+<span class="nc" id="L91">                    } catch (dbEx: Exception) {</span>
+                        // Error de BD no bloquea la UI
+                    }
+
+<span class="nc" id="L95">                    emit(Resource.Success(domainList, isOffline = false))</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                } else if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L97">                    emit(Resource.Error(&quot;El servidor SGA respondió con error (${response.code()})&quot;))</span>
+                }
+<span class="nc" id="L99">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L101">                    emit(Resource.Error(&quot;No se pudo conectar con el servidor SGA. Verifique su red.&quot;))</span>
+                }
+            }
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        } else if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L105">            emit(Resource.Error(&quot;Sin conexión a Internet y sin datos en caché.&quot;))</span>
+        }
+<span class="nc" id="L107">    }</span>
+
+<span class="nc" id="L109">    override suspend fun getAsignacion(idAsignacion: Long): Resource&lt;Asignacion&gt; = withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L110">        val cached = asignacionDao.getAsignacionById(idAsignacion)</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (cached != null) {</span>
+<span class="nc" id="L112">            return@withContext Resource.Success(</span>
+<span class="nc" id="L113">                Asignacion(</span>
+<span class="nc" id="L114">                    idAsignacion = cached.idAsignacion,</span>
+<span class="nc" id="L115">                    asignaturaNombre = cached.asignaturaNombre,</span>
+<span class="nc" id="L116">                    gradoNombre = cached.gradoNombre,</span>
+<span class="nc" id="L117">                    paraleloLetra = cached.paraleloLetra,</span>
+<span class="nc" id="L118">                    anoLectivoNombre = cached.anoLectivoNombre,</span>
+<span class="nc" id="L119">                    cantidadEstudiantes = cached.cantidadEstudiantes,</span>
+<span class="nc" id="L120">                    porcentajeAsistencia = cached.porcentajeAsistencia,</span>
+<span class="nc" id="L121">                    promedioCalificaciones = cached.promedioCalificaciones</span>
+                )
+            )
+        }
+
+<span class="nc" id="L126">        try {</span>
+<span class="nc" id="L127">            val api = retrofitClient.getPrincipalDocenteApi()</span>
+<span class="nc" id="L128">            val response = api.getMisAsignaciones()</span>
+<span class="nc bnc" id="L129" title="All 4 branches missed.">            if (response.isSuccessful &amp;&amp; response.body() != null) {</span>
+<span class="nc bnc" id="L130" title="All 6 branches missed.">                val dto = response.body()!!.find { it.idAsignacion == idAsignacion }</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                if (dto != null) {</span>
+<span class="nc" id="L132">                    val entity = AsignacionEntity(</span>
+<span class="nc" id="L133">                        idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L134">                        asignaturaId = dto.asignatura.id,</span>
+<span class="nc" id="L135">                        asignaturaNombre = dto.asignatura.nombre,</span>
+<span class="nc" id="L136">                        gradoId = dto.grado.id,</span>
+<span class="nc" id="L137">                        gradoNombre = dto.grado.nombre,</span>
+<span class="nc" id="L138">                        paraleloId = dto.paralelo.id,</span>
+<span class="nc" id="L139">                        paraleloLetra = dto.paralelo.letra,</span>
+<span class="nc" id="L140">                        anoLectivoId = dto.anoLectivo.id,</span>
+<span class="nc" id="L141">                        anoLectivoNombre = dto.anoLectivo.nombre,</span>
+<span class="nc" id="L142">                        cantidadEstudiantes = dto.cantidadEstudiantes,</span>
+<span class="nc" id="L143">                        porcentajeAsistencia = dto.porcentajeAsistencia,</span>
+<span class="nc" id="L144">                        promedioCalificaciones = dto.promedioCalificaciones</span>
+                    )
+<span class="nc" id="L146">                    asignacionDao.insertAsignaciones(listOf(entity))</span>
+
+<span class="nc" id="L148">                    return@withContext Resource.Success(</span>
+<span class="nc" id="L149">                        Asignacion(</span>
+<span class="nc" id="L150">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L151">                            asignaturaNombre = dto.asignatura.nombre,</span>
+<span class="nc" id="L152">                            gradoNombre = dto.grado.nombre,</span>
+<span class="nc" id="L153">                            paraleloLetra = dto.paralelo.letra,</span>
+<span class="nc" id="L154">                            anoLectivoNombre = dto.anoLectivo.nombre,</span>
+<span class="nc" id="L155">                            cantidadEstudiantes = dto.cantidadEstudiantes,</span>
+<span class="nc" id="L156">                            porcentajeAsistencia = dto.porcentajeAsistencia,</span>
+<span class="nc" id="L157">                            promedioCalificaciones = dto.promedioCalificaciones</span>
+                        )
+                    )
+                }
+            }
+<span class="nc" id="L162">        } catch (e: Exception) {</span>
+            // Error de red
+        }
+
+<span class="nc" id="L166">        return@withContext Resource.Error(&quot;No se encontró la asignación solicitada&quot;)</span>
+<span class="nc" id="L167">    }</span>
+
+<span class="nc" id="L169">    override fun getEstudiantesPorAsignacion(idAsignacion: Long): Flow&lt;Resource&lt;List&lt;Estudiante&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L170">        emit(Resource.Loading)</span>
+
+        // 1. Emitir caché local de inmediato si existe
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        val cachedEntities = estudianteDao.getEstudiantesByAsignacion(idAsignacion).firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L174" title="All 4 branches missed.">        if (cachedEntities.isNotEmpty()) {</span>
+<span class="nc" id="L175">            val cachedDomain = cachedEntities.map { e -&gt;</span>
+<span class="nc" id="L176">                Estudiante(</span>
+<span class="nc" id="L177">                    idMatricula = e.idMatricula,</span>
+<span class="nc" id="L178">                    idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L179">                    estudianteId = e.estudianteId,</span>
+<span class="nc" id="L180">                    nombres = e.nombres,</span>
+<span class="nc" id="L181">                    apellidos = e.apellidos,</span>
+<span class="nc" id="L182">                    cedula = e.cedula,</span>
+<span class="nc" id="L183">                    estadoMatricula = e.estadoMatricula</span>
+                )
+            }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">            emit(Resource.Success(cachedDomain, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+        // 2. Consultar red
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L191">            try {</span>
+<span class="nc" id="L192">                val api = retrofitClient.getPrincipalDocenteApi()</span>
+<span class="nc" id="L193">                val response = api.getEstudiantesPorAsignacion(idAsignacion)</span>
+<span class="nc bnc" id="L194" title="All 4 branches missed.">                if (response.isSuccessful &amp;&amp; response.body() != null) {</span>
+<span class="nc" id="L195">                    val dtos = response.body()!!</span>
+<span class="nc" id="L196">                    val domainList = dtos.map { dto -&gt;</span>
+<span class="nc" id="L197">                        Estudiante(</span>
+<span class="nc" id="L198">                            idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L199">                            idAsignacion = idAsignacion,</span>
+<span class="nc" id="L200">                            estudianteId = dto.estudiante.id,</span>
+<span class="nc" id="L201">                            nombres = dto.estudiante.nombres,</span>
+<span class="nc" id="L202">                            apellidos = dto.estudiante.apellidos,</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                            cedula = dto.estudiante.cedula ?: &quot;&quot;,</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                            estadoMatricula = dto.estado ?: &quot;ACTIVA&quot;</span>
+                        )
+                    }
+
+<span class="nc" id="L208">                    val entities = dtos.map { dto -&gt;</span>
+<span class="nc" id="L209">                        EstudianteEntity(</span>
+<span class="nc" id="L210">                            idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L211">                            idAsignacion = idAsignacion,</span>
+<span class="nc" id="L212">                            estudianteId = dto.estudiante.id,</span>
+<span class="nc" id="L213">                            nombres = dto.estudiante.nombres,</span>
+<span class="nc" id="L214">                            apellidos = dto.estudiante.apellidos,</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                            cedula = dto.estudiante.cedula ?: &quot;&quot;,</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                            estadoMatricula = dto.estado ?: &quot;ACTIVA&quot;</span>
+                        )
+                    }
+
+<span class="nc" id="L220">                    try {</span>
+<span class="nc" id="L221">                        estudianteDao.clearEstudiantesByAsignacion(idAsignacion)</span>
+<span class="nc" id="L222">                        estudianteDao.insertEstudiantes(entities)</span>
+<span class="nc" id="L223">                    } catch (dbEx: Exception) {</span>
+                        // Error de BD no bloquea la UI
+                    }
+
+<span class="nc" id="L227">                    emit(Resource.Success(domainList, isOffline = false))</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                } else if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L229">                    emit(Resource.Error(&quot;El servidor SGA respondió con error (${response.code()})&quot;))</span>
+                }
+<span class="nc" id="L231">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L233">                    emit(Resource.Error(&quot;No se pudo obtener la nómina de estudiantes. Verifique la conexión.&quot;))</span>
+                }
+            }
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        } else if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L237">            emit(Resource.Error(&quot;Sin conexión a Internet y sin estudiantes en caché.&quot;))</span>
+        }
+<span class="nc" id="L239">    }</span>
+
+<span class="nc" id="L241">    override fun getPeriodosEvaluacion(): Flow&lt;Resource&lt;List&lt;PeriodoEvaluacion&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L242">        emit(Resource.Loading)</span>
+
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        val cachedEntities = periodoDao.getPeriodosActivos().firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L245" title="All 4 branches missed.">        if (cachedEntities.isNotEmpty()) {</span>
+<span class="nc" id="L246">            val cachedDomain = cachedEntities.map { e -&gt;</span>
+<span class="nc" id="L247">                PeriodoEvaluacion(</span>
+<span class="nc" id="L248">                    idPeriodo = e.idPeriodo,</span>
+<span class="nc" id="L249">                    idAnoLectivo = e.idAnoLectivo,</span>
+<span class="nc" id="L250">                    tipo = e.tipo,</span>
+<span class="nc" id="L251">                    nombre = e.nombre,</span>
+<span class="nc" id="L252">                    fechaInicio = e.fechaInicio,</span>
+<span class="nc" id="L253">                    fechaFin = e.fechaFin,</span>
+<span class="nc" id="L254">                    activo = e.activo</span>
+                )
+            }
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            emit(Resource.Success(cachedDomain, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L261">            try {</span>
+<span class="nc" id="L262">                val api = retrofitClient.getDocenteApi()</span>
+<span class="nc" id="L263">                val response = api.getPeriodosEvaluacion()</span>
+<span class="nc bnc" id="L264" title="All 4 branches missed.">                if (response.isSuccessful &amp;&amp; response.body() != null) {</span>
+<span class="nc" id="L265">                    val dtos = response.body()!!</span>
+<span class="nc" id="L266">                    val entities = dtos.map { dto -&gt;</span>
+<span class="nc" id="L267">                        PeriodoEntity(</span>
+<span class="nc" id="L268">                            idPeriodo = dto.idPeriodo,</span>
+<span class="nc" id="L269">                            idAnoLectivo = dto.idAnoLectivo,</span>
+<span class="nc" id="L270">                            tipo = dto.tipo,</span>
+<span class="nc" id="L271">                            nombre = dto.nombre,</span>
+<span class="nc" id="L272">                            fechaInicio = dto.fechaInicio,</span>
+<span class="nc" id="L273">                            fechaFin = dto.fechaFin,</span>
+<span class="nc" id="L274">                            activo = dto.activo</span>
+                        )
+                    }
+<span class="nc" id="L277">                    val domainList = dtos.map { dto -&gt;</span>
+<span class="nc" id="L278">                        PeriodoEvaluacion(</span>
+<span class="nc" id="L279">                            idPeriodo = dto.idPeriodo,</span>
+<span class="nc" id="L280">                            idAnoLectivo = dto.idAnoLectivo,</span>
+<span class="nc" id="L281">                            tipo = dto.tipo,</span>
+<span class="nc" id="L282">                            nombre = dto.nombre,</span>
+<span class="nc" id="L283">                            fechaInicio = dto.fechaInicio,</span>
+<span class="nc" id="L284">                            fechaFin = dto.fechaFin,</span>
+<span class="nc" id="L285">                            activo = dto.activo</span>
+                        )
+                    }
+<span class="nc" id="L288">                    try {</span>
+<span class="nc" id="L289">                        periodoDao.insertPeriodos(entities)</span>
+<span class="nc" id="L290">                    } catch (dbEx: Exception) {</span>
+                        // DB warning
+                    }
+<span class="nc" id="L293">                    emit(Resource.Success(domainList, isOffline = false))</span>
+                }
+<span class="nc" id="L295">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                if (cachedEntities.isEmpty()) {</span>
+<span class="nc" id="L297">                    emit(Resource.Error(&quot;No se pudieron cargar los períodos de evaluación&quot;))</span>
+                }
+            }
+        }
+<span class="nc" id="L301">    }</span>
+
+<span class="nc" id="L303">    override suspend fun refreshDocenteContext(): Resource&lt;Unit&gt; = withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L304">        try {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">            if (!connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L306">                return@withContext Resource.Error(&quot;Sin conexión a Internet&quot;)</span>
+            }
+
+<span class="nc" id="L309">            val apiPrincipal = retrofitClient.getPrincipalDocenteApi()</span>
+<span class="nc" id="L310">            val asigResp = apiPrincipal.getMisAsignaciones()</span>
+<span class="nc bnc" id="L311" title="All 4 branches missed.">            if (asigResp.isSuccessful &amp;&amp; asigResp.body() != null) {</span>
+<span class="nc" id="L312">                val entities = asigResp.body()!!.map { dto -&gt;</span>
+<span class="nc" id="L313">                    AsignacionEntity(</span>
+<span class="nc" id="L314">                        idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L315">                        asignaturaId = dto.asignatura.id,</span>
+<span class="nc" id="L316">                        asignaturaNombre = dto.asignatura.nombre,</span>
+<span class="nc" id="L317">                        gradoId = dto.grado.id,</span>
+<span class="nc" id="L318">                        gradoNombre = dto.grado.nombre,</span>
+<span class="nc" id="L319">                        paraleloId = dto.paralelo.id,</span>
+<span class="nc" id="L320">                        paraleloLetra = dto.paralelo.letra,</span>
+<span class="nc" id="L321">                        anoLectivoId = dto.anoLectivo.id,</span>
+<span class="nc" id="L322">                        anoLectivoNombre = dto.anoLectivo.nombre,</span>
+<span class="nc" id="L323">                        cantidadEstudiantes = dto.cantidadEstudiantes,</span>
+<span class="nc" id="L324">                        porcentajeAsistencia = dto.porcentajeAsistencia,</span>
+<span class="nc" id="L325">                        promedioCalificaciones = dto.promedioCalificaciones</span>
+                    )
+                }
+<span class="nc" id="L328">                asignacionDao.clearAsignaciones()</span>
+<span class="nc" id="L329">                asignacionDao.insertAsignaciones(entities)</span>
+
+<span class="nc bnc" id="L331" title="All 2 branches missed.">                for (asig in asigResp.body()!!) {</span>
+<span class="nc" id="L332">                    try {</span>
+<span class="nc" id="L333">                        val estResp = apiPrincipal.getEstudiantesPorAsignacion(asig.idAsignacion)</span>
+<span class="nc bnc" id="L334" title="All 4 branches missed.">                        if (estResp.isSuccessful &amp;&amp; estResp.body() != null) {</span>
+<span class="nc" id="L335">                            val estEntities = estResp.body()!!.map { dto -&gt;</span>
+<span class="nc" id="L336">                                EstudianteEntity(</span>
+<span class="nc" id="L337">                                    idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L338">                                    idAsignacion = asig.idAsignacion,</span>
+<span class="nc" id="L339">                                    estudianteId = dto.estudiante.id,</span>
+<span class="nc" id="L340">                                    nombres = dto.estudiante.nombres,</span>
+<span class="nc" id="L341">                                    apellidos = dto.estudiante.apellidos,</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                                    cedula = dto.estudiante.cedula ?: &quot;&quot;,</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">                                    estadoMatricula = dto.estado ?: &quot;ACTIVA&quot;</span>
+                                )
+                            }
+<span class="nc" id="L346">                            estudianteDao.clearEstudiantesByAsignacion(asig.idAsignacion)</span>
+<span class="nc" id="L347">                            estudianteDao.insertEstudiantes(estEntities)</span>
+                        }
+<span class="nc" id="L349">                    } catch (e: Exception) {</span>
+                        // Ignore individual course sync errors
+                    }
+                }
+            }
+
+<span class="nc" id="L355">            Resource.Success(Unit)</span>
+<span class="nc" id="L356">        } catch (e: Exception) {</span>
+<span class="nc" id="L357">            Resource.Error(&quot;Error al sincronizar datos del docente: ${e.message}&quot;)</span>
+        }
+<span class="nc" id="L359">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

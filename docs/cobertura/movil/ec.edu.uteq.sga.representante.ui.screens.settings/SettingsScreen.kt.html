@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SettingsScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.settings</a> &gt; <span class="el_source">SettingsScreen.kt</span></div><h1>SettingsScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.settings
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.core.Constants
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.ui.components.SgaTopAppBar
+import ec.edu.uteq.sga.representante.ui.theme.AccentGreen
+import ec.edu.uteq.sga.representante.ui.theme.PrimaryBlue
+
+@Composable
+fun SettingsScreen(
+    sessionManager: SessionManager,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L28">) {</span>
+<span class="nc" id="L29">    var gatewayUrl by remember { mutableStateOf(sessionManager.getGatewayUrl()) }</span>
+<span class="nc" id="L30">    var docenteUrl by remember { mutableStateOf(sessionManager.getDocenteUrl()) }</span>
+<span class="nc" id="L31">    var savedMessage by remember { mutableStateOf(false) }</span>
+
+<span class="nc" id="L33">    Scaffold(</span>
+<span class="nc" id="L34">        topBar = {</span>
+<span class="nc" id="L35">            SgaTopAppBar(</span>
+<span class="nc" id="L36">                title = &quot;Configuración de Servidor&quot;,</span>
+<span class="nc" id="L37">                showBackButton = true,</span>
+<span class="nc" id="L38">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L41">    ) { padding -&gt;</span>
+<span class="nc" id="L42">        Column(</span>
+<span class="nc" id="L43">            modifier = Modifier</span>
+<span class="nc" id="L44">                .fillMaxSize()</span>
+<span class="nc" id="L45">                .padding(padding)</span>
+<span class="nc" id="L46">                .background(MaterialTheme.colorScheme.background)</span>
+<span class="nc" id="L47">                .verticalScroll(rememberScrollState())</span>
+<span class="nc" id="L48">                .padding(20.dp),</span>
+<span class="nc" id="L49">            verticalArrangement = Arrangement.spacedBy(16.dp)</span>
+        ) {
+<span class="nc" id="L51">            Text(</span>
+<span class="nc" id="L52">                text = &quot;Direcciones de Red de la API&quot;,</span>
+<span class="nc" id="L53">                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L54">                fontWeight = FontWeight.Bold</span>
+            )
+<span class="nc" id="L56">            Text(</span>
+<span class="nc" id="L57">                text = &quot;Configura la IP o dominio del backend distribuido para pruebas en emulador Android o dispositivo físico en red local.&quot;,</span>
+<span class="nc" id="L58">                style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L59">                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),</span>
+<span class="nc" id="L60">                fontSize = 13.sp</span>
+            )
+
+            // Presets rápidos
+<span class="nc" id="L64">            Row(</span>
+<span class="nc" id="L65">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L66">                horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+            ) {
+<span class="nc" id="L68">                FilterChip(</span>
+<span class="nc" id="L69">                    selected = gatewayUrl.contains(&quot;192.0.2.1&quot;),</span>
+<span class="nc" id="L70">                    onClick = {</span>
+<span class="nc" id="L71">                        gatewayUrl = &quot;http://192.0.2.1:8080/api/&quot;</span>
+<span class="nc" id="L72">                        docenteUrl = &quot;http://192.0.2.1:8081/api/docente/&quot;</span>
+<span class="nc" id="L73">                    },</span>
+<span class="nc" id="L74">                    label = { Text(&quot;Servidor (AWS)&quot;) }</span>
+                )
+<span class="nc" id="L76">                FilterChip(</span>
+<span class="nc" id="L77">                    selected = gatewayUrl.contains(&quot;10.0.2.2&quot;),</span>
+<span class="nc" id="L78">                    onClick = {</span>
+<span class="nc" id="L79">                        gatewayUrl = &quot;http://10.0.2.2:8080/api/&quot;</span>
+<span class="nc" id="L80">                        docenteUrl = &quot;http://10.0.2.2:8081/api/docente/&quot;</span>
+<span class="nc" id="L81">                    },</span>
+<span class="nc" id="L82">                    label = { Text(&quot;Emulador&quot;) }</span>
+                )
+<span class="nc" id="L84">                FilterChip(</span>
+<span class="nc bnc" id="L85" title="All 4 branches missed.">                    selected = gatewayUrl.contains(&quot;localhost&quot;) || gatewayUrl.contains(&quot;127.0.0.1&quot;),</span>
+<span class="nc" id="L86">                    onClick = {</span>
+<span class="nc" id="L87">                        gatewayUrl = &quot;http://localhost:8080/api/&quot;</span>
+<span class="nc" id="L88">                        docenteUrl = &quot;http://localhost:8081/api/docente/&quot;</span>
+<span class="nc" id="L89">                    },</span>
+<span class="nc" id="L90">                    label = { Text(&quot;Localhost&quot;) }</span>
+                )
+<span class="nc" id="L92">            }</span>
+
+<span class="nc" id="L94">            OutlinedTextField(</span>
+<span class="nc" id="L95">                value = gatewayUrl,</span>
+<span class="nc" id="L96">                onValueChange = {</span>
+<span class="nc" id="L97">                    gatewayUrl = it</span>
+<span class="nc" id="L98">                    savedMessage = false</span>
+<span class="nc" id="L99">                },</span>
+<span class="nc" id="L100">                label = { Text(&quot;URL SGA Principal / Gateway&quot;) },</span>
+<span class="nc" id="L101">                leadingIcon = { Icon(Icons.Default.Dns, contentDescription = null) },</span>
+<span class="nc" id="L102">                singleLine = true,</span>
+<span class="nc" id="L103">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L104">                shape = RoundedCornerShape(12.dp)</span>
+            )
+
+<span class="nc" id="L107">            OutlinedTextField(</span>
+<span class="nc" id="L108">                value = docenteUrl,</span>
+<span class="nc" id="L109">                onValueChange = {</span>
+<span class="nc" id="L110">                    docenteUrl = it</span>
+<span class="nc" id="L111">                    savedMessage = false</span>
+<span class="nc" id="L112">                },</span>
+<span class="nc" id="L113">                label = { Text(&quot;URL del servicio académico&quot;) },</span>
+<span class="nc" id="L114">                leadingIcon = { Icon(Icons.Default.Dns, contentDescription = null) },</span>
+<span class="nc" id="L115">                singleLine = true,</span>
+<span class="nc" id="L116">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L117">                shape = RoundedCornerShape(12.dp)</span>
+            )
+
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (savedMessage) {</span>
+<span class="nc" id="L121">                Surface(</span>
+<span class="nc" id="L122">                    shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L123">                    color = AccentGreen.copy(alpha = 0.15f),</span>
+<span class="nc" id="L124">                    modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L125">                ) {</span>
+<span class="nc" id="L126">                    Text(</span>
+<span class="nc" id="L127">                        text = &quot;Configuración guardada correctamente.&quot;,</span>
+<span class="nc" id="L128">                        color = AccentGreen,</span>
+<span class="nc" id="L129">                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L130">                        fontSize = 13.sp,</span>
+<span class="nc" id="L131">                        modifier = Modifier.padding(10.dp)</span>
+                    )
+                }
+            }
+
+<span class="nc" id="L136">            Button(</span>
+                onClick = {
+<span class="nc" id="L138">                    sessionManager.setGatewayUrl(gatewayUrl.trim())</span>
+<span class="nc" id="L139">                    sessionManager.setDocenteUrl(docenteUrl.trim())</span>
+<span class="nc" id="L140">                    savedMessage = true</span>
+<span class="nc" id="L141">                },</span>
+<span class="nc" id="L142">                modifier = Modifier</span>
+<span class="nc" id="L143">                    .fillMaxWidth()</span>
+<span class="nc" id="L144">                    .height(48.dp),</span>
+<span class="nc" id="L145">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L146">                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)</span>
+<span class="nc" id="L147">            ) {</span>
+<span class="nc" id="L148">                Icon(Icons.Default.Save, contentDescription = null)</span>
+<span class="nc" id="L149">                Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L150">                Text(&quot;Guardar Cambios&quot;, fontWeight = FontWeight.Bold)</span>
+            }
+
+<span class="nc" id="L153">            Spacer(modifier = Modifier.height(16.dp))</span>
+
+            // Información de la sesión
+<span class="nc" id="L156">            Card(</span>
+<span class="nc" id="L157">                shape = RoundedCornerShape(16.dp),</span>
+<span class="nc" id="L158">                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),</span>
+<span class="nc" id="L159">                modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L160">            ) {</span>
+<span class="nc" id="L161">                Column(modifier = Modifier.padding(16.dp)) {</span>
+<span class="nc" id="L162">                    Text(&quot;Información de Aplicación&quot;, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L163">                    Spacer(modifier = Modifier.height(6.dp))</span>
+<span class="nc" id="L164">                    Text(&quot;Versión: 1.0.0 (Módulo Representante)&quot;, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))</span>
+<span class="nc" id="L165">                    Text(&quot;Base de Datos Local: ${Constants.DATABASE_NAME}&quot;, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                    if (sessionManager.getUsername() != null) {</span>
+<span class="nc" id="L167">                        Text(&quot;Usuario Conectado: ${sessionManager.getUsername()}&quot;, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))</span>
+                    }
+<span class="nc" id="L169">                }</span>
+            }
+<span class="nc" id="L171">        }</span>
+    }
+<span class="nc" id="L173">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

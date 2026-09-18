@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepresentanteScreens.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.representante</a> &gt; <span class="el_source">RepresentanteScreens.kt</span></div><h1>RepresentanteScreens.kt</h1><pre class="source lang-java linenums">@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+package ec.edu.uteq.sga.representante.ui.screens.representante
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import ec.edu.uteq.sga.representante.domain.model.*
+import ec.edu.uteq.sga.representante.ui.components.OfflineBanner
+import ec.edu.uteq.sga.representante.notifications.AttendanceNotificationContext
+
+<span class="nc" id="L33">@Composable fun HomeRepresentante(onRepresentados: () -&gt; Unit, onComunicados: () -&gt; Unit, onSecurity: () -&gt; Unit, onLogout: () -&gt; Unit) = Scaffold(</span>
+<span class="nc" id="L34">    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),</span>
+<span class="nc" id="L35">    topBar = {</span>
+<span class="nc" id="L36">        TopAppBar(</span>
+<span class="nc" id="L37">            title = { Text(&quot;AcadTrace&quot;, fontWeight = FontWeight.Bold) },</span>
+<span class="nc" id="L38">            actions = { IconButton(onClick = onLogout) { Icon(Icons.Default.Logout, &quot;Cerrar sesión&quot;) } },</span>
+<span class="nc" id="L39">            colors = TopAppBarDefaults.topAppBarColors(</span>
+<span class="nc" id="L40">                containerColor = MaterialTheme.colorScheme.primary,</span>
+<span class="nc" id="L41">                titleContentColor = MaterialTheme.colorScheme.onPrimary,</span>
+<span class="nc" id="L42">                actionIconContentColor = MaterialTheme.colorScheme.onPrimary</span>
+            )
+        )
+    }
+<span class="nc" id="L46">) { padding -&gt;</span>
+<span class="nc" id="L47">    Column(</span>
+<span class="nc" id="L48">        Modifier.padding(padding).padding(horizontal = 20.dp, vertical = 18.dp),</span>
+<span class="nc" id="L49">        verticalArrangement = Arrangement.spacedBy(14.dp)</span>
+    ) {
+<span class="nc" id="L51">        Text(&quot;Portal del Representante&quot;, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L52">        Text(&quot;Acceda a la información académica y gestione sus preferencias.&quot;, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L53">        OptionCard(&quot;Mis representados&quot;, &quot;Consulte la información académica de sus hijos&quot;, Icons.Default.People, onRepresentados, MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L54">        OptionCard(&quot;Comunicados&quot;, &quot;Avisos institucionales para representantes&quot;, Icons.Default.Campaign, onComunicados, Color(0xFFD97706))</span>
+<span class="nc" id="L55">        OptionCard(&quot;Seguridad&quot;, &quot;Biometría y notificaciones locales&quot;, Icons.Default.Security, onSecurity, Color(0xFF0D9488))</span>
+<span class="nc" id="L56">        Surface(</span>
+<span class="nc" id="L57">            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f),</span>
+<span class="nc" id="L58">            shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L59">            modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L60">        ) {</span>
+<span class="nc" id="L61">            Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {</span>
+<span class="nc" id="L62">                Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L63">                Text(&quot;Calificaciones y asistencia se consultan desde cada representado.&quot;, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L64">            }</span>
+        }
+<span class="nc" id="L66">    }</span>
+}
+
+<span class="nc" id="L69">@Composable fun ComunicadosRepresentanteScreen(vm: RepresentanteViewModel, back: () -&gt; Unit) {</span>
+<span class="nc" id="L70">    val state by vm.comunicados.collectAsState()</span>
+<span class="nc" id="L71">    LaunchedEffect(Unit) { vm.cargarComunicados() }</span>
+<span class="nc" id="L72">    Page(&quot;Comunicados&quot;, back) { StateContent(state, vm::cargarComunicados) { items -&gt;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (items.isEmpty()) Text(&quot;No existen comunicados disponibles&quot;) else LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {</span>
+<span class="nc" id="L74">            items(items, key = { it.id }) { item -&gt; ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {</span>
+<span class="nc" id="L75">                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {</span>
+<span class="nc" id="L76">                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {</span>
+<span class="nc" id="L77">                        IconContainer(Icons.Default.Campaign, Color(0xFFD97706))</span>
+<span class="nc" id="L78">                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {</span>
+<span class="nc" id="L79">                            Text(item.titulo, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)</span>
+<span class="nc" id="L80">                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {</span>
+<span class="nc" id="L81">                                Icon(Icons.Default.CalendarToday, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L82">                                Text(item.fecha, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L83">                            }</span>
+<span class="nc" id="L84">                        }</span>
+<span class="nc" id="L85">                    }</span>
+<span class="nc" id="L86">                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))</span>
+<span class="nc" id="L87">                    Text(item.contenido, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L88">                }</span>
+<span class="nc" id="L89">            } }</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc" id="L91">    } }</span>
+<span class="nc" id="L92">}</span>
+
+<span class="nc" id="L94">@Composable fun MisRepresentadosScreen(vm: RepresentanteViewModel, back: () -&gt; Unit, select: (Representado) -&gt; Unit) {</span>
+<span class="nc" id="L95">    val state by vm.representados.collectAsState()</span>
+<span class="nc" id="L96">    Page(&quot;Mis representados&quot;, back) { StateContent(state, vm::cargarRepresentados) { items -&gt;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (items.isEmpty()) Text(&quot;No hay representados asociados&quot;) else LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {</span>
+<span class="nc" id="L98">            items(items) { item -&gt; ElevatedCard(Modifier.fillMaxWidth().clickable { select(item) }, shape = RoundedCornerShape(18.dp)) {</span>
+<span class="nc" id="L99">                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {</span>
+<span class="nc" id="L100">                    IconContainer(Icons.Default.School, MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L101">                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {</span>
+<span class="nc" id="L102">                        Text(item.nombreCompleto, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)</span>
+<span class="nc" id="L103">                        val course = listOfNotNull(item.curso, item.paralelo).joinToString(&quot; · &quot;)</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">                        if (course.isNotBlank()) Text(course, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L105">                    }</span>
+<span class="nc" id="L106">                    Icon(Icons.Default.ChevronRight, &quot;Ver resumen&quot;, tint = MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L107">                }</span>
+<span class="nc" id="L108">            } }</span>
+<span class="nc" id="L109">        }</span>
+<span class="nc" id="L110">    } }</span>
+<span class="nc" id="L111">}</span>
+
+<span class="nc" id="L113">@Composable fun ResumenRepresentadoScreen(nombre: String, back: () -&gt; Unit, notas: () -&gt; Unit, asistencia: () -&gt; Unit) = Page(&quot;Resumen académico&quot;, back) {</span>
+<span class="nc" id="L114">    Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {</span>
+<span class="nc" id="L115">        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {</span>
+<span class="nc" id="L116">            IconContainer(Icons.Default.School, MaterialTheme.colorScheme.onPrimary)</span>
+<span class="nc" id="L117">            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {</span>
+<span class="nc" id="L118">                Text(nombre, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)</span>
+<span class="nc" id="L119">                Text(&quot;Información académica&quot;, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f))</span>
+<span class="nc" id="L120">            }</span>
+<span class="nc" id="L121">        }</span>
+    }
+<span class="nc" id="L123">    Text(&quot;Consulta&quot;, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)</span>
+<span class="nc" id="L124">    OptionCard(&quot;Calificaciones&quot;, &quot;Periodos, actividades y promedios&quot;, Icons.Default.Grade, notas, Color(0xFF7C3AED))</span>
+<span class="nc" id="L125">    OptionCard(&quot;Asistencia&quot;, &quot;Registros y resumen de asistencia&quot;, Icons.Default.EventAvailable, asistencia, Color(0xFF16803A))</span>
+}
+
+<span class="nc" id="L128">@Composable fun ConsultaCalificacionesRepresentante(vm: RepresentanteViewModel, back: () -&gt; Unit, retry: () -&gt; Unit) {</span>
+<span class="nc" id="L129">    val state by vm.calificaciones.collectAsState()</span>
+<span class="nc" id="L130">    val selected by vm.periodoSeleccionado.collectAsState()</span>
+<span class="nc" id="L131">    Page(&quot;Calificaciones&quot;, back) { StateContent(state, retry) { data -&gt;</span>
+<span class="nc" id="L132">        var expandedSubjectId by rememberSaveable(selected) { mutableStateOf&lt;Long?&gt;(null) }</span>
+<span class="nc" id="L133">        PeriodSelector(data.periodos, selected, vm::seleccionarPeriodo)</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">        val blocks = selected?.let(data::asignaturas).orEmpty()</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (blocks.isEmpty()) Text(&quot;No existen calificaciones para este período&quot;)</span>
+<span class="nc" id="L136">        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {</span>
+<span class="nc" id="L137">            items(blocks, key = { it.idAsignacion }) { block -&gt;</span>
+<span class="nc" id="L138">                val expanded = expandedSubjectId == block.idAsignacion</span>
+<span class="nc" id="L139">                ElevatedCard(</span>
+<span class="nc" id="L140">                    Modifier.fillMaxWidth().animateContentSize(animationSpec = tween(250)).clickable {</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                        expandedSubjectId = if (expanded) null else block.idAsignacion</span>
+<span class="nc" id="L142">                    },</span>
+<span class="nc" id="L143">                    shape = RoundedCornerShape(18.dp)</span>
+<span class="nc" id="L144">                ) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L145">                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {</span>
+<span class="nc" id="L146">                    IconContainer(Icons.Default.MenuBook, MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L147">                    Column(Modifier.weight(1f)) {</span>
+<span class="nc" id="L148">                        Text(block.asignatura, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)</span>
+<span class="nc bnc" id="L149" title="All 8 branches missed.">                        Text(block.promedio?.periodo ?: block.actividades.firstOrNull()?.periodo.orEmpty(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L150">                    }</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                    block.promedio?.let { p -&gt;</span>
+<span class="nc" id="L152">                        Column(horizontalAlignment = Alignment.End) {</span>
+<span class="nc" id="L153">                            Text(p.promedioTrimestral.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L154">                            Text(p.notaCualitativa.etiquetaCualitativa(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L155">                        }</span>
+<span class="nc" id="L156">                    }</span>
+<span class="nc bnc" id="L157" title="All 4 branches missed.">                    Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, if (expanded) &quot;Contraer materia&quot; else &quot;Expandir materia&quot;, tint = MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L158">                }</span>
+
+<span class="nc" id="L160">                AnimatedVisibility(</span>
+<span class="nc" id="L161">                    visible = expanded,</span>
+<span class="nc" id="L162">                    enter = fadeIn(tween(180)) + expandVertically(tween(250)),</span>
+<span class="nc" id="L163">                    exit = fadeOut(tween(140)) + shrinkVertically(tween(220))</span>
+<span class="nc" id="L164">                ) {</span>
+<span class="nc" id="L165">                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L166">                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                        block.promedio?.let { p -&gt;</span>
+<span class="nc" id="L168">                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {</span>
+<span class="nc" id="L169">                                GradeMetric(&quot;Formativo&quot;, p.promedioFormativo.toString(), Modifier.weight(1f))</span>
+<span class="nc" id="L170">                                GradeMetric(&quot;Sumativo&quot;, p.notaSumativa.toString(), Modifier.weight(1f))</span>
+<span class="nc" id="L171">                                GradeMetric(&quot;Promedio&quot;, &quot;${p.promedioTrimestral} · ${p.notaCualitativa.etiquetaCualitativa()}&quot;, Modifier.weight(1f), emphasized = true)</span>
+<span class="nc" id="L172">                            }</span>
+<span class="nc" id="L173">                        }</span>
+<span class="nc bnc" id="L174" title="All 4 branches missed.">                        if (block.actividades.isNotEmpty()) Text(&quot;Actividades&quot;, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L175">                        block.actividades.forEachIndexed { index, n -&gt;</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                            if (index &gt; 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))</span>
+<span class="nc" id="L177">                            Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L178">                                Text(n.actividad, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)</span>
+<span class="nc bnc" id="L179" title="All 4 branches missed.">                                GradeBadge(n.nota?.toString() ?: &quot;Pendiente&quot;)</span>
+<span class="nc" id="L180">                            }</span>
+<span class="nc" id="L181">                        }</span>
+<span class="nc" id="L182">                    }</span>
+<span class="nc" id="L183">                }</span>
+<span class="nc" id="L184">            } } }</span>
+<span class="nc bnc" id="L185" title="All 6 branches missed.">            if (data.mostrarPromediosAnuales &amp;&amp; data.promediosAnuales.isNotEmpty()) {</span>
+<span class="nc" id="L186">                item { Text(&quot;Promedios finales&quot;, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }</span>
+<span class="nc" id="L187">                items(data.promediosAnuales, key = { it.idAsignacion }) { p -&gt; ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {</span>
+<span class="nc" id="L188">                    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L189">                        Text(p.asignatura, Modifier.weight(1f), fontWeight = FontWeight.SemiBold)</span>
+<span class="nc" id="L190">                        GradeBadge(&quot;${p.promedioAnual} · ${p.notaCualitativa.etiquetaCualitativa()}&quot;)</span>
+<span class="nc" id="L191">                    }</span>
+<span class="nc" id="L192">                } }</span>
+            }
+<span class="nc" id="L194">        }</span>
+<span class="nc" id="L195">    } }</span>
+<span class="nc" id="L196">}</span>
+
+@Composable
+<span class="nc" id="L199">private fun PeriodSelector(periods: List&lt;PeriodoCalificaciones&gt;, selected: Long?, onSelect: (Long) -&gt; Unit) {</span>
+<span class="nc" id="L200">    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {</span>
+<span class="nc" id="L201">        periods.forEach { period -&gt;</span>
+<span class="nc bnc" id="L202" title="All 4 branches missed.">            val active = selected == period.idPeriodo</span>
+<span class="nc" id="L203">            val label = compactPeriodLabel(period.nombre)</span>
+<span class="nc" id="L204">            Surface(</span>
+<span class="nc bnc" id="L205" title="All 6 branches missed.">                modifier = Modifier.weight(1f).clickable { onSelect(period.idPeriodo) },</span>
+<span class="nc" id="L206">                shape = RoundedCornerShape(14.dp),</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                contentColor = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                border = BorderStroke(1.dp, if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                tonalElevation = if (active) 2.dp else 0.dp</span>
+<span class="nc" id="L211">            ) {</span>
+<span class="nc" id="L212">                Column(</span>
+<span class="nc" id="L213">                    Modifier.padding(horizontal = 4.dp, vertical = 10.dp),</span>
+<span class="nc" id="L214">                    horizontalAlignment = Alignment.CenterHorizontally,</span>
+<span class="nc" id="L215">                    verticalArrangement = Arrangement.spacedBy(2.dp)</span>
+                ) {
+<span class="nc" id="L217">                    Text(label.first, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, maxLines = 1)</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">                    label.second?.let { Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1) }</span>
+<span class="nc" id="L219">                }</span>
+            }
+<span class="nc" id="L221">        }</span>
+<span class="nc" id="L222">    }</span>
+<span class="nc" id="L223">}</span>
+
+private fun compactPeriodLabel(name: String): Pair&lt;String, String?&gt; {
+<span class="nc" id="L226">    val normalized = name.trim()</span>
+<span class="nc" id="L227">    val title = when {</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        normalized.contains(&quot;primer&quot;, ignoreCase = true) -&gt; &quot;1° Trimestre&quot;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        normalized.contains(&quot;segundo&quot;, ignoreCase = true) -&gt; &quot;2° Trimestre&quot;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        normalized.contains(&quot;tercer&quot;, ignoreCase = true) -&gt; &quot;3° Trimestre&quot;</span>
+<span class="nc" id="L231">        else -&gt; normalized</span>
+    }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    val schoolYear = Regex(&quot;\\b\\d{4}\\s*[-–]\\s*\\d{4}\\b&quot;).find(normalized)?.value</span>
+<span class="nc" id="L234">    return title to schoolYear</span>
+}
+
+<span class="nc bnc" id="L237" title="All 2 branches missed.">@Composable fun AsistenciaHijoScreen(vm: RepresentanteViewModel, back: () -&gt; Unit, notificationContext: AttendanceNotificationContext? = null, retry: () -&gt; Unit) {</span>
+<span class="nc" id="L238">    val state by vm.asistencia.collectAsState()</span>
+<span class="nc" id="L239">    var trimestre by rememberSaveable { mutableStateOf(TrimestreAsistencia.T1) }</span>
+<span class="nc bnc" id="L240" title="All 6 branches missed.">    var detalle by rememberSaveable { mutableStateOf&lt;FiltroAsistencia?&gt;(null) }</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">    val closeOrBack = { if (detalle != null) detalle = null else back() }</span>
+
+<span class="nc" id="L243">    Scaffold(</span>
+<span class="nc" id="L244">        containerColor = Color(0xFFF5F7FC),</span>
+<span class="nc" id="L245">        topBar = {</span>
+<span class="nc" id="L246">            TopAppBar(</span>
+<span class="nc bnc" id="L247" title="All 4 branches missed.">                title = { Text(detalle?.let { &quot;Asistencias - ${it.label}&quot; } ?: &quot;Asistencia&quot;, fontWeight = FontWeight.SemiBold) },</span>
+<span class="nc" id="L248">                navigationIcon = { IconButton(onClick = closeOrBack) { Icon(Icons.Default.ArrowBack, &quot;Volver&quot;) } },</span>
+<span class="nc" id="L249">                colors = TopAppBarDefaults.topAppBarColors(</span>
+<span class="nc" id="L250">                    containerColor = MaterialTheme.colorScheme.primary,</span>
+<span class="nc" id="L251">                    titleContentColor = MaterialTheme.colorScheme.onPrimary,</span>
+<span class="nc" id="L252">                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary</span>
+                )
+            )
+        }
+<span class="nc" id="L256">    ) { padding -&gt;</span>
+<span class="nc" id="L257">        Column(Modifier.padding(padding).padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {</span>
+<span class="nc bnc" id="L258" title="All 4 branches missed.">            if (detalle == null) notificationContext?.let { AttendanceNotificationCard(it) }</span>
+<span class="nc" id="L259">            StateContent(state, retry) { data -&gt;</span>
+<span class="nc" id="L260">                val registrosTrimestre = remember(data.asistencias, trimestre) {</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                    data.asistencias.filter { it.periodo.trimestreAsistencia() == trimestre }</span>
+                }
+<span class="nc" id="L263">                val resumen = remember(registrosTrimestre) { registrosTrimestre.resumenAsistencia() }</span>
+
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if (detalle == null) {</span>
+<span class="nc" id="L266">                    SelectorTrimestreAsistencia(seleccionado = trimestre, onSelect = { trimestre = it })</span>
+<span class="nc" id="L267">                    ResumenAsistenciaCard(resumen)</span>
+<span class="nc" id="L268">                    Text(&quot;Consultar registros&quot;, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L269">                    LazyColumn(</span>
+<span class="nc" id="L270">                        modifier = Modifier.fillMaxWidth().weight(1f),</span>
+<span class="nc" id="L271">                        verticalArrangement = Arrangement.spacedBy(10.dp),</span>
+<span class="nc" id="L272">                        contentPadding = PaddingValues(bottom = 16.dp)</span>
+<span class="nc" id="L273">                    ) {</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                        items(FiltroAsistencia.entries.filter { it != FiltroAsistencia.PRESENTES }) { filtro -&gt;</span>
+<span class="nc" id="L275">                            CategoriaAsistenciaCard(filtro) { detalle = filtro }</span>
+<span class="nc" id="L276">                        }</span>
+<span class="nc" id="L277">                    }</span>
+<span class="nc" id="L278">                } else {</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                    val filtro = requireNotNull(detalle)</span>
+<span class="nc" id="L280">                    val registrosVisibles = remember(registrosTrimestre, filtro) {</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">                        if (filtro.estado == null) registrosTrimestre</span>
+<span class="nc" id="L282">                        else registrosTrimestre.filter { it.estado.equals(filtro.estado, ignoreCase = true) }</span>
+                    }
+<span class="nc" id="L284">                    DetalleAsistencia(</span>
+<span class="nc" id="L285">                        filtro = filtro,</span>
+<span class="nc bnc" id="L286" title="All 4 branches missed.">                        periodo = registrosTrimestre.firstOrNull()?.periodo ?: trimestre.nombreVisual,</span>
+<span class="nc" id="L287">                        registros = registrosVisibles</span>
+                    )
+                }
+<span class="nc" id="L290">            }</span>
+<span class="nc" id="L291">        }</span>
+    }
+<span class="nc" id="L293">}</span>
+
+<span class="nc" id="L295">@Composable private fun AttendanceNotificationCard(context: AttendanceNotificationContext) {</span>
+<span class="nc" id="L296">    ElevatedCard(Modifier.fillMaxWidth()) {</span>
+<span class="nc" id="L297">        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {</span>
+<span class="nc" id="L298">            Text(context.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L299">            Text(context.message, style = MaterialTheme.typography.bodyMedium)</span>
+<span class="nc" id="L300">        }</span>
+    }
+}
+
+<span class="pc" id="L304">internal enum class TrimestreAsistencia(val label: String, val nombreVisual: String) {</span>
+<span class="fc" id="L305">    T1(&quot;T1&quot;, &quot;1° Trimestre&quot;), T2(&quot;T2&quot;, &quot;2° Trimestre&quot;), T3(&quot;T3&quot;, &quot;3° Trimestre&quot;)</span>
+}
+
+<span class="nc" id="L308">private enum class FiltroAsistencia(val label: String, val estado: String?) {</span>
+<span class="nc" id="L309">    TODOS(&quot;Todos&quot;, null), AUSENTES(&quot;Ausentes&quot;, &quot;AUSENTE&quot;), ATRASOS(&quot;Atrasos&quot;, &quot;ATRASO&quot;),</span>
+<span class="nc" id="L310">    JUSTIFICADOS(&quot;Justificados&quot;, &quot;JUSTIFICADO&quot;), PRESENTES(&quot;Presentes&quot;, &quot;PRESENTE&quot;)</span>
+}
+
+<span class="nc" id="L313">private data class ResumenAsistenciaLocal(</span>
+<span class="nc" id="L314">    val total: Int,</span>
+<span class="nc" id="L315">    val presentes: Int,</span>
+<span class="nc" id="L316">    val ausentes: Int,</span>
+<span class="nc" id="L317">    val atrasos: Int,</span>
+<span class="nc" id="L318">    val justificados: Int</span>
+) {
+<span class="nc bnc" id="L320" title="All 2 branches missed.">    val porcentaje: Double get() = if (total == 0) 0.0 else presentes * 100.0 / total</span>
+}
+
+internal fun String.trimestreAsistencia(): TrimestreAsistencia? {
+<span class="fc" id="L324">    val value = trim().uppercase().replace(Regex(&quot;\\s+&quot;), &quot; &quot;)</span>
+<span class="fc" id="L325">    return when {</span>
+<span class="pc bpc" id="L326" title="1 of 4 branches missed.">        value == &quot;T1&quot; || value.startsWith(&quot;PRIMER TRIMESTRE&quot;) -&gt; TrimestreAsistencia.T1</span>
+<span class="pc bpc" id="L327" title="1 of 4 branches missed.">        value == &quot;T2&quot; || value.startsWith(&quot;SEGUNDO TRIMESTRE&quot;) -&gt; TrimestreAsistencia.T2</span>
+<span class="pc bpc" id="L328" title="1 of 4 branches missed.">        value == &quot;T3&quot; || value.startsWith(&quot;TERCER TRIMESTRE&quot;) -&gt; TrimestreAsistencia.T3</span>
+<span class="fc" id="L329">        else -&gt; null</span>
+    }
+}
+
+<span class="nc" id="L333">private fun List&lt;AsistenciaHijo&gt;.resumenAsistencia() = ResumenAsistenciaLocal(</span>
+<span class="nc" id="L334">    total = size,</span>
+<span class="nc" id="L335">    presentes = count { it.estado.equals(&quot;PRESENTE&quot;, ignoreCase = true) },</span>
+<span class="nc" id="L336">    ausentes = count { it.estado.equals(&quot;AUSENTE&quot;, ignoreCase = true) },</span>
+<span class="nc" id="L337">    atrasos = count { it.estado.equals(&quot;ATRASO&quot;, ignoreCase = true) },</span>
+<span class="nc" id="L338">    justificados = count { it.estado.equals(&quot;JUSTIFICADO&quot;, ignoreCase = true) }</span>
+<span class="nc" id="L339">)</span>
+
+@Composable private fun SelectorTrimestreAsistencia(
+    seleccionado: TrimestreAsistencia,
+    onSelect: (TrimestreAsistencia) -&gt; Unit
+<span class="nc" id="L344">) {</span>
+<span class="nc" id="L345">    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {</span>
+<span class="nc" id="L346">        TrimestreAsistencia.entries.forEach { trimestre -&gt;</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">            val selected = seleccionado == trimestre</span>
+<span class="nc" id="L348">            Surface(</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                modifier = Modifier.weight(1f).clickable { onSelect(trimestre) },</span>
+<span class="nc" id="L350">                shape = RoundedCornerShape(14.dp),</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">                color = if (selected) Color(0xFF2563EB) else Color.White,</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">                contentColor = if (selected) Color.White else MaterialTheme.colorScheme.primary,</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">                border = BorderStroke(1.dp, if (selected) Color(0xFF2563EB) else Color(0xFFD8E0EE)),</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">                shadowElevation = if (selected) 2.dp else 0.dp</span>
+<span class="nc" id="L355">            ) {</span>
+<span class="nc" id="L356">                Column(Modifier.padding(horizontal = 3.dp, vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {</span>
+<span class="nc" id="L357">                    Icon(Icons.Default.CalendarMonth, null, modifier = Modifier.size(18.dp))</span>
+<span class="nc" id="L358">                    Text(trimestre.nombreVisual, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, maxLines = 1)</span>
+<span class="nc" id="L359">                }</span>
+            }
+<span class="nc" id="L361">        }</span>
+<span class="nc" id="L362">    }</span>
+}
+
+<span class="nc" id="L365">@Composable private fun ResumenAsistenciaCard(resumen: ResumenAsistenciaLocal) {</span>
+<span class="nc" id="L366">    ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.elevatedCardColors(containerColor = Color.White)) {</span>
+<span class="nc" id="L367">        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {</span>
+<span class="nc" id="L368">            Row(verticalAlignment = Alignment.CenterVertically) {</span>
+<span class="nc" id="L369">                Column(Modifier.weight(1f)) {</span>
+<span class="nc" id="L370">                    Text(&quot;Asistencia&quot;, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L371">                    Text(</span>
+<span class="nc" id="L372">                        String.format(&quot;%.2f%%&quot;, resumen.porcentaje),</span>
+<span class="nc" id="L373">                        style = MaterialTheme.typography.headlineLarge,</span>
+<span class="nc" id="L374">                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L375">                        color = MaterialTheme.colorScheme.primary</span>
+                    )
+<span class="nc" id="L377">                }</span>
+<span class="nc" id="L378">                Text(&quot;${resumen.total} registros&quot;, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L379">            }</span>
+<span class="nc" id="L380">            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {</span>
+<span class="nc" id="L381">                ResumenDato(&quot;Presentes&quot;, resumen.presentes, EstadoColor.PRESENTE, Color(0xFFEAF8EE), Icons.Default.CheckCircle, Modifier.weight(1f))</span>
+<span class="nc" id="L382">                ResumenDato(&quot;Ausentes&quot;, resumen.ausentes, EstadoColor.AUSENTE, Color(0xFFFFECEF), Icons.Default.Cancel, Modifier.weight(1f))</span>
+<span class="nc" id="L383">                ResumenDato(&quot;Atrasos&quot;, resumen.atrasos, EstadoColor.ATRASO, Color(0xFFFFF5DD), Icons.Default.Schedule, Modifier.weight(1f))</span>
+<span class="nc" id="L384">                ResumenDato(&quot;Justificados&quot;, resumen.justificados, EstadoColor.JUSTIFICADO, Color(0xFFEAF2FF), Icons.Default.Verified, Modifier.weight(1f))</span>
+<span class="nc" id="L385">            }</span>
+<span class="nc" id="L386">        }</span>
+    }
+}
+
+<span class="nc bnc" id="L390" title="All 2 branches missed.">@Composable private fun ResumenDato(label: String, cantidad: Int, color: Color, background: Color, icon: ImageVector, modifier: Modifier = Modifier) {</span>
+<span class="nc" id="L391">    Surface(modifier, color = background, shape = RoundedCornerShape(13.dp)) {</span>
+<span class="nc" id="L392">        Column(Modifier.padding(horizontal = 5.dp, vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {</span>
+<span class="nc" id="L393">            Icon(icon, null, tint = color, modifier = Modifier.size(18.dp))</span>
+<span class="nc" id="L394">            Text(cantidad.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)</span>
+<span class="nc" id="L395">            Text(label, style = MaterialTheme.typography.labelSmall, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</span>
+<span class="nc" id="L396">        }</span>
+    }
+}
+
+<span class="nc" id="L400">@Composable private fun CategoriaAsistenciaCard(filtro: FiltroAsistencia, onClick: () -&gt; Unit) {</span>
+<span class="nc" id="L401">    val visual = categoriaVisual(filtro)</span>
+<span class="nc" id="L402">    ElevatedCard(Modifier.fillMaxWidth().clickable(onClick = onClick), shape = RoundedCornerShape(17.dp), colors = CardDefaults.elevatedCardColors(containerColor = Color.White)) {</span>
+<span class="nc" id="L403">        Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(13.dp)) {</span>
+<span class="nc" id="L404">            Surface(color = visual.background, shape = RoundedCornerShape(13.dp), modifier = Modifier.size(46.dp)) {</span>
+<span class="nc" id="L405">                Box(contentAlignment = Alignment.Center) { Icon(visual.icon, null, tint = visual.color, modifier = Modifier.size(24.dp)) }</span>
+            }
+<span class="nc" id="L407">            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {</span>
+<span class="nc" id="L408">                Text(filtro.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L409">                Text(visual.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L410">            }</span>
+<span class="nc" id="L411">            Icon(Icons.Default.ChevronRight, &quot;Ver ${filtro.label.lowercase()}&quot;, tint = visual.color)</span>
+<span class="nc" id="L412">        }</span>
+    }
+}
+
+<span class="nc" id="L416">private data class CategoriaVisual(val subtitle: String, val icon: ImageVector, val color: Color, val background: Color)</span>
+
+<span class="nc bnc" id="L418" title="All 5 branches missed.">private fun categoriaVisual(filtro: FiltroAsistencia) = when (filtro) {</span>
+<span class="nc" id="L419">    FiltroAsistencia.TODOS -&gt; CategoriaVisual(&quot;Ver todas las asistencias&quot;, Icons.Default.FormatListBulleted, Color(0xFF7C3AED), Color(0xFFF1EAFF))</span>
+<span class="nc" id="L420">    FiltroAsistencia.AUSENTES -&gt; CategoriaVisual(&quot;Ver solo ausencias&quot;, Icons.Default.Cancel, EstadoColor.AUSENTE, Color(0xFFFFECEF))</span>
+<span class="nc" id="L421">    FiltroAsistencia.ATRASOS -&gt; CategoriaVisual(&quot;Ver solo atrasos&quot;, Icons.Default.Schedule, EstadoColor.ATRASO, Color(0xFFFFF5DD))</span>
+<span class="nc" id="L422">    FiltroAsistencia.JUSTIFICADOS -&gt; CategoriaVisual(&quot;Ver solo asistencias justificadas&quot;, Icons.Default.Verified, EstadoColor.JUSTIFICADO, Color(0xFFEAF2FF))</span>
+<span class="nc" id="L423">    FiltroAsistencia.PRESENTES -&gt; CategoriaVisual(&quot;Ver solo asistencias presentes&quot;, Icons.Default.CheckCircle, EstadoColor.PRESENTE, Color(0xFFEAF8EE))</span>
+<span class="nc" id="L424">}</span>
+
+<span class="nc" id="L426">@Composable private fun ColumnScope.DetalleAsistencia(filtro: FiltroAsistencia, periodo: String, registros: List&lt;AsistenciaHijo&gt;) {</span>
+<span class="nc" id="L427">    val visual = categoriaVisual(filtro)</span>
+<span class="nc" id="L428">    ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.elevatedCardColors(containerColor = Color.White)) {</span>
+<span class="nc" id="L429">        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {</span>
+<span class="nc" id="L430">            Surface(color = visual.background, shape = RoundedCornerShape(14.dp), modifier = Modifier.size(50.dp)) {</span>
+<span class="nc" id="L431">                Box(contentAlignment = Alignment.Center) { Icon(visual.icon, null, tint = visual.color, modifier = Modifier.size(26.dp)) }</span>
+            }
+<span class="nc" id="L433">            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {</span>
+<span class="nc bnc" id="L434" title="All 6 branches missed.">                Text(if (filtro == FiltroAsistencia.TODOS) &quot;Todos los registros&quot; else visual.subtitle.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L435">                Text(periodo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L436">            }</span>
+<span class="nc" id="L437">            Text(registros.size.toString(), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = visual.color)</span>
+<span class="nc" id="L438">        }</span>
+    }
+
+<span class="nc" id="L441">    Text(&quot;Registros&quot;, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">    if (registros.isEmpty()) {</span>
+<span class="nc" id="L443">        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {</span>
+<span class="nc" id="L444">            Text(&quot;No hay registros para ${filtro.label.lowercase()}&quot;, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)</span>
+<span class="nc" id="L445">        }</span>
+<span class="nc" id="L446">    } else {</span>
+<span class="nc" id="L447">        LazyColumn(Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp), contentPadding = PaddingValues(bottom = 16.dp)) {</span>
+<span class="nc" id="L448">            items(registros) { registro -&gt; RegistroAsistenciaCard(registro) }</span>
+<span class="nc" id="L449">        }</span>
+    }
+<span class="nc" id="L451">}</span>
+
+<span class="nc" id="L453">@Composable private fun RegistroAsistenciaCard(registro: AsistenciaHijo) {</span>
+<span class="nc" id="L454">    ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.elevatedCardColors(containerColor = Color.White)) {</span>
+<span class="nc" id="L455">        Row(</span>
+<span class="nc" id="L456">            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),</span>
+<span class="nc" id="L457">            verticalAlignment = Alignment.CenterVertically,</span>
+<span class="nc" id="L458">            horizontalArrangement = Arrangement.spacedBy(12.dp)</span>
+        ) {
+<span class="nc" id="L460">            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {</span>
+<span class="nc" id="L461">                Text(registro.fecha.formatoFechaAsistencia(), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)</span>
+<span class="nc" id="L462">                Text(&quot;Registro de asistencia&quot;, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L463">            }</span>
+<span class="nc" id="L464">            EstadoAsistenciaBadge(registro.estado)</span>
+<span class="nc" id="L465">        }</span>
+    }
+}
+
+private object EstadoColor {
+<span class="nc" id="L470">    val PRESENTE = Color(0xFF16803A)</span>
+<span class="nc" id="L471">    val AUSENTE = Color(0xFFC62828)</span>
+<span class="nc" id="L472">    val ATRASO = Color(0xFFE56A00)</span>
+<span class="nc" id="L473">    val JUSTIFICADO = Color(0xFF1565C0)</span>
+}
+
+<span class="nc" id="L476">@Composable private fun EstadoAsistenciaBadge(estado: String) {</span>
+<span class="nc bnc" id="L477" title="All 13 branches missed.">    val color = when (estado.uppercase()) {</span>
+<span class="nc" id="L478">        &quot;PRESENTE&quot; -&gt; EstadoColor.PRESENTE</span>
+<span class="nc" id="L479">        &quot;AUSENTE&quot; -&gt; EstadoColor.AUSENTE</span>
+<span class="nc" id="L480">        &quot;ATRASO&quot; -&gt; EstadoColor.ATRASO</span>
+<span class="nc" id="L481">        &quot;JUSTIFICADO&quot; -&gt; EstadoColor.JUSTIFICADO</span>
+<span class="nc" id="L482">        else -&gt; MaterialTheme.colorScheme.onSurfaceVariant</span>
+    }
+<span class="nc" id="L484">    Surface(color = color.copy(alpha = 0.14f), shape = RoundedCornerShape(50)) {</span>
+<span class="nc" id="L485">        Text(</span>
+<span class="nc" id="L486">            estado.uppercase(),</span>
+<span class="nc" id="L487">            color = color,</span>
+<span class="nc" id="L488">            style = MaterialTheme.typography.labelSmall,</span>
+<span class="nc" id="L489">            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L490">            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)</span>
+        )
+    }
+}
+
+internal fun String.formatoFechaAsistencia(): String {
+<span class="fc" id="L496">    val parts = split('-')</span>
+<span class="pc bpc" id="L497" title="1 of 2 branches missed.">    if (parts.size != 3) return uppercase()</span>
+<span class="pc bpc" id="L498" title="2 of 4 branches missed.">    val month = parts[1].toIntOrNull()?.let { listOf(&quot;ENE&quot;, &quot;FEB&quot;, &quot;MAR&quot;, &quot;ABR&quot;, &quot;MAY&quot;, &quot;JUN&quot;, &quot;JUL&quot;, &quot;AGO&quot;, &quot;SEP&quot;, &quot;OCT&quot;, &quot;NOV&quot;, &quot;DIC&quot;).getOrNull(it - 1) }</span>
+<span class="nc" id="L499">        ?: return uppercase()</span>
+<span class="pc bpc" id="L500" title="2 of 4 branches missed.">    return &quot;${parts[2].trimStart('0').ifEmpty { &quot;0&quot; }} $month ${parts[0]}&quot;</span>
+}
+
+<span class="nc" id="L503">@Composable private fun &lt;T&gt; StateContent(state: ConsultaUiState&lt;T&gt;, retry: () -&gt; Unit, content: @Composable (T) -&gt; Unit) = when {</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">    state.loading -&gt; CircularProgressIndicator()</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">    state.error != null -&gt; Column { Text(state.error); Button(onClick = retry) { Text(&quot;Reintentar&quot;) } }</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">    state.data != null -&gt; Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {</span>
+<span class="nc" id="L507">        OfflineBanner(isOffline = state.isOffline)</span>
+<span class="nc" id="L508">        content(state.data)</span>
+<span class="nc" id="L509">    }</span>
+<span class="nc" id="L510">    else -&gt; Text(&quot;Sin información&quot;)</span>
+}
+
+<span class="nc" id="L513">@Composable private fun Page(title: String, back: () -&gt; Unit, content: @Composable ColumnScope.() -&gt; Unit) = Scaffold(</span>
+<span class="nc" id="L514">    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),</span>
+<span class="nc" id="L515">    topBar = { TopAppBar(title = { Text(title, fontWeight = FontWeight.SemiBold) }, navigationIcon = { IconButton(onClick = back) { Icon(Icons.Default.ArrowBack, &quot;Volver&quot;) } }) }</span>
+<span class="nc" id="L516">) { padding -&gt; Column(Modifier.padding(padding).padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(14.dp), content = content) }</span>
+
+<span class="nc bnc" id="L518" title="All 8 branches missed.">@Composable private fun OptionCard(title: String, subtitle: String, icon: ImageVector, click: () -&gt; Unit, accent: Color = MaterialTheme.colorScheme.primary) = ElevatedCard(</span>
+<span class="nc" id="L519">    Modifier.fillMaxWidth().clickable(onClick = click), shape = RoundedCornerShape(18.dp)</span>
+<span class="nc" id="L520">) {</span>
+<span class="nc" id="L521">    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {</span>
+<span class="nc" id="L522">        IconContainer(icon, accent)</span>
+<span class="nc" id="L523">        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {</span>
+<span class="nc" id="L524">            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)</span>
+<span class="nc" id="L525">            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+<span class="nc" id="L526">        }</span>
+<span class="nc" id="L527">        Icon(Icons.Default.ChevronRight, null, tint = accent)</span>
+<span class="nc" id="L528">    }</span>
+}
+
+<span class="nc" id="L531">@Composable private fun IconContainer(icon: ImageVector, accent: Color) = Surface(</span>
+<span class="nc" id="L532">    color = accent.copy(alpha = 0.12f), shape = RoundedCornerShape(14.dp), modifier = Modifier.size(48.dp)</span>
+<span class="nc" id="L533">) { Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = accent, modifier = Modifier.size(25.dp)) } }</span>
+
+<span class="nc bnc" id="L535" title="All 4 branches missed.">@Composable private fun GradeMetric(label: String, value: String, modifier: Modifier = Modifier, emphasized: Boolean = false) {</span>
+<span class="nc bnc" id="L536" title="All 2 branches missed.">    val accent = if (emphasized) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">    Surface(modifier, color = accent.copy(alpha = if (emphasized) 0.10f else 0.06f), shape = RoundedCornerShape(12.dp)) {</span>
+<span class="nc" id="L538">        Column(Modifier.padding(horizontal = 8.dp, vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {</span>
+<span class="nc" id="L539">            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)</span>
+<span class="nc" id="L540">            Text(value, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = accent, maxLines = 1, overflow = TextOverflow.Ellipsis)</span>
+<span class="nc" id="L541">        }</span>
+    }
+}
+
+<span class="nc" id="L545">@Composable private fun GradeBadge(value: String) = Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f), shape = RoundedCornerShape(50)) {</span>
+<span class="nc" id="L546">    Text(value, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
