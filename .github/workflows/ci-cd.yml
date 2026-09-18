@@ -229,11 +229,19 @@ jobs:
           cd sga-principal
           ./mvnw clean test -q
 
-      - name: Subir reporte de cobertura JaCoCo como artefacto
+      - name: Subir reportes de prueba Surefire (sga-principal)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reporte-cobertura-jacoco
+          name: surefire-reports-sga-principal
+          path: sga-principal/target/surefire-reports/
+          retention-days: 7
+
+      - name: Subir reporte JaCoCo (sga-principal)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-sga-principal
           path: sga-principal/target/site/jacoco/
           retention-days: 7
 
