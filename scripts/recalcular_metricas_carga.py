@@ -1,4 +1,6 @@
-"""Deriva el conjunto A. Solo --generate-latex escribe un archivo.
+"""Deriva el conjunto A y consulta los agregados historicos B y E.
+
+Solo --generate-latex escribe un archivo; --emit-latex-block imprime macros.
 
 --check-latex valida las afirmaciones numéricas explícitas de los párrafos
 oficiales y filas nominales del manuscrito actual; no es un parser general
@@ -16,6 +18,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PREFIX = ROOT / "microservicio-soporte/locust_esc1"
+HISTORICAL_STATS = {
+    "B": ROOT / "experimentos/resultados/locust_esc1_stats.csv",
+    "E": ROOT / "experimentos/resultados/locust_esc3_stats.csv",
+}
 MANUSCRIPT = ROOT / "Informe-E4_BCEL/TA-PFC-E4_BCEL.tex"
 GENERATED = ROOT / "Informe-E4_BCEL/cifras_carga_generadas.tex"
 FIELDS = {
@@ -37,6 +43,18 @@ def read_csv(suffix, required):
         if missing:
             raise ValueError(f"{path.name}: faltan columnas {sorted(missing)}")
         return list(reader)
+
+
+def read_aggregate(path):
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream)
+        missing = {"Name", *FIELDS.values()} - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError(f"{path.name}: faltan columnas {sorted(missing)}")
+        aggregate = [row for row in reader if row["Name"].strip() == "Aggregated"]
+    if len(aggregate) != 1:
+        raise ValueError(f"{path.name}: se requiere exactamente una fila Aggregated")
+    return statistics(aggregate[0])[0]
 
 
 def number(value):
@@ -98,6 +116,10 @@ def derive():
     auxiliary = {"ocurrencias_fallos": sum((count(r["Occurrences"]) for r in failures), Decimal(0)),
                  "excepciones": sum((count(r["Count"]) for r in exceptions), Decimal(0))}
     return metrics, auxiliary, extra, endpoints, window
+
+
+def derive_historical():
+    return {name: read_aggregate(path) for name, path in HISTORICAL_STATS.items()}
 
 
 def render(metrics):
@@ -168,20 +190,33 @@ def check_latex(metrics, text):
     return errors
 
 
+def check_generated_latex(metrics):
+    actual = GENERATED.read_text(encoding="utf-8")
+    if actual != render(metrics):
+        return [f"{GENERATED.relative_to(ROOT)} no coincide con las macros derivadas del CSV A"]
+    return []
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--generate-latex", action="store_true")
     parser.add_argument("--check-latex", action="store_true")
+    parser.add_argument("--emit-latex-block", action="store_true")
     args = parser.parse_args()
     try:
         metrics, auxiliary, extra, endpoints, window = derive()
+        if args.emit_latex_block:
+            print(render(metrics), end="")
+            return 0
+        historical = derive_historical()
         if args.generate_latex:
             GENERATED.write_text(render(metrics), encoding="utf-8")
         if args.json:
             print(json.dumps({"metrics": metrics, "auxiliary": auxiliary,
                               "additional": extra, "endpoints": endpoints,
-                              "history": window}, default=str, ensure_ascii=False, indent=2))
+                              "history": window, "historical": historical},
+                             default=str, ensure_ascii=False, indent=2))
         else:
             print("Conjunto A: microservicio-soporte/locust_esc1_stats.csv")
             for key, value in {**metrics, **auxiliary, **extra}.items():
@@ -193,8 +228,13 @@ def main():
                 print(f"Endpoint: {endpoint['metodo']} {endpoint['endpoint']}")
                 for key, value in {**endpoint['metrics'], **endpoint['additional']}.items():
                     print(f"  {key}: {value}")
+            for name, values in historical.items():
+                print(f"Conjunto {name}: {HISTORICAL_STATS[name].relative_to(ROOT)}")
+                for key, value in values.items():
+                    print(f"  {key}: {value}")
         if args.check_latex:
             errors = check_latex(metrics, MANUSCRIPT.read_text(encoding="utf-8"))
+            errors.extend(check_generated_latex(metrics))
             for error in errors:
                 print("ERROR: " + error, file=sys.stderr)
             if errors:
