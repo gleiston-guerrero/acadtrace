@@ -40,7 +40,7 @@ class AuditoriaPostgresContainerTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("db/init/baseline_flyway_v8.sql");
+            .withInitScript("db/init/V0__baseline.sql");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -69,12 +69,9 @@ class AuditoriaPostgresContainerTest {
                 () -> "86400000"
         );
 
-        // Flyway crea las tablas via migraciones
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
-        registry.add("spring.flyway.enabled", () -> "true");
-        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
-        registry.add("spring.flyway.baseline-on-migrate", () -> "true");
-        registry.add("spring.flyway.baseline-version", () -> "8");
+        // Hibernate crea las tablas; Flyway se desactiva porque V9+ asume datos de produccion
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
+        registry.add("spring.flyway.enabled", () -> "false");
         // Usar puerto aleatorio para gRPC y Tomcat para evitar conflictos
         registry.add("grpc.server.port", () -> 0);
     }
