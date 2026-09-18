@@ -9,7 +9,7 @@ CONTRACT = ROOT / "openapi.yaml"
 REQUIRED_PATHS = {
     "principal": {"/actuator/health", "/api/auditoria"},
     "secretaria": {"/api/secretario/estudiantes", "/api/secretario/matriculas", "/api/secretario/calendario/eventos"},
-    "docente": {"/api/docente/actividades", "/api/docente/asistencias/masivo", "/metrics"},
+    "docente": {"/api/docente/actividades/", "/api/docente/asistencias/masivo", "/metrics"},
     "soporte": {
         "/health",
         "/api/soporte/election/status",
