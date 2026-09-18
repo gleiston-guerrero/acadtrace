@@ -33,8 +33,8 @@ Se configuró el entorno local y se ejecutaron satisfactoriamente las tareas de 
 
 - **Suite JVM Android:** 36 pruebas ejecutadas y aprobadas (0 fallos, 100% de tasa de éxito).
 - **Artefacto Binario Generado:** `app-debug.apk` generado en `app/build/outputs/apk/debug/app-debug.apk`, con un tamaño de 19,992,081 bytes (~19.06 MB) y SHA-256 `E97D8BAD09ECF7AA2C590D7480F54735A17946859BB52C917DE54EDF165A595B`.
-- **Ubicación en Release (Listado 3):** `release/apk/app-representante-debug.apk`.
-- Las pruebas específicas de la fachada en SGA Principal aprobaron 11/11. La suite de Docente aprobó 83/83 con cobertura total de 79.28%.
+- **Estado del APK debug:** artefacto histórico de desarrollo; ya no forma parte de `release/apk` ni constituye el paquete oficial de Release.
+- Las pruebas específicas de la fachada en SGA Principal aprobaron 11/11. La suite histórica de Docente aprobó 83/83 y registró 79.28% en una ejecución no regenerada contra HEAD; esta cifra no corresponde a la cobertura oficial actual. La medición oficial vigente de Docente es 72,56 % sobre el paquete `docentes`, ejecutada con Python 3.13.7 y una compuerta mínima de 70 %.
 
 ## Interacción humana requerida después de resolver Gradle
 

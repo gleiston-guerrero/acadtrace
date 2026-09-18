@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.presentation</a> &gt; <span class="el_source">UsuarioController.java</span></div><h1>UsuarioController.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.presentation;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import ec.uteq.sga.soporte.infrastructure.grpc.TecnicoGrpcClient;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Expone al frontend la lista de tecnicos validos para asignar tickets,
+ * consultando a sga-principal por gRPC (nunca por SQL cruzado ni por REST
+ * directo desde el navegador).
+ */
+@RestController
+@RequestMapping(&quot;/api/soporte&quot;)
+public class UsuarioController {
+
+    private final TecnicoGrpcClient tecnicoGrpcClient;
+
+<span class="fc" id="L23">    public UsuarioController(TecnicoGrpcClient tecnicoGrpcClient) {</span>
+<span class="fc" id="L24">        this.tecnicoGrpcClient = tecnicoGrpcClient;</span>
+<span class="fc" id="L25">    }</span>
+
+    @GetMapping(&quot;/tecnicos&quot;)
+    public List&lt;Map&lt;String, Object&gt;&gt; tecnicos() {
+<span class="fc" id="L29">        return tecnicoGrpcClient.listarTecnicos();</span>
+    }
+
+    /** Lista completa (todos los roles), usada por la pantalla de administración de usuarios. */
+    @GetMapping(&quot;/usuarios&quot;)
+    public List&lt;Map&lt;String, Object&gt;&gt; usuarios() {
+<span class="fc" id="L35">        return tecnicoGrpcClient.listarPorRol(null);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
