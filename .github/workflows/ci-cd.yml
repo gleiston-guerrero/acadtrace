@@ -753,13 +753,21 @@ jobs:
             -e SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092 \
             e10-microservicio-docente
 
-      - name: Aplicar migraciones de Docente
+      - name: Preparar esquema y migraciones de Docente
         shell: bash
         run: |
           set -euo pipefail
 
+          docker exec \
+            -e PGPASSWORD="$DB_PASSWORD" \
+            postgres-e10 \
+            psql -v ON_ERROR_STOP=1 \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -c "DROP SCHEMA IF EXISTS sga_docente CASCADE; CREATE SCHEMA sga_docente;"
+
           docker exec microservicio-docente \
-            python manage.py migrate --fake-initial --noinput
+            python manage.py migrate --noinput
 
       - name: Esperar backend Docente
         shell: bash
