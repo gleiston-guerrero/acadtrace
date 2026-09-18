@@ -29,9 +29,15 @@ public class FlywayConfig {
     public FlywayMigrationStrategy repairAntesDeMigrar() {
         return flyway -> {
             log.info("Ejecutando flyway.repair() antes del migrate para recalcular checksums");
-            flyway.repair();
-            log.info("flyway.repair() completado, procediendo con migrate");
+            try {
+                flyway.repair();
+                log.info("flyway.repair() completado exitosamente");
+            } catch (org.flywaydb.core.api.FlywayException e) {
+                log.warn("flyway.repair() no pudo ejecutarse (esperado en base nueva o sin historial): {}", e.getMessage());
+            }
+            log.info("Procediendo con flyway.migrate() con validateOnMigrate activo");
             flyway.migrate();
+            log.info("flyway.migrate() completado, historial validado con validateOnMigrate=true");
         };
     }
 }
