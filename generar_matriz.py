@@ -1,6 +1,6 @@
 """E22: preview por defecto. Solo --write-csv/--write-latex escriben archivos.
 Las categorias solicitadas por el proyecto no certifican ISO/IEC 25010 completo.
-Los historicos B/E no alimentan esta matriz. Solo biblioteca estandar.
+La evidencia historica se distingue del conjunto nominal A. Solo biblioteca estandar.
 """
 import argparse
 import csv
@@ -13,6 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 STATS = Path('microservicio-soporte/locust_esc1_stats.csv')
 HISTORY = Path('microservicio-soporte/locust_esc1_stats_history.csv')
+FALSE_POSITIVES = Path('experimentos/resultados/falsos_positivos.csv')
+HISTORICAL_WINDOWS = Path('experimentos/resultados/iso25010.csv')
 CSV_OUTPUT = ROOT / 'docs/experimentos/resultados/matriz_iso25010.csv'
 TEX_OUTPUT = ROOT / 'Informe-E4_BCEL/matriz_iso25010_generada.tex'
 FIELDS = {'peticiones': 'Request Count', 'fallos': 'Failure Count',
@@ -20,7 +22,7 @@ FIELDS = {'peticiones': 'Request Count', 'fallos': 'Failure Count',
           'p50_ms': '50%', 'p95_ms': '95%', 'p99_ms': '99%'}
 COLUMNS = ('caracteristica', 'indicador', 'valor', 'fuente', 'alcance', 'criterio', 'veredicto')
 # Criterio documental, nunca resultado esperado.
-P95_LIMIT_MS = Decimal('500')
+P99_LIMIT_MS = Decimal('500')
 
 
 def read_rows(relative, required):
@@ -67,7 +69,56 @@ def derive_metrics():
     return metrics
 
 
-def build_rows(metrics):
+def derive_false_positives():
+    rows = [row for row in read_rows(FALSE_POSITIVES,
+                                     ['corrida', 'mecanismo', 'cadena_integra',
+                                      'estado_tabla_integro', 'falso_positivo'])
+            if row['mecanismo'].strip() == 'M2']
+    if not rows:
+        raise ValueError(f'{FALSE_POSITIVES}: faltan observaciones M2')
+    ids = [number(row['corrida'], 'corrida', True) for row in rows]
+    if len(ids) != len(set(ids)):
+        raise ValueError(f'{FALSE_POSITIVES}: corridas M2 duplicadas')
+    positives = []
+    for row in rows:
+        if (number(row['cadena_integra'], 'cadena_integra', True) != 1 or
+                number(row['estado_tabla_integro'], 'estado_tabla_integro', True) != 1):
+            raise ValueError(f'{FALSE_POSITIVES}: M2 incluye una cadena no integra')
+        value = number(row['falso_positivo'], 'falso_positivo', True)
+        if value not in (0, 1):
+            raise ValueError(f'{FALSE_POSITIVES}: falso_positivo debe ser 0 o 1')
+        positives.append(value)
+    return sum(positives), len(rows)
+
+
+def derive_historical_windows():
+    rows = [row for row in read_rows(HISTORICAL_WINDOWS,
+                                     ['escenario', 'ventana_derivada',
+                                      'fallos_generales_derivados_pct',
+                                      'exito_peticiones_derivado_pct', 'origen', 'alcance'])
+            if row['escenario'].strip() == 'Histórico locust_esc3 (perfil no validado)']
+    if not rows:
+        raise ValueError(f'{HISTORICAL_WINDOWS}: faltan ventanas historicas locust_esc3')
+    ids = [number(row['ventana_derivada'], 'ventana_derivada', True) for row in rows]
+    if len(ids) != len(set(ids)):
+        raise ValueError(f'{HISTORICAL_WINDOWS}: ventanas locust_esc3 duplicadas')
+    success = []
+    failures = []
+    for row in rows:
+        if (row['origen'].strip() != 'experimentos/resultados/locust_esc3_stats_history.csv'
+                or 'históricas' not in row['alcance']
+                or 'no nueva carga ni agregado oficial' not in row['alcance']):
+            raise ValueError(f'{HISTORICAL_WINDOWS}: alcance historico no acreditado')
+        passed = number(row['exito_peticiones_derivado_pct'], 'exito_peticiones_derivado_pct')
+        failed = number(row['fallos_generales_derivados_pct'], 'fallos_generales_derivados_pct')
+        if passed > 100 or failed > 100 or passed + failed != 100:
+            raise ValueError(f'{HISTORICAL_WINDOWS}: porcentajes de ventana inconsistentes')
+        success.append(passed)
+        failures.append(failed)
+    return len(rows), min(success), max(success), sum(value > 0 for value in failures)
+
+
+def build_rows(metrics, false_positives, historical_windows):
     """Una sola matriz para todas las serializaciones."""
     rows = []
 
@@ -78,20 +129,37 @@ def build_rows(metrics):
     scope = ('Conjunto A, agregado nominal local de Soporte; no demuestra '
              'estres exitoso ni disponibilidad de produccion')
     measured = '; '.join(f'{key}={format(value, "f")}' for key, value in metrics.items())
-    verdict = ('No cumple: P99=850ms supera umbral 500ms' if metrics['p99_ms'] >= P95_LIMIT_MS
+    verdict = (f"No cumple: P99={format(metrics['p99_ms'], 'f')} ms supera umbral "
+               f"{P99_LIMIT_MS} ms" if metrics['p99_ms'] >= P99_LIMIT_MS
                else 'Cumple el umbral en escenario nominal local')
     add('Eficiencia de desempe\u00f1o', 'Carga y latencias del agregado nominal', measured,
         f'{STATS.as_posix()} (Aggregated); {HISTORY.as_posix()} (maximo User Count)',
         scope + '; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms)',
-        f'p99 < {P95_LIMIT_MS} ms', verdict)
-    add('Fiabilidad', 'Peticiones y fallos observados',
-        f"peticiones={metrics['peticiones']}; fallos={metrics['fallos']}",
-        f'{STATS.as_posix()} (Aggregated)', scope,
-        'Sin criterio suficiente para fiabilidad global', 'Evidencia parcial')
+        f'p99 < {P99_LIMIT_MS} ms', verdict)
+    window_count, min_success, max_success, failed_windows = historical_windows
+    add('Fiabilidad', 'Nominal A y ventanas historicas de locust_esc3',
+        f"peticiones nominales={metrics['peticiones']}; fallos nominales={metrics['fallos']}; "
+        f'{window_count} ventanas historicas; exito derivado entre '
+        f'{format(min_success, "f").replace(".", ",")} % y '
+        f'{format(max_success, "f").replace(".", ",")} %',
+        f'{STATS.as_posix()} (Aggregated); {HISTORICAL_WINDOWS.as_posix()} '
+        '(ventanas locust_esc3)',
+        scope + '; ventanas historicas / perfil no validado; no son estres oficial actual',
+        'Cero fallos para estres oficial; sin criterio suficiente para fiabilidad global',
+        f'Evidencia parcial; {failed_windows}/{window_count} ventanas historicas '
+        'no cumplen el criterio de cero fallos')
     add('Fiabilidad / disponibilidad', 'Disponibilidad de produccion', 'No medida',
         'Sin fuente temporal de disponibilidad evaluada',
         'Exito de peticiones de carga no equivale a disponibilidad temporal',
         'Requiere medicion temporal y entorno definidos', 'No demostrado')
+    positive_count, sample_count = false_positives
+    add('Seguridad', 'Falsos positivos de M2 en cadenas integras',
+        f'No medido en producción; FPR verificado {positive_count}/{sample_count} '
+        'en pruebas sintéticas',
+        f'{FALSE_POSITIVES.as_posix()} (observaciones M2)',
+        'Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion',
+        'Falsos positivos observados / muestras validas',
+        'Evidencia parcial; no certifica seguridad global')
     add('Mantenibilidad', 'Cobertura de pruebas en microservicios',
         'Secretaria: 71.42%; Soporte: 71.61%; Principal: 31.6%',
         'docs/cobertura/README.md; reportes oficiales JaCoCo y pytest',
@@ -101,8 +169,6 @@ def build_rows(metrics):
     unevaluated = (
         ('Adecuaci\u00f3n funcional', 'Satisfaccion de requisitos funcionales',
          'No se evalua evidencia funcional en este generador'),
-        ('Seguridad', 'Indicadores de seguridad',
-         'No se ejecutan ni auditan pruebas de seguridad; cero fallos de carga no demuestra seguridad'),
         ('Usabilidad', 'Indicadores de uso', 'Sin estudio de usuarios evaluado en este alcance'),
         ('Portabilidad', 'Ejecucion en entornos definidos', 'Sin medicion de portabilidad evaluada en este alcance'),
         ('Compatibilidad', 'Interoperabilidad y coexistencia', 'Sin evidencia de compatibilidad evaluada en este alcance'),
@@ -150,7 +216,8 @@ def main():
     if args.preview and (args.write_csv or args.write_latex):
         parser.error('--preview no permite escribir archivos')
     try:
-        rows = build_rows(derive_metrics())
+        rows = build_rows(derive_metrics(), derive_false_positives(),
+                          derive_historical_windows())
         csv_text, tex_text = serialize_csv(rows), serialize_latex(rows)
         if args.write_csv:
             CSV_OUTPUT.write_text(csv_text, encoding='utf-8')
