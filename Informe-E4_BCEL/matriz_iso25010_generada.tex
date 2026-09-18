@@ -5,9 +5,9 @@ caracteristica & Eficiencia de desempeño \\ \hline
 indicador & Carga y latencias del agregado nominal \\ \hline
 valor & peticiones=12994; fallos=0; rps=43.53758011606015; media\_ms=109.1136640344576; p50\_ms=6; p95\_ms=440; p99\_ms=850; usuarios\_maximos=50 \\ \hline
 fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); microservicio-soporte/locust\_esc1\_stats\_history.csv (maximo User Count) \\ \hline
-alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion; el veredicto evalua solo p95 agregado, no cada endpoint \\ \hline
-criterio & p95 \textless{} 500 ms \\ \hline
-veredicto & Cumple el umbral en escenario nominal local \\ \hline
+alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms) \\ \hline
+criterio & p99 \textless{} 500 ms \\ \hline
+veredicto & No cumple: P99=850ms supera umbral 500ms \\ \hline
 \end{tabularx}
 \par\medskip
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
@@ -52,15 +52,23 @@ fuente & Sin fuente evaluada en este alcance \\ \hline
 alcance & No se evalua evidencia funcional en este generador \\ \hline
 criterio & No establecido en esta evaluacion \\ \hline
 veredicto & No evaluado \\ \hline
+
+caracteristica & Mantenibilidad \\ \hline
+indicador & Cobertura de pruebas en microservicios \\ \hline
+valor & Secretaria: 71.42\%; Soporte: 71.61\%; Principal: 31.6\% \\ \hline
+fuente & docs/cobertura/README.md; reportes oficiales JaCoCo y pytest \\ \hline
+alcance & Cobertura de codigo a nivel BUNDLE/LINE en microservicios backend \\ \hline
+criterio & Cobertura \textgreater{}= 70\% LINE \\ \hline
+veredicto & Cumple en Secretaría (71.42\%) y Soporte (71.61\%); Principal 31.6\% en curso \\ \hline
 \end{tabularx}
 \par\medskip
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
 \hline
-caracteristica & Mantenibilidad \\ \hline
-indicador & Indicadores de mantenibilidad \\ \hline
+caracteristica & Adecuación funcional \\ \hline
+indicador & Satisfaccion de requisitos funcionales \\ \hline
 valor & Sin medicion evaluada \\ \hline
 fuente & Sin fuente evaluada en este alcance \\ \hline
-alcance & No se auditan reportes de cobertura en este alcance; no se infiere mantenibilidad desde carga \\ \hline
+alcance & No se evalua evidencia funcional en este generador \\ \hline
 criterio & No establecido en esta evaluacion \\ \hline
 veredicto & No evaluado \\ \hline
 \end{tabularx}

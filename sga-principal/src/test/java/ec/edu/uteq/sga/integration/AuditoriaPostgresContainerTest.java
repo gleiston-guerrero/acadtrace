@@ -40,7 +40,7 @@ class AuditoriaPostgresContainerTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("db/init/V0__baseline.sql");
+            .withInitScript("db/init/baseline_flyway_v8.sql");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -69,9 +69,22 @@ class AuditoriaPostgresContainerTest {
                 () -> "86400000"
         );
 
-        // Hibernate crea las tablas; Flyway se desactiva porque V9+ asume datos de produccion
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
-        registry.add("spring.flyway.enabled", () -> "false");
+        // Flyway crea las tablas via migraciones; Hibernate en none como en produccion
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
+        registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
+        registry.add("spring.flyway.baseline-on-migrate", () -> "true");
+        registry.add("spring.flyway.baseline-version", () -> "8");
+        registry.add("spring.flyway.schemas", () -> "sga_principal");
+        registry.add("spring.flyway.default-schema", () -> "sga_principal");
+        registry.add("spring.flyway.placeholders.sga_app_password", () -> "sga_app_secret_test_pass");
+        registry.add("spring.flyway.user", postgres::getUsername);
+        registry.add("spring.flyway.password", postgres::getPassword);
+        registry.add("GRPC_INTERNAL_TOKEN", () -> "test-grpc-token");
+        registry.add("app.grpc.internal-token", () -> "test-grpc-token");
+        registry.add("app.notifications.internal-token", () -> "test-grpc-token");
+        registry.add("MAIL_PASSWORD", () -> "test-mail-password");
+        registry.add("spring.mail.password", () -> "test-mail-password");
         // Usar puerto aleatorio para gRPC y Tomcat para evitar conflictos
         registry.add("grpc.server.port", () -> 0);
     }

@@ -12,7 +12,7 @@ Utilizar PostgreSQL con separación lógica multiesquema dentro de la instancia/
 | Esquema | Evidencia versionada | Uso demostrado |
 |---|---|---|
 | `sga_principal` | `sga-principal/src/main/resources/application.properties`: `spring.flyway.schemas` y `hibernate.default_schema`; entidades de Principal | Catálogo, usuarios y auditoría central. |
-| `sga_docente` | `microservicio-docente/micro_docente/settings.py`: `search_path=sga_docente,sga_principal,public`; `docentes/models.py`: `db_table`; `sga-principal/sql/supabase_dump_completo.sql` | Calificaciones, actividades y asistencias. El search path incluye otros esquemas; no implica exclusividad de acceso. |
+| `sga_docente` | `microservicio-docente/micro_docente/settings.py`: `search_path=sga_docente,sga_principal,public`; `docentes/models.py`: `db_table`; `sga-principal/src/main/resources/db/migration/` | Calificaciones, actividades y asistencias. El search path incluye otros esquemas; no implica exclusividad de acceso. |
 | `sga_secretaria` | `sga-principal/sql/V5__esquema_sga_secretaria.sql`; migraciones y consultas de Secretaría | Estudiantes, representantes y matrículas. |
 | `sga_soporte` | `microservicio-soporte/backend/src/main/resources/db/migrations/001_init_soporte.sql`; `JdbcTicketRepository.java` | Tickets y comentarios. |
 
