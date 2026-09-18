@@ -115,7 +115,7 @@ La captura `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png` es hist�
 
 ### Perfiles y cifras históricas (sin carácter oficial E5)
 
-Lo siguiente conserva el protocolo anterior como antecedente. Sus cifras no deben usarse como resultados oficiales; su asociación a CSV y el estado de cada conjunto se describen en el registro E5.
+Lo siguiente conserva el protocolo anterior como antecedente. Los tres valores de throughput indicados a continuación son registros históricos, ajenos al conjunto oficial nominal A. No se conserva actualmente evidencia CSV trazable suficiente para reproducir exactamente esos valores; no deben utilizarse como evidencia cuantitativa oficial del PFC ni atribuirse a los conjuntos B, C, D, E o F sin evidencia verificable. El conjunto A y sus métricas reproducibles, descritos en la sección anterior, continúan siendo la única fuente oficial nominal.
 
 Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para someter el sistema completo (a través del API Gateway HAProxy en puerto 80/8080/5176) a tres perfiles operativos:
 
@@ -124,20 +124,20 @@ Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para s
 - **Tasa de aparición (Spawn rate):** 5 usuarios/segundo.
 - **Duración total:** 5 minutos (300 segundos).
 - **Endpoints evaluados:** `/health`, `/actuator/health`, `/api/soporte/tickets`, `/api/secretario/estudiantes`, `/api/v1/auth/login`.
-- **Cifras históricas declaradas, no oficiales E5:** Throughput medio de **57.4 RPS**, latencia mediana $MD = 68.5$\,ms, latencia $P_{95} = 285.0$\,ms, tasa de fallos HTTP 5xx = **0.0\%**.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput medio de **57.4 RPS** (valor histórico no oficial, sin evidencia CSV trazable conservada suficiente para su reproducción exacta), latencia mediana $MD = 68.5$\,ms, latencia $P_{95} = 285.0$\,ms, tasa de fallos HTTP 5xx = **0.0\%**.
 
 ### Escenario 2: Carga Crítica de Calificaciones
 - **Usuarios concurrentes ($U$):** 14 docentes titulares simultáneos.
 - **Tasa de aparición (Spawn rate):** 14 usuarios/segundo (ingreso instantáneo).
 - **Duración total:** 3 minutos (180 segundos).
 - **Endpoints evaluados:** Transacciones de registro de notas formativas (70\%) y sumativas (30\%) con encadenamiento SHA-256.
-- **Cifras históricas declaradas, no oficiales E5:** Throughput de **24.8 RPS**, latencia mediana $MD = 42.0$\,ms, latencia $P_{95} = 165.0$\,ms, 0 fallos transaccionales.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput de **24.8 RPS** (valor histórico no oficial, sin evidencia CSV trazable conservada suficiente para su reproducción exacta), latencia mediana $MD = 42.0$\,ms, latencia $P_{95} = 165.0$\,ms, 0 fallos transaccionales.
 
 ### Escenario 3: Cierre de Período Académico (Rampa de Estrés)
 - **Usuarios concurrentes ($U$):** Rampa escalonada de 0 a 200 usuarios concurrentes.
 - **Tasa de aparición (Spawn rate):** 1 usuario/segundo durante 200 segundos + 400 segundos de sostenimiento (10 minutos totales = 600\,s).
 - **Endpoints evaluados:** Consulta masiva de actas de secretaría, descarga de libretas PDF, consulta de asistencias y auditoría.
-- **Cifras históricas declaradas, no oficiales E5:** Throughput pico de **142.6 RPS**, latencia $P_{95} \le 412.0$\,ms ($< 500$\,ms SLA), 0.0\% errores 5xx.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput pico de **142.6 RPS** (valor histórico no oficial, sin evidencia CSV trazable conservada suficiente para su reproducción exacta), latencia $P_{95} \le 412.0$\,ms ($< 500$\,ms SLA), 0.0\% errores 5xx.
 
 ---
 
