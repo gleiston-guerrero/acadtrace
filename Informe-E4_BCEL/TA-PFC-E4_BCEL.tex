@@ -582,6 +582,50 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \label{fig:app_movil_representante}
 \end{figure}
 
+\subsection{Evidencias visuales de interfaces y servicios}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../release/screenshots/sga_principal.png}
+    \caption{Panel principal del SGA con accesos visibles a los m\'odulos acad\'emicos y administrativos.}
+    \label{fig:sga-principal}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../release/screenshots/microservicio_ia.png}
+    \caption{Documentaci\'on de la API del microservicio de IA con las rutas de salud, diagn\'ostico de estudiante y asistente visibles.}
+    \label{fig:microservicio-ia}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../release/screenshots/docente_asistencia.png}
+    \caption{Portal del docente en la vista de registro semanal de asistencia, con selecci\'on de curso y estados por estudiante.}
+    \label{fig:docente-asistencia}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_biometria.png}
+    \caption{Aplicaci\'on m\'ovil del representante con la solicitud de acceso mediante huella dactilar visible.}
+    \label{fig:movil-biometria}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_calificaciones.png}
+    \caption{Aplicaci\'on m\'ovil del representante en la vista de calificaciones, con el aviso de modo sin conexi\'on visible.}
+    \label{fig:movil-calificaciones}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_asistencia.png}
+    \caption{Aplicaci\'on m\'ovil del representante en la vista de asistencia, con resumen y registros fechados visibles.}
+    \label{fig:movil-asistencia}
+\end{figure}
+
 % =============================================================================
 % 6. PIRÁMIDE DE PRUEBAS Y PIPELINE CI/CD
 % =============================================================================
@@ -877,6 +921,8 @@ Los datos crudos generados en el banco experimental y almacenados en \texttt{exp
 \end{figure}
 \subsection{Matriz Formal de Evaluaci\'on de Calidad ISO/IEC 25010:2023}
 \label{subsec:matriz-iso25010}
+La Tabla~\ref{tab:iso-matriz-calidad} presenta la matriz formal de evaluaci\'on de calidad ISO/IEC 25010 generada de forma reproducible a partir de la evidencia experimental auditada (\texttt{matriz\_iso25010\_generada.tex}). El alcance principal se delimita a la corrida nominal local oficial del Microservicio de Soporte (Conjunto~A, con \CargaPeticiones{} peticiones y \CargaFallos{} fallos observados a \CargaUsuariosMaximos{} usuarios concurrentes). Conforme a este alcance, la latencia agregada $P_{95}=\CargaPnoventaCincoMs$\,ms cumple el umbral ($P_{95}<500$\,ms) exclusivamente en el escenario nominal local medido. Las 12{,}994 peticiones con 0 fallos constituyen evidencia parcial de la ejecuci\'on nominal y no demuestran fiabilidad global ni disponibilidad de producci\'on. La fila de Fiabilidad distingue adem\'as ventanas derivadas hist\'oricas de \texttt{locust\_esc3} con perfil no validado: sus fallos no acreditan una prueba de estr\'es oficial actual. La fila de Seguridad incorpora la tasa de falsos positivos de pruebas sint\'eticas M2 desde un CSV versionado; no mide seguridad en producci\'on ni certifica seguridad global. Adecuaci\'on funcional, mantenibilidad, usabilidad, portabilidad y compatibilidad mantienen el veredicto \textit{No evaluado} dentro de este alcance:
+
 La Tabla~\ref{tab:iso-matriz-calidad} presenta la matriz formal de evaluaci\'on de calidad ISO/IEC 25010 generada de forma reproducible a partir de la evidencia experimental auditada (\texttt{matriz\_iso25010\_generada.tex}). El alcance se delimita a la corrida nominal local oficial del Microservicio de Soporte (Conjunto~A, con \CargaPeticiones{} peticiones y \CargaFallos{} fallos observados a \CargaUsuariosMaximos{} usuarios concurrentes). Conforme a este alcance y a la respuesta emp\'irica de PI-1, la latencia agregada $P_{99}=\CargaPnoventaNueveMs$\,ms no cumple el umbral estricto ($P_{99}<500$\,ms). Las 12{,}994 peticiones con 0 fallos constituyen evidencia parcial de la ejecuci\'on nominal y no demuestran fiabilidad global, disponibilidad de producci\'on ni un comportamiento de estr\'es exitoso. En mantenibilidad, se acredita el cumplimiento del umbral de cobertura en Secretar\'ia (71.42\,\%) y Soporte (71.61\,\%), mientras que Principal (31.6\,\%) se encuentra en curso. Las caracter\'isticas de adecuaci\'on funcional, seguridad, usabilidad, portabilidad y compatibilidad se registran con el veredicto expl\'icito de \textit{No evaluado} al no existir evidencia reproducible auditada dentro de los l\'imites de esta matriz; dicho veredicto no significa que el sistema incumpla, sino que la evidencia disponible no permite emitir ese dictamen:
 
 \begin{table}[H]
