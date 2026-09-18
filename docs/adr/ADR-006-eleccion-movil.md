@@ -50,8 +50,8 @@ Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican has
 | Suite Microservicio Docente | 83 aprobadas, 0 fallos |
 | Cobertura Microservicio Docente | 79.28% histórica, de una ejecución no regenerada contra HEAD; no es cobertura oficial actual |
 | Cobertura JaCoCo (instructions/lines/branches/classes) | Ejecución histórica con 100% de pruebas superadas; no confundir con la cobertura coverage.py de Docente |
-| Tamaño APK debug actual | 19.06 MB (19,992,081 bytes, ubicado en `release/apk/app-representante-debug.apk`) |
-| Tamaño APK release | Pendiente de keystore y firma interactiva |
+| APK debug histórico | 19.06 MB (19,992,081 bytes), generado el 4 de septiembre de 2026 como evidencia de desarrollo; no constituye el paquete oficial de Release |
+| APK/AAB release | Generados y firmados por `build-mobile-apk` mediante keystore privado suministrado por GitHub Actions Secrets |
 | Capacidades del dispositivo implementadas | 2 |
 | Roles móviles permitidos | 1 (`REPRESENTANTE`) |
 | Escrituras académicas permitidas desde la app | 0 |
@@ -112,10 +112,10 @@ Se elige Android nativo porque es la única alternativa que conserva directament
 - Contratos Android: `/api/auth/login`, `/api/representante/me/estudiantes`, `/api/representante/me/estudiantes/{id}/calificaciones`, `/api/representante/me/estudiantes/{id}/asistencia` y `/api/representante/me/comunicados`.
 - Contrato interno: `RepresentanteAcademicoService` con `ConsultarCalificaciones`, `ConsultarAsistencia` y `ConsultarComunicados`, deadline de cinco segundos y token interno suministrado por `GRPC_INTERNAL_TOKEN`.
 - JaCoCo está configurado para publicar reportes en CI.
-- El 4 de septiembre de 2026 se ejecutaron exitosamente `testDebugUnitTest` (36 pruebas unitarias aprobadas, 0 fallos) y `assembleDebug`, generando `app-debug.apk` con SHA-256 `E97D8BAD09ECF7AA2C590D7480F54735A17946859BB52C917DE54EDF165A595B` (19.06 MB), versionado oficialmente en `release/apk/app-representante-debug.apk`.
+- El 4 de septiembre de 2026 se ejecutaron exitosamente `testDebugUnitTest` (36 pruebas unitarias aprobadas, 0 fallos) y `assembleDebug`, generando `app-debug.apk` con SHA-256 `E97D8BAD09ECF7AA2C590D7480F54735A17946859BB52C917DE54EDF165A595B` (19.06 MB). Este resultado se conserva como evidencia histórica de desarrollo y no constituye el paquete oficial de Release.
 - `mvn test` ejecutó correctamente las 36 pruebas unitarias previas al test de contexto, pero `contextLoads` no pudo crear el canal Netty por el mismo fallo loopback del host. La selección específica de fachada ejecutó 11 pruebas con éxito y cumplió el check JaCoCo configurado.
 - Evidencia histórica conservada: Microservicio Docente ejecutó 83 pruebas con éxito y obtuvo 79.28% en una ejecución no regenerada contra HEAD. El HTML conservado de coverage.py muestra además 78% en otra ejecución; la discrepancia queda documentada y ninguna cifra se presenta como cobertura actual.
 - En el APK previamente instalado en el teléfono TECNO CL7, el desbloqueo usó `BiometricPrompt` y Logcat confirmó autenticación exitosa. Esta evidencia no sustituye la validación del APK nuevo.
 - La evidencia AWS anterior del 403 directo a Docente queda como diagnóstico histórico de la arquitectura reemplazada. El flujo nuevo no expone puerto 8081 a Android y requiere desplegar simultáneamente Principal y Docente con `GRPC_INTERNAL_TOKEN` coincidente.
 - El crash de `POST_NOTIFICATIONS` se rastreó a Activity Result/Fragment y se fijó `androidx.fragment:fragment-ktx:1.6.2`; compilado e integrado en el binario final de release.
-- APK release: **PENDIENTE ÚNICAMENTE FIRMA INTERACTIVA**; no existe keystore versionado.
+- El APK y el AAB de Release se generan con firma no interactiva en `build-mobile-apk`. El keystore privado y sus credenciales se suministran mediante GitHub Actions Secrets y permanecen fuera del repositorio.

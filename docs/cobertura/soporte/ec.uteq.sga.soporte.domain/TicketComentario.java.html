@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketComentario.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.domain</a> &gt; <span class="el_source">TicketComentario.java</span></div><h1>TicketComentario.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.domain;
+
+import java.time.LocalDateTime;
+
+/** Entidad de dominio pura para un comentario de ticket. Sin anotaciones de framework. */
+public class TicketComentario {
+
+    private Long id;
+    private Long idTicket;
+    private String autor;
+    private String contenido;
+    private Boolean notaInterna;
+    private LocalDateTime fechaCreacion;
+
+<span class="fc" id="L15">    public TicketComentario() {</span>
+<span class="fc" id="L16">        this.fechaCreacion = LocalDateTime.now();</span>
+<span class="fc" id="L17">        this.notaInterna = false;</span>
+<span class="fc" id="L18">    }</span>
+
+    // Getters y Setters
+<span class="fc" id="L21">    public Long getId() { return id; }</span>
+<span class="fc" id="L22">    public void setId(Long id) { this.id = id; }</span>
+
+<span class="fc" id="L24">    public Long getIdTicket() { return idTicket; }</span>
+<span class="fc" id="L25">    public void setIdTicket(Long idTicket) { this.idTicket = idTicket; }</span>
+
+<span class="fc" id="L27">    public String getAutor() { return autor; }</span>
+<span class="fc" id="L28">    public void setAutor(String autor) { this.autor = autor; }</span>
+
+<span class="fc" id="L30">    public String getContenido() { return contenido; }</span>
+<span class="fc" id="L31">    public void setContenido(String contenido) { this.contenido = contenido; }</span>
+
+<span class="fc" id="L33">    public Boolean getNotaInterna() { return notaInterna; }</span>
+<span class="fc" id="L34">    public void setNotaInterna(Boolean notaInterna) { this.notaInterna = notaInterna; }</span>
+
+<span class="fc" id="L36">    public LocalDateTime getFechaCreacion() { return fechaCreacion; }</span>
+<span class="fc" id="L37">    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
