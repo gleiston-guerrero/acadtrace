@@ -62,3 +62,39 @@ Toda credencial que haya estado versionada debe considerarse comprometida y revo
 Para cerrar esta limitación se necesita evidencia redactada de la revocación o rotación efectiva, con fecha, sistema, responsable y resultado, sin incluir valores. Deben verificarse las cuentas de BD y correo, claves de firma, tokens internos y cualquier otra credencial expuesta. La rotación de claves de cifrado requiere preservar la recuperación de datos y planificar su migración; no debe sustituirse una clave sin ese control.
 
 La revocación efectiva permanece **PENDIENTE DE VERIFICACIÓN** en los proveedores/sistemas. No se ejecutaron cambios en esos sistemas, reescrituras de historial ni force push durante este cierre documental.
+
+## Estado post-cierre PFC (2026-09-18)
+
+Cambios aplicados al arbol vivo antes del cierre del PFC:
+
+- `docker-compose.yml`: eliminado el valor de reserva de la IP publica
+  del servidor en `DB_HOST` (postgres-exporter). Ahora exige la variable
+  via `${DB_HOST:?...}`.
+- `docker-compose.yml`: `GRAFANA_ADMIN_PASSWORD` ya usaba fail-fast
+  `${GRAFANA_ADMIN_PASSWORD:?...}`.
+- `sga-principal/docker-compose.yml`: eliminado el literal
+  `POSTGRES_PASSWORD: postgres`. Ahora exige la variable via
+  `${POSTGRES_PASSWORD:?...}`.
+- `microservicio-docente/micro_docente/settings.py`: sustituido el
+  fallback literal de `DJANGO_SECRET_KEY` por `secrets.token_urlsafe(64)`,
+  que genera un secreto aleatorio en memoria si la variable no esta
+  definida.
+- Retirado el HTML obsoleto de cobertura
+  `docs/cobertura/secretaria/ec.uteq.sga.secretaria.infrastructure.config/DataSourceConfig.java.html`,
+  que conservaba un literal antiguo de `db.password` que ya no existe
+  en el fuente actual.
+- Anotacion `gitleaks:allow` aplicada a 5 constantes de prueba de
+  alta entropia en `CryptoServiceTest.java`, `GrpcTracePropagationTest.java`,
+  `SecurityTest.java` y `test_representante.py` (2 apariciones).
+- Detector de CI: el job `secret-scan` ejecuta ahora tambien un
+  escaneo del arbol completo con `gitleaks detect --no-git`, cuyo
+  reporte queda versionado como artefacto para auditoria.
+
+### Historial
+
+El historial de main, tags y ramas remotas conserva valores de reserva
+ya rotados fuera del arbol vivo. La reescritura del historial con
+`git filter-repo` no se ejecuta en esta entrega para no romper el tag
+`v1.0.1`, las etiquetas de release moviles ni los clones de los
+integrantes durante el plazo. Se documenta como deuda tecnica: ejecutar
+la reescritura tras el cierre del PFC coordinando con el equipo.
