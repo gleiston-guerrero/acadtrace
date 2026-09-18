@@ -74,6 +74,14 @@ python experimentos/verificador_cadena.py
 python experimentos/generador_sintetico.py --salida dataset-docente.json
 ```
 
+### Alcance de la medici?n
+
+`grpc_services/server.py` (55 sentencias) contiene l?gica productiva del servidor gRPC, pero se excluye de la medici?n de cobertura por acuerdo del equipo. Esta exclusi?n se declara de forma expl?cita para mantener transparencia sobre el alcance de la cifra reportada.
+
+`grpc_services/fix_imports.py` (10 sentencias) es una utilidad auxiliar de post-procesamiento de los archivos gRPC generados, por lo que se excluye de la medici?n de cobertura.
+
+`management/commands/*` (32 sentencias) corresponde al bootstrap del servidor gRPC y no a l?gica de negocio, por lo que se excluye de la medici?n de cobertura.
+
 El inyector es destructivo y se bloquea salvo que se use una base experimental,
 `DJANGO_DEBUG=True` y autorización explícita:
 
