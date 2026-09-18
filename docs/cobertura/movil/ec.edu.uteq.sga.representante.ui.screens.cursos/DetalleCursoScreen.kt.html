@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DetalleCursoScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.cursos</a> &gt; <span class="el_source">DetalleCursoScreen.kt</span></div><h1>DetalleCursoScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.cursos
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.domain.model.Estudiante
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+<span class="nc" id="L28">data class OpcionCurso(</span>
+<span class="nc" id="L29">    val title: String,</span>
+<span class="nc" id="L30">    val description: String,</span>
+<span class="nc" id="L31">    val icon: ImageVector,</span>
+<span class="nc" id="L32">    val bgColor: Color,</span>
+<span class="nc" id="L33">    val iconColor: Color,</span>
+<span class="nc" id="L34">    val onClick: () -&gt; Unit</span>
+)
+
+@Composable
+fun DetalleCursoScreen(
+    idAsignacion: Long,
+    viewModel: CursosViewModel,
+    onBackClick: () -&gt; Unit,
+    onActividadesClick: (Long) -&gt; Unit,
+    onAsistenciaClick: (Long) -&gt; Unit,
+    onAulaVirtualClick: (Long) -&gt; Unit,
+    onAnunciosClick: (Long) -&gt; Unit,
+    onMaterialesClick: (Long) -&gt; Unit,
+    onReportesClick: (Long) -&gt; Unit,
+    onSeguimientoEstudianteClick: (Long, String) -&gt; Unit
+<span class="nc" id="L49">) {</span>
+<span class="nc" id="L50">    val state by viewModel.uiState.collectAsState()</span>
+<span class="nc" id="L51">    var selectedTab by remember { mutableIntStateOf(0) } // 0: Módulos del Curso, 1: Nómina de Estudiantes</span>
+<span class="nc" id="L52">    var studentSearchQuery by remember { mutableStateOf(&quot;&quot;) }</span>
+
+<span class="nc" id="L54">    LaunchedEffect(idAsignacion) {</span>
+<span class="nc" id="L55">        viewModel.loadCurso(idAsignacion)</span>
+<span class="nc" id="L56">    }</span>
+
+<span class="nc" id="L58">    val estudiantesFiltrados = remember(state.estudiantes, studentSearchQuery) {</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (studentSearchQuery.isBlank()) state.estudiantes</span>
+<span class="nc" id="L60">        else state.estudiantes.filter {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">            it.nombreCompleto.contains(studentSearchQuery, ignoreCase = true) ||</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            it.cedula.contains(studentSearchQuery, ignoreCase = true)</span>
+        }
+    }
+
+<span class="nc bnc" id="L66" title="All 4 branches missed.">    val courseTitle = state.asignacion?.asignaturaNombre ?: &quot;Asignación #$idAsignacion&quot;</span>
+<span class="nc bnc" id="L67" title="All 4 branches missed.">    val courseSubtitle = state.asignacion?.let { &quot;${it.gradoNombre} • Paralelo \&quot;${it.paraleloLetra}\&quot;&quot; } ?: &quot;Gestión del Curso&quot;</span>
+
+<span class="nc" id="L69">    Scaffold(</span>
+<span class="nc" id="L70">        topBar = {</span>
+<span class="nc" id="L71">            SgaTopAppBar(</span>
+<span class="nc" id="L72">                title = courseTitle,</span>
+<span class="nc" id="L73">                subtitle = courseSubtitle,</span>
+<span class="nc" id="L74">                showBackButton = true,</span>
+<span class="nc" id="L75">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L78">    ) { padding -&gt;</span>
+<span class="nc" id="L79">        Column(</span>
+<span class="nc" id="L80">            modifier = Modifier</span>
+<span class="nc" id="L81">                .fillMaxSize()</span>
+<span class="nc" id="L82">                .padding(padding)</span>
+<span class="nc" id="L83">                .background(BackgroundSlate)</span>
+        ) {
+<span class="nc" id="L85">            OfflineBanner(isOffline = state.isOffline)</span>
+
+            // ─── ENCABEZADO PROMINENTE DEL CURSO ─────────────────────────────
+<span class="nc" id="L88">            Surface(</span>
+<span class="nc" id="L89">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L90">                color = CardSurface,</span>
+<span class="nc" id="L91">                shadowElevation = 2.dp</span>
+<span class="nc" id="L92">            ) {</span>
+<span class="nc" id="L93">                Column(modifier = Modifier.padding(16.dp)) {</span>
+<span class="nc" id="L94">                    Row(</span>
+<span class="nc" id="L95">                        modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L96">                        horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L97">                        verticalAlignment = Alignment.Top</span>
+                    ) {
+<span class="nc" id="L99">                        Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L100">                            Text(</span>
+<span class="nc bnc" id="L101" title="All 4 branches missed.">                                text = state.asignacion?.asignaturaNombre ?: &quot;Asignación #$idAsignacion&quot;,</span>
+<span class="nc" id="L102">                                style = MaterialTheme.typography.titleLarge,</span>
+<span class="nc" id="L103">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L104">                                color = PrimaryNavy</span>
+                            )
+<span class="nc" id="L106">                            Spacer(modifier = Modifier.height(3.dp))</span>
+<span class="nc" id="L107">                            Text(</span>
+<span class="nc bnc" id="L108" title="All 4 branches missed.">                                text = state.asignacion?.let { &quot;${it.gradoNombre} • Paralelo \&quot;${it.paraleloLetra}\&quot;&quot; } ?: &quot;Cargando datos del paralelo...&quot;,</span>
+<span class="nc" id="L109">                                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L110">                                fontWeight = FontWeight.SemiBold,</span>
+<span class="nc" id="L111">                                color = TextPrimary</span>
+                            )
+<span class="nc bnc" id="L113" title="All 4 branches missed.">                            if (state.asignacion?.anoLectivoNombre != null) {</span>
+<span class="nc" id="L114">                                Spacer(modifier = Modifier.height(2.dp))</span>
+<span class="nc" id="L115">                                Text(</span>
+<span class="nc" id="L116">                                    text = &quot;Año lectivo: ${state.asignacion!!.anoLectivoNombre}&quot;,</span>
+<span class="nc" id="L117">                                    fontSize = 12.sp,</span>
+<span class="nc" id="L118">                                    color = TextSecondary</span>
+                                )
+                            }
+<span class="nc" id="L121">                        }</span>
+
+<span class="nc" id="L123">                        Column(horizontalAlignment = Alignment.End) {</span>
+<span class="nc" id="L124">                            Surface(</span>
+<span class="nc" id="L125">                                shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L126">                                color = ModuloAulaVirtualBg</span>
+<span class="nc" id="L127">                            ) {</span>
+<span class="nc" id="L128">                                Text(</span>
+<span class="nc" id="L129">                                    text = &quot;ID #$idAsignacion&quot;,</span>
+<span class="nc" id="L130">                                    color = ModuloAulaVirtualText,</span>
+<span class="nc" id="L131">                                    fontSize = 12.sp,</span>
+<span class="nc" id="L132">                                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L133">                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)</span>
+                                )
+                            }
+<span class="nc" id="L136">                            Spacer(modifier = Modifier.height(6.dp))</span>
+<span class="nc bnc" id="L137" title="All 6 branches missed.">                            val totalEst = if (state.estudiantes.isNotEmpty()) state.estudiantes.size else (state.asignacion?.cantidadEstudiantes ?: 0)</span>
+<span class="nc" id="L138">                            Surface(</span>
+<span class="nc" id="L139">                                shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L140">                                color = ModuloAsistenciaBg</span>
+<span class="nc" id="L141">                            ) {</span>
+<span class="nc" id="L142">                                Text(</span>
+<span class="nc" id="L143">                                    text = &quot;$totalEst Alumnos&quot;,</span>
+<span class="nc" id="L144">                                    color = AccentGreen,</span>
+<span class="nc" id="L145">                                    fontSize = 11.sp,</span>
+<span class="nc" id="L146">                                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L147">                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)</span>
+                                )
+                            }
+<span class="nc" id="L150">                        }</span>
+<span class="nc" id="L151">                    }</span>
+<span class="nc" id="L152">                }</span>
+            }
+
+            // ─── TABS ─────────────────────────────────────────────────────────
+<span class="nc" id="L156">            TabRow(</span>
+<span class="nc" id="L157">                selectedTabIndex = selectedTab,</span>
+<span class="nc" id="L158">                containerColor = CardSurface,</span>
+<span class="nc" id="L159">                contentColor = PrimaryNavy</span>
+<span class="nc" id="L160">            ) {</span>
+<span class="nc" id="L161">                Tab(</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                    selected = selectedTab == 0,</span>
+<span class="nc" id="L163">                    onClick = { selectedTab = 0 },</span>
+<span class="nc" id="L164">                    text = { Text(&quot;Gestión Académica&quot;, fontWeight = FontWeight.Bold) },</span>
+<span class="nc" id="L165">                    icon = { Icon(Icons.Default.DashboardCustomize, contentDescription = null) }</span>
+                )
+<span class="nc" id="L167">                Tab(</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                    selected = selectedTab == 1,</span>
+<span class="nc" id="L169">                    onClick = { selectedTab = 1 },</span>
+<span class="nc" id="L170">                    text = {</span>
+<span class="nc bnc" id="L171" title="All 6 branches missed.">                        val count = if (state.estudiantes.isNotEmpty()) state.estudiantes.size else (state.asignacion?.cantidadEstudiantes ?: 0)</span>
+<span class="nc" id="L172">                        Text(&quot;Estudiantes ($count)&quot;, fontWeight = FontWeight.Bold)</span>
+                    },
+<span class="nc" id="L174">                    icon = { Icon(Icons.Default.People, contentDescription = null) }</span>
+                )
+            }
+
+<span class="nc bnc" id="L178" title="All 6 branches missed.">            if (state.isLoading &amp;&amp; state.estudiantes.isEmpty() &amp;&amp; state.asignacion == null) {</span>
+<span class="nc" id="L179">                LoadingView(&quot;Cargando información del curso y estudiantes...&quot;)</span>
+<span class="nc bnc" id="L180" title="All 6 branches missed.">            } else if (state.errorMessage != null &amp;&amp; state.estudiantes.isEmpty() &amp;&amp; state.asignacion == null) {</span>
+<span class="nc" id="L181">                ErrorView(</span>
+<span class="nc" id="L182">                    message = state.errorMessage!!,</span>
+<span class="nc" id="L183">                    onRetry = { viewModel.loadCurso(idAsignacion) }</span>
+                )
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            } else if (selectedTab == 0) {</span>
+                // ─── PESTAÑA 0: MÓDULOS DE GESTIÓN ACADÉMICA DEL CURSO ──────────
+<span class="nc" id="L187">                val opcionesCurso = listOf(</span>
+<span class="nc" id="L188">                    OpcionCurso(</span>
+<span class="nc" id="L189">                        title = &quot;Actividades y Tareas&quot;,</span>
+<span class="nc" id="L190">                        description = &quot;Cree, modifique y planifique tareas, talleres y lecciones&quot;,</span>
+<span class="nc" id="L191">                        icon = Icons.AutoMirrored.Filled.Assignment,</span>
+<span class="nc" id="L192">                        bgColor = ModuloActividadesBg,</span>
+<span class="nc" id="L193">                        iconColor = ModuloActividadesText,</span>
+<span class="nc" id="L194">                        onClick = { onActividadesClick(idAsignacion) }</span>
+                    ),
+<span class="nc" id="L196">                    OpcionCurso(</span>
+<span class="nc" id="L197">                        title = &quot;Control de Asistencia&quot;,</span>
+<span class="nc" id="L198">                        description = &quot;Tome lista diaria y consulte las estadísticas de asistencia&quot;,</span>
+<span class="nc" id="L199">                        icon = Icons.Default.CheckCircle,</span>
+<span class="nc" id="L200">                        bgColor = ModuloAsistenciaBg,</span>
+<span class="nc" id="L201">                        iconColor = ModuloAsistenciaText,</span>
+<span class="nc" id="L202">                        onClick = { onAsistenciaClick(idAsignacion) }</span>
+                    ),
+<span class="nc" id="L204">                    OpcionCurso(</span>
+<span class="nc" id="L205">                        title = &quot;Aula Virtual por Semanas&quot;,</span>
+<span class="nc" id="L206">                        description = &quot;Contenido estructurado por semanas y trimestres&quot;,</span>
+<span class="nc" id="L207">                        icon = Icons.AutoMirrored.Filled.MenuBook,</span>
+<span class="nc" id="L208">                        bgColor = ModuloAulaVirtualBg,</span>
+<span class="nc" id="L209">                        iconColor = ModuloAulaVirtualText,</span>
+<span class="nc" id="L210">                        onClick = { onAulaVirtualClick(idAsignacion) }</span>
+                    ),
+<span class="nc" id="L212">                    OpcionCurso(</span>
+<span class="nc" id="L213">                        title = &quot;Anuncios y Novedades&quot;,</span>
+<span class="nc" id="L214">                        description = &quot;Publique comunicados importantes para este curso&quot;,</span>
+<span class="nc" id="L215">                        icon = Icons.Default.Campaign,</span>
+<span class="nc" id="L216">                        bgColor = ModuloAnunciosBg,</span>
+<span class="nc" id="L217">                        iconColor = ModuloAnunciosText,</span>
+<span class="nc" id="L218">                        onClick = { onAnunciosClick(idAsignacion) }</span>
+                    ),
+<span class="nc" id="L220">                    OpcionCurso(</span>
+<span class="nc" id="L221">                        title = &quot;Materiales de Estudio&quot;,</span>
+<span class="nc" id="L222">                        description = &quot;Comparta documentos, enlaces y recursos didácticos&quot;,</span>
+<span class="nc" id="L223">                        icon = Icons.Default.Folder,</span>
+<span class="nc" id="L224">                        bgColor = ModuloMaterialBg,</span>
+<span class="nc" id="L225">                        iconColor = ModuloMaterialText,</span>
+<span class="nc" id="L226">                        onClick = { onMaterialesClick(idAsignacion) }</span>
+                    ),
+<span class="nc" id="L228">                    OpcionCurso(</span>
+<span class="nc" id="L229">                        title = &quot;Reportes y Promedios&quot;,</span>
+<span class="nc" id="L230">                        description = &quot;Calcule y consulte promedios formativos, sumativos y anuales&quot;,</span>
+<span class="nc" id="L231">                        icon = Icons.Default.Assessment,</span>
+<span class="nc" id="L232">                        bgColor = ModuloReportesBg,</span>
+<span class="nc" id="L233">                        iconColor = ModuloReportesText,</span>
+<span class="nc" id="L234">                        onClick = { onReportesClick(idAsignacion) }</span>
+                    )
+                )
+
+<span class="nc" id="L238">                LazyColumn(</span>
+<span class="nc" id="L239">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L240">                    contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L241">                    verticalArrangement = Arrangement.spacedBy(12.dp)</span>
+                ) {
+<span class="nc" id="L243">                    item {</span>
+<span class="nc bnc" id="L244" title="All 6 branches missed.">                        val totalEst = if (state.estudiantes.isNotEmpty()) state.estudiantes.size else (state.asignacion?.cantidadEstudiantes ?: 0)</span>
+<span class="nc" id="L245">                        Card(</span>
+<span class="nc" id="L246">                            modifier = Modifier</span>
+<span class="nc" id="L247">                                .fillMaxWidth()</span>
+<span class="nc" id="L248">                                .clickable { selectedTab = 1 },</span>
+<span class="nc" id="L249">                            shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L250">                            colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L251">                            border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryNavy.copy(alpha = 0.15f)),</span>
+<span class="nc" id="L252">                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)</span>
+<span class="nc" id="L253">                        ) {</span>
+<span class="nc" id="L254">                            Row(</span>
+<span class="nc" id="L255">                                modifier = Modifier</span>
+<span class="nc" id="L256">                                    .fillMaxWidth()</span>
+<span class="nc" id="L257">                                    .padding(14.dp),</span>
+<span class="nc" id="L258">                                horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L259">                                verticalAlignment = Alignment.CenterVertically</span>
+                            ) {
+<span class="nc" id="L261">                                Row(verticalAlignment = Alignment.CenterVertically) {</span>
+<span class="nc" id="L262">                                    Box(</span>
+<span class="nc" id="L263">                                        modifier = Modifier</span>
+<span class="nc" id="L264">                                            .size(42.dp)</span>
+<span class="nc" id="L265">                                            .clip(RoundedCornerShape(10.dp))</span>
+<span class="nc" id="L266">                                            .background(PrimaryNavy.copy(alpha = 0.1f)),</span>
+<span class="nc" id="L267">                                        contentAlignment = Alignment.Center</span>
+                                    ) {
+<span class="nc" id="L269">                                        Icon(</span>
+<span class="nc" id="L270">                                            imageVector = Icons.Default.People,</span>
+<span class="nc" id="L271">                                            contentDescription = null,</span>
+<span class="nc" id="L272">                                            tint = PrimaryNavy,</span>
+<span class="nc" id="L273">                                            modifier = Modifier.size(24.dp)</span>
+                                        )
+<span class="nc" id="L275">                                    }</span>
+<span class="nc" id="L276">                                    Spacer(modifier = Modifier.width(12.dp))</span>
+<span class="nc" id="L277">                                    Column {</span>
+<span class="nc" id="L278">                                        Text(</span>
+<span class="nc" id="L279">                                            text = &quot;Nómina de Estudiantes&quot;,</span>
+<span class="nc" id="L280">                                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L281">                                            fontSize = 14.sp,</span>
+<span class="nc" id="L282">                                            color = TextPrimary</span>
+                                        )
+<span class="nc" id="L284">                                        Text(</span>
+<span class="nc" id="L285">                                            text = &quot;$totalEst alumnos matriculados en este paralelo&quot;,</span>
+<span class="nc" id="L286">                                            fontSize = 12.sp,</span>
+<span class="nc" id="L287">                                            color = TextSecondary</span>
+                                        )
+<span class="nc" id="L289">                                    }</span>
+<span class="nc" id="L290">                                }</span>
+<span class="nc" id="L291">                                TextButton(onClick = { selectedTab = 1 }) {</span>
+<span class="nc" id="L292">                                    Text(&quot;Ver Lista&quot;, fontWeight = FontWeight.Bold, color = PrimaryNavy, fontSize = 12.sp)</span>
+<span class="nc" id="L293">                                    Spacer(modifier = Modifier.width(4.dp))</span>
+<span class="nc" id="L294">                                    Icon(</span>
+<span class="nc" id="L295">                                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,</span>
+<span class="nc" id="L296">                                        contentDescription = null,</span>
+<span class="nc" id="L297">                                        modifier = Modifier.size(12.dp),</span>
+<span class="nc" id="L298">                                        tint = PrimaryNavy</span>
+                                    )
+                                }
+<span class="nc" id="L301">                            }</span>
+                        }
+                    }
+
+<span class="nc" id="L305">                    items(opcionesCurso) { opcion -&gt;</span>
+<span class="nc" id="L306">                        Card(</span>
+<span class="nc" id="L307">                            modifier = Modifier</span>
+<span class="nc" id="L308">                                .fillMaxWidth()</span>
+<span class="nc" id="L309">                                .shadow(2.dp, RoundedCornerShape(14.dp))</span>
+<span class="nc" id="L310">                                .clickable { opcion.onClick() },</span>
+<span class="nc" id="L311">                            shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L312">                            colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L313">                            border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L314">                        ) {</span>
+<span class="nc" id="L315">                            Row(</span>
+<span class="nc" id="L316">                                modifier = Modifier</span>
+<span class="nc" id="L317">                                    .fillMaxWidth()</span>
+<span class="nc" id="L318">                                    .padding(16.dp),</span>
+<span class="nc" id="L319">                                verticalAlignment = Alignment.CenterVertically</span>
+                            ) {
+<span class="nc" id="L321">                                Box(</span>
+<span class="nc" id="L322">                                    modifier = Modifier</span>
+<span class="nc" id="L323">                                        .size(46.dp)</span>
+<span class="nc" id="L324">                                        .clip(RoundedCornerShape(12.dp))</span>
+<span class="nc" id="L325">                                        .background(opcion.bgColor),</span>
+<span class="nc" id="L326">                                    contentAlignment = Alignment.Center</span>
+                                ) {
+<span class="nc" id="L328">                                    Icon(</span>
+<span class="nc" id="L329">                                        imageVector = opcion.icon,</span>
+<span class="nc" id="L330">                                        contentDescription = opcion.title,</span>
+<span class="nc" id="L331">                                        tint = opcion.iconColor,</span>
+<span class="nc" id="L332">                                        modifier = Modifier.size(24.dp)</span>
+                                    )
+<span class="nc" id="L334">                                }</span>
+
+<span class="nc" id="L336">                                Spacer(modifier = Modifier.width(14.dp))</span>
+
+<span class="nc" id="L338">                                Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L339">                                    Text(</span>
+<span class="nc" id="L340">                                        text = opcion.title,</span>
+<span class="nc" id="L341">                                        style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L342">                                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L343">                                        color = TextPrimary</span>
+                                    )
+<span class="nc" id="L345">                                    Spacer(modifier = Modifier.height(2.dp))</span>
+<span class="nc" id="L346">                                    Text(</span>
+<span class="nc" id="L347">                                        text = opcion.description,</span>
+<span class="nc" id="L348">                                        style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L349">                                        color = TextSecondary,</span>
+<span class="nc" id="L350">                                        fontSize = 12.sp</span>
+                                    )
+<span class="nc" id="L352">                                }</span>
+
+<span class="nc" id="L354">                                Icon(</span>
+<span class="nc" id="L355">                                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,</span>
+<span class="nc" id="L356">                                    contentDescription = null,</span>
+<span class="nc" id="L357">                                    tint = TextMuted,</span>
+<span class="nc" id="L358">                                    modifier = Modifier.size(16.dp)</span>
+                                )
+<span class="nc" id="L360">                            }</span>
+                        }
+<span class="nc" id="L362">                    }</span>
+<span class="nc" id="L363">                }</span>
+<span class="nc" id="L364">            } else {</span>
+                // ─── PESTAÑA 1: LISTA COMPLETA DE ESTUDIANTES ───────────────────
+<span class="nc" id="L366">                Column(modifier = Modifier.fillMaxSize()) {</span>
+                    // Barra de búsqueda en tiempo real
+<span class="nc" id="L368">                    Surface(</span>
+<span class="nc" id="L369">                        color = CardSurface,</span>
+<span class="nc" id="L370">                        modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L371">                    ) {</span>
+<span class="nc" id="L372">                        OutlinedTextField(</span>
+<span class="nc" id="L373">                            value = studentSearchQuery,</span>
+<span class="nc" id="L374">                            onValueChange = { studentSearchQuery = it },</span>
+<span class="nc" id="L375">                            placeholder = { Text(&quot;Buscar estudiante por nombre o cédula...&quot;, fontSize = 13.sp, color = TextMuted) },</span>
+<span class="nc" id="L376">                            leadingIcon = {</span>
+<span class="nc" id="L377">                                Icon(</span>
+<span class="nc" id="L378">                                    imageVector = Icons.Default.Search,</span>
+<span class="nc" id="L379">                                    contentDescription = &quot;Buscar&quot;,</span>
+<span class="nc" id="L380">                                    tint = PrimaryNavy,</span>
+<span class="nc" id="L381">                                    modifier = Modifier.size(18.dp)</span>
+                                )
+                            },
+<span class="nc" id="L384">                            trailingIcon = {</span>
+<span class="nc bnc" id="L385" title="All 4 branches missed.">                                if (studentSearchQuery.isNotEmpty()) {</span>
+<span class="nc" id="L386">                                    IconButton(onClick = { studentSearchQuery = &quot;&quot; }) {</span>
+<span class="nc" id="L387">                                        Icon(</span>
+<span class="nc" id="L388">                                            imageVector = Icons.Default.Close,</span>
+<span class="nc" id="L389">                                            contentDescription = &quot;Limpiar&quot;,</span>
+<span class="nc" id="L390">                                            tint = TextMuted,</span>
+<span class="nc" id="L391">                                            modifier = Modifier.size(16.dp)</span>
+                                        )
+                                    }
+                                }
+                            },
+<span class="nc" id="L396">                            singleLine = true,</span>
+<span class="nc" id="L397">                            modifier = Modifier</span>
+<span class="nc" id="L398">                                .fillMaxWidth()</span>
+<span class="nc" id="L399">                                .padding(horizontal = 16.dp, vertical = 8.dp),</span>
+<span class="nc" id="L400">                            shape = RoundedCornerShape(10.dp),</span>
+<span class="nc" id="L401">                            colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L402">                                focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L403">                                unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L404">                                focusedContainerColor = BackgroundSlate,</span>
+<span class="nc" id="L405">                                unfocusedContainerColor = BackgroundSlate,</span>
+<span class="nc" id="L406">                                focusedBorderColor = PrimaryNavy,</span>
+<span class="nc" id="L407">                                unfocusedBorderColor = SlateBorder</span>
+                            )
+                        )
+                    }
+
+<span class="nc bnc" id="L412" title="All 4 branches missed.">                    if (state.estudiantes.isEmpty() &amp;&amp; state.isLoading) {</span>
+<span class="nc" id="L413">                        LoadingView(&quot;Cargando lista de estudiantes...&quot;)</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">                    } else if (state.estudiantes.isEmpty()) {</span>
+<span class="nc" id="L415">                        EmptyStateView(</span>
+<span class="nc" id="L416">                            icon = Icons.Default.PeopleOutline,</span>
+<span class="nc" id="L417">                            title = &quot;Sin estudiantes registrados&quot;,</span>
+<span class="nc" id="L418">                            subtitle = &quot;No hay alumnos matriculados en esta asignatura y paralelo.&quot;</span>
+                        )
+<span class="nc bnc" id="L420" title="All 2 branches missed.">                    } else if (estudiantesFiltrados.isEmpty()) {</span>
+<span class="nc" id="L421">                        EmptyStateView(</span>
+<span class="nc" id="L422">                            icon = Icons.Default.SearchOff,</span>
+<span class="nc" id="L423">                            title = &quot;No se encontraron coincidencias&quot;,</span>
+<span class="nc" id="L424">                            subtitle = &quot;Intenta con otro nombre o número de cédula.&quot;</span>
+                        )
+<span class="nc" id="L426">                    } else {</span>
+<span class="nc" id="L427">                        LazyColumn(</span>
+<span class="nc" id="L428">                            modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L429">                            contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L430">                            verticalArrangement = Arrangement.spacedBy(10.dp)</span>
+                        ) {
+<span class="nc" id="L432">                            items(estudiantesFiltrados) { estudiante -&gt;</span>
+<span class="nc" id="L433">                                EstudianteItemCard(</span>
+<span class="nc" id="L434">                                    estudiante = estudiante,</span>
+<span class="nc" id="L435">                                    onSeguimientoClick = {</span>
+<span class="nc" id="L436">                                        onSeguimientoEstudianteClick(estudiante.idMatricula, estudiante.nombreCompleto)</span>
+<span class="nc" id="L437">                                    }</span>
+                                )
+<span class="nc" id="L439">                            }</span>
+<span class="nc" id="L440">                        }</span>
+                    }
+<span class="nc" id="L442">                }</span>
+            }
+<span class="nc" id="L444">        }</span>
+    }
+<span class="nc" id="L446">}</span>
+
+@Composable
+fun EstudianteItemCard(
+    estudiante: Estudiante,
+    onSeguimientoClick: () -&gt; Unit
+<span class="nc" id="L452">) {</span>
+<span class="nc" id="L453">    Card(</span>
+<span class="nc" id="L454">        modifier = Modifier</span>
+<span class="nc" id="L455">            .fillMaxWidth()</span>
+<span class="nc" id="L456">            .shadow(1.dp, RoundedCornerShape(12.dp)),</span>
+<span class="nc" id="L457">        shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L458">        colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L459">        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L460">    ) {</span>
+<span class="nc" id="L461">        Row(</span>
+<span class="nc" id="L462">            modifier = Modifier</span>
+<span class="nc" id="L463">                .fillMaxWidth()</span>
+<span class="nc" id="L464">                .padding(12.dp),</span>
+<span class="nc" id="L465">            verticalAlignment = Alignment.CenterVertically</span>
+        ) {
+<span class="nc" id="L467">            Box(</span>
+<span class="nc" id="L468">                modifier = Modifier</span>
+<span class="nc" id="L469">                    .size(40.dp)</span>
+<span class="nc" id="L470">                    .clip(CircleShape)</span>
+<span class="nc" id="L471">                    .background(PrimaryNavy.copy(alpha = 0.1f)),</span>
+<span class="nc" id="L472">                contentAlignment = Alignment.Center</span>
+            ) {
+<span class="nc" id="L474">                Text(</span>
+<span class="nc" id="L475">                    text = estudiante.apellidos.take(1).uppercase(),</span>
+<span class="nc" id="L476">                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L477">                    color = PrimaryNavy,</span>
+<span class="nc" id="L478">                    fontSize = 16.sp</span>
+                )
+<span class="nc" id="L480">            }</span>
+
+<span class="nc" id="L482">            Spacer(modifier = Modifier.width(12.dp))</span>
+
+<span class="nc" id="L484">            Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L485">                Text(</span>
+<span class="nc" id="L486">                    text = estudiante.nombreCompleto,</span>
+<span class="nc" id="L487">                    style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L488">                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L489">                    color = TextPrimary,</span>
+<span class="nc" id="L490">                    fontSize = 14.sp</span>
+                )
+<span class="nc" id="L492">                Spacer(modifier = Modifier.height(2.dp))</span>
+<span class="nc" id="L493">                Row(</span>
+<span class="nc" id="L494">                    horizontalArrangement = Arrangement.spacedBy(8.dp),</span>
+<span class="nc" id="L495">                    verticalAlignment = Alignment.CenterVertically</span>
+                ) {
+<span class="nc bnc" id="L497" title="All 4 branches missed.">                    if (estudiante.cedula.isNotBlank()) {</span>
+<span class="nc" id="L498">                        Text(</span>
+<span class="nc" id="L499">                            text = &quot;C.I. ${estudiante.cedula}&quot;,</span>
+<span class="nc" id="L500">                            style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L501">                            color = TextSecondary,</span>
+<span class="nc" id="L502">                            fontSize = 12.sp</span>
+                        )
+                    }
+<span class="nc" id="L505">                    Text(</span>
+<span class="nc" id="L506">                        text = &quot;Matrícula #${estudiante.idMatricula}&quot;,</span>
+<span class="nc" id="L507">                        style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L508">                        color = TextMuted,</span>
+<span class="nc" id="L509">                        fontSize = 11.sp</span>
+                    )
+<span class="nc" id="L511">                }</span>
+<span class="nc" id="L512">            }</span>
+
+<span class="nc" id="L514">            IconButton(</span>
+<span class="nc" id="L515">                onClick = onSeguimientoClick,</span>
+<span class="nc" id="L516">                colors = IconButtonDefaults.iconButtonColors(</span>
+<span class="nc" id="L517">                    contentColor = ModuloSeguimientoText</span>
+                )
+<span class="nc" id="L519">            ) {</span>
+<span class="nc" id="L520">                Icon(</span>
+<span class="nc" id="L521">                    imageVector = Icons.Default.PostAdd,</span>
+<span class="nc" id="L522">                    contentDescription = &quot;Registrar Observación / Seguimiento&quot;,</span>
+<span class="nc" id="L523">                    modifier = Modifier.size(22.dp)</span>
+                )
+            }
+<span class="nc" id="L526">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

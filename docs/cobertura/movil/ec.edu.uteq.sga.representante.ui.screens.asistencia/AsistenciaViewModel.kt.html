@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsistenciaViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.asistencia</a> &gt; <span class="el_source">AsistenciaViewModel.kt</span></div><h1>AsistenciaViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.asistencia
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.data.remote.dto.AsistenciaCreateDTO
+import ec.edu.uteq.sga.representante.domain.model.Asignacion
+import ec.edu.uteq.sga.representante.domain.model.AsistenciaRegistro
+import ec.edu.uteq.sga.representante.domain.model.Estudiante
+import ec.edu.uteq.sga.representante.domain.model.PeriodoEvaluacion
+import ec.edu.uteq.sga.representante.domain.model.ResumenAsistencia
+import ec.edu.uteq.sga.representante.domain.repository.AsistenciasRepository
+import ec.edu.uteq.sga.representante.domain.repository.DocenteRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+
+<span class="nc" id="L21">data class EstudianteAsistenciaItem(</span>
+<span class="nc" id="L22">    val estudiante: Estudiante,</span>
+<span class="nc" id="L23">    val asistencia: AsistenciaRegistro? = null</span>
+<span class="nc" id="L24">)</span>
+
+<span class="nc" id="L26">data class AsistenciaUiState(</span>
+<span class="nc" id="L27">    val idAsignacion: Long = 0,</span>
+<span class="nc" id="L28">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
+<span class="nc" id="L29">    val selectedAsignacion: Asignacion? = null,</span>
+<span class="nc" id="L30">    val selectedFecha: String = &quot;&quot;,</span>
+<span class="nc" id="L31">    val periodos: List&lt;PeriodoEvaluacion&gt; = emptyList(),</span>
+<span class="nc" id="L32">    val selectedPeriodo: PeriodoEvaluacion? = null,</span>
+<span class="nc" id="L33">    val items: List&lt;EstudianteAsistenciaItem&gt; = emptyList(),</span>
+<span class="nc" id="L34">    val resumenes: List&lt;ResumenAsistencia&gt; = emptyList(),</span>
+<span class="nc" id="L35">    val isLoading: Boolean = false,</span>
+<span class="nc" id="L36">    val isOffline: Boolean = false,</span>
+<span class="nc" id="L37">    val errorMessage: String? = null</span>
+<span class="nc" id="L38">)</span>
+
+<span class="nc" id="L40">class AsistenciaViewModel(</span>
+<span class="nc" id="L41">    private val asistenciasRepository: AsistenciasRepository,</span>
+<span class="nc" id="L42">    private val docenteRepository: DocenteRepository</span>
+<span class="nc" id="L43">) : ViewModel() {</span>
+
+<span class="nc" id="L45">    private val _uiState = MutableStateFlow(AsistenciaUiState())</span>
+<span class="nc" id="L46">    val uiState: StateFlow&lt;AsistenciaUiState&gt; = _uiState.asStateFlow()</span>
+
+<span class="nc" id="L48">    private var currentEstudiantes: List&lt;Estudiante&gt; = emptyList()</span>
+<span class="nc" id="L49">    private var currentAsistencias: List&lt;AsistenciaRegistro&gt; = emptyList()</span>
+
+    private var loadDataJob: kotlinx.coroutines.Job? = null
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+
+    fun init(idAsignacion: Long) {
+<span class="nc" id="L55">        val sdf = SimpleDateFormat(&quot;yyyy-MM-dd&quot;, Locale.getDefault())</span>
+<span class="nc" id="L56">        val today = sdf.format(Date())</span>
+<span class="nc" id="L57">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, selectedFecha = today)</span>
+<span class="nc" id="L58">        loadAsignaciones(idAsignacion)</span>
+<span class="nc" id="L59">        loadPeriodos()</span>
+<span class="nc" id="L60">    }</span>
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+<span class="nc" id="L63">        viewModelScope.launch {</span>
+<span class="nc" id="L64">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
+<span class="nc bnc" id="L65" title="All 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">                    val current = if (idAsignacion &gt; 0) {</span>
+<span class="nc bnc" id="L67" title="All 8 branches missed.">                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()</span>
+                    } else {
+<span class="nc" id="L69">                        res.data.first()</span>
+                    }
+<span class="nc" id="L71">                    _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L72">                        asignaciones = res.data,</span>
+<span class="nc" id="L73">                        selectedAsignacion = current,</span>
+<span class="nc" id="L74">                        idAsignacion = current.idAsignacion</span>
+                    )
+<span class="nc" id="L76">                    loadData(current.idAsignacion, _uiState.value.selectedFecha)</span>
+                }
+<span class="nc" id="L78">            }</span>
+<span class="nc" id="L79">        }</span>
+<span class="nc" id="L80">    }</span>
+
+    fun selectAsignacion(asignacion: Asignacion) {
+<span class="nc" id="L83">        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L84">            selectedAsignacion = asignacion,</span>
+<span class="nc" id="L85">            idAsignacion = asignacion.idAsignacion</span>
+        )
+<span class="nc" id="L87">        loadData(asignacion.idAsignacion, _uiState.value.selectedFecha)</span>
+<span class="nc" id="L88">    }</span>
+
+    private fun loadPeriodos() {
+<span class="nc" id="L91">        viewModelScope.launch {</span>
+<span class="nc" id="L92">            docenteRepository.getPeriodosEvaluacion().collect { res -&gt;</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
+<span class="nc" id="L94">                    val periodos = res.data</span>
+<span class="nc" id="L95">                    val current = periodos.firstOrNull()</span>
+<span class="nc" id="L96">                    _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L97">                        periodos = periodos,</span>
+<span class="nc" id="L98">                        selectedPeriodo = current</span>
+                    )
+                }
+<span class="nc" id="L101">            }</span>
+<span class="nc" id="L102">        }</span>
+<span class="nc" id="L103">    }</span>
+
+    fun changeFecha(fecha: String) {
+<span class="nc" id="L106">        _uiState.value = _uiState.value.copy(selectedFecha = fecha)</span>
+<span class="nc" id="L107">        loadData(_uiState.value.idAsignacion, fecha)</span>
+<span class="nc" id="L108">    }</span>
+
+    fun loadData(idAsignacion: Long, fecha: String) {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (idAsignacion &lt;= 0) return</span>
+<span class="nc" id="L112">        _uiState.value = _uiState.value.copy(isLoading = true)</span>
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        loadEstudiantesJob?.cancel()</span>
+<span class="nc" id="L115">        loadEstudiantesJob = viewModelScope.launch {</span>
+<span class="nc" id="L116">            docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res -&gt;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
+<span class="nc" id="L118">                    currentEstudiantes = res.data</span>
+<span class="nc" id="L119">                    combineData()</span>
+                }
+<span class="nc" id="L121">            }</span>
+<span class="nc" id="L122">        }</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        loadDataJob?.cancel()</span>
+<span class="nc" id="L125">        loadDataJob = viewModelScope.launch {</span>
+<span class="nc" id="L126">            asistenciasRepository.getAsistenciasPorFecha(idAsignacion, fecha).collect { res -&gt;</span>
+<span class="nc" id="L127">                when (res) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                    is Resource.Success -&gt; {</span>
+<span class="nc" id="L129">                        currentAsistencias = res.data</span>
+<span class="nc" id="L130">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L131">                            isOffline = res.isOffline,</span>
+<span class="nc" id="L132">                            isLoading = false</span>
+                        )
+<span class="nc" id="L134">                        combineData()</span>
+                    }
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                    is Resource.Error -&gt; {</span>
+<span class="nc" id="L137">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L138">                            isLoading = false,</span>
+<span class="nc" id="L139">                            errorMessage = res.message</span>
+                        )
+                    }
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                    is Resource.Loading -&gt; {}</span>
+                }
+<span class="nc" id="L144">            }</span>
+<span class="nc" id="L145">        }</span>
+<span class="nc" id="L146">    }</span>
+
+    private fun combineData() {
+<span class="nc" id="L149">        val map = currentAsistencias.associateBy { it.idMatricula }</span>
+<span class="nc" id="L150">        val list = currentEstudiantes.map { est -&gt;</span>
+<span class="nc" id="L151">            EstudianteAsistenciaItem(</span>
+<span class="nc" id="L152">                estudiante = est,</span>
+<span class="nc" id="L153">                asistencia = map[est.idMatricula]</span>
+            )
+        }
+<span class="nc" id="L156">        _uiState.value = _uiState.value.copy(items = list)</span>
+<span class="nc" id="L157">    }</span>
+
+<span class="nc" id="L159">    fun setEstadoAsistencia(idMatricula: Long, nuevoEstado: String, justificacion: String? = null) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        val periodoId = _uiState.value.selectedPeriodo?.idPeriodo ?: 1L</span>
+<span class="nc bnc" id="L161" title="All 6 branches missed.">        val existing = currentAsistencias.find { it.idMatricula == idMatricula }</span>
+
+<span class="nc" id="L163">        val dto = AsistenciaCreateDTO(</span>
+<span class="nc" id="L164">            idMatricula = idMatricula,</span>
+<span class="nc" id="L165">            idAsignacion = _uiState.value.idAsignacion,</span>
+<span class="nc" id="L166">            idPeriodo = periodoId,</span>
+<span class="nc" id="L167">            fecha = _uiState.value.selectedFecha,</span>
+<span class="nc" id="L168">            estado = nuevoEstado,</span>
+<span class="nc" id="L169">            justificacion = justificacion</span>
+        )
+
+<span class="nc" id="L172">        viewModelScope.launch {</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            asistenciasRepository.saveAsistencia(dto, existing?.idAsistencia)</span>
+<span class="nc" id="L174">            loadData(_uiState.value.idAsignacion, _uiState.value.selectedFecha)</span>
+<span class="nc" id="L175">        }</span>
+<span class="nc" id="L176">    }</span>
+
+    fun marcarTodosPresentes() {
+<span class="nc" id="L179">        currentEstudiantes.forEach { est -&gt;</span>
+<span class="nc" id="L180">            setEstadoAsistencia(est.idMatricula, &quot;PRESENTE&quot;)</span>
+<span class="nc" id="L181">        }</span>
+<span class="nc" id="L182">    }</span>
+
+    fun loadResumenAsistencias(idAsignacion: Long) {
+<span class="nc" id="L185">        viewModelScope.launch {</span>
+<span class="nc" id="L186">            asistenciasRepository.getResumenAsistencia(</span>
+<span class="nc" id="L187">                idAsignacion,</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">                _uiState.value.selectedPeriodo?.idPeriodo</span>
+<span class="nc" id="L189">            ).collect { res -&gt;</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
+<span class="nc" id="L191">                    _uiState.value = _uiState.value.copy(resumenes = res.data)</span>
+                }
+<span class="nc" id="L193">            }</span>
+<span class="nc" id="L194">        }</span>
+<span class="nc" id="L195">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

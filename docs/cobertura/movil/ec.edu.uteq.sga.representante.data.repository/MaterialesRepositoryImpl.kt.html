@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MaterialesRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.repository</a> &gt; <span class="el_source">MaterialesRepositoryImpl.kt</span></div><h1>MaterialesRepositoryImpl.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.repository
+
+import ec.edu.uteq.sga.representante.core.NetworkConnectivityObserver
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.data.local.AppDatabase
+import ec.edu.uteq.sga.representante.data.local.entity.MaterialEntity
+import ec.edu.uteq.sga.representante.data.remote.RetrofitClient
+import ec.edu.uteq.sga.representante.data.remote.dto.MaterialCreateDTO
+import ec.edu.uteq.sga.representante.data.sync.SyncManager
+import ec.edu.uteq.sga.representante.domain.model.MaterialCurso
+import ec.edu.uteq.sga.representante.domain.repository.MaterialesRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+<span class="nc" id="L19">class MaterialesRepositoryImpl(</span>
+<span class="nc" id="L20">    private val database: AppDatabase,</span>
+<span class="nc" id="L21">    private val retrofitClient: RetrofitClient,</span>
+<span class="nc" id="L22">    private val syncManager: SyncManager,</span>
+<span class="nc" id="L23">    private val connectivityObserver: NetworkConnectivityObserver</span>
+) : MaterialesRepository {
+
+<span class="nc" id="L26">    private val materialDao = database.materialDao()</span>
+<span class="nc" id="L27">    private val docenteApi get() = retrofitClient.getDocenteApi()</span>
+
+<span class="nc" id="L29">    override fun getMateriales(idAsignacion: Long): Flow&lt;Resource&lt;List&lt;MaterialCurso&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L30">        emit(Resource.Loading)</span>
+
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        val cached = materialDao.getMaterialesByAsignacion(idAsignacion).firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L33" title="All 4 branches missed.">        if (cached.isNotEmpty()) {</span>
+<span class="nc" id="L34">            val domainList = cached.map { e -&gt;</span>
+<span class="nc" id="L35">                MaterialCurso(</span>
+<span class="nc" id="L36">                    idMaterial = e.idMaterial,</span>
+<span class="nc" id="L37">                    idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L38">                    tipo = e.tipo,</span>
+<span class="nc" id="L39">                    titulo = e.titulo,</span>
+<span class="nc" id="L40">                    descripcion = e.descripcion,</span>
+<span class="nc" id="L41">                    url = e.url,</span>
+<span class="nc" id="L42">                    tamanoBytes = e.tamanoBytes,</span>
+<span class="nc" id="L43">                    fecha = e.fecha,</span>
+<span class="nc" id="L44">                    isPendingSync = e.isPendingSync</span>
+                )
+            }
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L51">            try {</span>
+<span class="nc" id="L52">                val resp = docenteApi.getMateriales(idAsignacion = idAsignacion)</span>
+<span class="nc bnc" id="L53" title="All 4 branches missed.">                if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L54">                    val entities = resp.body()!!.map { dto -&gt;</span>
+<span class="nc" id="L55">                        MaterialEntity(</span>
+<span class="nc" id="L56">                            idMaterial = dto.idMaterial,</span>
+<span class="nc" id="L57">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L58">                            tipo = dto.tipo,</span>
+<span class="nc" id="L59">                            titulo = dto.titulo,</span>
+<span class="nc" id="L60">                            descripcion = dto.descripcion,</span>
+<span class="nc" id="L61">                            url = dto.url,</span>
+<span class="nc" id="L62">                            tamanoBytes = dto.tamanoBytes,</span>
+<span class="nc" id="L63">                            fecha = dto.fecha,</span>
+<span class="nc" id="L64">                            isPendingSync = false</span>
+                        )
+                    }
+<span class="nc" id="L67">                    materialDao.insertMateriales(entities)</span>
+
+<span class="nc" id="L69">                    val domainList = entities.map { e -&gt;</span>
+<span class="nc" id="L70">                        MaterialCurso(</span>
+<span class="nc" id="L71">                            idMaterial = e.idMaterial,</span>
+<span class="nc" id="L72">                            idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L73">                            tipo = e.tipo,</span>
+<span class="nc" id="L74">                            titulo = e.titulo,</span>
+<span class="nc" id="L75">                            descripcion = e.descripcion,</span>
+<span class="nc" id="L76">                            url = e.url,</span>
+<span class="nc" id="L77">                            tamanoBytes = e.tamanoBytes,</span>
+<span class="nc" id="L78">                            fecha = e.fecha,</span>
+<span class="nc" id="L79">                            isPendingSync = false</span>
+                        )
+                    }
+<span class="nc" id="L82">                    emit(Resource.Success(domainList, isOffline = false))</span>
+                }
+<span class="nc" id="L84">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (cached.isEmpty()) {</span>
+<span class="nc" id="L86">                    emit(Resource.Error(&quot;No se pudieron cargar los materiales.&quot;))</span>
+                }
+            }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        } else if (cached.isEmpty()) {</span>
+<span class="nc" id="L90">            emit(Resource.Error(&quot;Sin conexión a Internet.&quot;))</span>
+        }
+<span class="nc" id="L92">    }</span>
+
+    override suspend fun createMaterial(material: MaterialCreateDTO): Resource&lt;MaterialCurso&gt; =
+<span class="nc" id="L95">        withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L96">            val isOnline = connectivityObserver.isCurrentlyConnected()</span>
+<span class="nc" id="L97">            val tempId = -System.currentTimeMillis()</span>
+
+<span class="nc" id="L99">            val localEntity = MaterialEntity(</span>
+<span class="nc" id="L100">                idMaterial = tempId,</span>
+<span class="nc" id="L101">                idAsignacion = material.idAsignacion,</span>
+<span class="nc" id="L102">                tipo = material.tipo,</span>
+<span class="nc" id="L103">                titulo = material.titulo,</span>
+<span class="nc" id="L104">                descripcion = material.descripcion,</span>
+<span class="nc" id="L105">                url = material.url,</span>
+<span class="nc" id="L106">                tamanoBytes = null,</span>
+<span class="nc" id="L107">                fecha = &quot;Hoy&quot;,</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                isPendingSync = !isOnline</span>
+            )
+<span class="nc" id="L110">            materialDao.insertMaterial(localEntity)</span>
+
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (isOnline) {</span>
+<span class="nc" id="L113">                try {</span>
+<span class="nc" id="L114">                    val resp = docenteApi.createMaterial(material)</span>
+<span class="nc bnc" id="L115" title="All 4 branches missed.">                    if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L116">                        val serverDto = resp.body()!!</span>
+<span class="nc" id="L117">                        val serverEntity = MaterialEntity(</span>
+<span class="nc" id="L118">                            idMaterial = serverDto.idMaterial,</span>
+<span class="nc" id="L119">                            idAsignacion = serverDto.idAsignacion,</span>
+<span class="nc" id="L120">                            tipo = serverDto.tipo,</span>
+<span class="nc" id="L121">                            titulo = serverDto.titulo,</span>
+<span class="nc" id="L122">                            descripcion = serverDto.descripcion,</span>
+<span class="nc" id="L123">                            url = serverDto.url,</span>
+<span class="nc" id="L124">                            tamanoBytes = serverDto.tamanoBytes,</span>
+<span class="nc" id="L125">                            fecha = serverDto.fecha,</span>
+<span class="nc" id="L126">                            isPendingSync = false</span>
+                        )
+<span class="nc" id="L128">                        materialDao.deleteMaterialById(tempId)</span>
+<span class="nc" id="L129">                        materialDao.insertMaterial(serverEntity)</span>
+<span class="nc" id="L130">                        return@withContext Resource.Success(</span>
+<span class="nc" id="L131">                            MaterialCurso(</span>
+<span class="nc" id="L132">                                idMaterial = serverDto.idMaterial,</span>
+<span class="nc" id="L133">                                idAsignacion = serverDto.idAsignacion,</span>
+<span class="nc" id="L134">                                tipo = serverDto.tipo,</span>
+<span class="nc" id="L135">                                titulo = serverDto.titulo,</span>
+<span class="nc" id="L136">                                descripcion = serverDto.descripcion,</span>
+<span class="nc" id="L137">                                url = serverDto.url,</span>
+<span class="nc" id="L138">                                tamanoBytes = serverDto.tamanoBytes,</span>
+<span class="nc" id="L139">                                fecha = serverDto.fecha,</span>
+<span class="nc" id="L140">                                isPendingSync = false</span>
+                            )
+                        )
+                    }
+<span class="nc" id="L144">                } catch (e: Exception) {</span>
+                    // Fallo red -&gt; encolar
+                }
+            }
+
+<span class="nc" id="L149">            syncManager.enqueueOperation(</span>
+<span class="nc" id="L150">                entityType = &quot;MATERIAL&quot;,</span>
+<span class="nc" id="L151">                actionType = &quot;CREATE&quot;,</span>
+<span class="nc" id="L152">                localId = tempId,</span>
+<span class="nc" id="L153">                payload = material</span>
+            )
+
+<span class="nc" id="L156">            Resource.Success(</span>
+<span class="nc" id="L157">                MaterialCurso(</span>
+<span class="nc" id="L158">                    idMaterial = tempId,</span>
+<span class="nc" id="L159">                    idAsignacion = material.idAsignacion,</span>
+<span class="nc" id="L160">                    tipo = material.tipo,</span>
+<span class="nc" id="L161">                    titulo = material.titulo,</span>
+<span class="nc" id="L162">                    descripcion = material.descripcion,</span>
+<span class="nc" id="L163">                    url = material.url,</span>
+<span class="nc" id="L164">                    tamanoBytes = null,</span>
+<span class="nc" id="L165">                    fecha = &quot;Pendiente de sincronizar&quot;,</span>
+<span class="nc" id="L166">                    isPendingSync = true</span>
+                ),
+<span class="nc" id="L168">                isOffline = true</span>
+            )
+<span class="nc" id="L170">        }</span>
+
+<span class="nc" id="L172">    override suspend fun deleteMaterial(id: Long): Resource&lt;Unit&gt; = withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L173">        val isOnline = connectivityObserver.isCurrentlyConnected()</span>
+<span class="nc" id="L174">        materialDao.deleteMaterialById(id)</span>
+
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (isOnline) {</span>
+<span class="nc" id="L177">            try {</span>
+<span class="nc" id="L178">                val resp = docenteApi.deleteMaterial(id)</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                if (resp.isSuccessful) {</span>
+<span class="nc" id="L180">                    return@withContext Resource.Success(Unit)</span>
+                }
+<span class="nc" id="L182">            } catch (e: Exception) {</span>
+                // Continuar a encolar
+            }
+        }
+
+<span class="nc" id="L187">        syncManager.enqueueOperation(</span>
+<span class="nc" id="L188">            entityType = &quot;MATERIAL&quot;,</span>
+<span class="nc" id="L189">            actionType = &quot;DELETE&quot;,</span>
+<span class="nc" id="L190">            localId = id,</span>
+<span class="nc" id="L191">            remoteId = id,</span>
+<span class="nc" id="L192">            payload = mapOf(&quot;id&quot; to id)</span>
+        )
+
+<span class="nc" id="L195">        Resource.Success(Unit, isOffline = true)</span>
+<span class="nc" id="L196">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

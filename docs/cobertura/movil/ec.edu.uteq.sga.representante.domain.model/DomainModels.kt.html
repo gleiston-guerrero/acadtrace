@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DomainModels.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.domain.model</a> &gt; <span class="el_source">DomainModels.kt</span></div><h1>DomainModels.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.domain.model
+
+<span class="nc" id="L3">data class UserSession(</span>
+<span class="nc" id="L4">    val token: String,</span>
+<span class="nc" id="L5">    val idUsuario: Long,</span>
+<span class="nc" id="L6">    val username: String,</span>
+<span class="nc" id="L7">    val correo: String?,</span>
+<span class="nc" id="L8">    val roles: List&lt;String&gt;,</span>
+<span class="nc" id="L9">    val primerIngreso: Boolean = false</span>
+<span class="nc" id="L10">)</span>
+
+<span class="pc" id="L12">data class Representado(val idEstudiante: Long, val nombres: String, val apellidos: String,</span>
+<span class="pc" id="L13">    val curso: String?, val paralelo: String?, val matriculas: List&lt;Long&gt;) {</span>
+<span class="fc" id="L14">    val nombreCompleto get() = &quot;$nombres $apellidos&quot;</span>
+}
+<span class="pc" id="L16">data class NotaRepresentado(val idActividad: Long, val idAsignacion: Long, val idPeriodo: Long,</span>
+<span class="pc" id="L17">    val asignatura: String, val actividad: String, val periodo: String, val nota: Double?, val notaCualitativa: String?)</span>
+<span class="pc" id="L18">data class PromedioRepresentado(val idAsignacion: Long, val idPeriodo: Long, val asignatura: String, val periodo: String, val promedioFormativo: Double,</span>
+<span class="pc" id="L19">    val notaSumativa: Double, val promedioTrimestral: Double, val notaCualitativa: String)</span>
+<span class="fc" id="L20">data class PeriodoCalificaciones(val idPeriodo: Long, val nombre: String, val activo: Boolean, val fechaInicio: String)</span>
+<span class="pc" id="L21">data class PromedioAnualRepresentado(val idAsignacion: Long, val asignatura: String, val promedioAnual: Double, val notaCualitativa: String)</span>
+<span class="pc" id="L22">data class AsignaturaCalificaciones(val idAsignacion: Long, val asignatura: String, val promedio: PromedioRepresentado?, val actividades: List&lt;NotaRepresentado&gt;)</span>
+<span class="pc" id="L23">data class CalificacionesRepresentado(val calificaciones: List&lt;NotaRepresentado&gt;, val promedios: List&lt;PromedioRepresentado&gt;,</span>
+<span class="pc" id="L24">    val periodos: List&lt;PeriodoCalificaciones&gt; = emptyList(), val promediosAnuales: List&lt;PromedioAnualRepresentado&gt; = emptyList(),</span>
+<span class="fc" id="L25">    val mostrarPromediosAnuales: Boolean = false) {</span>
+<span class="fc bfc" id="L26" title="All 2 branches covered.">    fun periodoInicial(): Long? = periodos.firstOrNull { it.activo }?.idPeriodo</span>
+<span class="pc bpc" id="L27" title="1 of 2 branches missed.">        ?: periodos.maxByOrNull { it.fechaInicio }?.idPeriodo</span>
+    fun asignaturas(idPeriodo: Long): List&lt;AsignaturaCalificaciones&gt; {
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        val periodPromedios = promedios.filter { it.idPeriodo == idPeriodo }.associateBy { it.idAsignacion }</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        val periodNotas = calificaciones.filter { it.idPeriodo == idPeriodo }.groupBy { it.idAsignacion }</span>
+<span class="fc" id="L31">        return (periodPromedios.keys + periodNotas.keys).distinct().map { id -&gt;</span>
+<span class="fc" id="L32">            val promedio = periodPromedios[id]</span>
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">            val notas = periodNotas[id].orEmpty()</span>
+<span class="pc bpc" id="L34" title="4 of 6 branches missed.">            AsignaturaCalificaciones(id, promedio?.asignatura ?: notas.firstOrNull()?.asignatura ?: &quot;Asignatura $id&quot;, promedio, notas)</span>
+<span class="fc" id="L35">        }.sortedBy { it.asignatura }</span>
+    }
+<span class="fc" id="L37">}</span>
+
+<span class="fc bfc" id="L39" title="All 7 branches covered.">fun String.etiquetaCualitativa(): String = when (this) {</span>
+<span class="fc" id="L40">    &quot;A_MAS&quot; -&gt; &quot;A+&quot;; &quot;A_MENOS&quot; -&gt; &quot;A-&quot;; &quot;B_MAS&quot; -&gt; &quot;B+&quot;; &quot;B_MENOS&quot; -&gt; &quot;B-&quot;</span>
+<span class="fc" id="L41">    &quot;C_MAS&quot; -&gt; &quot;C+&quot;; &quot;C_MENOS&quot; -&gt; &quot;C-&quot;; else -&gt; this</span>
+<span class="fc" id="L42">}</span>
+<span class="nc" id="L43">data class AsistenciaHijo(val fecha: String, val periodo: String, val estado: String)</span>
+<span class="pc" id="L44">data class ResumenAsistenciaHijo(val total: Int, val presentes: Int, val ausentes: Int,</span>
+<span class="pc" id="L45">    val justificados: Int, val atrasos: Int, val porcentajeAsistencia: Double)</span>
+<span class="nc" id="L46">data class AsistenciaRepresentado(val asistencias: List&lt;AsistenciaHijo&gt;, val resumen: ResumenAsistenciaHijo)</span>
+<span class="pc" id="L47">data class Comunicado(val id: Long, val titulo: String, val contenido: String, val fecha: String, val fijado: Boolean)</span>
+
+<span class="nc" id="L49">data class Asignacion(</span>
+<span class="nc" id="L50">    val idAsignacion: Long,</span>
+<span class="nc" id="L51">    val asignaturaNombre: String,</span>
+<span class="nc" id="L52">    val gradoNombre: String,</span>
+<span class="nc" id="L53">    val paraleloLetra: String,</span>
+<span class="nc" id="L54">    val anoLectivoNombre: String,</span>
+<span class="nc" id="L55">    val cantidadEstudiantes: Int = 0,</span>
+<span class="nc" id="L56">    val porcentajeAsistencia: Double? = null,</span>
+<span class="nc" id="L57">    val promedioCalificaciones: Double? = null</span>
+<span class="nc" id="L58">)</span>
+
+<span class="nc" id="L60">data class Estudiante(</span>
+<span class="nc" id="L61">    val idMatricula: Long,</span>
+<span class="nc" id="L62">    val idAsignacion: Long,</span>
+<span class="nc" id="L63">    val estudianteId: Long,</span>
+<span class="nc" id="L64">    val nombres: String,</span>
+<span class="nc" id="L65">    val apellidos: String,</span>
+<span class="nc" id="L66">    val cedula: String = &quot;&quot;,</span>
+<span class="nc" id="L67">    val estadoMatricula: String = &quot;ACTIVA&quot;</span>
+) {
+<span class="nc" id="L69">    val nombreCompleto: String get() = &quot;$apellidos $nombres&quot;</span>
+<span class="nc" id="L70">}</span>
+
+<span class="nc" id="L72">data class PeriodoEvaluacion(</span>
+<span class="nc" id="L73">    val idPeriodo: Long,</span>
+<span class="nc" id="L74">    val idAnoLectivo: Long,</span>
+<span class="nc" id="L75">    val tipo: String,</span>
+<span class="nc" id="L76">    val nombre: String,</span>
+<span class="nc" id="L77">    val fechaInicio: String,</span>
+<span class="nc" id="L78">    val fechaFin: String,</span>
+<span class="nc" id="L79">    val activo: Boolean = true</span>
+<span class="nc" id="L80">)</span>
+
+<span class="nc" id="L82">data class ActividadAcademica(</span>
+<span class="nc" id="L83">    val idActividad: Long,</span>
+<span class="nc" id="L84">    val idAsignacion: Long,</span>
+<span class="nc" id="L85">    val idPeriodo: Long,</span>
+<span class="nc" id="L86">    val tipo: String,</span>
+<span class="nc" id="L87">    val nombre: String,</span>
+<span class="nc" id="L88">    val descripcion: String? = null,</span>
+<span class="nc" id="L89">    val fechaEntrega: String,</span>
+<span class="nc" id="L90">    val ponderacion: Double = 0.0,</span>
+<span class="nc" id="L91">    val notaMaxima: Double = 10.0,</span>
+<span class="nc" id="L92">    val esSumativa: Boolean = false,</span>
+<span class="nc" id="L93">    val isPendingSync: Boolean = false</span>
+<span class="nc" id="L94">)</span>
+
+<span class="nc" id="L96">data class CalificacionEstudiante(</span>
+<span class="nc" id="L97">    val idCalificacion: Long,</span>
+<span class="nc" id="L98">    val idActividad: Long,</span>
+<span class="nc" id="L99">    val idMatricula: Long,</span>
+<span class="nc" id="L100">    val nota: Double,</span>
+<span class="nc" id="L101">    val notaCualitativa: String? = null,</span>
+<span class="nc" id="L102">    val observacion: String? = null,</span>
+<span class="nc" id="L103">    val isPendingSync: Boolean = false</span>
+<span class="nc" id="L104">)</span>
+
+<span class="nc" id="L106">enum class EstadoAsistenciaEnum(val label: String, val code: String) {</span>
+<span class="nc" id="L107">    PRESENTE(&quot;Presente&quot;, &quot;PRESENTE&quot;),</span>
+<span class="nc" id="L108">    AUSENTE(&quot;Ausente&quot;, &quot;AUSENTE&quot;),</span>
+<span class="nc" id="L109">    JUSTIFICADO(&quot;Justificado&quot;, &quot;JUSTIFICADO&quot;),</span>
+<span class="nc" id="L110">    ATRASO(&quot;Atraso&quot;, &quot;ATRASO&quot;)</span>
+}
+
+<span class="nc" id="L113">data class AsistenciaRegistro(</span>
+<span class="nc" id="L114">    val idAsistencia: Long,</span>
+<span class="nc" id="L115">    val idMatricula: Long,</span>
+<span class="nc" id="L116">    val idAsignacion: Long,</span>
+<span class="nc" id="L117">    val idPeriodo: Long,</span>
+<span class="nc" id="L118">    val fecha: String,</span>
+<span class="nc" id="L119">    val estado: String,</span>
+<span class="nc" id="L120">    val justificacion: String? = null,</span>
+<span class="nc" id="L121">    val isPendingSync: Boolean = false</span>
+<span class="nc" id="L122">)</span>
+
+<span class="nc" id="L124">data class ResumenAsistencia(</span>
+<span class="nc" id="L125">    val idResumen: Long,</span>
+<span class="nc" id="L126">    val idMatricula: Long,</span>
+<span class="nc" id="L127">    val idAsignacion: Long,</span>
+<span class="nc" id="L128">    val idPeriodo: Long,</span>
+<span class="nc" id="L129">    val totalPresentes: Int,</span>
+<span class="nc" id="L130">    val totalAusentes: Int,</span>
+<span class="nc" id="L131">    val totalJustificados: Int,</span>
+<span class="nc" id="L132">    val totalAtrasos: Int</span>
+) {
+<span class="nc" id="L134">    val totalClases: Int get() = totalPresentes + totalAusentes + totalJustificados + totalAtrasos</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    val porcentajeAsistencia: Double get() = if (totalClases &gt; 0) {</span>
+<span class="nc" id="L136">        ((totalPresentes + totalAtrasos).toDouble() / totalClases) * 100.0</span>
+<span class="nc" id="L137">    } else 0.0</span>
+}
+
+<span class="nc" id="L140">data class PromedioTrimestral(</span>
+<span class="nc" id="L141">    val idPromedio: Long,</span>
+<span class="nc" id="L142">    val idMatricula: Long,</span>
+<span class="nc" id="L143">    val idAsignacion: Long,</span>
+<span class="nc" id="L144">    val idPeriodo: Long,</span>
+<span class="nc" id="L145">    val promedioFormativo: Double,</span>
+<span class="nc" id="L146">    val notaSumativa: Double,</span>
+<span class="nc" id="L147">    val promedioTrimestral: Double,</span>
+<span class="nc" id="L148">    val notaCualitativa: String</span>
+)
+
+<span class="nc" id="L151">data class PromedioAnual(</span>
+<span class="nc" id="L152">    val idPromedioAnual: Long,</span>
+<span class="nc" id="L153">    val idMatricula: Long,</span>
+<span class="nc" id="L154">    val idAsignacion: Long,</span>
+<span class="nc" id="L155">    val idAnoLectivo: Long,</span>
+<span class="nc" id="L156">    val promedioAnual: Double,</span>
+<span class="nc" id="L157">    val notaCualitativa: String</span>
+)
+
+<span class="nc" id="L160">data class SeguimientoItem(</span>
+<span class="nc" id="L161">    val idSeguimiento: Long,</span>
+<span class="nc" id="L162">    val idMatricula: Long,</span>
+<span class="nc" id="L163">    val idPeriodo: Long,</span>
+<span class="nc" id="L164">    val categoria: String,</span>
+<span class="nc" id="L165">    val descripcion: String,</span>
+<span class="nc" id="L166">    val accionesTomadas: String? = null,</span>
+<span class="nc" id="L167">    val requiereFollowup: Boolean = false,</span>
+<span class="nc" id="L168">    val fechaEvento: String,</span>
+<span class="nc" id="L169">    val isPendingSync: Boolean = false</span>
+<span class="nc" id="L170">)</span>
+
+<span class="nc" id="L172">data class AnuncioCurso(</span>
+<span class="nc" id="L173">    val idAnuncio: Long,</span>
+<span class="nc" id="L174">    val idAsignacion: Long,</span>
+<span class="nc" id="L175">    val titulo: String?,</span>
+<span class="nc" id="L176">    val contenido: String?,</span>
+<span class="nc" id="L177">    val fecha: String?,</span>
+<span class="nc" id="L178">    val fijado: Boolean = false,</span>
+<span class="nc" id="L179">    val isPendingSync: Boolean = false</span>
+<span class="nc" id="L180">)</span>
+
+<span class="nc" id="L182">data class MaterialCurso(</span>
+<span class="nc" id="L183">    val idMaterial: Long,</span>
+<span class="nc" id="L184">    val idAsignacion: Long,</span>
+<span class="nc" id="L185">    val tipo: String?,</span>
+<span class="nc" id="L186">    val titulo: String?,</span>
+<span class="nc" id="L187">    val descripcion: String?,</span>
+<span class="nc" id="L188">    val url: String,</span>
+<span class="nc" id="L189">    val tamanoBytes: Long?,</span>
+<span class="nc" id="L190">    val fecha: String?,</span>
+<span class="nc" id="L191">    val isPendingSync: Boolean = false</span>
+<span class="nc" id="L192">)</span>
+
+<span class="nc" id="L194">data class HorarioItem(</span>
+<span class="nc" id="L195">    val idHorario: Long,</span>
+<span class="nc" id="L196">    val idAsignacion: Long,</span>
+<span class="nc" id="L197">    val diaSemana: Int, // 1=Lunes .. 5=Viernes</span>
+<span class="nc" id="L198">    val idPeriodo: Int,</span>
+<span class="nc" id="L199">    val horaInicio: String,</span>
+<span class="nc" id="L200">    val horaFin: String,</span>
+<span class="nc" id="L201">    val aula: String?,</span>
+<span class="nc" id="L202">    val asignatura: String,</span>
+<span class="nc" id="L203">    val docente: String,</span>
+<span class="nc" id="L204">    val grado: String,</span>
+<span class="nc" id="L205">    val paralelo: String</span>
+)
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

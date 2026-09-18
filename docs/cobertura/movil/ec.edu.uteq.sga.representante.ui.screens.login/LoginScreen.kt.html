@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.login</a> &gt; <span class="el_source">LoginScreen.kt</span></div><h1>LoginScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.login
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.R
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+@Composable
+fun LoginScreen(
+    viewModel: LoginViewModel,
+    onLoginSuccess: () -&gt; Unit
+<span class="nc" id="L41">) {</span>
+<span class="nc" id="L42">    val state by viewModel.uiState.collectAsState()</span>
+<span class="nc" id="L43">    var passwordVisible by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L44">    val focusManager = LocalFocusManager.current</span>
+
+<span class="nc bnc" id="L46" title="All 6 branches missed.">    LaunchedEffect(state.isSuccess) {</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (state.isSuccess) {</span>
+<span class="nc" id="L48">            onLoginSuccess()</span>
+        }
+<span class="nc" id="L50">    }</span>
+
+<span class="nc" id="L52">    Box(</span>
+<span class="nc" id="L53">        modifier = Modifier</span>
+<span class="nc" id="L54">            .fillMaxSize()</span>
+<span class="nc" id="L55">            .background(BackgroundSlate)</span>
+    ) {
+        // Círculos decorativos de fondo
+<span class="nc" id="L58">        Box(</span>
+<span class="nc" id="L59">            modifier = Modifier</span>
+<span class="nc" id="L60">                .size(320.dp)</span>
+<span class="nc" id="L61">                .offset(x = (-100).dp, y = (-100).dp)</span>
+<span class="nc" id="L62">                .clip(CircleShape)</span>
+<span class="nc" id="L63">                .background(PrimaryNavy.copy(alpha = 0.07f))</span>
+        )
+<span class="nc" id="L65">        Box(</span>
+<span class="nc" id="L66">            modifier = Modifier</span>
+<span class="nc" id="L67">                .size(280.dp)</span>
+<span class="nc" id="L68">                .align(Alignment.BottomEnd)</span>
+<span class="nc" id="L69">                .offset(x = 80.dp, y = 80.dp)</span>
+<span class="nc" id="L70">                .clip(CircleShape)</span>
+<span class="nc" id="L71">                .background(PrimaryNavyLight.copy(alpha = 0.07f))</span>
+        )
+
+        // Contenedor Central
+<span class="nc" id="L75">        Column(</span>
+<span class="nc" id="L76">            modifier = Modifier</span>
+<span class="nc" id="L77">                .fillMaxSize()</span>
+<span class="nc" id="L78">                .verticalScroll(rememberScrollState())</span>
+<span class="nc" id="L79">                .padding(horizontal = 24.dp, vertical = 32.dp),</span>
+<span class="nc" id="L80">            horizontalAlignment = Alignment.CenterHorizontally,</span>
+<span class="nc" id="L81">            verticalArrangement = Arrangement.Center</span>
+        ) {
+<span class="nc" id="L83">            Card(</span>
+<span class="nc" id="L84">                modifier = Modifier</span>
+<span class="nc" id="L85">                    .fillMaxWidth()</span>
+<span class="nc" id="L86">                    .shadow(</span>
+<span class="nc" id="L87">                        elevation = 16.dp,</span>
+<span class="nc" id="L88">                        shape = RoundedCornerShape(24.dp),</span>
+<span class="nc" id="L89">                        spotColor = PrimaryNavy.copy(alpha = 0.25f)</span>
+                    ),
+<span class="nc" id="L91">                shape = RoundedCornerShape(24.dp),</span>
+<span class="nc" id="L92">                colors = CardDefaults.cardColors(containerColor = Color.White)</span>
+<span class="nc" id="L93">            ) {</span>
+<span class="nc" id="L94">                Column(</span>
+<span class="nc" id="L95">                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L96">                    horizontalAlignment = Alignment.CenterHorizontally</span>
+                ) {
+                    // ─── HEADER AZUL INSTITUCIONAL ─────────────────────────────
+<span class="nc" id="L99">                    Box(</span>
+<span class="nc" id="L100">                        modifier = Modifier</span>
+<span class="nc" id="L101">                            .fillMaxWidth()</span>
+<span class="nc" id="L102">                            .background(</span>
+<span class="nc" id="L103">                                Brush.verticalGradient(</span>
+<span class="nc" id="L104">                                    colors = listOf(PrimaryNavy, Color(0xFF1B2C5B))</span>
+                                )
+                            )
+<span class="nc" id="L107">                            .padding(top = 28.dp, bottom = 24.dp, start = 20.dp, end = 20.dp),</span>
+<span class="nc" id="L108">                        contentAlignment = Alignment.Center</span>
+                    ) {
+<span class="nc" id="L110">                        Column(horizontalAlignment = Alignment.CenterHorizontally) {</span>
+                            // Logo de la escuela
+<span class="nc" id="L112">                            Box(</span>
+<span class="nc" id="L113">                                modifier = Modifier</span>
+<span class="nc" id="L114">                                    .size(88.dp)</span>
+<span class="nc" id="L115">                                    .shadow(elevation = 8.dp, shape = CircleShape)</span>
+<span class="nc" id="L116">                                    .clip(CircleShape)</span>
+<span class="nc" id="L117">                                    .background(Color.White)</span>
+<span class="nc" id="L118">                                    .border(width = 3.dp, color = Color.White, shape = CircleShape),</span>
+<span class="nc" id="L119">                                contentAlignment = Alignment.Center</span>
+                            ) {
+<span class="nc" id="L121">                                Image(</span>
+<span class="nc" id="L122">                                    painter = painterResource(id = R.drawable.logo_escuela),</span>
+<span class="nc" id="L123">                                    contentDescription = &quot;Logo Institución&quot;,</span>
+<span class="nc" id="L124">                                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L125">                                    contentScale = ContentScale.Crop</span>
+                                )
+<span class="nc" id="L127">                            }</span>
+
+<span class="nc" id="L129">                            Spacer(modifier = Modifier.height(14.dp))</span>
+
+<span class="nc" id="L131">                            Text(</span>
+<span class="nc" id="L132">                                text = &quot;Escuela de Educación Básica&quot;,</span>
+<span class="nc" id="L133">                                color = Color.White,</span>
+<span class="nc" id="L134">                                fontSize = 16.sp,</span>
+<span class="nc" id="L135">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L136">                                textAlign = TextAlign.Center</span>
+                            )
+
+<span class="nc" id="L139">                            Text(</span>
+<span class="nc" id="L140">                                text = &quot;PROVINCIAS UNIDAS&quot;,</span>
+<span class="nc" id="L141">                                color = Color(0xFFBFDBFE),</span>
+<span class="nc" id="L142">                                fontSize = 13.sp,</span>
+<span class="nc" id="L143">                                fontWeight = FontWeight.ExtraBold,</span>
+<span class="nc" id="L144">                                letterSpacing = 1.5.sp,</span>
+<span class="nc" id="L145">                                textAlign = TextAlign.Center</span>
+                            )
+
+<span class="nc" id="L148">                            Text(</span>
+<span class="nc" id="L149">                                text = &quot;Rcto. San Basilio&quot;,</span>
+<span class="nc" id="L150">                                color = Color(0xFF93C5FD),</span>
+<span class="nc" id="L151">                                fontSize = 11.sp,</span>
+<span class="nc" id="L152">                                textAlign = TextAlign.Center</span>
+                            )
+<span class="nc" id="L154">                        }</span>
+<span class="nc" id="L155">                    }</span>
+
+                    // ─── FORMULARIO DE ACCESO ─────────────────────────────────
+<span class="nc" id="L158">                    Column(</span>
+<span class="nc" id="L159">                        modifier = Modifier</span>
+<span class="nc" id="L160">                            .fillMaxWidth()</span>
+<span class="nc" id="L161">                            .padding(24.dp),</span>
+<span class="nc" id="L162">                        horizontalAlignment = Alignment.CenterHorizontally</span>
+                    ) {
+<span class="nc" id="L164">                        Text(</span>
+<span class="nc" id="L165">                            text = &quot;Inicia sesión en el sistema&quot;,</span>
+<span class="nc" id="L166">                            style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L167">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L168">                            color = TextPrimary,</span>
+<span class="nc" id="L169">                            textAlign = TextAlign.Center</span>
+                        )
+
+<span class="nc" id="L172">                        Spacer(modifier = Modifier.height(20.dp))</span>
+
+                        // Campo Usuario
+<span class="nc" id="L175">                        Column(modifier = Modifier.fillMaxWidth()) {</span>
+<span class="nc" id="L176">                            Text(</span>
+<span class="nc" id="L177">                                text = &quot;USUARIO&quot;,</span>
+<span class="nc" id="L178">                                fontSize = 11.sp,</span>
+<span class="nc" id="L179">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L180">                                color = TextSecondary,</span>
+<span class="nc" id="L181">                                letterSpacing = 0.8.sp</span>
+                            )
+<span class="nc" id="L183">                            Spacer(modifier = Modifier.height(6.dp))</span>
+<span class="nc" id="L184">                            OutlinedTextField(</span>
+<span class="nc" id="L185">                                value = state.username,</span>
+<span class="nc" id="L186">                                onValueChange = { viewModel.onUsernameChange(it) },</span>
+<span class="nc" id="L187">                                placeholder = { Text(&quot;Ingresa tu usuario&quot;, fontSize = 14.sp, color = TextMuted) },</span>
+<span class="nc" id="L188">                                textStyle = TextStyle(</span>
+<span class="nc" id="L189">                                    color = TextPrimary,</span>
+<span class="nc" id="L190">                                    fontSize = 15.sp,</span>
+<span class="nc" id="L191">                                    fontWeight = FontWeight.Medium</span>
+                                ),
+<span class="nc" id="L193">                                leadingIcon = {</span>
+<span class="nc" id="L194">                                    Icon(</span>
+<span class="nc" id="L195">                                        imageVector = Icons.Default.Person,</span>
+<span class="nc" id="L196">                                        contentDescription = null,</span>
+<span class="nc" id="L197">                                        tint = TextMuted,</span>
+<span class="nc" id="L198">                                        modifier = Modifier.size(20.dp)</span>
+                                    )
+                                },
+<span class="nc" id="L201">                                singleLine = true,</span>
+<span class="nc" id="L202">                                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L203">                                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L204">                                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L205">                                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L206">                                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L207">                                    focusedContainerColor = Color.White,</span>
+<span class="nc" id="L208">                                    unfocusedContainerColor = Color(0xFFF8FAFC),</span>
+<span class="nc" id="L209">                                    focusedBorderColor = PrimaryNavy,</span>
+<span class="nc" id="L210">                                    unfocusedBorderColor = SlateBorder,</span>
+<span class="nc" id="L211">                                    cursorColor = PrimaryNavy</span>
+                                ),
+<span class="nc" id="L213">                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)</span>
+                            )
+<span class="nc" id="L215">                        }</span>
+
+<span class="nc" id="L217">                        Spacer(modifier = Modifier.height(16.dp))</span>
+
+                        // Campo Contraseña
+<span class="nc" id="L220">                        Column(modifier = Modifier.fillMaxWidth()) {</span>
+<span class="nc" id="L221">                            Text(</span>
+<span class="nc" id="L222">                                text = &quot;CONTRASEÑA&quot;,</span>
+<span class="nc" id="L223">                                fontSize = 11.sp,</span>
+<span class="nc" id="L224">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L225">                                color = TextSecondary,</span>
+<span class="nc" id="L226">                                letterSpacing = 0.8.sp</span>
+                            )
+<span class="nc" id="L228">                            Spacer(modifier = Modifier.height(6.dp))</span>
+<span class="nc" id="L229">                            OutlinedTextField(</span>
+<span class="nc" id="L230">                                value = state.password,</span>
+<span class="nc" id="L231">                                onValueChange = { viewModel.onPasswordChange(it) },</span>
+<span class="nc" id="L232">                                placeholder = { Text(&quot;Ingresa tu contraseña&quot;, fontSize = 14.sp, color = TextMuted) },</span>
+<span class="nc" id="L233">                                textStyle = TextStyle(</span>
+<span class="nc" id="L234">                                    color = TextPrimary,</span>
+<span class="nc" id="L235">                                    fontSize = 15.sp,</span>
+<span class="nc" id="L236">                                    fontWeight = FontWeight.Medium</span>
+                                ),
+<span class="nc" id="L238">                                leadingIcon = {</span>
+<span class="nc" id="L239">                                    Icon(</span>
+<span class="nc" id="L240">                                        imageVector = Icons.Default.Lock,</span>
+<span class="nc" id="L241">                                        contentDescription = null,</span>
+<span class="nc" id="L242">                                        tint = TextMuted,</span>
+<span class="nc" id="L243">                                        modifier = Modifier.size(20.dp)</span>
+                                    )
+                                },
+<span class="nc" id="L246">                                trailingIcon = {</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">                                    IconButton(onClick = { passwordVisible = !passwordVisible }) {</span>
+<span class="nc" id="L248">                                        Icon(</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,</span>
+<span class="nc" id="L250">                                            contentDescription = null,</span>
+<span class="nc" id="L251">                                            tint = TextMuted,</span>
+<span class="nc" id="L252">                                            modifier = Modifier.size(20.dp)</span>
+                                        )
+                                    }
+                                },
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),</span>
+<span class="nc" id="L257">                                singleLine = true,</span>
+<span class="nc" id="L258">                                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L259">                                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L260">                                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L261">                                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L262">                                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L263">                                    focusedContainerColor = Color.White,</span>
+<span class="nc" id="L264">                                    unfocusedContainerColor = Color(0xFFF8FAFC),</span>
+<span class="nc" id="L265">                                    focusedBorderColor = PrimaryNavy,</span>
+<span class="nc" id="L266">                                    unfocusedBorderColor = SlateBorder,</span>
+<span class="nc" id="L267">                                    cursorColor = PrimaryNavy</span>
+                                ),
+<span class="nc" id="L269">                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),</span>
+<span class="nc" id="L270">                                keyboardActions = KeyboardActions(onDone = {</span>
+<span class="nc" id="L271">                                    focusManager.clearFocus()</span>
+<span class="nc" id="L272">                                    viewModel.login()</span>
+<span class="nc" id="L273">                                })</span>
+                            )
+<span class="nc" id="L275">                        }</span>
+
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                        if (state.errorMessage != null) {</span>
+<span class="nc" id="L278">                            Spacer(modifier = Modifier.height(14.dp))</span>
+<span class="nc" id="L279">                            Surface(</span>
+<span class="nc" id="L280">                                shape = RoundedCornerShape(10.dp),</span>
+<span class="nc" id="L281">                                color = Color(0xFFFEF2F2),</span>
+<span class="nc" id="L282">                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFECACA)),</span>
+<span class="nc" id="L283">                                modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L284">                            ) {</span>
+<span class="nc" id="L285">                                Row(</span>
+<span class="nc" id="L286">                                    modifier = Modifier.padding(12.dp),</span>
+<span class="nc" id="L287">                                    verticalAlignment = Alignment.CenterVertically</span>
+                                ) {
+<span class="nc" id="L289">                                    Icon(</span>
+<span class="nc" id="L290">                                        imageVector = Icons.Default.ErrorOutline,</span>
+<span class="nc" id="L291">                                        contentDescription = null,</span>
+<span class="nc" id="L292">                                        tint = DangerRed,</span>
+<span class="nc" id="L293">                                        modifier = Modifier.size(18.dp)</span>
+                                    )
+<span class="nc" id="L295">                                    Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L296">                                    Text(</span>
+<span class="nc" id="L297">                                        text = state.errorMessage!!,</span>
+<span class="nc" id="L298">                                        color = Color(0xFFB91C1C),</span>
+<span class="nc" id="L299">                                        fontSize = 12.sp,</span>
+<span class="nc" id="L300">                                        fontWeight = FontWeight.Medium</span>
+                                    )
+<span class="nc" id="L302">                                }</span>
+                            }
+                        }
+
+<span class="nc" id="L306">                        Spacer(modifier = Modifier.height(22.dp))</span>
+
+                        // Botón Ingresar
+<span class="nc" id="L309">                        Button(</span>
+                            onClick = {
+<span class="nc" id="L311">                                focusManager.clearFocus()</span>
+<span class="nc" id="L312">                                viewModel.login()</span>
+<span class="nc" id="L313">                            },</span>
+<span class="nc" id="L314">                            modifier = Modifier</span>
+<span class="nc" id="L315">                                .fillMaxWidth()</span>
+<span class="nc" id="L316">                                .height(50.dp),</span>
+<span class="nc" id="L317">                            shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L318">                            colors = ButtonDefaults.buttonColors(</span>
+<span class="nc" id="L319">                                containerColor = PrimaryNavy,</span>
+<span class="nc" id="L320">                                contentColor = Color.White,</span>
+<span class="nc" id="L321">                                disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),</span>
+<span class="nc" id="L322">                                disabledContentColor = Color.White</span>
+                            ),
+<span class="nc bnc" id="L324" title="All 2 branches missed.">                            enabled = !state.isLoading</span>
+<span class="nc" id="L325">                        ) {</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">                            if (state.isLoading) {</span>
+<span class="nc" id="L327">                                CircularProgressIndicator(</span>
+<span class="nc" id="L328">                                    color = Color.White,</span>
+<span class="nc" id="L329">                                    modifier = Modifier.size(20.dp),</span>
+<span class="nc" id="L330">                                    strokeWidth = 2.dp</span>
+                                )
+<span class="nc" id="L332">                                Spacer(modifier = Modifier.width(10.dp))</span>
+<span class="nc" id="L333">                                Text(&quot;Iniciando sesión...&quot;, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)</span>
+<span class="nc" id="L334">                            } else {</span>
+<span class="nc" id="L335">                                Text(&quot;Ingresar&quot;, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)</span>
+                            }
+                        }
+
+<span class="nc" id="L339">                        Spacer(modifier = Modifier.height(18.dp))</span>
+
+                        // Footer
+<span class="nc" id="L342">                        Text(</span>
+<span class="nc" id="L343">                            text = &quot;Sistema de Gestión Académica © 2026&quot;,</span>
+<span class="nc" id="L344">                            fontSize = 11.sp,</span>
+<span class="nc" id="L345">                            color = TextMuted,</span>
+<span class="nc" id="L346">                            textAlign = TextAlign.Center</span>
+                        )
+<span class="nc" id="L348">                    }</span>
+<span class="nc" id="L349">                }</span>
+            }
+<span class="nc" id="L351">        }</span>
+<span class="nc" id="L352">    }</span>
+<span class="nc" id="L353">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

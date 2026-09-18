@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ActividadesRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.repository</a> &gt; <span class="el_source">ActividadesRepositoryImpl.kt</span></div><h1>ActividadesRepositoryImpl.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.repository
+
+import ec.edu.uteq.sga.representante.core.NetworkConnectivityObserver
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.data.local.AppDatabase
+import ec.edu.uteq.sga.representante.data.local.entity.ActividadEntity
+import ec.edu.uteq.sga.representante.data.remote.RetrofitClient
+import ec.edu.uteq.sga.representante.data.remote.dto.ActividadCreateDTO
+import ec.edu.uteq.sga.representante.data.sync.SyncManager
+import ec.edu.uteq.sga.representante.domain.model.ActividadAcademica
+import ec.edu.uteq.sga.representante.domain.repository.ActividadesRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+<span class="nc" id="L19">class ActividadesRepositoryImpl(</span>
+<span class="nc" id="L20">    private val database: AppDatabase,</span>
+<span class="nc" id="L21">    private val retrofitClient: RetrofitClient,</span>
+<span class="nc" id="L22">    private val syncManager: SyncManager,</span>
+<span class="nc" id="L23">    private val connectivityObserver: NetworkConnectivityObserver</span>
+) : ActividadesRepository {
+
+<span class="nc" id="L26">    private val actividadDao = database.actividadDao()</span>
+<span class="nc" id="L27">    private val docenteApi get() = retrofitClient.getDocenteApi()</span>
+
+    override fun getActividades(
+        idAsignacion: Long,
+        idPeriodo: Long?
+<span class="nc" id="L32">    ): Flow&lt;Resource&lt;List&lt;ActividadAcademica&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L33">        emit(Resource.Loading)</span>
+
+        // 1. Emitir caché local de inmediato si existe
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        val cached = actividadDao.getActividades(idAsignacion, idPeriodo).firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L37" title="All 4 branches missed.">        if (cached.isNotEmpty()) {</span>
+<span class="nc" id="L38">            val domainList = cached.map { e -&gt;</span>
+<span class="nc" id="L39">                ActividadAcademica(</span>
+<span class="nc" id="L40">                    idActividad = e.idActividad,</span>
+<span class="nc" id="L41">                    idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L42">                    idPeriodo = e.idPeriodo,</span>
+<span class="nc" id="L43">                    tipo = e.tipo,</span>
+<span class="nc" id="L44">                    nombre = e.nombre,</span>
+<span class="nc" id="L45">                    descripcion = e.descripcion,</span>
+<span class="nc" id="L46">                    fechaEntrega = e.fechaEntrega,</span>
+<span class="nc" id="L47">                    ponderacion = e.ponderacion,</span>
+<span class="nc" id="L48">                    notaMaxima = e.notaMaxima,</span>
+<span class="nc" id="L49">                    esSumativa = e.esSumativa,</span>
+<span class="nc" id="L50">                    isPendingSync = e.isPendingSync</span>
+                )
+            }
+<span class="nc bnc" id="L53" title="All 2 branches missed.">            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+        // 2. Consultar red si hay conexión
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L58">            try {</span>
+<span class="nc" id="L59">                val resp = docenteApi.getActividades(idAsignacion = idAsignacion, idPeriodo = idPeriodo)</span>
+<span class="nc bnc" id="L60" title="All 4 branches missed.">                if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L61">                    val entities = resp.body()!!.map { dto -&gt;</span>
+<span class="nc" id="L62">                        ActividadEntity(</span>
+<span class="nc" id="L63">                            idActividad = dto.idActividad,</span>
+<span class="nc" id="L64">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L65">                            idPeriodo = dto.idPeriodo,</span>
+<span class="nc" id="L66">                            tipo = dto.tipo,</span>
+<span class="nc" id="L67">                            nombre = dto.nombre,</span>
+<span class="nc" id="L68">                            descripcion = dto.descripcion,</span>
+<span class="nc" id="L69">                            fechaEntrega = dto.fechaEntrega,</span>
+<span class="nc" id="L70">                            ponderacion = dto.ponderacion,</span>
+<span class="nc" id="L71">                            notaMaxima = dto.notaMaxima,</span>
+<span class="nc" id="L72">                            esSumativa = dto.esSumativa,</span>
+<span class="nc" id="L73">                            isPendingSync = false</span>
+                        )
+                    }
+<span class="nc" id="L76">                    actividadDao.insertActividades(entities)</span>
+
+<span class="nc" id="L78">                    val domainList = entities.map { e -&gt;</span>
+<span class="nc" id="L79">                        ActividadAcademica(</span>
+<span class="nc" id="L80">                            idActividad = e.idActividad,</span>
+<span class="nc" id="L81">                            idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L82">                            idPeriodo = e.idPeriodo,</span>
+<span class="nc" id="L83">                            tipo = e.tipo,</span>
+<span class="nc" id="L84">                            nombre = e.nombre,</span>
+<span class="nc" id="L85">                            descripcion = e.descripcion,</span>
+<span class="nc" id="L86">                            fechaEntrega = e.fechaEntrega,</span>
+<span class="nc" id="L87">                            ponderacion = e.ponderacion,</span>
+<span class="nc" id="L88">                            notaMaxima = e.notaMaxima,</span>
+<span class="nc" id="L89">                            esSumativa = e.esSumativa,</span>
+<span class="nc" id="L90">                            isPendingSync = false</span>
+                        )
+                    }
+<span class="nc" id="L93">                    emit(Resource.Success(domainList, isOffline = false))</span>
+                }
+<span class="nc" id="L95">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                if (cached.isEmpty()) {</span>
+<span class="nc" id="L97">                    emit(Resource.Error(&quot;No se pudieron cargar las actividades.&quot;))</span>
+                }
+            }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        } else if (cached.isEmpty()) {</span>
+<span class="nc" id="L101">            emit(Resource.Error(&quot;Sin conexión a Internet.&quot;))</span>
+        }
+<span class="nc" id="L103">    }</span>
+
+    override suspend fun createActividad(actividad: ActividadCreateDTO): Resource&lt;ActividadAcademica&gt; =
+<span class="nc" id="L106">        withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L107">            val isOnline = connectivityObserver.isCurrentlyConnected()</span>
+<span class="nc" id="L108">            val tempId = -System.currentTimeMillis() // ID temporal negativo para identificarlo offline</span>
+
+<span class="nc" id="L110">            val localEntity = ActividadEntity(</span>
+<span class="nc" id="L111">                idActividad = tempId,</span>
+<span class="nc" id="L112">                idAsignacion = actividad.idAsignacion,</span>
+<span class="nc" id="L113">                idPeriodo = actividad.idPeriodo,</span>
+<span class="nc" id="L114">                tipo = actividad.tipo,</span>
+<span class="nc" id="L115">                nombre = actividad.nombre,</span>
+<span class="nc" id="L116">                descripcion = actividad.descripcion,</span>
+<span class="nc" id="L117">                fechaEntrega = actividad.fechaEntrega,</span>
+<span class="nc" id="L118">                ponderacion = actividad.ponderacion,</span>
+<span class="nc" id="L119">                notaMaxima = actividad.notaMaxima,</span>
+<span class="nc" id="L120">                esSumativa = actividad.esSumativa,</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                isPendingSync = !isOnline</span>
+            )
+
+            // Guardar localmente
+<span class="nc" id="L125">            actividadDao.insertActividad(localEntity)</span>
+
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (isOnline) {</span>
+<span class="nc" id="L128">                try {</span>
+<span class="nc" id="L129">                    val resp = docenteApi.createActividad(actividad)</span>
+<span class="nc bnc" id="L130" title="All 4 branches missed.">                    if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L131">                        val serverDto = resp.body()!!</span>
+<span class="nc" id="L132">                        val serverEntity = ActividadEntity(</span>
+<span class="nc" id="L133">                            idActividad = serverDto.idActividad,</span>
+<span class="nc" id="L134">                            idAsignacion = serverDto.idAsignacion,</span>
+<span class="nc" id="L135">                            idPeriodo = serverDto.idPeriodo,</span>
+<span class="nc" id="L136">                            tipo = serverDto.tipo,</span>
+<span class="nc" id="L137">                            nombre = serverDto.nombre,</span>
+<span class="nc" id="L138">                            descripcion = serverDto.descripcion,</span>
+<span class="nc" id="L139">                            fechaEntrega = serverDto.fechaEntrega,</span>
+<span class="nc" id="L140">                            ponderacion = serverDto.ponderacion,</span>
+<span class="nc" id="L141">                            notaMaxima = serverDto.notaMaxima,</span>
+<span class="nc" id="L142">                            esSumativa = serverDto.esSumativa,</span>
+<span class="nc" id="L143">                            isPendingSync = false</span>
+                        )
+<span class="nc" id="L145">                        actividadDao.deleteActividadById(tempId)</span>
+<span class="nc" id="L146">                        actividadDao.insertActividad(serverEntity)</span>
+<span class="nc" id="L147">                        return@withContext Resource.Success(</span>
+<span class="nc" id="L148">                            ActividadAcademica(</span>
+<span class="nc" id="L149">                                idActividad = serverDto.idActividad,</span>
+<span class="nc" id="L150">                                idAsignacion = serverDto.idAsignacion,</span>
+<span class="nc" id="L151">                                idPeriodo = serverDto.idPeriodo,</span>
+<span class="nc" id="L152">                                tipo = serverDto.tipo,</span>
+<span class="nc" id="L153">                                nombre = serverDto.nombre,</span>
+<span class="nc" id="L154">                                descripcion = serverDto.descripcion,</span>
+<span class="nc" id="L155">                                fechaEntrega = serverDto.fechaEntrega,</span>
+<span class="nc" id="L156">                                ponderacion = serverDto.ponderacion,</span>
+<span class="nc" id="L157">                                notaMaxima = serverDto.notaMaxima,</span>
+<span class="nc" id="L158">                                esSumativa = serverDto.esSumativa,</span>
+<span class="nc" id="L159">                                isPendingSync = false</span>
+                            )
+                        )
+                    }
+<span class="nc" id="L163">                } catch (e: Exception) {</span>
+                    // Falló la llamada a la API, encolar para sincronización
+                }
+            }
+
+            // Encolar en la tabla de sincronización offline
+<span class="nc" id="L169">            syncManager.enqueueOperation(</span>
+<span class="nc" id="L170">                entityType = &quot;ACTIVIDAD&quot;,</span>
+<span class="nc" id="L171">                actionType = &quot;CREATE&quot;,</span>
+<span class="nc" id="L172">                localId = tempId,</span>
+<span class="nc" id="L173">                payload = actividad</span>
+            )
+
+<span class="nc" id="L176">            Resource.Success(</span>
+<span class="nc" id="L177">                ActividadAcademica(</span>
+<span class="nc" id="L178">                    idActividad = tempId,</span>
+<span class="nc" id="L179">                    idAsignacion = actividad.idAsignacion,</span>
+<span class="nc" id="L180">                    idPeriodo = actividad.idPeriodo,</span>
+<span class="nc" id="L181">                    tipo = actividad.tipo,</span>
+<span class="nc" id="L182">                    nombre = actividad.nombre,</span>
+<span class="nc" id="L183">                    descripcion = actividad.descripcion,</span>
+<span class="nc" id="L184">                    fechaEntrega = actividad.fechaEntrega,</span>
+<span class="nc" id="L185">                    ponderacion = actividad.ponderacion,</span>
+<span class="nc" id="L186">                    notaMaxima = actividad.notaMaxima,</span>
+<span class="nc" id="L187">                    esSumativa = actividad.esSumativa,</span>
+<span class="nc" id="L188">                    isPendingSync = true</span>
+                ),
+<span class="nc" id="L190">                isOffline = true</span>
+            )
+<span class="nc" id="L192">        }</span>
+
+    override suspend fun updateActividad(id: Long, actividad: ActividadCreateDTO): Resource&lt;ActividadAcademica&gt; =
+<span class="nc" id="L195">        withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L196">            val isOnline = connectivityObserver.isCurrentlyConnected()</span>
+
+<span class="nc" id="L198">            val updatedEntity = ActividadEntity(</span>
+<span class="nc" id="L199">                idActividad = id,</span>
+<span class="nc" id="L200">                idAsignacion = actividad.idAsignacion,</span>
+<span class="nc" id="L201">                idPeriodo = actividad.idPeriodo,</span>
+<span class="nc" id="L202">                tipo = actividad.tipo,</span>
+<span class="nc" id="L203">                nombre = actividad.nombre,</span>
+<span class="nc" id="L204">                descripcion = actividad.descripcion,</span>
+<span class="nc" id="L205">                fechaEntrega = actividad.fechaEntrega,</span>
+<span class="nc" id="L206">                ponderacion = actividad.ponderacion,</span>
+<span class="nc" id="L207">                notaMaxima = actividad.notaMaxima,</span>
+<span class="nc" id="L208">                esSumativa = actividad.esSumativa,</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                isPendingSync = !isOnline</span>
+            )
+<span class="nc" id="L211">            actividadDao.insertActividad(updatedEntity)</span>
+
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            if (isOnline) {</span>
+<span class="nc" id="L214">                try {</span>
+<span class="nc" id="L215">                    val resp = docenteApi.updateActividad(id, actividad)</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">                    if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L217">                        return@withContext Resource.Success(</span>
+<span class="nc" id="L218">                            ActividadAcademica(</span>
+<span class="nc" id="L219">                                idActividad = id,</span>
+<span class="nc" id="L220">                                idAsignacion = actividad.idAsignacion,</span>
+<span class="nc" id="L221">                                idPeriodo = actividad.idPeriodo,</span>
+<span class="nc" id="L222">                                tipo = actividad.tipo,</span>
+<span class="nc" id="L223">                                nombre = actividad.nombre,</span>
+<span class="nc" id="L224">                                descripcion = actividad.descripcion,</span>
+<span class="nc" id="L225">                                fechaEntrega = actividad.fechaEntrega,</span>
+<span class="nc" id="L226">                                ponderacion = actividad.ponderacion,</span>
+<span class="nc" id="L227">                                notaMaxima = actividad.notaMaxima,</span>
+<span class="nc" id="L228">                                esSumativa = actividad.esSumativa,</span>
+<span class="nc" id="L229">                                isPendingSync = false</span>
+                            )
+                        )
+                    }
+<span class="nc" id="L233">                } catch (e: Exception) {</span>
+                    // Falló red
+                }
+            }
+
+<span class="nc" id="L238">            syncManager.enqueueOperation(</span>
+<span class="nc" id="L239">                entityType = &quot;ACTIVIDAD&quot;,</span>
+<span class="nc" id="L240">                actionType = &quot;UPDATE&quot;,</span>
+<span class="nc" id="L241">                localId = id,</span>
+<span class="nc" id="L242">                remoteId = id,</span>
+<span class="nc" id="L243">                payload = actividad</span>
+            )
+
+<span class="nc" id="L246">            Resource.Success(</span>
+<span class="nc" id="L247">                ActividadAcademica(</span>
+<span class="nc" id="L248">                    idActividad = id,</span>
+<span class="nc" id="L249">                    idAsignacion = actividad.idAsignacion,</span>
+<span class="nc" id="L250">                    idPeriodo = actividad.idPeriodo,</span>
+<span class="nc" id="L251">                    tipo = actividad.tipo,</span>
+<span class="nc" id="L252">                    nombre = actividad.nombre,</span>
+<span class="nc" id="L253">                    descripcion = actividad.descripcion,</span>
+<span class="nc" id="L254">                    fechaEntrega = actividad.fechaEntrega,</span>
+<span class="nc" id="L255">                    ponderacion = actividad.ponderacion,</span>
+<span class="nc" id="L256">                    notaMaxima = actividad.notaMaxima,</span>
+<span class="nc" id="L257">                    esSumativa = actividad.esSumativa,</span>
+<span class="nc" id="L258">                    isPendingSync = true</span>
+                ),
+<span class="nc" id="L260">                isOffline = true</span>
+            )
+<span class="nc" id="L262">        }</span>
+
+<span class="nc" id="L264">    override suspend fun deleteActividad(id: Long): Resource&lt;Unit&gt; = withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L265">        val isOnline = connectivityObserver.isCurrentlyConnected()</span>
+<span class="nc" id="L266">        actividadDao.deleteActividadById(id)</span>
+
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (isOnline) {</span>
+<span class="nc" id="L269">            try {</span>
+<span class="nc" id="L270">                val resp = docenteApi.deleteActividad(id)</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">                if (resp.isSuccessful) {</span>
+<span class="nc" id="L272">                    return@withContext Resource.Success(Unit)</span>
+                }
+<span class="nc" id="L274">            } catch (e: Exception) {</span>
+                // Falló red
+            }
+        }
+
+<span class="nc" id="L279">        syncManager.enqueueOperation(</span>
+<span class="nc" id="L280">            entityType = &quot;ACTIVIDAD&quot;,</span>
+<span class="nc" id="L281">            actionType = &quot;DELETE&quot;,</span>
+<span class="nc" id="L282">            localId = id,</span>
+<span class="nc" id="L283">            remoteId = id,</span>
+<span class="nc" id="L284">            payload = mapOf(&quot;id&quot; to id)</span>
+        )
+
+<span class="nc" id="L287">        Resource.Success(Unit, isOffline = true)</span>
+<span class="nc" id="L288">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
