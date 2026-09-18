@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncStatusScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.sync</a> &gt; <span class="el_source">SyncStatusScreen.kt</span></div><h1>SyncStatusScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.sync
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.core.NetworkConnectivityObserver
+import ec.edu.uteq.sga.representante.data.local.AppDatabase
+import ec.edu.uteq.sga.representante.data.local.entity.PendingSyncEntity
+import ec.edu.uteq.sga.representante.data.sync.SyncManager
+import ec.edu.uteq.sga.representante.ui.components.EmptyStateView
+import ec.edu.uteq.sga.representante.ui.components.SgaTopAppBar
+import ec.edu.uteq.sga.representante.ui.theme.*
+import kotlinx.coroutines.launch
+
+@Composable
+fun SyncStatusScreen(
+    database: AppDatabase,
+    syncManager: SyncManager,
+    connectivityObserver: NetworkConnectivityObserver,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L36">) {</span>
+<span class="nc" id="L37">    val coroutineScope = rememberCoroutineScope()</span>
+<span class="nc" id="L38">    val isOnline = remember { mutableStateOf(connectivityObserver.isCurrentlyConnected()) }</span>
+<span class="nc" id="L39">    var pendingItems by remember { mutableStateOf&lt;List&lt;PendingSyncEntity&gt;&gt;(emptyList()) }</span>
+<span class="nc" id="L40">    var isSyncing by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L41">    var syncMessage by remember { mutableStateOf&lt;String?&gt;(null) }</span>
+
+<span class="nc" id="L43">    LaunchedEffect(Unit) {</span>
+<span class="nc" id="L44">        database.pendingSyncDao().getPendingOperationsFlow().collect { list -&gt;</span>
+<span class="nc" id="L45">            pendingItems = list</span>
+<span class="nc" id="L46">            isOnline.value = connectivityObserver.isCurrentlyConnected()</span>
+<span class="nc" id="L47">        }</span>
+<span class="nc" id="L48">    }</span>
+
+<span class="nc" id="L50">    Scaffold(</span>
+<span class="nc" id="L51">        topBar = {</span>
+<span class="nc" id="L52">            SgaTopAppBar(</span>
+<span class="nc" id="L53">                title = &quot;Estado de Sincronización&quot;,</span>
+<span class="nc" id="L54">                showBackButton = true,</span>
+<span class="nc" id="L55">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L58">    ) { padding -&gt;</span>
+<span class="nc" id="L59">        Column(</span>
+<span class="nc" id="L60">            modifier = Modifier</span>
+<span class="nc" id="L61">                .fillMaxSize()</span>
+<span class="nc" id="L62">                .padding(padding)</span>
+<span class="nc" id="L63">                .background(BackgroundSlate)</span>
+<span class="nc" id="L64">                .padding(16.dp),</span>
+<span class="nc" id="L65">            verticalArrangement = Arrangement.spacedBy(16.dp)</span>
+        ) {
+            // Tarjeta de estado de Red
+<span class="nc" id="L68">            Card(</span>
+<span class="nc" id="L69">                shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L70">                colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L71">                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),</span>
+<span class="nc" id="L72">                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),</span>
+<span class="nc" id="L73">                modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L74">            ) {</span>
+<span class="nc" id="L75">                Row(</span>
+<span class="nc" id="L76">                    modifier = Modifier</span>
+<span class="nc" id="L77">                        .fillMaxWidth()</span>
+<span class="nc" id="L78">                        .padding(16.dp),</span>
+<span class="nc" id="L79">                    verticalAlignment = Alignment.CenterVertically</span>
+                ) {
+<span class="nc" id="L81">                    Box(</span>
+<span class="nc" id="L82">                        modifier = Modifier</span>
+<span class="nc" id="L83">                            .size(44.dp)</span>
+<span class="nc" id="L84">                            .clip(CircleShape)</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                            .background(if (isOnline.value) ModuloAsistenciaBg else ModuloAnunciosBg),</span>
+<span class="nc" id="L86">                        contentAlignment = Alignment.Center</span>
+                    ) {
+<span class="nc" id="L88">                        Icon(</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                            imageVector = if (isOnline.value) Icons.Default.Wifi else Icons.Default.WifiOff,</span>
+<span class="nc" id="L90">                            contentDescription = null,</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                            tint = if (isOnline.value) AccentGreen else WarningAmber</span>
+                        )
+<span class="nc" id="L93">                    }</span>
+<span class="nc" id="L94">                    Spacer(modifier = Modifier.width(16.dp))</span>
+<span class="nc" id="L95">                    Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L96">                        Text(</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                            text = if (isOnline.value) &quot;Conectado al Servidor SGA&quot; else &quot;Modo Sin Conexión&quot;,</span>
+<span class="nc" id="L98">                            style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L99">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L100">                            color = TextPrimary</span>
+                        )
+<span class="nc" id="L102">                        Text(</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                            text = if (isOnline.value) &quot;Los cambios se sincronizan en tiempo real con el servidor.&quot; else &quot;Las acciones se guardarán localmente y se sincronizarán al reconectar.&quot;,</span>
+<span class="nc" id="L104">                            style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L105">                            color = TextSecondary,</span>
+<span class="nc" id="L106">                            fontSize = 12.sp</span>
+                        )
+<span class="nc" id="L108">                    }</span>
+<span class="nc" id="L109">                }</span>
+            }
+
+            // Botón de sincronización manual
+<span class="nc" id="L113">            Button(</span>
+                onClick = {
+<span class="nc" id="L115">                    coroutineScope.launch {</span>
+<span class="nc" id="L116">                        isSyncing = true</span>
+<span class="nc" id="L117">                        syncMessage = null</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                        val result = syncManager.syncPendingOperations()</span>
+<span class="nc" id="L119">                        isSyncing = false</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                        syncMessage = if (result.isSuccess) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                            &quot;Sincronización completada exitosamente (${result.getOrNull()} elementos)&quot;</span>
+                        } else {
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                            &quot;Error: ${result.exceptionOrNull()?.message}&quot;</span>
+                        }
+<span class="nc" id="L125">                    }</span>
+<span class="nc" id="L126">                },</span>
+<span class="nc" id="L127">                modifier = Modifier</span>
+<span class="nc" id="L128">                    .fillMaxWidth()</span>
+<span class="nc" id="L129">                    .height(48.dp),</span>
+<span class="nc" id="L130">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L131">                colors = ButtonDefaults.buttonColors(</span>
+<span class="nc" id="L132">                    containerColor = PrimaryNavy,</span>
+<span class="nc" id="L133">                    contentColor = Color.White,</span>
+<span class="nc" id="L134">                    disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),</span>
+<span class="nc" id="L135">                    disabledContentColor = Color.White</span>
+                ),
+<span class="nc bnc" id="L137" title="All 8 branches missed.">                enabled = !isSyncing &amp;&amp; isOnline.value &amp;&amp; pendingItems.isNotEmpty()</span>
+<span class="nc" id="L138">            ) {</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if (isSyncing) {</span>
+<span class="nc" id="L140">                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)</span>
+<span class="nc" id="L141">                    Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L142">                    Text(&quot;Sincronizando...&quot;, fontWeight = FontWeight.Bold, color = Color.White)</span>
+<span class="nc" id="L143">                } else {</span>
+<span class="nc" id="L144">                    Icon(Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(18.dp))</span>
+<span class="nc" id="L145">                    Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L146">                    Text(&quot;Sincronizar Pendientes Ahora (${pendingItems.size})&quot;, fontWeight = FontWeight.Bold, color = Color.White)</span>
+                }
+            }
+
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (syncMessage != null) {</span>
+<span class="nc" id="L151">                Surface(</span>
+<span class="nc" id="L152">                    shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L153">                    color = ModuloAsistenciaBg,</span>
+<span class="nc" id="L154">                    modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L155">                ) {</span>
+<span class="nc" id="L156">                    Text(</span>
+<span class="nc" id="L157">                        text = syncMessage!!,</span>
+<span class="nc" id="L158">                        color = AccentGreen,</span>
+<span class="nc" id="L159">                        fontWeight = FontWeight.SemiBold,</span>
+<span class="nc" id="L160">                        fontSize = 13.sp,</span>
+<span class="nc" id="L161">                        modifier = Modifier.padding(10.dp)</span>
+                    )
+                }
+            }
+
+<span class="nc" id="L166">            Text(</span>
+<span class="nc" id="L167">                text = &quot;Cola de Operaciones Pendientes (${pendingItems.size})&quot;,</span>
+<span class="nc" id="L168">                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L169">                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L170">                color = TextPrimary</span>
+            )
+
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            if (pendingItems.isEmpty()) {</span>
+<span class="nc" id="L174">                EmptyStateView(</span>
+<span class="nc" id="L175">                    icon = Icons.Default.CloudDone,</span>
+<span class="nc" id="L176">                    title = &quot;Todo está sincronizado&quot;,</span>
+<span class="nc" id="L177">                    subtitle = &quot;No hay operaciones pendientes de envío al backend.&quot;</span>
+                )
+<span class="nc" id="L179">            } else {</span>
+<span class="nc" id="L180">                LazyColumn(</span>
+<span class="nc" id="L181">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L182">                    verticalArrangement = Arrangement.spacedBy(8.dp)</span>
+<span class="nc" id="L183">                ) {</span>
+<span class="nc" id="L184">                    items(pendingItems) { item -&gt;</span>
+<span class="nc" id="L185">                        Card(</span>
+<span class="nc" id="L186">                            shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L187">                            colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L188">                            border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),</span>
+<span class="nc" id="L189">                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),</span>
+<span class="nc" id="L190">                            modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L191">                        ) {</span>
+<span class="nc" id="L192">                            Row(</span>
+<span class="nc" id="L193">                                modifier = Modifier</span>
+<span class="nc" id="L194">                                    .fillMaxWidth()</span>
+<span class="nc" id="L195">                                    .padding(14.dp),</span>
+<span class="nc" id="L196">                                horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L197">                                verticalAlignment = Alignment.CenterVertically</span>
+                            ) {
+<span class="nc" id="L199">                                Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L200">                                    Row(verticalAlignment = Alignment.CenterVertically) {</span>
+<span class="nc" id="L201">                                        Surface(</span>
+<span class="nc" id="L202">                                            shape = RoundedCornerShape(6.dp),</span>
+<span class="nc" id="L203">                                            color = ModuloActividadesBg</span>
+<span class="nc" id="L204">                                        ) {</span>
+<span class="nc" id="L205">                                            Text(</span>
+<span class="nc" id="L206">                                                text = item.actionType,</span>
+<span class="nc" id="L207">                                                color = PrimaryNavy,</span>
+<span class="nc" id="L208">                                                fontSize = 11.sp,</span>
+<span class="nc" id="L209">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L210">                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)</span>
+                                            )
+                                        }
+<span class="nc" id="L213">                                        Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L214">                                        Text(</span>
+<span class="nc" id="L215">                                            text = item.entityType,</span>
+<span class="nc" id="L216">                                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L217">                                            fontSize = 14.sp,</span>
+<span class="nc" id="L218">                                            color = TextPrimary</span>
+                                        )
+<span class="nc" id="L220">                                    }</span>
+<span class="nc" id="L221">                                    Spacer(modifier = Modifier.height(4.dp))</span>
+<span class="nc" id="L222">                                    Text(</span>
+<span class="nc" id="L223">                                        text = &quot;ID Local: ${item.localId}&quot;,</span>
+<span class="nc" id="L224">                                        fontSize = 12.sp,</span>
+<span class="nc" id="L225">                                        color = TextSecondary</span>
+                                    )
+<span class="nc" id="L227">                                }</span>
+<span class="nc" id="L228">                                Surface(</span>
+<span class="nc" id="L229">                                    shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L230">                                    color = ModuloAnunciosBg</span>
+<span class="nc" id="L231">                                ) {</span>
+<span class="nc" id="L232">                                    Text(</span>
+<span class="nc" id="L233">                                        text = &quot;PENDIENTE&quot;,</span>
+<span class="nc" id="L234">                                        color = WarningAmber,</span>
+<span class="nc" id="L235">                                        fontSize = 11.sp,</span>
+<span class="nc" id="L236">                                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L237">                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)</span>
+                                    )
+                                }
+<span class="nc" id="L240">                            }</span>
+                        }
+<span class="nc" id="L242">                    }</span>
+<span class="nc" id="L243">                }</span>
+            }
+<span class="nc" id="L245">        }</span>
+    }
+<span class="nc" id="L247">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

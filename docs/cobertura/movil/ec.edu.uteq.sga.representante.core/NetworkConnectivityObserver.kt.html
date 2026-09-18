@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NetworkConnectivityObserver.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.core</a> &gt; <span class="el_source">NetworkConnectivityObserver.kt</span></div><h1>NetworkConnectivityObserver.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.core
+
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+
+enum class ConnectivityStatus {
+<span class="nc" id="L14">    AVAILABLE, UNAVAILABLE, LOSING, LOST</span>
+}
+
+<span class="nc" id="L17">class NetworkConnectivityObserver(context: Context) {</span>
+
+    private val connectivityManager =
+<span class="nc" id="L20">        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager</span>
+
+    fun isCurrentlyConnected(): Boolean {
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        val activeNetwork = connectivityManager.activeNetwork ?: return false</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &amp;&amp;</span>
+<span class="nc bnc" id="L26" title="All 2 branches missed.">                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)</span>
+    }
+
+    fun observe(): Flow&lt;ConnectivityStatus&gt; {
+<span class="nc" id="L30">        return callbackFlow {</span>
+<span class="nc" id="L31">            val callback = object : ConnectivityManager.NetworkCallback() {</span>
+                override fun onAvailable(network: Network) {
+<span class="nc" id="L33">                    super.onAvailable(network)</span>
+<span class="nc" id="L34">                    trySend(ConnectivityStatus.AVAILABLE)</span>
+<span class="nc" id="L35">                }</span>
+
+                override fun onLosing(network: Network, maxMsToLive: Int) {
+<span class="nc" id="L38">                    super.onLosing(network, maxMsToLive)</span>
+<span class="nc" id="L39">                    trySend(ConnectivityStatus.LOSING)</span>
+<span class="nc" id="L40">                }</span>
+
+                override fun onLost(network: Network) {
+<span class="nc" id="L43">                    super.onLost(network)</span>
+<span class="nc" id="L44">                    trySend(ConnectivityStatus.LOST)</span>
+<span class="nc" id="L45">                }</span>
+
+                override fun onUnavailable() {
+<span class="nc" id="L48">                    super.onUnavailable()</span>
+<span class="nc" id="L49">                    trySend(ConnectivityStatus.UNAVAILABLE)</span>
+<span class="nc" id="L50">                }</span>
+            }
+
+<span class="nc" id="L53">            val request = NetworkRequest.Builder()</span>
+<span class="nc" id="L54">                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)</span>
+<span class="nc" id="L55">                .build()</span>
+
+<span class="nc" id="L57">            connectivityManager.registerNetworkCallback(request, callback)</span>
+
+            // Emitir estado inicial
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (isCurrentlyConnected()) {</span>
+<span class="nc" id="L61">                trySend(ConnectivityStatus.AVAILABLE)</span>
+            } else {
+<span class="nc" id="L63">                trySend(ConnectivityStatus.UNAVAILABLE)</span>
+            }
+
+<span class="nc" id="L66">            awaitClose {</span>
+<span class="nc" id="L67">                connectivityManager.unregisterNetworkCallback(callback)</span>
+<span class="nc" id="L68">            }</span>
+<span class="nc" id="L69">        }.distinctUntilChanged()</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

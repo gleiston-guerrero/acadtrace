@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SeguimientoScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.seguimiento</a> &gt; <span class="el_source">SeguimientoScreen.kt</span></div><h1>SeguimientoScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.seguimiento
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.domain.model.SeguimientoItem
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+@Composable
+fun SeguimientoScreen(
+    idMatricula: Long?,
+    viewModel: SeguimientoViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L32">) {</span>
+<span class="nc" id="L33">    val state by viewModel.uiState.collectAsState()</span>
+
+<span class="nc" id="L35">    LaunchedEffect(idMatricula) {</span>
+<span class="nc" id="L36">        viewModel.init(idMatricula)</span>
+<span class="nc" id="L37">    }</span>
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">    val itemsFiltrados = if (state.selectedCategoriaFiltro == null) {</span>
+<span class="nc" id="L40">        state.items</span>
+    } else {
+<span class="nc" id="L42">        state.items.filter { it.categoria == state.selectedCategoriaFiltro }</span>
+    }
+
+<span class="nc" id="L45">    val alertasCriticas = remember(state.estudiantesAlerta) {</span>
+<span class="nc" id="L46">        state.estudiantesAlerta.filter { it.esRiesgoAsistencia }</span>
+    }
+
+<span class="nc" id="L49">    Scaffold(</span>
+<span class="nc" id="L50">        topBar = {</span>
+<span class="nc" id="L51">            SgaTopAppBar(</span>
+<span class="nc" id="L52">                title = &quot;Seguimiento y Rendimiento&quot;,</span>
+<span class="nc" id="L53">                showBackButton = true,</span>
+<span class="nc" id="L54">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L57">    ) { padding -&gt;</span>
+<span class="nc" id="L58">        Column(</span>
+<span class="nc" id="L59">            modifier = Modifier</span>
+<span class="nc" id="L60">                .fillMaxSize()</span>
+<span class="nc" id="L61">                .padding(padding)</span>
+<span class="nc" id="L62">                .background(BackgroundSlate)</span>
+        ) {
+<span class="nc" id="L64">            OfflineBanner(isOffline = state.isOffline)</span>
+
+            // Selector de Pestañas: 0 = Rendimiento y Alertas (por defecto, izquierda), 1 = Bitácora (derecha)
+<span class="nc" id="L67">            TabRow(</span>
+<span class="nc" id="L68">                selectedTabIndex = state.selectedTab,</span>
+<span class="nc" id="L69">                containerColor = CardSurface,</span>
+<span class="nc" id="L70">                contentColor = PrimaryNavy</span>
+<span class="nc" id="L71">            ) {</span>
+<span class="nc" id="L72">                Tab(</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                    selected = state.selectedTab == 0,</span>
+<span class="nc" id="L74">                    onClick = { viewModel.setTab(0) },</span>
+<span class="nc" id="L75">                    text = { Text(&quot;Rendimiento y Alertas&quot;, fontWeight = FontWeight.Bold) }</span>
+                )
+<span class="nc" id="L77">                Tab(</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                    selected = state.selectedTab == 1,</span>
+<span class="nc" id="L79">                    onClick = { viewModel.setTab(1) },</span>
+<span class="nc" id="L80">                    text = { Text(&quot;Bitácora (${state.items.size})&quot;, fontWeight = FontWeight.Bold) }</span>
+                )
+            }
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (state.selectedTab == 0) {</span>
+                // ─── PESTAÑA RENDIMIENTO Y ALERTAS (POR DEFECTO) ────────────────
+<span class="nc bnc" id="L86" title="All 4 branches missed.">                if (state.isLoading &amp;&amp; state.estudiantesAlerta.isEmpty()) {</span>
+<span class="nc" id="L87">                    LoadingView(&quot;Analizando alertas y rendimiento...&quot;)</span>
+<span class="nc" id="L88">                } else {</span>
+<span class="nc" id="L89">                    LazyColumn(</span>
+<span class="nc" id="L90">                        modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L91">                        contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L92">                        verticalArrangement = Arrangement.spacedBy(12.dp)</span>
+                    ) {
+                        // Selector de Asignación / Curso si hay más de una
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                        if (state.asignaciones.size &gt; 1) {</span>
+<span class="nc" id="L96">                            item {</span>
+<span class="nc" id="L97">                                Text(</span>
+<span class="nc" id="L98">                                    text = &quot;Filtrar por Aula Asignada:&quot;,</span>
+<span class="nc" id="L99">                                    style = MaterialTheme.typography.titleSmall,</span>
+<span class="nc" id="L100">                                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L101">                                    color = PrimaryNavy</span>
+                                )
+<span class="nc" id="L103">                                Spacer(modifier = Modifier.height(6.dp))</span>
+<span class="nc" id="L104">                                LazyRow(</span>
+<span class="nc" id="L105">                                    horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                                ) {
+<span class="nc" id="L107">                                    items(state.asignaciones) { asig -&gt;</span>
+<span class="nc" id="L108">                                        val isSel = state.selectedAsignacion?.idAsignacion == asig.idAsignacion</span>
+<span class="nc" id="L109">                                        FilterChip(</span>
+<span class="nc" id="L110">                                            selected = isSel,</span>
+<span class="nc" id="L111">                                            onClick = { viewModel.selectAsignacion(asig) },</span>
+<span class="nc" id="L112">                                            label = { Text(&quot;${asig.asignaturaNombre} - ${asig.gradoNombre} '${asig.paraleloLetra}'&quot;, fontSize = 12.sp) },</span>
+<span class="nc" id="L113">                                            colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L114">                                                selectedContainerColor = PrimaryNavy.copy(alpha = 0.15f),</span>
+<span class="nc" id="L115">                                                selectedLabelColor = PrimaryNavy</span>
+                                            )
+                                        )
+<span class="nc" id="L118">                                    }</span>
+<span class="nc" id="L119">                                }</span>
+<span class="nc" id="L120">                                Spacer(modifier = Modifier.height(10.dp))</span>
+                            }
+                        }
+
+                        // Sección: Alertas de Asistencia Crítica (&lt; 80%)
+<span class="nc" id="L125">                        item {</span>
+<span class="nc" id="L126">                            Text(</span>
+<span class="nc" id="L127">                                text = &quot;Alertas de Inasistencias Críticas (&lt; 80%)&quot;,</span>
+<span class="nc" id="L128">                                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L129">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L130">                                color = DangerRed</span>
+                            )
+                        }
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                        if (alertasCriticas.isEmpty()) {</span>
+<span class="nc" id="L135">                            item {</span>
+<span class="nc" id="L136">                                Card(</span>
+<span class="nc" id="L137">                                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L138">                                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L139">                                    colors = CardDefaults.cardColors(containerColor = ModuloAsistenciaBg)</span>
+<span class="nc" id="L140">                                ) {</span>
+<span class="nc" id="L141">                                    Row(</span>
+<span class="nc" id="L142">                                        modifier = Modifier.padding(16.dp),</span>
+<span class="nc" id="L143">                                        verticalAlignment = Alignment.CenterVertically</span>
+                                    ) {
+<span class="nc" id="L145">                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AccentGreen)</span>
+<span class="nc" id="L146">                                        Spacer(modifier = Modifier.width(10.dp))</span>
+<span class="nc" id="L147">                                        Text(</span>
+<span class="nc" id="L148">                                            text = &quot;No se registran alumnos con asistencia crítica.&quot;,</span>
+<span class="nc" id="L149">                                            fontWeight = FontWeight.SemiBold,</span>
+<span class="nc" id="L150">                                            color = AccentGreen,</span>
+<span class="nc" id="L151">                                            fontSize = 13.sp</span>
+                                        )
+<span class="nc" id="L153">                                    }</span>
+                                }
+                            }
+                        } else {
+<span class="nc" id="L157">                            items(alertasCriticas) { alerta -&gt;</span>
+<span class="nc" id="L158">                                Card(</span>
+<span class="nc" id="L159">                                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L160">                                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L161">                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),</span>
+<span class="nc" id="L162">                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFECACA))</span>
+<span class="nc" id="L163">                                ) {</span>
+<span class="nc" id="L164">                                    Row(</span>
+<span class="nc" id="L165">                                        modifier = Modifier</span>
+<span class="nc" id="L166">                                            .fillMaxWidth()</span>
+<span class="nc" id="L167">                                            .padding(14.dp),</span>
+<span class="nc" id="L168">                                        verticalAlignment = Alignment.CenterVertically,</span>
+<span class="nc" id="L169">                                        horizontalArrangement = Arrangement.SpaceBetween</span>
+                                    ) {
+<span class="nc" id="L171">                                        Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L172">                                            Text(</span>
+<span class="nc" id="L173">                                                text = alerta.estudiante.nombreCompleto,</span>
+<span class="nc" id="L174">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L175">                                                color = Color(0xFFB91C1C)</span>
+                                            )
+<span class="nc" id="L177">                                            Spacer(modifier = Modifier.height(2.dp))</span>
+<span class="nc" id="L178">                                            Text(</span>
+<span class="nc bnc" id="L179" title="All 4 branches missed.">                                                text = &quot;Ausencias: ${alerta.resumenAsistencia?.totalAusentes ?: 0} • Atrasos: ${alerta.resumenAsistencia?.totalAtrasos ?: 0}&quot;,</span>
+<span class="nc" id="L180">                                                fontSize = 12.sp,</span>
+<span class="nc" id="L181">                                                color = TextSecondary</span>
+                                            )
+<span class="nc" id="L183">                                        }</span>
+
+<span class="nc" id="L185">                                        Surface(</span>
+<span class="nc" id="L186">                                            shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L187">                                            color = DangerRed</span>
+<span class="nc" id="L188">                                        ) {</span>
+<span class="nc" id="L189">                                            Text(</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                                                text = &quot;${String.format(&quot;%.1f&quot;, alerta.resumenAsistencia?.porcentajeAsistencia ?: 0.0)}%&quot;,</span>
+<span class="nc" id="L191">                                                color = Color.White,</span>
+<span class="nc" id="L192">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L193">                                                fontSize = 13.sp,</span>
+<span class="nc" id="L194">                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)</span>
+                                            )
+                                        }
+<span class="nc" id="L197">                                    }</span>
+                                }
+<span class="nc" id="L199">                            }</span>
+                        }
+
+                        // Sección: Nómina de Estudiantes y Seguimiento
+<span class="nc" id="L203">                        item {</span>
+<span class="nc" id="L204">                            Spacer(modifier = Modifier.height(8.dp))</span>
+<span class="nc" id="L205">                            Text(</span>
+<span class="nc" id="L206">                                text = &quot;Nómina de Estudiantes y Rendimiento&quot;,</span>
+<span class="nc" id="L207">                                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L208">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L209">                                color = PrimaryNavy</span>
+                            )
+                        }
+
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                        if (state.estudiantesAlerta.isEmpty()) {</span>
+<span class="nc" id="L214">                            item {</span>
+<span class="nc" id="L215">                                EmptyStateView(</span>
+<span class="nc" id="L216">                                    icon = Icons.Default.SearchOff,</span>
+<span class="nc" id="L217">                                    title = &quot;Sin estudiantes&quot;,</span>
+<span class="nc" id="L218">                                    subtitle = &quot;No se encontraron estudiantes para este curso.&quot;</span>
+                                )
+                            }
+                        } else {
+<span class="nc" id="L222">                            items(state.estudiantesAlerta) { alertaItem -&gt;</span>
+<span class="nc" id="L223">                                val est = alertaItem.estudiante</span>
+<span class="nc" id="L224">                                Card(</span>
+<span class="nc" id="L225">                                    modifier = Modifier</span>
+<span class="nc" id="L226">                                        .fillMaxWidth()</span>
+<span class="nc" id="L227">                                        .shadow(1.dp, RoundedCornerShape(12.dp)),</span>
+<span class="nc" id="L228">                                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L229">                                    colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L230">                                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L231">                                ) {</span>
+<span class="nc" id="L232">                                    Row(</span>
+<span class="nc" id="L233">                                        modifier = Modifier</span>
+<span class="nc" id="L234">                                            .fillMaxWidth()</span>
+<span class="nc" id="L235">                                            .padding(14.dp),</span>
+<span class="nc" id="L236">                                        verticalAlignment = Alignment.CenterVertically</span>
+                                    ) {
+<span class="nc" id="L238">                                        Box(</span>
+<span class="nc" id="L239">                                            modifier = Modifier</span>
+<span class="nc" id="L240">                                                .size(38.dp)</span>
+<span class="nc" id="L241">                                                .clip(CircleShape)</span>
+<span class="nc" id="L242">                                                .background(ModuloSeguimientoBg),</span>
+<span class="nc" id="L243">                                            contentAlignment = Alignment.Center</span>
+                                        ) {
+<span class="nc" id="L245">                                            Text(</span>
+<span class="nc" id="L246">                                                text = est.apellidos.take(1).uppercase(),</span>
+<span class="nc" id="L247">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L248">                                                color = ModuloSeguimientoText,</span>
+<span class="nc" id="L249">                                                fontSize = 15.sp</span>
+                                            )
+<span class="nc" id="L251">                                        }</span>
+
+<span class="nc" id="L253">                                        Spacer(modifier = Modifier.width(12.dp))</span>
+
+<span class="nc" id="L255">                                        Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L256">                                            Text(</span>
+<span class="nc" id="L257">                                                text = est.nombreCompleto,</span>
+<span class="nc" id="L258">                                                style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L259">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L260">                                                color = TextPrimary</span>
+                                            )
+<span class="nc bnc" id="L262" title="All 4 branches missed.">                                            if (est.cedula.isNotBlank()) {</span>
+<span class="nc" id="L263">                                                Text(</span>
+<span class="nc" id="L264">                                                    text = &quot;C.I. ${est.cedula}&quot;,</span>
+<span class="nc" id="L265">                                                    fontSize = 12.sp,</span>
+<span class="nc" id="L266">                                                    color = TextSecondary</span>
+                                                )
+                                            }
+<span class="nc" id="L269">                                        }</span>
+
+<span class="nc" id="L271">                                        Surface(</span>
+<span class="nc" id="L272">                                            shape = RoundedCornerShape(8.dp),</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                                            color = if (alertaItem.totalObservaciones &gt; 0) ModuloSeguimientoBg else BackgroundSlate</span>
+<span class="nc" id="L274">                                        ) {</span>
+<span class="nc" id="L275">                                            Text(</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">                                                text = if (alertaItem.totalObservaciones &gt; 0) &quot;${alertaItem.totalObservaciones} Observ.&quot; else &quot;Al día&quot;,</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                                                color = if (alertaItem.totalObservaciones &gt; 0) ModuloSeguimientoText else TextMuted,</span>
+<span class="nc" id="L278">                                                fontSize = 11.sp,</span>
+<span class="nc" id="L279">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L280">                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)</span>
+                                            )
+                                        }
+<span class="nc" id="L283">                                    }</span>
+                                }
+<span class="nc" id="L285">                            }</span>
+                        }
+<span class="nc" id="L287">                    }</span>
+                }
+<span class="nc" id="L289">            } else {</span>
+                // ─── PESTAÑA BITÁCORA / OBSERVACIONES (A LA DERECHA) ────────────
+                // Filtros de categoría
+<span class="nc" id="L292">                Surface(</span>
+<span class="nc" id="L293">                    color = CardSurface,</span>
+<span class="nc" id="L294">                    modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L295">                ) {</span>
+<span class="nc" id="L296">                    LazyRow(</span>
+<span class="nc" id="L297">                        modifier = Modifier</span>
+<span class="nc" id="L298">                            .fillMaxWidth()</span>
+<span class="nc" id="L299">                            .padding(horizontal = 16.dp, vertical = 8.dp),</span>
+<span class="nc" id="L300">                        horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                    ) {
+<span class="nc" id="L302">                        item {</span>
+<span class="nc" id="L303">                            FilterChip(</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                                selected = state.selectedCategoriaFiltro == null,</span>
+<span class="nc" id="L305">                                onClick = { viewModel.setCategoriaFiltro(null) },</span>
+<span class="nc" id="L306">                                label = { Text(&quot;Todas&quot;, fontSize = 12.sp) },</span>
+<span class="nc" id="L307">                                colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L308">                                    selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),</span>
+<span class="nc" id="L309">                                    selectedLabelColor = PrimaryNavy</span>
+                                )
+                            )
+                        }
+<span class="nc" id="L313">                        items(CATEGORIAS_SEGUIMIENTO) { (key, label) -&gt;</span>
+<span class="nc" id="L314">                            val isSelected = state.selectedCategoriaFiltro == key</span>
+<span class="nc" id="L315">                            FilterChip(</span>
+<span class="nc" id="L316">                                selected = isSelected,</span>
+<span class="nc" id="L317">                                onClick = { viewModel.setCategoriaFiltro(key) },</span>
+<span class="nc" id="L318">                                label = { Text(label, fontSize = 12.sp) },</span>
+<span class="nc" id="L319">                                colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L320">                                    selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),</span>
+<span class="nc" id="L321">                                    selectedLabelColor = PrimaryNavy</span>
+                                )
+                            )
+<span class="nc" id="L324">                        }</span>
+<span class="nc" id="L325">                    }</span>
+                }
+
+<span class="nc bnc" id="L328" title="All 4 branches missed.">                if (state.isLoading &amp;&amp; state.items.isEmpty()) {</span>
+<span class="nc" id="L329">                    LoadingView(&quot;Cargando bitácora de seguimiento...&quot;)</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">                } else if (itemsFiltrados.isEmpty()) {</span>
+<span class="nc" id="L331">                    EmptyStateView(</span>
+<span class="nc" id="L332">                        icon = Icons.Default.AssignmentTurnedIn,</span>
+<span class="nc" id="L333">                        title = &quot;No hay observaciones registradas&quot;,</span>
+<span class="nc" id="L334">                        subtitle = &quot;La bitácora aún no tiene anotaciones registradas para este período.&quot;</span>
+                    )
+<span class="nc" id="L336">                } else {</span>
+<span class="nc" id="L337">                    LazyColumn(</span>
+<span class="nc" id="L338">                        modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L339">                        contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L340">                        verticalArrangement = Arrangement.spacedBy(12.dp)</span>
+                    ) {
+<span class="nc" id="L342">                        items(itemsFiltrados) { item -&gt;</span>
+<span class="nc" id="L343">                            SeguimientoCard(item = item)</span>
+<span class="nc" id="L344">                        }</span>
+<span class="nc" id="L345">                    }</span>
+                }
+            }
+<span class="nc" id="L348">        }</span>
+    }
+<span class="nc" id="L350">}</span>
+
+@Composable
+<span class="nc" id="L353">fun SeguimientoCard(item: SeguimientoItem) {</span>
+<span class="nc" id="L354">    Card(</span>
+<span class="nc" id="L355">        modifier = Modifier</span>
+<span class="nc" id="L356">            .fillMaxWidth()</span>
+<span class="nc" id="L357">            .shadow(2.dp, RoundedCornerShape(14.dp)),</span>
+<span class="nc" id="L358">        shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L359">        colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L360">        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L361">    ) {</span>
+<span class="nc" id="L362">        Column(modifier = Modifier.padding(16.dp)) {</span>
+<span class="nc" id="L363">            Row(</span>
+<span class="nc" id="L364">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L365">                horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L366">                verticalAlignment = Alignment.CenterVertically</span>
+            ) {
+<span class="nc" id="L368">                Surface(</span>
+<span class="nc" id="L369">                    shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L370">                    color = ModuloSeguimientoBg</span>
+<span class="nc" id="L371">                ) {</span>
+<span class="nc" id="L372">                    Text(</span>
+<span class="nc" id="L373">                        text = item.categoria,</span>
+<span class="nc" id="L374">                        color = ModuloSeguimientoText,</span>
+<span class="nc" id="L375">                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L376">                        fontSize = 11.sp,</span>
+<span class="nc" id="L377">                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)</span>
+                    )
+                }
+
+<span class="nc bnc" id="L381" title="All 2 branches missed.">                if (item.requiereFollowup) {</span>
+<span class="nc" id="L382">                    Surface(</span>
+<span class="nc" id="L383">                        shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L384">                        color = WarningAmber.copy(alpha = 0.2f)</span>
+<span class="nc" id="L385">                    ) {</span>
+<span class="nc" id="L386">                        Text(</span>
+<span class="nc" id="L387">                            text = &quot;Requiere Seguimiento&quot;,</span>
+<span class="nc" id="L388">                            color = WarningAmber,</span>
+<span class="nc" id="L389">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L390">                            fontSize = 11.sp,</span>
+<span class="nc" id="L391">                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)</span>
+                        )
+                    }
+                }
+<span class="nc" id="L395">            }</span>
+
+<span class="nc" id="L397">            Spacer(modifier = Modifier.height(10.dp))</span>
+
+<span class="nc" id="L399">            Text(</span>
+<span class="nc" id="L400">                text = item.descripcion,</span>
+<span class="nc" id="L401">                style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L402">                fontWeight = FontWeight.Medium,</span>
+<span class="nc" id="L403">                color = TextPrimary,</span>
+<span class="nc" id="L404">                lineHeight = 20.sp</span>
+            )
+
+<span class="nc bnc" id="L407" title="All 6 branches missed.">            if (!item.accionesTomadas.isNullOrBlank()) {</span>
+<span class="nc" id="L408">                Spacer(modifier = Modifier.height(8.dp))</span>
+<span class="nc" id="L409">                Surface(</span>
+<span class="nc" id="L410">                    shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L411">                    color = BackgroundSlate,</span>
+<span class="nc" id="L412">                    modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L413">                ) {</span>
+<span class="nc" id="L414">                    Column(modifier = Modifier.padding(10.dp)) {</span>
+<span class="nc" id="L415">                        Text(</span>
+<span class="nc" id="L416">                            text = &quot;Acciones tomadas:&quot;,</span>
+<span class="nc" id="L417">                            fontSize = 11.sp,</span>
+<span class="nc" id="L418">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L419">                            color = TextSecondary</span>
+                        )
+<span class="nc" id="L421">                        Spacer(modifier = Modifier.height(2.dp))</span>
+<span class="nc" id="L422">                        Text(</span>
+<span class="nc" id="L423">                            text = item.accionesTomadas,</span>
+<span class="nc" id="L424">                            fontSize = 12.sp,</span>
+<span class="nc" id="L425">                            color = TextPrimary</span>
+                        )
+<span class="nc" id="L427">                    }</span>
+                }
+            }
+
+<span class="nc" id="L431">            Spacer(modifier = Modifier.height(10.dp))</span>
+<span class="nc" id="L432">            HorizontalDivider(color = SlateBorder.copy(alpha = 0.6f))</span>
+<span class="nc" id="L433">            Spacer(modifier = Modifier.height(8.dp))</span>
+
+<span class="nc" id="L435">            Row(</span>
+<span class="nc" id="L436">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L437">                horizontalArrangement = Arrangement.SpaceBetween</span>
+            ) {
+<span class="nc" id="L439">                Text(</span>
+<span class="nc" id="L440">                    text = &quot;Fecha: ${item.fechaEvento}&quot;,</span>
+<span class="nc" id="L441">                    fontSize = 11.sp,</span>
+<span class="nc" id="L442">                    color = TextMuted</span>
+                )
+<span class="nc" id="L444">                Text(</span>
+<span class="nc" id="L445">                    text = &quot;Matrícula #${item.idMatricula}&quot;,</span>
+<span class="nc" id="L446">                    fontSize = 11.sp,</span>
+<span class="nc" id="L447">                    color = TextMuted</span>
+                )
+<span class="nc" id="L449">            }</span>
+<span class="nc" id="L450">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

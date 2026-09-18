@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SemanasScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.aulavirtual</a> &gt; <span class="el_source">SemanasScreen.kt</span></div><h1>SemanasScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.aulavirtual
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.data.remote.dto.SemanaDTO
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+@Composable
+fun SemanasScreen(
+    idAsignacion: Long,
+    viewModel: AulaVirtualViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L30">) {</span>
+<span class="nc" id="L31">    val state by viewModel.uiState.collectAsState()</span>
+
+<span class="nc" id="L33">    LaunchedEffect(idAsignacion) {</span>
+<span class="nc" id="L34">        viewModel.init(idAsignacion)</span>
+<span class="nc" id="L35">    }</span>
+
+<span class="nc" id="L37">    Scaffold(</span>
+<span class="nc" id="L38">        topBar = {</span>
+<span class="nc" id="L39">            SgaTopAppBar(</span>
+<span class="nc" id="L40">                title = &quot;Aula Virtual por Semanas&quot;,</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">                subtitle = state.selectedAsignacion?.let { &quot;${it.asignaturaNombre} • ${it.gradoNombre} \&quot;${it.paraleloLetra}\&quot;&quot; },</span>
+<span class="nc" id="L42">                showBackButton = true,</span>
+<span class="nc" id="L43">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L46">    ) { padding -&gt;</span>
+<span class="nc" id="L47">        Column(</span>
+<span class="nc" id="L48">            modifier = Modifier</span>
+<span class="nc" id="L49">                .fillMaxSize()</span>
+<span class="nc" id="L50">                .padding(padding)</span>
+<span class="nc" id="L51">                .background(BackgroundSlate)</span>
+        ) {
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+<span class="nc bnc" id="L54" title="All 4 branches missed.">            if (state.asignaciones.isNotEmpty()) {</span>
+<span class="nc" id="L55">                Surface(</span>
+<span class="nc" id="L56">                    color = CardSurface,</span>
+<span class="nc" id="L57">                    shadowElevation = 1.dp</span>
+<span class="nc" id="L58">                ) {</span>
+<span class="nc" id="L59">                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {</span>
+<span class="nc" id="L60">                        Text(</span>
+<span class="nc" id="L61">                            text = &quot;Curso seleccionado:&quot;,</span>
+<span class="nc" id="L62">                            fontSize = 11.sp,</span>
+<span class="nc" id="L63">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L64">                            color = TextSecondary,</span>
+<span class="nc" id="L65">                            modifier = Modifier.padding(horizontal = 16.dp)</span>
+                        )
+<span class="nc" id="L67">                        LazyRow(</span>
+<span class="nc" id="L68">                            modifier = Modifier</span>
+<span class="nc" id="L69">                                .fillMaxWidth()</span>
+<span class="nc" id="L70">                                .padding(horizontal = 16.dp, vertical = 6.dp),</span>
+<span class="nc" id="L71">                            horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                        ) {
+<span class="nc" id="L73">                            items(state.asignaciones) { asig -&gt;</span>
+<span class="nc" id="L74">                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion</span>
+<span class="nc" id="L75">                                FilterChip(</span>
+<span class="nc" id="L76">                                    selected = isSelected,</span>
+<span class="nc" id="L77">                                    onClick = { viewModel.selectAsignacion(asig) },</span>
+<span class="nc" id="L78">                                    label = {</span>
+<span class="nc" id="L79">                                        Text(</span>
+<span class="nc" id="L80">                                            text = &quot;${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})&quot;,</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,</span>
+<span class="nc" id="L82">                                            fontSize = 12.sp</span>
+                                        )
+                                    },
+<span class="nc" id="L85">                                    colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L86">                                        selectedContainerColor = ModuloAulaVirtualBg,</span>
+<span class="nc" id="L87">                                        selectedLabelColor = ModuloAulaVirtualText</span>
+                                    )
+                                )
+<span class="nc" id="L90">                            }</span>
+<span class="nc" id="L91">                        }</span>
+<span class="nc" id="L92">                    }</span>
+                }
+            }
+
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (state.isLoading) {</span>
+<span class="nc" id="L97">                LoadingView(&quot;Cargando agenda académica por semanas...&quot;)</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            } else if (state.errorMessage != null) {</span>
+<span class="nc" id="L99">                ErrorView(</span>
+<span class="nc" id="L100">                    message = state.errorMessage!!,</span>
+<span class="nc" id="L101">                    onRetry = { viewModel.loadAgenda(idAsignacion) }</span>
+                )
+<span class="nc bnc" id="L103" title="All 8 branches missed.">            } else if (state.agenda?.trimestres.isNullOrEmpty()) {</span>
+<span class="nc" id="L104">                EmptyStateView(</span>
+<span class="nc" id="L105">                    icon = Icons.Default.DateRange,</span>
+<span class="nc" id="L106">                    title = &quot;Sin contenido en el aula virtual&quot;,</span>
+<span class="nc" id="L107">                    subtitle = &quot;No hay semanas configuradas para este curso.&quot;</span>
+                )
+<span class="nc" id="L109">            } else {</span>
+<span class="nc" id="L110">                LazyColumn(</span>
+<span class="nc" id="L111">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L112">                    contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L113">                    verticalArrangement = Arrangement.spacedBy(16.dp)</span>
+<span class="nc" id="L114">                ) {</span>
+<span class="nc" id="L115">                    state.agenda!!.trimestres.forEach { trimestre -&gt;</span>
+<span class="nc" id="L116">                        item {</span>
+<span class="nc" id="L117">                            Surface(</span>
+<span class="nc" id="L118">                                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L119">                                color = PrimaryNavy,</span>
+<span class="nc" id="L120">                                modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L121">                            ) {</span>
+<span class="nc" id="L122">                                Row(</span>
+<span class="nc" id="L123">                                    modifier = Modifier.padding(14.dp),</span>
+<span class="nc" id="L124">                                    verticalAlignment = Alignment.CenterVertically</span>
+                                ) {
+<span class="nc" id="L126">                                    Icon(Icons.Default.School, contentDescription = null, tint = Color.White)</span>
+<span class="nc" id="L127">                                    Spacer(modifier = Modifier.width(10.dp))</span>
+<span class="nc" id="L128">                                    Text(</span>
+<span class="nc" id="L129">                                        text = trimestre.trimestre,</span>
+<span class="nc" id="L130">                                        color = Color.White,</span>
+<span class="nc" id="L131">                                        style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L132">                                        fontWeight = FontWeight.Bold</span>
+                                    )
+<span class="nc" id="L134">                                }</span>
+                            }
+                        }
+
+<span class="nc" id="L138">                        items(trimestre.semanas) { semana -&gt;</span>
+<span class="nc" id="L139">                            SemanaCard(semana = semana)</span>
+<span class="nc" id="L140">                        }</span>
+<span class="nc" id="L141">                    }</span>
+<span class="nc" id="L142">                }</span>
+            }
+<span class="nc" id="L144">        }</span>
+    }
+<span class="nc" id="L146">}</span>
+
+@Composable
+<span class="nc" id="L149">fun SemanaCard(semana: SemanaDTO) {</span>
+<span class="nc" id="L150">    Card(</span>
+<span class="nc" id="L151">        modifier = Modifier</span>
+<span class="nc" id="L152">            .fillMaxWidth()</span>
+<span class="nc" id="L153">            .shadow(2.dp, RoundedCornerShape(14.dp)),</span>
+<span class="nc" id="L154">        shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L155">        colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L156">        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L157">    ) {</span>
+<span class="nc" id="L158">        Column(modifier = Modifier.padding(16.dp)) {</span>
+<span class="nc" id="L159">            Row(</span>
+<span class="nc" id="L160">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L161">                horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L162">                verticalAlignment = Alignment.CenterVertically</span>
+            ) {
+<span class="nc" id="L164">                Text(</span>
+<span class="nc" id="L165">                    text = &quot;Semana ${semana.numero}&quot;,</span>
+<span class="nc" id="L166">                    style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L167">                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L168">                    color = PrimaryNavy</span>
+                )
+<span class="nc" id="L170">                Text(</span>
+<span class="nc" id="L171">                    text = &quot;${semana.fechaInicio} al ${semana.fechaFin}&quot;,</span>
+<span class="nc" id="L172">                    style = MaterialTheme.typography.bodyMedium,</span>
+<span class="nc" id="L173">                    color = TextSecondary,</span>
+<span class="nc" id="L174">                    fontSize = 12.sp</span>
+                )
+<span class="nc" id="L176">            }</span>
+
+<span class="nc" id="L178">            Spacer(modifier = Modifier.height(10.dp))</span>
+
+            // Resumen de elementos de la semana
+<span class="nc" id="L181">            Row(</span>
+<span class="nc" id="L182">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L183">                horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+            ) {
+<span class="nc" id="L185">                ContenidoChip(</span>
+<span class="nc" id="L186">                    count = semana.actividades.size,</span>
+<span class="nc" id="L187">                    label = &quot;Actividades&quot;,</span>
+<span class="nc" id="L188">                    icon = Icons.AutoMirrored.Filled.Assignment,</span>
+<span class="nc" id="L189">                    bgColor = ModuloActividadesBg,</span>
+<span class="nc" id="L190">                    color = ModuloActividadesText</span>
+                )
+<span class="nc" id="L192">                ContenidoChip(</span>
+<span class="nc" id="L193">                    count = semana.materiales.size,</span>
+<span class="nc" id="L194">                    label = &quot;Recursos&quot;,</span>
+<span class="nc" id="L195">                    icon = Icons.Default.Folder,</span>
+<span class="nc" id="L196">                    bgColor = ModuloMaterialBg,</span>
+<span class="nc" id="L197">                    color = ModuloMaterialText</span>
+                )
+<span class="nc" id="L199">                ContenidoChip(</span>
+<span class="nc" id="L200">                    count = semana.anuncios.size,</span>
+<span class="nc" id="L201">                    label = &quot;Avisos&quot;,</span>
+<span class="nc" id="L202">                    icon = Icons.Default.Campaign,</span>
+<span class="nc" id="L203">                    bgColor = ModuloAnunciosBg,</span>
+<span class="nc" id="L204">                    color = ModuloAnunciosText</span>
+                )
+<span class="nc" id="L206">            }</span>
+
+<span class="nc bnc" id="L208" title="All 4 branches missed.">            if (semana.actividades.isNotEmpty()) {</span>
+<span class="nc" id="L209">                Spacer(modifier = Modifier.height(12.dp))</span>
+<span class="nc" id="L210">                HorizontalDivider(color = SlateBorder.copy(alpha = 0.6f))</span>
+<span class="nc" id="L211">                Spacer(modifier = Modifier.height(8.dp))</span>
+<span class="nc" id="L212">                Text(</span>
+<span class="nc" id="L213">                    text = &quot;Actividades planificadas:&quot;,</span>
+<span class="nc" id="L214">                    fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L215">                    fontSize = 12.sp,</span>
+<span class="nc" id="L216">                    color = TextPrimary</span>
+                )
+<span class="nc" id="L218">                Spacer(modifier = Modifier.height(4.dp))</span>
+<span class="nc" id="L219">                semana.actividades.forEach { act -&gt;</span>
+<span class="nc" id="L220">                    Text(</span>
+<span class="nc" id="L221">                        text = &quot;• ${act.nombre} (${act.tipo})&quot;,</span>
+<span class="nc" id="L222">                        fontSize = 12.sp,</span>
+<span class="nc" id="L223">                        color = TextSecondary</span>
+                    )
+<span class="nc" id="L225">                }</span>
+            }
+<span class="nc" id="L227">        }</span>
+    }
+<span class="nc" id="L229">}</span>
+
+@Composable
+fun ContenidoChip(
+    count: Int,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    bgColor: Color,
+    color: Color
+<span class="nc" id="L238">) {</span>
+<span class="nc" id="L239">    Surface(</span>
+<span class="nc" id="L240">        shape = RoundedCornerShape(8.dp),</span>
+<span class="nc" id="L241">        color = bgColor</span>
+<span class="nc" id="L242">    ) {</span>
+<span class="nc" id="L243">        Row(</span>
+<span class="nc" id="L244">            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),</span>
+<span class="nc" id="L245">            verticalAlignment = Alignment.CenterVertically</span>
+        ) {
+<span class="nc" id="L247">            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(14.dp))</span>
+<span class="nc" id="L248">            Spacer(modifier = Modifier.width(4.dp))</span>
+<span class="nc" id="L249">            Text(</span>
+<span class="nc" id="L250">                text = &quot;$count $label&quot;,</span>
+<span class="nc" id="L251">                fontSize = 11.sp,</span>
+<span class="nc" id="L252">                fontWeight = FontWeight.SemiBold,</span>
+<span class="nc" id="L253">                color = color</span>
+            )
+<span class="nc" id="L255">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

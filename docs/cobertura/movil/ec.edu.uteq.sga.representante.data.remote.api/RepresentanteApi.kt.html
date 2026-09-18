@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepresentanteApi.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.remote.api</a> &gt; <span class="el_source">RepresentanteApi.kt</span></div><h1>RepresentanteApi.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.remote.api
+
+import ec.edu.uteq.sga.representante.data.remote.dto.*
+import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.POST
+
+<span class="nc" id="L11">data class DispositivoRequest(val token: String, val plataforma: String = &quot;ANDROID&quot;)</span>
+
+interface RepresentanteApi {
+    @POST(&quot;representante/me/dispositivos&quot;)
+    suspend fun registrarDispositivo(@Body request: DispositivoRequest): Response&lt;Unit&gt;
+
+    @DELETE(&quot;representante/me/dispositivos&quot;)
+    suspend fun eliminarDispositivo(@Body request: DispositivoRequest): Response&lt;Unit&gt;
+    @GET(&quot;representante/me/estudiantes&quot;)
+    suspend fun getRepresentados(): Response&lt;List&lt;RepresentadoDTO&gt;&gt;
+
+    @GET(&quot;representante/me/estudiantes/{id}/calificaciones&quot;)
+    suspend fun getCalificaciones(@Path(&quot;id&quot;) idEstudiante: Long): Response&lt;CalificacionesRepresentadoDTO&gt;
+
+    @GET(&quot;representante/me/estudiantes/{id}/asistencia&quot;)
+    suspend fun getAsistencia(@Path(&quot;id&quot;) idEstudiante: Long): Response&lt;AsistenciaRepresentadoDTO&gt;
+
+    @GET(&quot;representante/me/comunicados&quot;)
+    suspend fun getComunicados(): Response&lt;List&lt;ComunicadoDTO&gt;&gt;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

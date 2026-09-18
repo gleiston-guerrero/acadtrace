@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReportesPromediosScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.reportes</a> &gt; <span class="el_source">ReportesPromediosScreen.kt</span></div><h1>ReportesPromediosScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.reportes
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+
+@Composable
+fun ReportesPromediosScreen(
+    idAsignacion: Long,
+    viewModel: ReportesViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L29">) {</span>
+<span class="nc" id="L30">    val state by viewModel.uiState.collectAsState()</span>
+
+<span class="nc" id="L32">    LaunchedEffect(idAsignacion) {</span>
+<span class="nc" id="L33">        viewModel.init(idAsignacion)</span>
+<span class="nc" id="L34">    }</span>
+
+<span class="nc" id="L36">    Scaffold(</span>
+<span class="nc" id="L37">        topBar = {</span>
+<span class="nc" id="L38">            SgaTopAppBar(</span>
+<span class="nc" id="L39">                title = &quot;Reportes y Promedios&quot;,</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">                subtitle = state.selectedAsignacion?.let { &quot;${it.asignaturaNombre} • ${it.gradoNombre} \&quot;${it.paraleloLetra}\&quot;&quot; },</span>
+<span class="nc" id="L41">                showBackButton = true,</span>
+<span class="nc" id="L42">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L45">    ) { padding -&gt;</span>
+<span class="nc" id="L46">        Column(</span>
+<span class="nc" id="L47">            modifier = Modifier</span>
+<span class="nc" id="L48">                .fillMaxSize()</span>
+<span class="nc" id="L49">                .padding(padding)</span>
+<span class="nc" id="L50">                .background(BackgroundSlate)</span>
+        ) {
+<span class="nc" id="L52">            OfflineBanner(isOffline = state.isOffline)</span>
+
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+<span class="nc bnc" id="L55" title="All 4 branches missed.">            if (state.asignaciones.isNotEmpty()) {</span>
+<span class="nc" id="L56">                Surface(</span>
+<span class="nc" id="L57">                    color = CardSurface,</span>
+<span class="nc" id="L58">                    shadowElevation = 1.dp</span>
+<span class="nc" id="L59">                ) {</span>
+<span class="nc" id="L60">                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {</span>
+<span class="nc" id="L61">                        Text(</span>
+<span class="nc" id="L62">                            text = &quot;Curso seleccionado:&quot;,</span>
+<span class="nc" id="L63">                            fontSize = 11.sp,</span>
+<span class="nc" id="L64">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L65">                            color = TextSecondary,</span>
+<span class="nc" id="L66">                            modifier = Modifier.padding(horizontal = 16.dp)</span>
+                        )
+<span class="nc" id="L68">                        LazyRow(</span>
+<span class="nc" id="L69">                            modifier = Modifier</span>
+<span class="nc" id="L70">                                .fillMaxWidth()</span>
+<span class="nc" id="L71">                                .padding(horizontal = 16.dp, vertical = 6.dp),</span>
+<span class="nc" id="L72">                            horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                        ) {
+<span class="nc" id="L74">                            items(state.asignaciones) { asig -&gt;</span>
+<span class="nc" id="L75">                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion</span>
+<span class="nc" id="L76">                                FilterChip(</span>
+<span class="nc" id="L77">                                    selected = isSelected,</span>
+<span class="nc" id="L78">                                    onClick = { viewModel.selectAsignacion(asig) },</span>
+<span class="nc" id="L79">                                    label = {</span>
+<span class="nc" id="L80">                                        Text(</span>
+<span class="nc" id="L81">                                            text = &quot;${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})&quot;,</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,</span>
+<span class="nc" id="L83">                                            fontSize = 12.sp</span>
+                                        )
+                                    },
+<span class="nc" id="L86">                                    colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L87">                                        selectedContainerColor = ModuloReportesBg,</span>
+<span class="nc" id="L88">                                        selectedLabelColor = ModuloReportesText</span>
+                                    )
+                                )
+<span class="nc" id="L91">                            }</span>
+<span class="nc" id="L92">                        }</span>
+<span class="nc" id="L93">                    }</span>
+                }
+            }
+
+            // ─── SELECTOR TRIMESTRE / ANUAL ───────────────────────────────────
+<span class="nc" id="L98">            Surface(</span>
+<span class="nc" id="L99">                color = CardSurface,</span>
+<span class="nc" id="L100">                shadowElevation = 1.dp</span>
+<span class="nc" id="L101">            ) {</span>
+<span class="nc" id="L102">                Column {</span>
+<span class="nc" id="L103">                    TabRow(</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                        selectedTabIndex = if (state.vistaAnual) 1 else 0,</span>
+<span class="nc" id="L105">                        containerColor = CardSurface,</span>
+<span class="nc" id="L106">                        contentColor = PrimaryNavy</span>
+<span class="nc" id="L107">                    ) {</span>
+<span class="nc" id="L108">                        Tab(</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                            selected = !state.vistaAnual,</span>
+<span class="nc" id="L110">                            onClick = { viewModel.setVistaAnual(false) },</span>
+<span class="nc" id="L111">                            text = { Text(&quot;Promedios Trimestrales&quot;, fontWeight = FontWeight.Bold) }</span>
+                        )
+<span class="nc" id="L113">                        Tab(</span>
+<span class="nc" id="L114">                            selected = state.vistaAnual,</span>
+<span class="nc" id="L115">                            onClick = { viewModel.setVistaAnual(true) },</span>
+<span class="nc" id="L116">                            text = { Text(&quot;Promedio Anual&quot;, fontWeight = FontWeight.Bold) }</span>
+                        )
+                    }
+
+<span class="nc bnc" id="L120" title="All 6 branches missed.">                    if (!state.vistaAnual &amp;&amp; state.periodos.isNotEmpty()) {</span>
+<span class="nc" id="L121">                        LazyRow(</span>
+<span class="nc" id="L122">                            modifier = Modifier</span>
+<span class="nc" id="L123">                                .fillMaxWidth()</span>
+<span class="nc" id="L124">                                .padding(horizontal = 16.dp, vertical = 8.dp),</span>
+<span class="nc" id="L125">                            horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                        ) {
+<span class="nc" id="L127">                            items(state.periodos) { periodo -&gt;</span>
+<span class="nc" id="L128">                                val isSelected = state.selectedPeriodo?.idPeriodo == periodo.idPeriodo</span>
+<span class="nc" id="L129">                                FilterChip(</span>
+<span class="nc" id="L130">                                    selected = isSelected,</span>
+<span class="nc" id="L131">                                    onClick = { viewModel.selectPeriodo(periodo) },</span>
+<span class="nc" id="L132">                                    label = { Text(periodo.nombre, fontSize = 12.sp) },</span>
+<span class="nc" id="L133">                                    leadingIcon = if (isSelected) {</span>
+<span class="nc" id="L134">                                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp), tint = PrimaryNavy) }</span>
+<span class="nc" id="L135">                                    } else null,</span>
+<span class="nc" id="L136">                                    colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L137">                                        selectedContainerColor = PrimaryNavy.copy(alpha = 0.12f),</span>
+<span class="nc" id="L138">                                        selectedLabelColor = PrimaryNavy</span>
+                                    )
+                                )
+<span class="nc" id="L141">                            }</span>
+<span class="nc" id="L142">                        }</span>
+                    }
+<span class="nc" id="L144">                }</span>
+            }
+
+<span class="nc bnc" id="L147" title="All 4 branches missed.">            if (state.isLoading &amp;&amp; state.items.isEmpty()) {</span>
+<span class="nc" id="L148">                LoadingView(&quot;Calculando promedios ponderados...&quot;)</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            } else if (state.items.isEmpty()) {</span>
+<span class="nc" id="L150">                EmptyStateView(</span>
+<span class="nc" id="L151">                    title = &quot;Sin registros de promedios&quot;,</span>
+<span class="nc" id="L152">                    subtitle = &quot;Ingresa notas en las actividades para calcular los promedios.&quot;</span>
+                )
+<span class="nc" id="L154">            } else {</span>
+<span class="nc" id="L155">                LazyColumn(</span>
+<span class="nc" id="L156">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L157">                    contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L158">                    verticalArrangement = Arrangement.spacedBy(10.dp)</span>
+                ) {
+<span class="nc" id="L160">                    items(state.items) { item -&gt;</span>
+<span class="nc" id="L161">                        Card(</span>
+<span class="nc" id="L162">                            modifier = Modifier</span>
+<span class="nc" id="L163">                                .fillMaxWidth()</span>
+<span class="nc" id="L164">                                .shadow(1.dp, RoundedCornerShape(14.dp)),</span>
+<span class="nc" id="L165">                            shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L166">                            colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L167">                            border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L168">                        ) {</span>
+<span class="nc" id="L169">                            Column(modifier = Modifier.padding(14.dp)) {</span>
+<span class="nc" id="L170">                                Row(</span>
+<span class="nc" id="L171">                                    modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L172">                                    horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L173">                                    verticalAlignment = Alignment.CenterVertically</span>
+                                ) {
+<span class="nc" id="L175">                                    Text(</span>
+<span class="nc" id="L176">                                        text = item.estudiante.nombreCompleto,</span>
+<span class="nc" id="L177">                                        style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L178">                                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L179">                                        color = TextPrimary,</span>
+<span class="nc" id="L180">                                        modifier = Modifier.weight(1f)</span>
+                                    )
+
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                                    if (!state.vistaAnual) {</span>
+<span class="nc" id="L184">                                        IconButton(</span>
+<span class="nc" id="L185">                                            onClick = { viewModel.recalcularPromedioTrimestral(item.estudiante.idMatricula) }</span>
+<span class="nc" id="L186">                                        ) {</span>
+<span class="nc" id="L187">                                            Icon(</span>
+<span class="nc" id="L188">                                                imageVector = Icons.Default.Calculate,</span>
+<span class="nc" id="L189">                                                contentDescription = &quot;Recalcular&quot;,</span>
+<span class="nc" id="L190">                                                tint = PrimaryNavy</span>
+                                            )
+                                        }
+                                    }
+<span class="nc" id="L194">                                }</span>
+
+<span class="nc" id="L196">                                Spacer(modifier = Modifier.height(6.dp))</span>
+
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                                if (!state.vistaAnual) {</span>
+<span class="nc" id="L199">                                    val trim = item.promedioTrimestral</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                                    if (trim != null) {</span>
+<span class="nc" id="L201">                                        Row(</span>
+<span class="nc" id="L202">                                            modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L203">                                            horizontalArrangement = Arrangement.SpaceBetween</span>
+                                        ) {
+<span class="nc" id="L205">                                            Text(</span>
+<span class="nc" id="L206">                                                text = &quot;Formativo (70%): ${String.format(&quot;%.2f&quot;, trim.promedioFormativo)}&quot;,</span>
+<span class="nc" id="L207">                                                fontSize = 12.sp,</span>
+<span class="nc" id="L208">                                                color = TextSecondary</span>
+                                            )
+<span class="nc" id="L210">                                            Text(</span>
+<span class="nc" id="L211">                                                text = &quot;Sumativo (30%): ${String.format(&quot;%.2f&quot;, trim.notaSumativa)}&quot;,</span>
+<span class="nc" id="L212">                                                fontSize = 12.sp,</span>
+<span class="nc" id="L213">                                                color = TextSecondary</span>
+                                            )
+<span class="nc" id="L215">                                        }</span>
+
+<span class="nc" id="L217">                                        Spacer(modifier = Modifier.height(6.dp))</span>
+
+<span class="nc" id="L219">                                        Row(</span>
+<span class="nc" id="L220">                                            modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L221">                                            horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L222">                                            verticalAlignment = Alignment.CenterVertically</span>
+                                        ) {
+<span class="nc" id="L224">                                            Text(</span>
+<span class="nc" id="L225">                                                text = &quot;Nota Trimestral:&quot;,</span>
+<span class="nc" id="L226">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L227">                                                fontSize = 13.sp,</span>
+<span class="nc" id="L228">                                                color = TextPrimary</span>
+                                            )
+<span class="nc" id="L230">                                            GradeBadge(</span>
+<span class="nc" id="L231">                                                nota = trim.promedioTrimestral,</span>
+<span class="nc" id="L232">                                                notaCualitativa = trim.notaCualitativa</span>
+                                            )
+<span class="nc" id="L234">                                        }</span>
+<span class="nc" id="L235">                                    } else {</span>
+<span class="nc" id="L236">                                        Text(</span>
+<span class="nc" id="L237">                                            text = &quot;Promedio no calculado aún.&quot;,</span>
+<span class="nc" id="L238">                                            fontSize = 12.sp,</span>
+<span class="nc" id="L239">                                            color = TextMuted</span>
+                                        )
+                                    }
+<span class="nc" id="L242">                                } else {</span>
+                                    // Vista Anual
+<span class="nc" id="L244">                                    val anual = item.promedioAnual</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                                    if (anual != null) {</span>
+<span class="nc" id="L246">                                        Row(</span>
+<span class="nc" id="L247">                                            modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L248">                                            horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L249">                                            verticalAlignment = Alignment.CenterVertically</span>
+                                        ) {
+<span class="nc" id="L251">                                            Text(</span>
+<span class="nc" id="L252">                                                text = &quot;Promedio Final Anual:&quot;,</span>
+<span class="nc" id="L253">                                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L254">                                                fontSize = 13.sp,</span>
+<span class="nc" id="L255">                                                color = TextPrimary</span>
+                                            )
+<span class="nc" id="L257">                                            GradeBadge(</span>
+<span class="nc" id="L258">                                                nota = anual.promedioAnual,</span>
+<span class="nc" id="L259">                                                notaCualitativa = anual.notaCualitativa</span>
+                                            )
+<span class="nc" id="L261">                                        }</span>
+<span class="nc" id="L262">                                    } else {</span>
+<span class="nc" id="L263">                                        Text(</span>
+<span class="nc" id="L264">                                            text = &quot;Promedio anual no asentado.&quot;,</span>
+<span class="nc" id="L265">                                            fontSize = 12.sp,</span>
+<span class="nc" id="L266">                                            color = TextMuted</span>
+                                        )
+                                    }
+                                }
+<span class="nc" id="L270">                            }</span>
+                        }
+<span class="nc" id="L272">                    }</span>
+<span class="nc" id="L273">                }</span>
+            }
+<span class="nc" id="L275">        }</span>
+    }
+<span class="nc" id="L277">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
