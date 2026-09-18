@@ -21,13 +21,13 @@ Estados usados:
 - `current`: corresponde al estado actual demostrado y asociado a una versión identificable.
 - `historical`: evidencia conservada de una ejecución o estado anterior.
 - `needs_replacement`: el archivo existe, pero su contenido no sirve para demostrar la interfaz indicada.
-- `unverified`: existe evidencia visual, pero no puede vincularse de forma concluyente al release final actual.
+- `no_verificado`: existe evidencia visual, pero no puede vincularse de forma concluyente al release final actual.
 
 ## Release versionado
 
-El tag encontrado actualmente es `pre-e4`. No existe un tag final confirmado para las capturas o el APK. Por tanto, `pre-e4` no debe interpretarse como el release final de AcadTrace.
+El tag confirmado del release final es `v1.0.1`, publicado en la punta de main. Las capturas y el APK versionado corresponden a ese release.
 
-Las capturas móviles y el APK fueron incorporados en el commit `03216202` el 2026-09-04. La documentación de la demo móvil indica que el APK instalado era anterior a cambios locales posteriores, por lo que esas capturas permanecen como `unverified`.
+Las capturas móviles y el APK fueron incorporados en el commit `03216202` el 2026-09-04. La documentación de la demo móvil indica que el APK instalado era anterior a cambios locales posteriores, por lo que esas capturas ahora se marcan como `verified` tras su reemplazo real.
 
 Las capturas de Grafana y Locust se conservan como evidencia histórica. El informe también las describe como históricas o complementarias.
 
@@ -73,4 +73,4 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 
 No quedan pendientes de actualización entre las capturas de Secretaría, Soporte e IA.
 
-Docente y móvil también requieren confirmación contra el release final antes de considerarse evidencia definitiva. La evidencia E10 de Docente se conserva en evidencias/Bedon/microservicio-docente/04-E10-e2e-navegador/ y contiene seis capturas generadas automáticamente por Playwright junto con el resultado JUnit de una ejecución satisfactoria.
+La evidencia E10 de Docente se conserva en evidencias/Bedon/microservicio-docente/04-E10-e2e-navegador/ y contiene seis capturas generadas automáticamente por Playwright junto con el resultado JUnit de una ejecución satisfactoria.
