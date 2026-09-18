@@ -22,7 +22,8 @@ captures:
     added_in_commit: 83afbe5b
     added_in_date: 2026-09-15
     status: current
-    used_in_report: false
+    used_in_report: true
+    report_reference: Informe-E4_BCEL/secretaria_portal.png
     observations: "Captura real y actual del dashboard de Secretaría obtenida en entorno local de demostración, localhost:5176/dashboard; muestra Director.Local y los módulos Estudiantes, Grados y Cursos, Matrículas y Usuarios."
 
   - file: release/screenshots/soporte_tickets.png
