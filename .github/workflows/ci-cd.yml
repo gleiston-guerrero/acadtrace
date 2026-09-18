@@ -824,6 +824,7 @@ jobs:
               id_actividad=actividad,
               id_matricula=900001,
               nota=8.50,
+              nota_cualitativa='AAR',
               registrado_por=900001
           )
 
