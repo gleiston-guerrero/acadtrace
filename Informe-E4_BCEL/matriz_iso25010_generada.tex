@@ -13,12 +13,12 @@ veredicto & Cumple el umbral en escenario nominal local \\ \hline
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
 \hline
 caracteristica & Fiabilidad \\ \hline
-indicador & Peticiones y fallos observados \\ \hline
-valor & peticiones=12994; fallos=0 \\ \hline
-fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated) \\ \hline
-alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion \\ \hline
-criterio & Sin criterio suficiente para fiabilidad global \\ \hline
-veredicto & Evidencia parcial \\ \hline
+indicador & Nominal A y ventanas historicas de locust\_esc3 \\ \hline
+valor & peticiones nominales=12994; fallos nominales=0; 10 ventanas historicas; exito derivado entre 12,78 \% y 34,5781 \% \\ \hline
+fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); experimentos/resultados/iso25010.csv (ventanas locust\_esc3) \\ \hline
+alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion; ventanas historicas / perfil no validado; no son estres oficial actual \\ \hline
+criterio & Cero fallos para estres oficial; sin criterio suficiente para fiabilidad global \\ \hline
+veredicto & Evidencia parcial; 10/10 ventanas historicas no cumplen el criterio de cero fallos \\ \hline
 \end{tabularx}
 \par\medskip
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
@@ -30,6 +30,17 @@ fuente & Sin fuente temporal de disponibilidad evaluada \\ \hline
 alcance & Exito de peticiones de carga no equivale a disponibilidad temporal \\ \hline
 criterio & Requiere medicion temporal y entorno definidos \\ \hline
 veredicto & No demostrado \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Seguridad \\ \hline
+indicador & Falsos positivos de M2 en cadenas integras \\ \hline
+valor & No medido en producción; FPR verificado 0/30 en pruebas sintéticas \\ \hline
+fuente & experimentos/resultados/falsos\_positivos.csv (observaciones M2) \\ \hline
+alcance & Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion \\ \hline
+criterio & Falsos positivos observados / muestras validas \\ \hline
+veredicto & Evidencia parcial; no certifica seguridad global \\ \hline
 \end{tabularx}
 \par\medskip
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
@@ -50,17 +61,6 @@ indicador & Indicadores de mantenibilidad \\ \hline
 valor & Sin medicion evaluada \\ \hline
 fuente & Sin fuente evaluada en este alcance \\ \hline
 alcance & No se auditan reportes de cobertura en este alcance; no se infiere mantenibilidad desde carga \\ \hline
-criterio & No establecido en esta evaluacion \\ \hline
-veredicto & No evaluado \\ \hline
-\end{tabularx}
-\par\medskip
-\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
-\hline
-caracteristica & Seguridad \\ \hline
-indicador & Indicadores de seguridad \\ \hline
-valor & Sin medicion evaluada \\ \hline
-fuente & Sin fuente evaluada en este alcance \\ \hline
-alcance & No se ejecutan ni auditan pruebas de seguridad; cero fallos de carga no demuestra seguridad \\ \hline
 criterio & No establecido en esta evaluacion \\ \hline
 veredicto & No evaluado \\ \hline
 \end{tabularx}
