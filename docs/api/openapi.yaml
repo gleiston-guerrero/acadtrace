@@ -2791,7 +2791,7 @@ paths:
           description: Bearer ausente, invalido o expirado.
         '403':
           description: Rol no autorizado.
-  /api/docente/periodos-evaluacion:
+  /api/docente/periodos-evaluacion/:
     get:
       tags: [docente]
       servers: [{url: http://localhost:8081}]
@@ -2802,7 +2802,7 @@ paths:
       servers: [{url: http://localhost:8081}]
       security: [{bearerAuth: []}]
       responses: {'201': {description: Recurso creado}}
-  /api/docente/actividades:
+  /api/docente/actividades/:
     get:
       tags: [docente]
       servers: [{url: http://localhost:8080}]
