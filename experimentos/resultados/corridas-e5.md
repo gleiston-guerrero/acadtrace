@@ -63,7 +63,7 @@ La [captura de Juliana](../../evidencias/Juliana_Emanuel/backend/pruebas-carga/i
 
 **Captura exacta del CSV oficial: pendiente de toma manual.** Debe mostrar la ruta/nombre `microservicio-soporte/locust_esc1_stats.csv`, la fila `Aggregated`, Request Count = 12994, Failure Count = 0, Requests/s, promedio, P50, P95, P99 y máximo. Puede tomarse del CSV abierto o de su lectura en terminal; debe identificarse como verificación del artefacto conservado, no como nueva ejecución.
 
-Las imágenes [locust_resultados.png](../../Informe-E4_BCEL/locust_resultados.png) y [locust_carga.png](../../release/screenshots/locust_carga.png) muestran Grafana y son **HISTÓRICAS/COMPLEMENTARIAS**, sin vinculación exacta demostrada con A. Las demás capturas de Grafana y el health-check no acreditan por sí solas las métricas oficiales.
+Las imágenes [locust_resultados.png](../../Informe-E4_BCEL/locust_resultados.png) y [grafana_hikari_p95.png](../../release/screenshots/grafana_hikari_p95.png) muestran Grafana y son **HISTÓRICAS/COMPLEMENTARIAS**, sin vinculación exacta demostrada con A. Las demás capturas de Grafana y el health-check no acreditan por sí solas las métricas oficiales.
 
 El [certificado anterior de Soporte](../../microservicio-soporte/REPRODUCIBILIDAD.txt) se conserva como histórico: sus hashes no coinciden con los bytes actuales. Git registra normalizaciones de finales de línea posteriores; no se atribuye una causa única sin una comprobación adicional. No se modifica ese certificado ni los CSV.
 

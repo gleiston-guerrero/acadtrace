@@ -68,9 +68,9 @@ captures:
     report_reference: Informe-E4_BCEL/grafana_bajo_carga.png
     observations: "El informe la presenta como evidencia histórica/complementaria; la copia del informe tiene el mismo SHA-256."
 
-  - file: release/screenshots/locust_carga.png
+  - file: release/screenshots/grafana_hikari_p95.png
     component: Carga y observabilidad
-    purpose: "Resultado visual de una ejecución de carga."
+    purpose: "Dashboard de Grafana con conexiones HikariCP y latencias p50/p99."
     sha256: 684CE9FC82EE92F0834E5F924BD8FC3C5A5E5F717CC9A81AAED707BFA0FD294B
     added_in_commit: f650bd2552bb677a7a48ce6883e8d41a6fcf8246
     added_in_date: 2026-09-04
