@@ -78,7 +78,7 @@ class GrpcTracePropagationTest {
 
         client = new PrincipalGrpcClient();
         ReflectionTestUtils.setField(client, "stub", stub);
-        ReflectionTestUtils.setField(client, "internalToken", "secret-internal-token-bcel");
+        ReflectionTestUtils.setField(client, "internalToken", "secret-internal-token-bcel");  // gitleaks:allow
     }
 
     @AfterEach
