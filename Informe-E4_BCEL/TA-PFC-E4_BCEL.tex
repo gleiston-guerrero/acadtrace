@@ -867,30 +867,15 @@ Los datos crudos generados en el banco experimental y almacenados en \texttt{exp
 \end{figure}
 \subsection{Matriz Formal de Evaluaci\'on de Calidad ISO/IEC 25010:2023}
 \label{subsec:matriz-iso25010}
-La Tabla~\ref{tab:iso-matriz-calidad} presenta la matriz de calidad actualizada. Cabe destacar que la caracter\'istica de disponibilidad en producci\'on no se encuentra acreditada en la muestra actual, y las ventanas de estr\'es operan bajo un perfil no validado:
+La Tabla~\ref{tab:iso-matriz-calidad} presenta la matriz formal de evaluaci\'on de calidad ISO/IEC 25010 generada de forma reproducible a partir de la evidencia experimental auditada (\texttt{matriz\_iso25010\_generada.tex}). El alcance se delimita a la corrida nominal local oficial del Microservicio de Soporte (Conjunto~A, con \CargaPeticiones{} peticiones y \CargaFallos{} fallos observados a \CargaUsuariosMaximos{} usuarios concurrentes). Conforme a este alcance, la latencia agregada $P_{95}=\CargaPnoventaCincoMs$\,ms cumple el umbral ($P_{95}<500$\,ms) exclusivamente en el escenario nominal local medido. Las 12{,}994 peticiones con 0 fallos constituyen evidencia parcial de la ejecuci\'on nominal y no demuestran fiabilidad global, disponibilidad de producci\'on ni un comportamiento de estr\'es exitoso. Las caracter\'isticas de adecuaci\'on funcional, mantenibilidad, seguridad, usabilidad, portabilidad y compatibilidad se registran con el veredicto expl\'icito de \textit{No evaluado} al no existir evidencia reproducible auditada dentro de los l\'imites de esta matriz; dicho veredicto no significa que el sistema incumpla, sino que la evidencia disponible no permite emitir ese dictamen:
 
 \begin{table}[H]
 \centering
 \scriptsize
-\renewcommand{\arraystretch}{1.3}
-\caption{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 con Mediciones Parciales y Planes de Mejora.}
+\renewcommand{\arraystretch}{1.2}
+\caption{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 con Mediciones Parciales y Delimitaci\'on de Alcance.}
 \label{tab:iso-matriz-calidad}
-\begin{tabularx}{\textwidth}{|p{2.3cm}|p{3.7cm}|c|p{2.8cm}|X|}
-\hline
-\textbf{Característica} & \textbf{Métrica Real Medida} & \textbf{Objetivo} & \textbf{Estado} & \textbf{Plan de Mejora Técnico} \\
-\hline
-\textbf{1. Disponibilidad} \newline \textit{(Availability)} & \CargaFallos{} fallos en \CargaPeticiones{} peticiones nominales, con un máximo observado de \CargaUsuariosMaximos{} usuarios (100\% de éxito en la muestra local); sin medición oficial válida de estrés & $\ge 99.5\%$ & Parcial: no acredita disponibilidad de producción & Medir disponibilidad temporal y repetir estrés con evidencia válida. \\
-
-\hline
-\textbf{2. Rendimiento} \newline \textit{(Performance)} & Nominal oficial: $P_{95}=\CargaPnoventaCincoMs$\,ms, $P_{50}=\CargaPcinquentaMs$\,ms, $P_{99}=\CargaPnoventaNueveMs$\,ms; \CargaRPS{}\,req/s & $P_{95}<500$\,ms & Cumple en agregado nominal local & Evaluar por endpoint: tickets presenta $P_{95}=650$\,ms; repetir estrés. \\
-\hline
-\textbf{3. Fiabilidad} \newline \textit{(Reliability)} & 0 fallos nominales; sin estrés oficial validado & $<1.0\%$ & Nominal observado; E5 estrés pendiente & Obtener una corrida de estrés autenticada con cero fallos para E5. \\
-\hline
-\textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & Secretar\'ia: 71.42\% LINE (2217/3104) \newline Soporte: 71.61\% LINE (459/641) & $\ge 70\%$ LINE JaCoCo BUNDLE & \textbf{\checkmark} Cumple en Secretar\'ia y Soporte & Mantener la compuerta JaCoCo a nivel BUNDLE en CI/CD y expandir cobertura automatizada en SGA Principal y Docente. \\
-\hline
-\textbf{5. Seguridad} \newline \textit{(Security)} & \textbf{100\% Rechazo 401 / FPR = 0.0\%} \newline (Certificado en suite E2E sin JWT; FPR $0.0\% \; [0.0\%, 11.6\%]$ en 30 cadenas limpias) & 100\% / 0\% & \textbf{\checkmark} Cumple & Automatizar la rotación de secretos criptográficos JWT/AES vía AWS Secrets Manager y habilitar listas de revocación de tokens en Redis. \\
-\hline
-\end{tabularx}
+\input{matriz_iso25010_generada.tex}
 \end{table}
 
 \newpage
