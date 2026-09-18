@@ -22,7 +22,7 @@ FIELDS = {'peticiones': 'Request Count', 'fallos': 'Failure Count',
           'p50_ms': '50%', 'p95_ms': '95%', 'p99_ms': '99%'}
 COLUMNS = ('caracteristica', 'indicador', 'valor', 'fuente', 'alcance', 'criterio', 'veredicto')
 # Criterio documental, nunca resultado esperado.
-P95_LIMIT_MS = Decimal('500')
+P99_LIMIT_MS = Decimal('500')
 
 
 def read_rows(relative, required):
@@ -129,12 +129,13 @@ def build_rows(metrics, false_positives, historical_windows):
     scope = ('Conjunto A, agregado nominal local de Soporte; no demuestra '
              'estres exitoso ni disponibilidad de produccion')
     measured = '; '.join(f'{key}={format(value, "f")}' for key, value in metrics.items())
-    verdict = ('No cumple: P99=850ms supera umbral 500ms' if metrics['p99_ms'] >= P95_LIMIT_MS
+    verdict = (f"No cumple: P99={format(metrics['p99_ms'], 'f')} ms supera umbral "
+               f"{P99_LIMIT_MS} ms" if metrics['p99_ms'] >= P99_LIMIT_MS
                else 'Cumple el umbral en escenario nominal local')
     add('Eficiencia de desempe\u00f1o', 'Carga y latencias del agregado nominal', measured,
         f'{STATS.as_posix()} (Aggregated); {HISTORY.as_posix()} (maximo User Count)',
-        scope + '; el veredicto evalua solo p95 agregado, no cada endpoint',
-        f'p95 < {P95_LIMIT_MS} ms', verdict)
+        scope + '; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms)',
+        f'p99 < {P99_LIMIT_MS} ms', verdict)
     window_count, min_success, max_success, failed_windows = historical_windows
     add('Fiabilidad', 'Nominal A y ventanas historicas de locust_esc3',
         f"peticiones nominales={metrics['peticiones']}; fallos nominales={metrics['fallos']}; "
@@ -147,13 +148,6 @@ def build_rows(metrics, false_positives, historical_windows):
         'Cero fallos para estres oficial; sin criterio suficiente para fiabilidad global',
         f'Evidencia parcial; {failed_windows}/{window_count} ventanas historicas '
         'no cumplen el criterio de cero fallos')
-
-        scope + '; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms)',
-        f'p99 < {P95_LIMIT_MS} ms', verdict)
-    add('Fiabilidad', 'Peticiones y fallos observados',
-        f"peticiones={metrics['peticiones']}; fallos={metrics['fallos']}",
-        f'{STATS.as_posix()} (Aggregated)', scope,
-        'Sin criterio suficiente para fiabilidad global', 'Evidencia parcial')
     add('Fiabilidad / disponibilidad', 'Disponibilidad de produccion', 'No medida',
         'Sin fuente temporal de disponibilidad evaluada',
         'Exito de peticiones de carga no equivale a disponibilidad temporal',
@@ -166,12 +160,6 @@ def build_rows(metrics, false_positives, historical_windows):
         'Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion',
         'Falsos positivos observados / muestras validas',
         'Evidencia parcial; no certifica seguridad global')
-    unevaluated = (
-        ('Adecuaci\u00f3n funcional', 'Satisfaccion de requisitos funcionales',
-         'No se evalua evidencia funcional en este generador'),
-        ('Mantenibilidad', 'Indicadores de mantenibilidad',
-         'No se auditan reportes de cobertura en este alcance; no se infiere mantenibilidad desde carga'),
-
     add('Mantenibilidad', 'Cobertura de pruebas en microservicios',
         'Secretaria: 71.42%; Soporte: 71.61%; Principal: 31.6%',
         'docs/cobertura/README.md; reportes oficiales JaCoCo y pytest',
@@ -181,8 +169,6 @@ def build_rows(metrics, false_positives, historical_windows):
     unevaluated = (
         ('Adecuaci\u00f3n funcional', 'Satisfaccion de requisitos funcionales',
          'No se evalua evidencia funcional en este generador'),
-        ('Seguridad', 'Indicadores de seguridad',
-         'No se ejecutan ni auditan pruebas de seguridad; cero fallos de carga no demuestra seguridad'),
         ('Usabilidad', 'Indicadores de uso', 'Sin estudio de usuarios evaluado en este alcance'),
         ('Portabilidad', 'Ejecucion en entornos definidos', 'Sin medicion de portabilidad evaluada en este alcance'),
         ('Compatibilidad', 'Interoperabilidad y coexistencia', 'Sin evidencia de compatibilidad evaluada en este alcance'),
