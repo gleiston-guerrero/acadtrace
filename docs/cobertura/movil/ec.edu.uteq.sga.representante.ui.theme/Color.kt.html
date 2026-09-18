@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Color.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.theme</a> &gt; <span class="el_source">Color.kt</span></div><h1>Color.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+// Paleta oficial del Microservicio Docente y SGA Principal
+<span class="nc" id="L6">val PrimaryNavy = Color(0xFF243A76)       // Color institucional #243A76</span>
+<span class="nc" id="L7">val PrimaryNavyLight = Color(0xFF2D4A96)  // Header chips / botones secundarios</span>
+<span class="nc" id="L8">val AccentGreen = Color(0xFF16A34A)       // Aprobado / Presente / Éxito</span>
+<span class="nc" id="L9">val DangerRed = Color(0xFFDC2626)         // Alerta / Reprobado / Ausente</span>
+<span class="nc" id="L10">val WarningAmber = Color(0xFFD97706)      // En riesgo / Justificado / Pendiente</span>
+
+<span class="nc" id="L12">val BackgroundSlate = Color(0xFFF8FAFC)   // bg-slate-50</span>
+<span class="nc" id="L13">val CardSurface = Color(0xFFFFFFFF)       // Tarjetas blancas limpias</span>
+<span class="nc" id="L14">val SlateBorder = Color(0xFFE2E8F0)       // border-slate-200</span>
+<span class="nc" id="L15">val TextPrimary = Color(0xFF1E293B)       // text-slate-800</span>
+<span class="nc" id="L16">val TextSecondary = Color(0xFF64748B)     // text-slate-500</span>
+<span class="nc" id="L17">val TextMuted = Color(0xFF94A3B8)         // text-slate-400</span>
+
+// Theme colors
+<span class="nc" id="L20">val SurfaceLight = Color(0xFFFFFFFF)</span>
+<span class="nc" id="L21">val BackgroundLight = Color(0xFFF8FAFC)</span>
+<span class="nc" id="L22">val TextPrimaryLight = Color(0xFF1E293B)</span>
+
+<span class="nc" id="L24">val SurfaceDark = Color(0xFF1E293B)</span>
+<span class="nc" id="L25">val BackgroundDark = Color(0xFF0F172A)</span>
+<span class="nc" id="L26">val TextPrimaryDark = Color(0xFFF8FAFC)</span>
+
+// Colores de módulos (idénticos a microservicio-docente/src/config/modulos.jsx)
+<span class="nc" id="L29">val ModuloAulaVirtualBg = Color(0xFFEEF2FF)</span>
+<span class="nc" id="L30">val ModuloAulaVirtualText = Color(0xFF4F46E5)</span>
+
+<span class="nc" id="L32">val ModuloActividadesBg = Color(0xFFEFF6FF)</span>
+<span class="nc" id="L33">val ModuloActividadesText = Color(0xFF2563EB)</span>
+
+<span class="nc" id="L35">val ModuloAsistenciaBg = Color(0xFFF0FDF4)</span>
+<span class="nc" id="L36">val ModuloAsistenciaText = Color(0xFF16A34A)</span>
+
+<span class="nc" id="L38">val ModuloCalificacionesBg = Color(0xFFFAF5FF)</span>
+<span class="nc" id="L39">val ModuloCalificacionesText = Color(0xFF9333EA)</span>
+
+<span class="nc" id="L41">val ModuloSeguimientoBg = Color(0xFFF0FDFA)</span>
+<span class="nc" id="L42">val ModuloSeguimientoText = Color(0xFF0D9488)</span>
+
+<span class="nc" id="L44">val ModuloReportesBg = Color(0xFFFFF1F2)</span>
+<span class="nc" id="L45">val ModuloReportesText = Color(0xFFE11D48)</span>
+
+<span class="nc" id="L47">val ModuloAnunciosBg = Color(0xFFFFFBEB)</span>
+<span class="nc" id="L48">val ModuloAnunciosText = Color(0xFFD97706)</span>
+
+<span class="nc" id="L50">val ModuloMaterialBg = Color(0xFFECFEFF)</span>
+<span class="nc" id="L51">val ModuloMaterialText = Color(0xFF0891B2)</span>
+
+<span class="nc" id="L53">val ModuloHorarioBg = Color(0xFFF0F9FF)</span>
+<span class="nc" id="L54">val ModuloHorarioText = Color(0xFF0284C7)</span>
+
+// Asistencias chips
+<span class="nc" id="L57">val ChipPresente = Color(0xFF16A34A)</span>
+<span class="nc" id="L58">val ChipAusente = Color(0xFFDC2626)</span>
+<span class="nc" id="L59">val ChipJustificado = Color(0xFFD97706)</span>
+<span class="nc" id="L60">val ChipAtraso = Color(0xFFEA580C)</span>
+
+// Backward compatibility references
+<span class="nc" id="L63">val PrimaryBlue = PrimaryNavy</span>
+<span class="nc" id="L64">val SecondarySky = PrimaryNavyLight</span>
+<span class="nc" id="L65">val DarkNavy = PrimaryNavy</span>
+<span class="nc" id="L66">val LightGray = BackgroundSlate</span>
+<span class="nc" id="L67">val CardBackground = CardSurface</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

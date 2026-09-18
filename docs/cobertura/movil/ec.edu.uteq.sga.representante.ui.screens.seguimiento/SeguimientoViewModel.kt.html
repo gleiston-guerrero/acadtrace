@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SeguimientoViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.seguimiento</a> &gt; <span class="el_source">SeguimientoViewModel.kt</span></div><h1>SeguimientoViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.seguimiento
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.data.remote.dto.SeguimientoCreateDTO
+import ec.edu.uteq.sga.representante.domain.model.Asignacion
+import ec.edu.uteq.sga.representante.domain.model.Estudiante
+import ec.edu.uteq.sga.representante.domain.model.PeriodoEvaluacion
+import ec.edu.uteq.sga.representante.domain.model.ResumenAsistencia
+import ec.edu.uteq.sga.representante.domain.model.SeguimientoItem
+import ec.edu.uteq.sga.representante.domain.repository.AsistenciasRepository
+import ec.edu.uteq.sga.representante.domain.repository.DocenteRepository
+import ec.edu.uteq.sga.representante.domain.repository.SeguimientoRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+<span class="nc" id="L21">data class EstudianteAlertaItem(</span>
+<span class="nc" id="L22">    val estudiante: Estudiante,</span>
+<span class="nc" id="L23">    val resumenAsistencia: ResumenAsistencia? = null,</span>
+<span class="nc" id="L24">    val esRiesgoAsistencia: Boolean = false,</span>
+<span class="nc" id="L25">    val totalObservaciones: Int = 0</span>
+<span class="nc" id="L26">)</span>
+
+<span class="nc" id="L28">data class SeguimientoUiState(</span>
+<span class="nc" id="L29">    val items: List&lt;SeguimientoItem&gt; = emptyList(),</span>
+<span class="nc" id="L30">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
+<span class="nc" id="L31">    val selectedAsignacion: Asignacion? = null,</span>
+<span class="nc" id="L32">    val estudiantesAlerta: List&lt;EstudianteAlertaItem&gt; = emptyList(),</span>
+<span class="nc" id="L33">    val periodos: List&lt;PeriodoEvaluacion&gt; = emptyList(),</span>
+<span class="nc" id="L34">    val selectedPeriodo: PeriodoEvaluacion? = null,</span>
+<span class="nc" id="L35">    val selectedTab: Int = 0, // 0 = Observaciones, 1 = Alertas y Rendimiento</span>
+<span class="nc" id="L36">    val selectedCategoriaFiltro: String? = null,</span>
+<span class="nc" id="L37">    val isLoading: Boolean = false,</span>
+<span class="nc" id="L38">    val isOffline: Boolean = false,</span>
+<span class="nc" id="L39">    val errorMessage: String? = null</span>
+<span class="nc" id="L40">)</span>
+
+<span class="nc" id="L42">class SeguimientoViewModel(</span>
+<span class="nc" id="L43">    private val seguimientoRepository: SeguimientoRepository,</span>
+<span class="nc" id="L44">    private val docenteRepository: DocenteRepository,</span>
+<span class="nc" id="L45">    private val asistenciasRepository: AsistenciasRepository,</span>
+<span class="nc" id="L46">    private val sessionManager: SessionManager</span>
+<span class="nc" id="L47">) : ViewModel() {</span>
+
+<span class="nc" id="L49">    private val _uiState = MutableStateFlow(SeguimientoUiState())</span>
+<span class="nc" id="L50">    val uiState: StateFlow&lt;SeguimientoUiState&gt; = _uiState.asStateFlow()</span>
+
+<span class="nc" id="L52">    private var currentEstudiantes: List&lt;Estudiante&gt; = emptyList()</span>
+<span class="nc" id="L53">    private var currentResumenes: List&lt;ResumenAsistencia&gt; = emptyList()</span>
+
+    private var loadAsignacionesJob: kotlinx.coroutines.Job? = null
+    private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
+    private var loadResumenJob: kotlinx.coroutines.Job? = null
+    private var loadSeguimientosJob: kotlinx.coroutines.Job? = null
+
+    fun init(idMatricula: Long?) {
+<span class="nc" id="L61">        loadPeriodos()</span>
+<span class="nc" id="L62">        loadAsignaciones(idMatricula)</span>
+<span class="nc" id="L63">        loadSeguimientos(idMatricula)</span>
+<span class="nc" id="L64">    }</span>
+
+    fun setTab(tab: Int) {
+<span class="nc" id="L67">        _uiState.value = _uiState.value.copy(selectedTab = tab)</span>
+<span class="nc" id="L68">    }</span>
+
+    fun setCategoriaFiltro(cat: String?) {
+<span class="nc" id="L71">        _uiState.value = _uiState.value.copy(selectedCategoriaFiltro = cat)</span>
+<span class="nc" id="L72">    }</span>
+
+    fun selectAsignacion(asignacion: Asignacion) {
+<span class="nc" id="L75">        _uiState.value = _uiState.value.copy(selectedAsignacion = asignacion)</span>
+<span class="nc" id="L76">        loadEstudiantesYRendimiento(asignacion.idAsignacion)</span>
+<span class="nc" id="L77">    }</span>
+
+    private fun loadAsignaciones(idMatricula: Long?) {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        loadAsignacionesJob?.cancel()</span>
+<span class="nc" id="L81">        loadAsignacionesJob = viewModelScope.launch {</span>
+<span class="nc" id="L82">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
+<span class="nc bnc" id="L83" title="All 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
+<span class="nc" id="L84">                    _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L85">                        asignaciones = res.data,</span>
+<span class="nc" id="L86">                        selectedAsignacion = res.data.first()</span>
+                    )
+<span class="nc" id="L88">                    loadEstudiantesYRendimiento(res.data.first().idAsignacion)</span>
+                }
+<span class="nc" id="L90">            }</span>
+<span class="nc" id="L91">        }</span>
+<span class="nc" id="L92">    }</span>
+
+    private fun loadEstudiantesYRendimiento(idAsignacion: Long) {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (idAsignacion &lt;= 0) return</span>
+
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        loadEstudiantesJob?.cancel()</span>
+<span class="nc" id="L98">        loadEstudiantesJob = viewModelScope.launch {</span>
+<span class="nc" id="L99">            docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { resEst -&gt;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (resEst is Resource.Success) {</span>
+<span class="nc" id="L101">                    currentEstudiantes = resEst.data</span>
+<span class="nc" id="L102">                    combineAlertas()</span>
+                }
+<span class="nc" id="L104">            }</span>
+<span class="nc" id="L105">        }</span>
+
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        loadResumenJob?.cancel()</span>
+<span class="nc" id="L108">        loadResumenJob = viewModelScope.launch {</span>
+<span class="nc" id="L109">            asistenciasRepository.getResumenAsistencia(idAsignacion, null).collect { resAsis -&gt;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                if (resAsis is Resource.Success) {</span>
+<span class="nc" id="L111">                    currentResumenes = resAsis.data</span>
+<span class="nc" id="L112">                    combineAlertas()</span>
+                }
+<span class="nc" id="L114">            }</span>
+<span class="nc" id="L115">        }</span>
+<span class="nc" id="L116">    }</span>
+
+    private fun combineAlertas() {
+<span class="nc" id="L119">        val resMap = currentResumenes.associateBy { it.idMatricula }</span>
+<span class="nc" id="L120">        val obsCountMap = _uiState.value.items.groupBy { it.idMatricula }.mapValues { it.value.size }</span>
+
+<span class="nc" id="L122">        val alertas = currentEstudiantes.map { est -&gt;</span>
+<span class="nc" id="L123">            val res = resMap[est.idMatricula]</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            val pct = res?.porcentajeAsistencia ?: 100.0</span>
+<span class="nc" id="L125">            EstudianteAlertaItem(</span>
+<span class="nc" id="L126">                estudiante = est,</span>
+<span class="nc" id="L127">                resumenAsistencia = res,</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                esRiesgoAsistencia = pct &lt; 80.0,</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                totalObservaciones = obsCountMap[est.idMatricula] ?: 0</span>
+            )
+        }
+<span class="nc" id="L132">        _uiState.value = _uiState.value.copy(estudiantesAlerta = alertas)</span>
+<span class="nc" id="L133">    }</span>
+
+    private fun loadPeriodos() {
+<span class="nc" id="L136">        viewModelScope.launch {</span>
+<span class="nc" id="L137">            docenteRepository.getPeriodosEvaluacion().collect { res -&gt;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
+<span class="nc" id="L139">                    _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L140">                        periodos = res.data,</span>
+<span class="nc" id="L141">                        selectedPeriodo = res.data.firstOrNull()</span>
+                    )
+                }
+<span class="nc" id="L144">            }</span>
+<span class="nc" id="L145">        }</span>
+<span class="nc" id="L146">    }</span>
+
+    fun loadSeguimientos(idMatricula: Long?) {
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        loadSeguimientosJob?.cancel()</span>
+<span class="nc" id="L150">        loadSeguimientosJob = viewModelScope.launch {</span>
+<span class="nc" id="L151">            _uiState.value = _uiState.value.copy(isLoading = true)</span>
+<span class="nc" id="L152">            seguimientoRepository.getSeguimientos(idMatricula).collect { res -&gt;</span>
+<span class="nc" id="L153">                when (res) {</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                    is Resource.Success -&gt; {</span>
+<span class="nc" id="L155">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L156">                            items = res.data,</span>
+<span class="nc" id="L157">                            isLoading = false,</span>
+<span class="nc" id="L158">                            isOffline = res.isOffline,</span>
+<span class="nc" id="L159">                            errorMessage = null</span>
+                        )
+<span class="nc" id="L161">                        combineAlertas()</span>
+                    }
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                    is Resource.Error -&gt; {</span>
+<span class="nc" id="L164">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L165">                            isLoading = false,</span>
+<span class="nc" id="L166">                            errorMessage = res.message</span>
+                        )
+                    }
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                    is Resource.Loading -&gt; {}</span>
+                }
+<span class="nc" id="L171">            }</span>
+<span class="nc" id="L172">        }</span>
+<span class="nc" id="L173">    }</span>
+
+    fun guardarSeguimiento(
+        idMatricula: Long,
+        idPeriodo: Long,
+        categoria: String,
+        descripcion: String,
+        accionesTomadas: String?,
+        requiereFollowup: Boolean,
+        fechaEvento: String,
+        onSuccess: () -&gt; Unit,
+        onError: (String) -&gt; Unit
+    ) {
+<span class="nc" id="L186">        val dto = SeguimientoCreateDTO(</span>
+<span class="nc" id="L187">            idMatricula = idMatricula,</span>
+<span class="nc" id="L188">            idPeriodo = idPeriodo,</span>
+<span class="nc" id="L189">            categoria = categoria,</span>
+<span class="nc" id="L190">            descripcion = descripcion,</span>
+<span class="nc" id="L191">            accionesTomadas = accionesTomadas,</span>
+<span class="nc" id="L192">            requiereFollowup = requiereFollowup,</span>
+<span class="nc" id="L193">            fechaEvento = fechaEvento,</span>
+<span class="nc" id="L194">            registradoPor = sessionManager.getUserId()</span>
+        )
+
+<span class="nc" id="L197">        viewModelScope.launch {</span>
+<span class="nc" id="L198">            val res = seguimientoRepository.createSeguimiento(dto)</span>
+<span class="nc" id="L199">            when (res) {</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                is Resource.Success -&gt; {</span>
+<span class="nc" id="L201">                    onSuccess()</span>
+<span class="nc" id="L202">                    loadSeguimientos(null)</span>
+                }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                is Resource.Error -&gt; onError(res.message)</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                is Resource.Loading -&gt; {}</span>
+            }
+<span class="nc" id="L207">        }</span>
+<span class="nc" id="L208">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

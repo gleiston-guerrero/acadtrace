@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocenteApi.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.remote.api</a> &gt; <span class="el_source">DocenteApi.kt</span></div><h1>DocenteApi.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.remote.api
+
+import ec.edu.uteq.sga.representante.data.remote.dto.*
+import retrofit2.Response
+import retrofit2.http.*
+
+interface DocenteApi {
+
+    // ─── CONTEXTO DOCENTE (SGA Principal) ──────────────────────────────────
+    @GET(&quot;docentes/mis-asignaciones&quot;)
+    suspend fun getMisAsignaciones(): Response&lt;List&lt;AsignacionDocenteDTO&gt;&gt;
+
+    @GET(&quot;docentes/asignaciones/{id}/estudiantes&quot;)
+    suspend fun getEstudiantesPorAsignacion(
+        @Path(&quot;id&quot;) idAsignacion: Long
+    ): Response&lt;List&lt;MatriculaEstudianteDTO&gt;&gt;
+
+    @GET(&quot;docentes/ano-actual&quot;)
+    suspend fun getAnoActual(): Response&lt;AnoLectivoDTO&gt;
+
+    // ─── PERIODOS EVALUACIÓN ───────────────────────────────────────────────
+    @GET(&quot;periodos-evaluacion/&quot;)
+    suspend fun getPeriodosEvaluacion(): Response&lt;List&lt;PeriodoEvaluacionDTO&gt;&gt;
+
+    // ─── ACTIVIDADES ───────────────────────────────────────────────────────
+    @GET(&quot;actividades/&quot;)
+<span class="nc" id="L27">    suspend fun getActividades(</span>
+<span class="nc" id="L28">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null,</span>
+<span class="nc" id="L29">        @Query(&quot;id_periodo&quot;) idPeriodo: Long? = null,</span>
+<span class="nc" id="L30">        @Query(&quot;es_sumativa&quot;) esSumativa: Boolean? = null</span>
+    ): Response&lt;List&lt;ActividadDTO&gt;&gt;
+
+    @POST(&quot;actividades/&quot;)
+    suspend fun createActividad(
+        @Body actividad: ActividadCreateDTO
+    ): Response&lt;ActividadDTO&gt;
+
+    @GET(&quot;actividades/{id}/&quot;)
+    suspend fun getActividad(
+        @Path(&quot;id&quot;) id: Long
+    ): Response&lt;ActividadDTO&gt;
+
+    @PUT(&quot;actividades/{id}/&quot;)
+    suspend fun updateActividad(
+        @Path(&quot;id&quot;) id: Long,
+        @Body actividad: ActividadCreateDTO
+    ): Response&lt;ActividadDTO&gt;
+
+    @DELETE(&quot;actividades/{id}/&quot;)
+    suspend fun deleteActividad(
+        @Path(&quot;id&quot;) id: Long
+    ): Response&lt;Unit&gt;
+
+    // ─── CALIFICACIONES ────────────────────────────────────────────────────
+    @GET(&quot;calificaciones/&quot;)
+<span class="nc" id="L56">    suspend fun getCalificaciones(</span>
+<span class="nc" id="L57">        @Query(&quot;id_matricula&quot;) idMatricula: Long? = null,</span>
+<span class="nc" id="L58">        @Query(&quot;id_actividad&quot;) idActividad: Long? = null,</span>
+<span class="nc" id="L59">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null,</span>
+<span class="nc" id="L60">        @Query(&quot;id_periodo&quot;) idPeriodo: Long? = null</span>
+    ): Response&lt;List&lt;CalificacionDTO&gt;&gt;
+
+    @POST(&quot;calificaciones/&quot;)
+    suspend fun createCalificacion(
+        @Body calificacion: CalificacionCreateDTO
+    ): Response&lt;CalificacionDTO&gt;
+
+    @PUT(&quot;calificaciones/{id}/&quot;)
+    suspend fun updateCalificacion(
+        @Path(&quot;id&quot;) id: Long,
+        @Body calificacion: CalificacionCreateDTO
+    ): Response&lt;CalificacionDTO&gt;
+
+    @GET(&quot;calificaciones/promedio-formativo/&quot;)
+<span class="nc" id="L75">    suspend fun getPromedioFormativo(</span>
+        @Query(&quot;id_matricula&quot;) idMatricula: Long,
+        @Query(&quot;id_asignacion&quot;) idAsignacion: Long,
+        @Query(&quot;id_periodo&quot;) idPeriodo: Long,
+<span class="nc" id="L79">        @Query(&quot;nivel&quot;) nivel: String? = &quot;EGB&quot;</span>
+    ): Response&lt;PromedioFormativoResponseDTO&gt;
+
+    // ─── ASISTENCIAS ───────────────────────────────────────────────────────
+    @GET(&quot;asistencias/&quot;)
+<span class="nc" id="L84">    suspend fun getAsistencias(</span>
+<span class="nc" id="L85">        @Query(&quot;id_matricula&quot;) idMatricula: Long? = null,</span>
+<span class="nc" id="L86">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null,</span>
+<span class="nc" id="L87">        @Query(&quot;id_periodo&quot;) idPeriodo: Long? = null,</span>
+<span class="nc" id="L88">        @Query(&quot;fecha&quot;) fecha: String? = null,</span>
+<span class="nc" id="L89">        @Query(&quot;estado&quot;) estado: String? = null</span>
+    ): Response&lt;List&lt;AsistenciaDTO&gt;&gt;
+
+    @POST(&quot;asistencias/&quot;)
+    suspend fun createAsistencia(
+        @Body asistencia: AsistenciaCreateDTO
+    ): Response&lt;AsistenciaDTO&gt;
+
+    @PUT(&quot;asistencias/{id}/&quot;)
+    suspend fun updateAsistencia(
+        @Path(&quot;id&quot;) id: Long,
+        @Body asistencia: AsistenciaCreateDTO
+    ): Response&lt;AsistenciaDTO&gt;
+
+    @GET(&quot;resumen-asistencia/&quot;)
+<span class="nc" id="L104">    suspend fun getResumenAsistencia(</span>
+<span class="nc" id="L105">        @Query(&quot;id_matricula&quot;) idMatricula: Long? = null,</span>
+<span class="nc" id="L106">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null,</span>
+<span class="nc" id="L107">        @Query(&quot;id_periodo&quot;) idPeriodo: Long? = null</span>
+    ): Response&lt;List&lt;ResumenAsistenciaDTO&gt;&gt;
+
+    @POST(&quot;resumen-asistencia/calcular/&quot;)
+    suspend fun calcularResumenAsistencia(
+        @Body body: Map&lt;String, Long&gt;
+    ): Response&lt;ResumenAsistenciaDTO&gt;
+
+    // ─── PROMEDIOS TRIMESTRALES Y ANUALES ──────────────────────────────────
+    @GET(&quot;promedios-trimestrales/&quot;)
+<span class="nc" id="L117">    suspend fun getPromediosTrimestrales(</span>
+<span class="nc" id="L118">        @Query(&quot;id_matricula&quot;) idMatricula: Long? = null,</span>
+<span class="nc" id="L119">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null,</span>
+<span class="nc" id="L120">        @Query(&quot;id_periodo&quot;) idPeriodo: Long? = null</span>
+    ): Response&lt;List&lt;PromedioTrimestralDTO&gt;&gt;
+
+    @POST(&quot;promedios-trimestrales/calcular/&quot;)
+    suspend fun calcularPromedioTrimestral(
+        @Body body: Map&lt;String, Any&gt;
+    ): Response&lt;PromedioTrimestralDTO&gt;
+
+    @GET(&quot;promedios-anuales/&quot;)
+<span class="nc" id="L129">    suspend fun getPromediosAnuales(</span>
+<span class="nc" id="L130">        @Query(&quot;id_matricula&quot;) idMatricula: Long? = null,</span>
+<span class="nc" id="L131">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null,</span>
+<span class="nc" id="L132">        @Query(&quot;id_ano_lectivo&quot;) idAnoLectivo: Long? = null</span>
+    ): Response&lt;List&lt;PromedioAnualDTO&gt;&gt;
+
+    @POST(&quot;promedios-anuales/calcular/&quot;)
+    suspend fun calcularPromedioAnual(
+        @Body body: Map&lt;String, Any&gt;
+    ): Response&lt;PromedioAnualDTO&gt;
+
+    @GET(&quot;promedios-anuales-detalle/&quot;)
+    suspend fun getPromediosAnualesDetalle(): Response&lt;List&lt;PromedioAnualDetalleDTO&gt;&gt;
+
+    // ─── SEGUIMIENTO ACADÉMICO ─────────────────────────────────────────────
+    @GET(&quot;seguimiento-academico/&quot;)
+<span class="nc" id="L145">    suspend fun getSeguimientoAcademico(</span>
+<span class="nc" id="L146">        @Query(&quot;id_matricula&quot;) idMatricula: Long? = null,</span>
+<span class="nc" id="L147">        @Query(&quot;id_periodo&quot;) idPeriodo: Long? = null,</span>
+<span class="nc" id="L148">        @Query(&quot;categoria&quot;) categoria: String? = null,</span>
+<span class="nc" id="L149">        @Query(&quot;requiere_followup&quot;) requiereFollowup: Boolean? = null</span>
+    ): Response&lt;List&lt;SeguimientoAcademicoDTO&gt;&gt;
+
+    @POST(&quot;seguimiento-academico/&quot;)
+    suspend fun createSeguimientoAcademico(
+        @Body seguimiento: SeguimientoCreateDTO
+    ): Response&lt;SeguimientoAcademicoDTO&gt;
+
+    // ─── ANUNCIOS ──────────────────────────────────────────────────────────
+    @GET(&quot;anuncios/&quot;)
+<span class="nc" id="L159">    suspend fun getAnuncios(</span>
+<span class="nc" id="L160">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null</span>
+    ): Response&lt;List&lt;AnuncioDTO&gt;&gt;
+
+    @POST(&quot;anuncios/&quot;)
+    suspend fun createAnuncio(
+        @Body anuncio: AnuncioCreateDTO
+    ): Response&lt;AnuncioDTO&gt;
+
+    @DELETE(&quot;anuncios/{id}/&quot;)
+    suspend fun deleteAnuncio(
+        @Path(&quot;id&quot;) id: Long
+    ): Response&lt;Unit&gt;
+
+    // ─── MATERIALES ────────────────────────────────────────────────────────
+    @GET(&quot;materiales/&quot;)
+<span class="nc" id="L175">    suspend fun getMateriales(</span>
+<span class="nc" id="L176">        @Query(&quot;id_asignacion&quot;) idAsignacion: Long? = null</span>
+    ): Response&lt;List&lt;MaterialDTO&gt;&gt;
+
+    @POST(&quot;materiales/&quot;)
+    suspend fun createMaterial(
+        @Body material: MaterialCreateDTO
+    ): Response&lt;MaterialDTO&gt;
+
+    @DELETE(&quot;materiales/{id}/&quot;)
+    suspend fun deleteMaterial(
+        @Path(&quot;id&quot;) id: Long
+    ): Response&lt;Unit&gt;
+
+    // ─── AULA VIRTUAL ──────────────────────────────────────────────────────
+    @GET(&quot;aula-virtual/resumen/&quot;)
+    suspend fun getAulaVirtualResumen(
+        @Query(&quot;id_asignacion&quot;) idsAsignacion: List&lt;Long&gt;
+    ): Response&lt;AulaVirtualResumenResponseDTO&gt;
+
+    @GET(&quot;aula-virtual/{id_asignacion}/semanas/&quot;)
+    suspend fun getAulaVirtualSemanas(
+        @Path(&quot;id_asignacion&quot;) idAsignacion: Long
+    ): Response&lt;AulaVirtualSemanasResponseDTO&gt;
+
+    // ─── HORARIOS (SGA Principal) ──────────────────────────────────────────
+    @GET(&quot;horarios/docente/{idPersona}/grilla&quot;)
+    suspend fun getHorarioDocente(
+        @Path(&quot;idPersona&quot;) idPersona: Long
+    ): Response&lt;HorarioGrillaResponseDTO&gt;
+
+    @GET(&quot;horarios/curso/{idAsignacion}/grilla&quot;)
+    suspend fun getHorarioCurso(
+        @Path(&quot;idAsignacion&quot;) idAsignacion: Long
+    ): Response&lt;HorarioGrillaResponseDTO&gt;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

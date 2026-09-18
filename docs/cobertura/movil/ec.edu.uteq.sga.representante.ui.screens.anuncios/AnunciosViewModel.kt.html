@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnunciosViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.anuncios</a> &gt; <span class="el_source">AnunciosViewModel.kt</span></div><h1>AnunciosViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.anuncios
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.data.remote.dto.AnuncioCreateDTO
+import ec.edu.uteq.sga.representante.domain.model.AnuncioCurso
+import ec.edu.uteq.sga.representante.domain.model.Asignacion
+import ec.edu.uteq.sga.representante.domain.repository.AnunciosRepository
+import ec.edu.uteq.sga.representante.domain.repository.DocenteRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+<span class="nc" id="L17">data class AnunciosUiState(</span>
+<span class="nc" id="L18">    val idAsignacion: Long = 0,</span>
+<span class="nc" id="L19">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
+<span class="nc" id="L20">    val selectedAsignacion: Asignacion? = null,</span>
+<span class="nc" id="L21">    val anuncios: List&lt;AnuncioCurso&gt; = emptyList(),</span>
+<span class="nc" id="L22">    val isLoading: Boolean = false,</span>
+<span class="nc" id="L23">    val isOffline: Boolean = false,</span>
+<span class="nc" id="L24">    val errorMessage: String? = null</span>
+<span class="nc" id="L25">)</span>
+
+<span class="nc" id="L27">class AnunciosViewModel(</span>
+<span class="nc" id="L28">    private val anunciosRepository: AnunciosRepository,</span>
+<span class="nc" id="L29">    private val docenteRepository: DocenteRepository,</span>
+<span class="nc" id="L30">    private val sessionManager: SessionManager</span>
+<span class="nc" id="L31">) : ViewModel() {</span>
+
+<span class="nc" id="L33">    private val _uiState = MutableStateFlow(AnunciosUiState())</span>
+<span class="nc" id="L34">    val uiState: StateFlow&lt;AnunciosUiState&gt; = _uiState.asStateFlow()</span>
+
+    fun init(idAsignacion: Long) {
+<span class="nc" id="L37">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion)</span>
+<span class="nc" id="L38">        loadAsignaciones(idAsignacion)</span>
+<span class="nc" id="L39">        loadAnuncios(idAsignacion)</span>
+<span class="nc" id="L40">    }</span>
+
+    private fun loadAsignaciones(idAsignacion: Long) {
+<span class="nc" id="L43">        viewModelScope.launch {</span>
+<span class="nc" id="L44">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
+<span class="nc bnc" id="L45" title="All 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">                    val current = if (idAsignacion &gt; 0) {</span>
+<span class="nc bnc" id="L47" title="All 8 branches missed.">                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()</span>
+                    } else {
+<span class="nc" id="L49">                        res.data.first()</span>
+                    }
+<span class="nc" id="L51">                    _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L52">                        asignaciones = res.data,</span>
+<span class="nc" id="L53">                        selectedAsignacion = current,</span>
+<span class="nc" id="L54">                        idAsignacion = current.idAsignacion</span>
+                    )
+<span class="nc" id="L56">                    loadAnuncios(current.idAsignacion)</span>
+                }
+<span class="nc" id="L58">            }</span>
+<span class="nc" id="L59">        }</span>
+<span class="nc" id="L60">    }</span>
+
+    fun selectAsignacion(asignacion: Asignacion) {
+<span class="nc" id="L63">        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L64">            selectedAsignacion = asignacion,</span>
+<span class="nc" id="L65">            idAsignacion = asignacion.idAsignacion</span>
+        )
+<span class="nc" id="L67">        loadAnuncios(asignacion.idAsignacion)</span>
+<span class="nc" id="L68">    }</span>
+
+    private var loadAnunciosJob: kotlinx.coroutines.Job? = null
+
+    fun loadAnuncios(idAsignacion: Long) {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (idAsignacion &lt;= 0) return</span>
+<span class="nc" id="L74">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        loadAnunciosJob?.cancel()</span>
+<span class="nc" id="L76">        loadAnunciosJob = viewModelScope.launch {</span>
+<span class="nc" id="L77">            anunciosRepository.getAnuncios(idAsignacion).collect { res -&gt;</span>
+<span class="nc" id="L78">                when (res) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                    is Resource.Success -&gt; {</span>
+<span class="nc" id="L80">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L81">                            anuncios = res.data,</span>
+<span class="nc" id="L82">                            isLoading = false,</span>
+<span class="nc" id="L83">                            isOffline = res.isOffline,</span>
+<span class="nc" id="L84">                            errorMessage = null</span>
+                        )
+                    }
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                    is Resource.Error -&gt; {</span>
+<span class="nc" id="L88">                        _uiState.value = _uiState.value.copy(</span>
+<span class="nc" id="L89">                            isLoading = false,</span>
+<span class="nc" id="L90">                            errorMessage = res.message</span>
+                        )
+                    }
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                    is Resource.Loading -&gt; {}</span>
+                }
+<span class="nc" id="L95">            }</span>
+<span class="nc" id="L96">        }</span>
+<span class="nc" id="L97">    }</span>
+
+    fun publicarAnuncio(titulo: String, contenido: String, fijado: Boolean) {
+<span class="nc" id="L100">        val dto = AnuncioCreateDTO(</span>
+<span class="nc" id="L101">            idAsignacion = _uiState.value.idAsignacion,</span>
+<span class="nc" id="L102">            titulo = titulo,</span>
+<span class="nc" id="L103">            contenido = contenido,</span>
+<span class="nc" id="L104">            autorId = sessionManager.getUserId(),</span>
+<span class="nc" id="L105">            fijado = fijado</span>
+        )
+
+<span class="nc" id="L108">        viewModelScope.launch {</span>
+<span class="nc" id="L109">            anunciosRepository.createAnuncio(dto)</span>
+<span class="nc" id="L110">            loadAnuncios(_uiState.value.idAsignacion)</span>
+<span class="nc" id="L111">        }</span>
+<span class="nc" id="L112">    }</span>
+
+    fun eliminarAnuncio(idAnuncio: Long) {
+<span class="nc" id="L115">        viewModelScope.launch {</span>
+<span class="nc" id="L116">            anunciosRepository.deleteAnuncio(idAnuncio)</span>
+<span class="nc" id="L117">            loadAnuncios(_uiState.value.idAsignacion)</span>
+<span class="nc" id="L118">        }</span>
+<span class="nc" id="L119">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

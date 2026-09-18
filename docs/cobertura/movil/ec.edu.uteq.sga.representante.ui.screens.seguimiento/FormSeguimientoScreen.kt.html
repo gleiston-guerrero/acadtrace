@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FormSeguimientoScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.seguimiento</a> &gt; <span class="el_source">FormSeguimientoScreen.kt</span></div><h1>FormSeguimientoScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.seguimiento
+
+import android.app.DatePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.ui.components.SgaTopAppBar
+import ec.edu.uteq.sga.representante.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
+
+<span class="nc" id="L25">val CATEGORIAS_SEGUIMIENTO = listOf(</span>
+<span class="nc" id="L26">    &quot;ACADEMICO&quot; to &quot;Académico&quot;,</span>
+<span class="nc" id="L27">    &quot;CONDUCTUAL&quot; to &quot;Conductual&quot;,</span>
+<span class="nc" id="L28">    &quot;DECE&quot; to &quot;DECE (Psicología)&quot;,</span>
+<span class="nc" id="L29">    &quot;MEDICO&quot; to &quot;Médico / Salud&quot;,</span>
+<span class="nc" id="L30">    &quot;FAMILIAR&quot; to &quot;Familiar&quot;,</span>
+<span class="nc" id="L31">    &quot;OTRO&quot; to &quot;Otro&quot;</span>
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FormSeguimientoScreen(
+    idMatricula: Long,
+    estudianteNombre: String,
+    viewModel: SeguimientoViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L41">) {</span>
+<span class="nc" id="L42">    val state by viewModel.uiState.collectAsState()</span>
+<span class="nc" id="L43">    val context = LocalContext.current</span>
+
+<span class="nc" id="L45">    val sdf = SimpleDateFormat(&quot;yyyy-MM-dd&quot;, Locale.getDefault())</span>
+<span class="nc" id="L46">    var fechaEvento by remember { mutableStateOf(sdf.format(Date())) }</span>
+<span class="nc" id="L47">    var categoria by remember { mutableStateOf(&quot;CONDUCTUAL&quot;) }</span>
+<span class="nc" id="L48">    var descripcion by remember { mutableStateOf(&quot;&quot;) }</span>
+<span class="nc" id="L49">    var accionesTomadas by remember { mutableStateOf(&quot;&quot;) }</span>
+<span class="nc" id="L50">    var requiereFollowup by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L51">    var selectedPeriodoId by remember(state.selectedPeriodo) {</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        mutableStateOf(state.selectedPeriodo?.idPeriodo ?: 1L)</span>
+    }
+
+<span class="nc" id="L55">    var expandedCat by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L56">    var errorMessage by remember { mutableStateOf&lt;String?&gt;(null) }</span>
+<span class="nc" id="L57">    var isSaving by remember { mutableStateOf(false) }</span>
+
+<span class="nc" id="L59">    val calendar = Calendar.getInstance()</span>
+<span class="nc" id="L60">    val datePicker = DatePickerDialog(</span>
+<span class="nc" id="L61">        context,</span>
+<span class="nc" id="L62">        { _, year, month, dayOfMonth -&gt;</span>
+<span class="nc" id="L63">            val formatted = String.format(Locale.getDefault(), &quot;%04d-%02d-%02d&quot;, year, month + 1, dayOfMonth)</span>
+<span class="nc" id="L64">            fechaEvento = formatted</span>
+<span class="nc" id="L65">        },</span>
+<span class="nc" id="L66">        calendar.get(Calendar.YEAR),</span>
+<span class="nc" id="L67">        calendar.get(Calendar.MONTH),</span>
+<span class="nc" id="L68">        calendar.get(Calendar.DAY_OF_MONTH)</span>
+    )
+
+<span class="nc" id="L71">    Scaffold(</span>
+<span class="nc" id="L72">        topBar = {</span>
+<span class="nc" id="L73">            SgaTopAppBar(</span>
+<span class="nc" id="L74">                title = &quot;Registrar Seguimiento&quot;,</span>
+<span class="nc" id="L75">                showBackButton = true,</span>
+<span class="nc" id="L76">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L79">    ) { padding -&gt;</span>
+<span class="nc" id="L80">        Column(</span>
+<span class="nc" id="L81">            modifier = Modifier</span>
+<span class="nc" id="L82">                .fillMaxSize()</span>
+<span class="nc" id="L83">                .padding(padding)</span>
+<span class="nc" id="L84">                .background(BackgroundSlate)</span>
+<span class="nc" id="L85">                .verticalScroll(rememberScrollState())</span>
+<span class="nc" id="L86">                .padding(20.dp),</span>
+<span class="nc" id="L87">            verticalArrangement = Arrangement.spacedBy(16.dp)</span>
+        ) {
+<span class="nc" id="L89">            Surface(</span>
+<span class="nc" id="L90">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L91">                color = CardSurface,</span>
+<span class="nc" id="L92">                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),</span>
+<span class="nc" id="L93">                modifier = Modifier.fillMaxWidth()</span>
+<span class="nc" id="L94">            ) {</span>
+<span class="nc" id="L95">                Column(modifier = Modifier.padding(14.dp)) {</span>
+<span class="nc" id="L96">                    Text(</span>
+<span class="nc" id="L97">                        text = &quot;Estudiante:&quot;,</span>
+<span class="nc" id="L98">                        fontSize = 12.sp,</span>
+<span class="nc" id="L99">                        color = TextSecondary</span>
+                    )
+<span class="nc" id="L101">                    Spacer(modifier = Modifier.height(2.dp))</span>
+<span class="nc" id="L102">                    Text(</span>
+<span class="nc" id="L103">                        text = estudianteNombre,</span>
+<span class="nc" id="L104">                        style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L105">                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L106">                        color = PrimaryNavy</span>
+                    )
+<span class="nc" id="L108">                    Text(</span>
+<span class="nc" id="L109">                        text = &quot;Matrícula #$idMatricula&quot;,</span>
+<span class="nc" id="L110">                        fontSize = 11.sp,</span>
+<span class="nc" id="L111">                        color = TextMuted</span>
+                    )
+<span class="nc" id="L113">                }</span>
+            }
+
+            // Categoría
+<span class="nc" id="L117">            ExposedDropdownMenuBox(</span>
+<span class="nc" id="L118">                expanded = expandedCat,</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                onExpandedChange = { expandedCat = !expandedCat }</span>
+<span class="nc" id="L120">            ) {</span>
+<span class="nc" id="L121">                OutlinedTextField(</span>
+<span class="nc bnc" id="L122" title="All 8 branches missed.">                    value = CATEGORIAS_SEGUIMIENTO.find { it.first == categoria }?.second ?: categoria,</span>
+<span class="nc" id="L123">                    onValueChange = {},</span>
+<span class="nc" id="L124">                    readOnly = true,</span>
+<span class="nc" id="L125">                    label = { Text(&quot;Categoría de Observación *&quot;) },</span>
+<span class="nc" id="L126">                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCat) },</span>
+<span class="nc" id="L127">                    modifier = Modifier</span>
+<span class="nc" id="L128">                        .fillMaxWidth()</span>
+<span class="nc" id="L129">                        .menuAnchor(),</span>
+<span class="nc" id="L130">                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L131">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L132">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L133">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L134">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+<span class="nc" id="L137">                ExposedDropdownMenu(</span>
+<span class="nc" id="L138">                    expanded = expandedCat,</span>
+<span class="nc" id="L139">                    onDismissRequest = { expandedCat = false }</span>
+<span class="nc" id="L140">                ) {</span>
+<span class="nc" id="L141">                    CATEGORIAS_SEGUIMIENTO.forEach { (key, label) -&gt;</span>
+<span class="nc" id="L142">                        DropdownMenuItem(</span>
+<span class="nc" id="L143">                            text = { Text(label) },</span>
+<span class="nc" id="L144">                            onClick = {</span>
+<span class="nc" id="L145">                                categoria = key</span>
+<span class="nc" id="L146">                                expandedCat = false</span>
+<span class="nc" id="L147">                            }</span>
+                        )
+<span class="nc" id="L149">                    }</span>
+                }
+            }
+
+            // Fecha
+<span class="nc" id="L154">            OutlinedTextField(</span>
+<span class="nc" id="L155">                value = fechaEvento,</span>
+<span class="nc" id="L156">                onValueChange = {},</span>
+<span class="nc" id="L157">                readOnly = true,</span>
+<span class="nc" id="L158">                label = { Text(&quot;Fecha del Suceso *&quot;) },</span>
+<span class="nc" id="L159">                trailingIcon = {</span>
+<span class="nc" id="L160">                    IconButton(onClick = { datePicker.show() }) {</span>
+<span class="nc" id="L161">                        Icon(Icons.Default.CalendarToday, contentDescription = &quot;Seleccionar Fecha&quot;, tint = PrimaryNavy)</span>
+                    }
+                },
+<span class="nc" id="L164">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L165">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L166">                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L167">                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L168">                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L169">                    focusedBorderColor = PrimaryNavy</span>
+                )
+            )
+
+            // Descripción
+<span class="nc" id="L174">            OutlinedTextField(</span>
+<span class="nc" id="L175">                value = descripcion,</span>
+<span class="nc" id="L176">                onValueChange = { descripcion = it },</span>
+<span class="nc" id="L177">                label = { Text(&quot;Descripción de la observación / hecho *&quot;) },</span>
+<span class="nc" id="L178">                minLines = 3,</span>
+<span class="nc" id="L179">                maxLines = 6,</span>
+<span class="nc" id="L180">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L181">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L182">                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L183">                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L184">                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L185">                    focusedBorderColor = PrimaryNavy</span>
+                )
+            )
+
+            // Acciones tomadas
+<span class="nc" id="L190">            OutlinedTextField(</span>
+<span class="nc" id="L191">                value = accionesTomadas,</span>
+<span class="nc" id="L192">                onValueChange = { accionesTomadas = it },</span>
+<span class="nc" id="L193">                label = { Text(&quot;Acciones o Acuerdos Tomados&quot;) },</span>
+<span class="nc" id="L194">                minLines = 2,</span>
+<span class="nc" id="L195">                maxLines = 4,</span>
+<span class="nc" id="L196">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L197">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L198">                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L199">                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L200">                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L201">                    focusedBorderColor = PrimaryNavy</span>
+                )
+            )
+
+            // Switch de seguimiento
+<span class="nc" id="L206">            Card(</span>
+<span class="nc" id="L207">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L208">                colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L209">                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L210">            ) {</span>
+<span class="nc" id="L211">                Row(</span>
+<span class="nc" id="L212">                    modifier = Modifier</span>
+<span class="nc" id="L213">                        .fillMaxWidth()</span>
+<span class="nc" id="L214">                        .padding(16.dp),</span>
+<span class="nc" id="L215">                    horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L216">                    verticalAlignment = Alignment.CenterVertically</span>
+                ) {
+<span class="nc" id="L218">                    Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L219">                        Text(&quot;¿Requiere Seguimiento Especial?&quot;, fontWeight = FontWeight.Bold, color = TextPrimary)</span>
+<span class="nc" id="L220">                        Text(</span>
+<span class="nc" id="L221">                            text = &quot;Marca si este estudiante necesita monitoreo adicional o reunión con representante / DECE.&quot;,</span>
+<span class="nc" id="L222">                            fontSize = 12.sp,</span>
+<span class="nc" id="L223">                            color = TextSecondary</span>
+                        )
+<span class="nc" id="L225">                    }</span>
+<span class="nc" id="L226">                    Switch(</span>
+<span class="nc" id="L227">                        checked = requiereFollowup,</span>
+<span class="nc" id="L228">                        onCheckedChange = { requiereFollowup = it }</span>
+                    )
+<span class="nc" id="L230">                }</span>
+            }
+
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (errorMessage != null) {</span>
+<span class="nc" id="L234">                Text(</span>
+<span class="nc" id="L235">                    text = errorMessage!!,</span>
+<span class="nc" id="L236">                    color = DangerRed,</span>
+<span class="nc" id="L237">                    style = MaterialTheme.typography.bodyMedium</span>
+                )
+            }
+
+<span class="nc" id="L241">            Spacer(modifier = Modifier.height(8.dp))</span>
+
+<span class="nc" id="L243">            Button(</span>
+                onClick = {
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                    if (descripcion.isBlank()) {</span>
+<span class="nc" id="L246">                        errorMessage = &quot;La descripción de la observación es obligatoria.&quot;</span>
+<span class="nc" id="L247">                        return@Button</span>
+                    }
+<span class="nc" id="L249">                    isSaving = true</span>
+<span class="nc" id="L250">                    errorMessage = null</span>
+
+<span class="nc" id="L252">                    viewModel.guardarSeguimiento(</span>
+<span class="nc" id="L253">                        idMatricula = idMatricula,</span>
+<span class="nc" id="L254">                        idPeriodo = selectedPeriodoId,</span>
+<span class="nc" id="L255">                        categoria = categoria,</span>
+<span class="nc" id="L256">                        descripcion = descripcion.trim(),</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">                        accionesTomadas = accionesTomadas.trim().ifBlank { null },</span>
+<span class="nc" id="L258">                        requiereFollowup = requiereFollowup,</span>
+<span class="nc" id="L259">                        fechaEvento = fechaEvento,</span>
+                        onSuccess = {
+<span class="nc" id="L261">                            isSaving = false</span>
+<span class="nc" id="L262">                            onBackClick()</span>
+<span class="nc" id="L263">                        },</span>
+                        onError = {
+<span class="nc" id="L265">                            isSaving = false</span>
+<span class="nc" id="L266">                            errorMessage = it</span>
+<span class="nc" id="L267">                        }</span>
+                    )
+<span class="nc" id="L269">                },</span>
+<span class="nc" id="L270">                modifier = Modifier</span>
+<span class="nc" id="L271">                    .fillMaxWidth()</span>
+<span class="nc" id="L272">                    .height(50.dp),</span>
+<span class="nc" id="L273">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L274">                colors = ButtonDefaults.buttonColors(</span>
+<span class="nc" id="L275">                    containerColor = PrimaryNavy,</span>
+<span class="nc" id="L276">                    contentColor = Color.White,</span>
+<span class="nc" id="L277">                    disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),</span>
+<span class="nc" id="L278">                    disabledContentColor = Color.White</span>
+                ),
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                enabled = !isSaving</span>
+<span class="nc" id="L281">            ) {</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                if (isSaving) {</span>
+<span class="nc" id="L283">                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)</span>
+<span class="nc" id="L284">                    Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L285">                    Text(&quot;Registrando...&quot;, fontWeight = FontWeight.Bold, color = Color.White)</span>
+<span class="nc" id="L286">                } else {</span>
+<span class="nc" id="L287">                    Text(&quot;Registrar Observación&quot;, fontWeight = FontWeight.Bold, color = Color.White)</span>
+                }
+            }
+<span class="nc" id="L290">        }</span>
+    }
+<span class="nc" id="L292">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

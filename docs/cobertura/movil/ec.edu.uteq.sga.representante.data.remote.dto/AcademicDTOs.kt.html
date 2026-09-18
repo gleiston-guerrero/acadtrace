@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AcademicDTOs.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.remote.dto</a> &gt; <span class="el_source">AcademicDTOs.kt</span></div><h1>AcademicDTOs.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.remote.dto
+
+import com.google.gson.annotations.SerializedName
+
+// ─── PERIODOS EVALUACIÓN ───────────────────────────────────────────────
+<span class="nc" id="L6">data class PeriodoEvaluacionDTO(</span>
+<span class="nc" id="L7">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L8">    @SerializedName(&quot;id_ano_lectivo&quot;) val idAnoLectivo: Long,</span>
+<span class="nc" id="L9">    @SerializedName(&quot;tipo&quot;) val tipo: String, // PRIMER_TRIMESTRE, SEGUNDO_TRIMESTRE, TERCER_TRIMESTRE</span>
+<span class="nc" id="L10">    @SerializedName(&quot;nombre&quot;) val nombre: String,</span>
+<span class="nc" id="L11">    @SerializedName(&quot;fecha_inicio&quot;) val fechaInicio: String,</span>
+<span class="nc" id="L12">    @SerializedName(&quot;fecha_fin&quot;) val fechaFin: String,</span>
+<span class="nc" id="L13">    @SerializedName(&quot;activo&quot;) val activo: Boolean = true</span>
+<span class="nc" id="L14">)</span>
+
+// ─── ACTIVIDADES ───────────────────────────────────────────────────────
+<span class="nc" id="L17">data class ActividadDTO(</span>
+<span class="nc" id="L18">    @SerializedName(&quot;id_actividad&quot;) val idActividad: Long,</span>
+<span class="nc" id="L19">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L20">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L21">    @SerializedName(&quot;tipo&quot;) val tipo: String,</span>
+<span class="nc" id="L22">    @SerializedName(&quot;nombre&quot;) val nombre: String,</span>
+<span class="nc" id="L23">    @SerializedName(&quot;descripcion&quot;) val descripcion: String? = null,</span>
+<span class="nc" id="L24">    @SerializedName(&quot;fecha_entrega&quot;) val fechaEntrega: String,</span>
+<span class="nc" id="L25">    @SerializedName(&quot;ponderacion&quot;) val ponderacion: Double = 0.0,</span>
+<span class="nc" id="L26">    @SerializedName(&quot;nota_maxima&quot;) val notaMaxima: Double = 10.0,</span>
+<span class="nc" id="L27">    @SerializedName(&quot;es_sumativa&quot;) val esSumativa: Boolean = false,</span>
+<span class="nc" id="L28">    @SerializedName(&quot;fecha_creacion&quot;) val fechaCreacion: String? = null</span>
+<span class="nc" id="L29">)</span>
+
+<span class="nc" id="L31">data class ActividadCreateDTO(</span>
+<span class="nc" id="L32">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L33">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L34">    @SerializedName(&quot;tipo&quot;) val tipo: String,</span>
+<span class="nc" id="L35">    @SerializedName(&quot;nombre&quot;) val nombre: String,</span>
+<span class="nc" id="L36">    @SerializedName(&quot;descripcion&quot;) val descripcion: String? = null,</span>
+<span class="nc" id="L37">    @SerializedName(&quot;fecha_entrega&quot;) val fechaEntrega: String,</span>
+<span class="nc" id="L38">    @SerializedName(&quot;ponderacion&quot;) val ponderacion: Double = 0.0,</span>
+<span class="nc" id="L39">    @SerializedName(&quot;nota_maxima&quot;) val notaMaxima: Double = 10.0,</span>
+<span class="nc" id="L40">    @SerializedName(&quot;es_sumativa&quot;) val esSumativa: Boolean = false</span>
+<span class="nc" id="L41">)</span>
+
+// ─── CALIFICACIONES ────────────────────────────────────────────────────
+<span class="nc" id="L44">data class CalificacionDTO(</span>
+<span class="nc" id="L45">    @SerializedName(&quot;id_calificacion&quot;) val idCalificacion: Long,</span>
+<span class="nc" id="L46">    @SerializedName(&quot;id_actividad&quot;) val idActividad: Long,</span>
+<span class="nc" id="L47">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L48">    @SerializedName(&quot;nota&quot;) val nota: Double,</span>
+<span class="nc" id="L49">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String? = null,</span>
+<span class="nc" id="L50">    @SerializedName(&quot;observacion&quot;) val observacion: String? = null,</span>
+<span class="nc" id="L51">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long? = null,</span>
+<span class="nc" id="L52">    @SerializedName(&quot;fecha_registro&quot;) val fechaRegistro: String? = null,</span>
+<span class="nc" id="L53">    @SerializedName(&quot;fecha_actualizacion&quot;) val fechaActualizacion: String? = null</span>
+<span class="nc" id="L54">)</span>
+
+<span class="nc" id="L56">data class CalificacionCreateDTO(</span>
+<span class="nc" id="L57">    @SerializedName(&quot;id_actividad&quot;) val idActividad: Long,</span>
+<span class="nc" id="L58">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L59">    @SerializedName(&quot;nota&quot;) val nota: Double,</span>
+<span class="nc" id="L60">    @SerializedName(&quot;observacion&quot;) val observacion: String? = null,</span>
+<span class="nc" id="L61">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long? = null,</span>
+<span class="nc" id="L62">    @SerializedName(&quot;nivel&quot;) val nivel: String = &quot;EGB&quot;</span>
+<span class="nc" id="L63">)</span>
+
+<span class="nc" id="L65">data class PromedioFormativoResponseDTO(</span>
+<span class="nc" id="L66">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L67">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L68">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L69">    @SerializedName(&quot;promedio_formativo&quot;) val promedioFormativo: Double,</span>
+<span class="nc" id="L70">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String</span>
+)
+
+// ─── ASISTENCIAS ───────────────────────────────────────────────────────
+<span class="nc" id="L74">data class AsistenciaDTO(</span>
+<span class="nc" id="L75">    @SerializedName(&quot;id_asistencia&quot;) val idAsistencia: Long,</span>
+<span class="nc" id="L76">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L77">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L78">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L79">    @SerializedName(&quot;fecha&quot;) val fecha: String,</span>
+<span class="nc" id="L80">    @SerializedName(&quot;estado&quot;) val estado: String, // PRESENTE, AUSENTE, JUSTIFICADO, ATRASO</span>
+<span class="nc" id="L81">    @SerializedName(&quot;justificacion&quot;) val justificacion: String? = null,</span>
+<span class="nc" id="L82">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long? = null,</span>
+<span class="nc" id="L83">    @SerializedName(&quot;fecha_registro&quot;) val fechaRegistro: String? = null,</span>
+<span class="nc" id="L84">    @SerializedName(&quot;fecha_actualizacion&quot;) val fechaActualizacion: String? = null</span>
+<span class="nc" id="L85">)</span>
+
+<span class="nc" id="L87">data class AsistenciaCreateDTO(</span>
+<span class="nc" id="L88">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L89">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L90">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L91">    @SerializedName(&quot;fecha&quot;) val fecha: String,</span>
+<span class="nc" id="L92">    @SerializedName(&quot;estado&quot;) val estado: String,</span>
+<span class="nc" id="L93">    @SerializedName(&quot;justificacion&quot;) val justificacion: String? = null,</span>
+<span class="nc" id="L94">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long? = null</span>
+<span class="nc" id="L95">)</span>
+
+<span class="nc" id="L97">data class ResumenAsistenciaDTO(</span>
+<span class="nc" id="L98">    @SerializedName(&quot;id_resumen&quot;) val idResumen: Long = 0,</span>
+<span class="nc" id="L99">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L100">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L101">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L102">    @SerializedName(&quot;total_presentes&quot;) val totalPresentes: Int = 0,</span>
+<span class="nc" id="L103">    @SerializedName(&quot;total_ausentes&quot;) val totalAusentes: Int = 0,</span>
+<span class="nc" id="L104">    @SerializedName(&quot;total_justificados&quot;) val totalJustificados: Int = 0,</span>
+<span class="nc" id="L105">    @SerializedName(&quot;total_atrasos&quot;) val totalAtrasos: Int = 0,</span>
+<span class="nc" id="L106">    @SerializedName(&quot;calculado_en&quot;) val calculadoEn: String? = null</span>
+<span class="nc" id="L107">)</span>
+
+// ─── PROMEDIOS ─────────────────────────────────────────────────────────
+<span class="nc" id="L110">data class PromedioTrimestralDTO(</span>
+<span class="nc" id="L111">    @SerializedName(&quot;id_promedio&quot;) val idPromedio: Long = 0,</span>
+<span class="nc" id="L112">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L113">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L114">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L115">    @SerializedName(&quot;promedio_formativo&quot;) val promedioFormativo: Double = 0.0,</span>
+<span class="nc" id="L116">    @SerializedName(&quot;nota_sumativa&quot;) val notaSumativa: Double = 0.0,</span>
+<span class="nc" id="L117">    @SerializedName(&quot;promedio_trimestral&quot;) val promedioTrimestral: Double = 0.0,</span>
+<span class="nc" id="L118">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String = &quot;D&quot;,</span>
+<span class="nc" id="L119">    @SerializedName(&quot;calculado_en&quot;) val calculadoEn: String? = null</span>
+<span class="nc" id="L120">)</span>
+
+<span class="nc" id="L122">data class PromedioAnualDTO(</span>
+<span class="nc" id="L123">    @SerializedName(&quot;id_promedio_anual&quot;) val idPromedioAnual: Long = 0,</span>
+<span class="nc" id="L124">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L125">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L126">    @SerializedName(&quot;id_ano_lectivo&quot;) val idAnoLectivo: Long,</span>
+<span class="nc" id="L127">    @SerializedName(&quot;promedio_anual&quot;) val promedioAnual: Double = 0.0,</span>
+<span class="nc" id="L128">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String = &quot;D&quot;,</span>
+<span class="nc" id="L129">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long? = null,</span>
+<span class="nc" id="L130">    @SerializedName(&quot;calculado_en&quot;) val calculadoEn: String? = null</span>
+<span class="nc" id="L131">)</span>
+
+<span class="nc" id="L133">data class PromedioAnualDetalleDTO(</span>
+<span class="nc" id="L134">    @SerializedName(&quot;id_detalle&quot;) val idDetalle: Long = 0,</span>
+<span class="nc" id="L135">    @SerializedName(&quot;id_promedio_anual&quot;) val idPromedioAnual: Long,</span>
+<span class="nc" id="L136">    @SerializedName(&quot;id_promedio_trim&quot;) val idPromedioTrim: Long</span>
+<span class="nc" id="L137">)</span>
+
+// ─── SEGUIMIENTO ACADÉMICO ─────────────────────────────────────────────
+<span class="nc" id="L140">data class SeguimientoAcademicoDTO(</span>
+<span class="nc" id="L141">    @SerializedName(&quot;id_seguimiento&quot;) val idSeguimiento: Long,</span>
+<span class="nc" id="L142">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L143">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L144">    @SerializedName(&quot;categoria&quot;) val categoria: String, // ACADEMICO, CONDUCTUAL, DECE, MEDICO, FAMILIAR, OTRO</span>
+<span class="nc" id="L145">    @SerializedName(&quot;descripcion&quot;) val descripcion: String,</span>
+<span class="nc" id="L146">    @SerializedName(&quot;acciones_tomadas&quot;) val accionesTomadas: String? = null,</span>
+<span class="nc" id="L147">    @SerializedName(&quot;requiere_followup&quot;) val requiereFollowup: Boolean = false,</span>
+<span class="nc" id="L148">    @SerializedName(&quot;fecha_evento&quot;) val fechaEvento: String,</span>
+<span class="nc" id="L149">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long? = null,</span>
+<span class="nc" id="L150">    @SerializedName(&quot;fecha_registro&quot;) val fechaRegistro: String? = null</span>
+<span class="nc" id="L151">)</span>
+
+<span class="nc" id="L153">data class SeguimientoCreateDTO(</span>
+<span class="nc" id="L154">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L155">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L156">    @SerializedName(&quot;categoria&quot;) val categoria: String,</span>
+<span class="nc" id="L157">    @SerializedName(&quot;descripcion&quot;) val descripcion: String,</span>
+<span class="nc" id="L158">    @SerializedName(&quot;acciones_tomadas&quot;) val accionesTomadas: String? = null,</span>
+<span class="nc" id="L159">    @SerializedName(&quot;requiere_followup&quot;) val requiereFollowup: Boolean = false,</span>
+<span class="nc" id="L160">    @SerializedName(&quot;fecha_evento&quot;) val fechaEvento: String,</span>
+<span class="nc" id="L161">    @SerializedName(&quot;registrado_por&quot;) val registradoPor: Long</span>
+<span class="nc" id="L162">)</span>
+
+// ─── ANUNCIOS ──────────────────────────────────────────────────────────
+<span class="nc" id="L165">data class AnuncioDTO(</span>
+<span class="nc" id="L166">    @SerializedName(&quot;id_anuncio&quot;) val idAnuncio: Long,</span>
+<span class="nc" id="L167">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L168">    @SerializedName(&quot;titulo&quot;) val titulo: String?,</span>
+<span class="nc" id="L169">    @SerializedName(&quot;contenido&quot;) val contenido: String?,</span>
+<span class="nc" id="L170">    @SerializedName(&quot;autor_id&quot;) val autorId: Long? = null,</span>
+<span class="nc" id="L171">    @SerializedName(&quot;fecha&quot;) val fecha: String? = null,</span>
+<span class="nc" id="L172">    @SerializedName(&quot;fijado&quot;) val fijado: Boolean = false</span>
+<span class="nc" id="L173">)</span>
+
+<span class="nc" id="L175">data class AnuncioCreateDTO(</span>
+<span class="nc" id="L176">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L177">    @SerializedName(&quot;titulo&quot;) val titulo: String,</span>
+<span class="nc" id="L178">    @SerializedName(&quot;contenido&quot;) val contenido: String,</span>
+<span class="nc" id="L179">    @SerializedName(&quot;autor_id&quot;) val autorId: Long? = null,</span>
+<span class="nc" id="L180">    @SerializedName(&quot;fijado&quot;) val fijado: Boolean = false</span>
+<span class="nc" id="L181">)</span>
+
+// ─── MATERIALES ────────────────────────────────────────────────────────
+<span class="nc" id="L184">data class MaterialDTO(</span>
+<span class="nc" id="L185">    @SerializedName(&quot;id_material&quot;) val idMaterial: Long,</span>
+<span class="nc" id="L186">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L187">    @SerializedName(&quot;tipo&quot;) val tipo: String? = null,</span>
+<span class="nc" id="L188">    @SerializedName(&quot;titulo&quot;) val titulo: String?,</span>
+<span class="nc" id="L189">    @SerializedName(&quot;descripcion&quot;) val descripcion: String? = null,</span>
+<span class="nc" id="L190">    @SerializedName(&quot;url&quot;) val url: String,</span>
+<span class="nc" id="L191">    @SerializedName(&quot;tamano_bytes&quot;) val tamanoBytes: Long? = null,</span>
+<span class="nc" id="L192">    @SerializedName(&quot;fecha&quot;) val fecha: String? = null</span>
+<span class="nc" id="L193">)</span>
+
+<span class="nc" id="L195">data class MaterialCreateDTO(</span>
+<span class="nc" id="L196">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L197">    @SerializedName(&quot;tipo&quot;) val tipo: String? = &quot;ENLACE&quot;,</span>
+<span class="nc" id="L198">    @SerializedName(&quot;titulo&quot;) val titulo: String,</span>
+<span class="nc" id="L199">    @SerializedName(&quot;descripcion&quot;) val descripcion: String? = null,</span>
+<span class="nc" id="L200">    @SerializedName(&quot;url&quot;) val url: String</span>
+<span class="nc" id="L201">)</span>
+
+// ─── AULA VIRTUAL ──────────────────────────────────────────────────────
+<span class="nc" id="L204">data class PeriodoSimpleDTO(</span>
+<span class="nc" id="L205">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L206">    @SerializedName(&quot;nombre&quot;) val nombre: String,</span>
+<span class="nc" id="L207">    @SerializedName(&quot;fecha_inicio&quot;) val fechaInicio: String,</span>
+<span class="nc" id="L208">    @SerializedName(&quot;fecha_fin&quot;) val fechaFin: String</span>
+)
+
+<span class="nc" id="L211">data class CursoResumenDTO(</span>
+<span class="nc" id="L212">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L213">    @SerializedName(&quot;id_ano_lectivo&quot;) val idAnoLectivo: Long,</span>
+<span class="nc" id="L214">    @SerializedName(&quot;promedio_curso&quot;) val promedioCurso: Double? = null,</span>
+<span class="nc" id="L215">    @SerializedName(&quot;porcentaje_asistencia&quot;) val porcentajeAsistencia: Double? = null,</span>
+<span class="nc" id="L216">    @SerializedName(&quot;registros_asistencia&quot;) val registrosAsistencia: Int = 0,</span>
+<span class="nc" id="L217">    @SerializedName(&quot;indicador_minimos&quot;) val indicadorMinimos: String? = null,</span>
+<span class="nc" id="L218">    @SerializedName(&quot;fecha_inicio&quot;) val fechaInicio: String? = null,</span>
+<span class="nc" id="L219">    @SerializedName(&quot;fecha_fin&quot;) val fechaFin: String? = null,</span>
+<span class="nc" id="L220">    @SerializedName(&quot;periodos&quot;) val periodos: List&lt;PeriodoSimpleDTO&gt; = emptyList()</span>
+<span class="nc" id="L221">)</span>
+
+<span class="nc" id="L223">data class AulaVirtualResumenResponseDTO(</span>
+<span class="nc" id="L224">    @SerializedName(&quot;cursos&quot;) val cursos: List&lt;CursoResumenDTO&gt; = emptyList()</span>
+<span class="nc" id="L225">)</span>
+
+<span class="nc" id="L227">data class ActividadResumenDTO(</span>
+<span class="nc" id="L228">    @SerializedName(&quot;id_actividad&quot;) val idActividad: Long,</span>
+<span class="nc" id="L229">    @SerializedName(&quot;nombre&quot;) val nombre: String,</span>
+<span class="nc" id="L230">    @SerializedName(&quot;tipo&quot;) val tipo: String,</span>
+<span class="nc" id="L231">    @SerializedName(&quot;descripcion&quot;) val descripcion: String? = null,</span>
+<span class="nc" id="L232">    @SerializedName(&quot;fecha_entrega&quot;) val fechaEntrega: String,</span>
+<span class="nc" id="L233">    @SerializedName(&quot;ponderacion&quot;) val ponderacion: Double = 0.0,</span>
+<span class="nc" id="L234">    @SerializedName(&quot;nota_maxima&quot;) val notaMaxima: Double = 10.0,</span>
+<span class="nc" id="L235">    @SerializedName(&quot;es_sumativa&quot;) val esSumativa: Boolean = false</span>
+<span class="nc" id="L236">)</span>
+
+<span class="nc" id="L238">data class AsistenciaResumenDTO(</span>
+<span class="nc" id="L239">    @SerializedName(&quot;id_asistencia&quot;) val idAsistencia: Long,</span>
+<span class="nc" id="L240">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L241">    @SerializedName(&quot;fecha&quot;) val fecha: String,</span>
+<span class="nc" id="L242">    @SerializedName(&quot;estado&quot;) val estado: String,</span>
+<span class="nc" id="L243">    @SerializedName(&quot;justificacion&quot;) val justificacion: String? = null</span>
+<span class="nc" id="L244">)</span>
+
+<span class="nc" id="L246">data class CalificacionResumenDTO(</span>
+<span class="nc" id="L247">    @SerializedName(&quot;id_calificacion&quot;) val idCalificacion: Long,</span>
+<span class="nc" id="L248">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L249">    @SerializedName(&quot;id_actividad&quot;) val idActividad: Long,</span>
+<span class="nc" id="L250">    @SerializedName(&quot;actividad&quot;) val actividad: String? = null,</span>
+<span class="nc" id="L251">    @SerializedName(&quot;nota&quot;) val nota: Double,</span>
+<span class="nc" id="L252">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String? = null,</span>
+<span class="nc" id="L253">    @SerializedName(&quot;fecha_registro&quot;) val fechaRegistro: String? = null</span>
+<span class="nc" id="L254">)</span>
+
+<span class="nc" id="L256">data class SemanaDTO(</span>
+<span class="nc" id="L257">    @SerializedName(&quot;numero&quot;) val numero: Int,</span>
+<span class="nc" id="L258">    @SerializedName(&quot;fecha_inicio&quot;) val fechaInicio: String,</span>
+<span class="nc" id="L259">    @SerializedName(&quot;fecha_fin&quot;) val fechaFin: String,</span>
+<span class="nc" id="L260">    @SerializedName(&quot;actividades&quot;) val actividades: List&lt;ActividadResumenDTO&gt; = emptyList(),</span>
+<span class="nc" id="L261">    @SerializedName(&quot;asistencias&quot;) val asistencias: List&lt;AsistenciaResumenDTO&gt; = emptyList(),</span>
+<span class="nc" id="L262">    @SerializedName(&quot;materiales&quot;) val materiales: List&lt;MaterialDTO&gt; = emptyList(),</span>
+<span class="nc" id="L263">    @SerializedName(&quot;anuncios&quot;) val anuncios: List&lt;AnuncioDTO&gt; = emptyList(),</span>
+<span class="nc" id="L264">    @SerializedName(&quot;calificaciones&quot;) val calificaciones: List&lt;CalificacionResumenDTO&gt; = emptyList()</span>
+<span class="nc" id="L265">)</span>
+
+<span class="nc" id="L267">data class TrimestreSemanasDTO(</span>
+<span class="nc" id="L268">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L269">    @SerializedName(&quot;trimestre&quot;) val trimestre: String,</span>
+<span class="nc" id="L270">    @SerializedName(&quot;tipo&quot;) val tipo: String,</span>
+<span class="nc" id="L271">    @SerializedName(&quot;fecha_inicio&quot;) val fechaInicio: String,</span>
+<span class="nc" id="L272">    @SerializedName(&quot;fecha_fin&quot;) val fechaFin: String,</span>
+<span class="nc" id="L273">    @SerializedName(&quot;semanas&quot;) val semanas: List&lt;SemanaDTO&gt; = emptyList()</span>
+<span class="nc" id="L274">)</span>
+
+<span class="nc" id="L276">data class PendienteDTO(</span>
+<span class="nc" id="L277">    @SerializedName(&quot;tipo&quot;) val tipo: String,</span>
+<span class="nc" id="L278">    @SerializedName(&quot;titulo&quot;) val titulo: String,</span>
+<span class="nc" id="L279">    @SerializedName(&quot;fecha&quot;) val fecha: String,</span>
+<span class="nc" id="L280">    @SerializedName(&quot;dias_restantes&quot;) val diasRestantes: Int? = null</span>
+<span class="nc" id="L281">)</span>
+
+<span class="nc" id="L283">data class AulaVirtualSemanasResponseDTO(</span>
+<span class="nc" id="L284">    @SerializedName(&quot;trimestres&quot;) val trimestres: List&lt;TrimestreSemanasDTO&gt; = emptyList(),</span>
+<span class="nc" id="L285">    @SerializedName(&quot;pendientes&quot;) val pendientes: List&lt;PendienteDTO&gt; = emptyList()</span>
+<span class="nc" id="L286">)</span>
+
+// ─── HORARIOS ──────────────────────────────────────────────────────────
+<span class="nc" id="L289">data class PeriodoHorarioDTO(</span>
+<span class="nc" id="L290">    @SerializedName(&quot;idPeriodo&quot;) val idPeriodo: Int,</span>
+<span class="nc" id="L291">    @SerializedName(&quot;nombre&quot;) val nombre: String,</span>
+<span class="nc" id="L292">    @SerializedName(&quot;horaInicio&quot;) val horaInicio: String,</span>
+<span class="nc" id="L293">    @SerializedName(&quot;horaFin&quot;) val horaFin: String,</span>
+<span class="nc" id="L294">    @SerializedName(&quot;orden&quot;) val orden: Int,</span>
+<span class="nc" id="L295">    @SerializedName(&quot;activo&quot;) val activo: Boolean = true</span>
+<span class="nc" id="L296">)</span>
+
+<span class="nc" id="L298">data class HorarioSlotDTO(</span>
+<span class="nc" id="L299">    @SerializedName(&quot;idHorario&quot;) val idHorario: Long,</span>
+<span class="nc" id="L300">    @SerializedName(&quot;idAsignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L301">    @SerializedName(&quot;diaSemana&quot;) val diaSemana: Int, // 1=Lunes .. 5=Viernes</span>
+<span class="nc" id="L302">    @SerializedName(&quot;idPeriodo&quot;) val idPeriodo: Int,</span>
+<span class="nc" id="L303">    @SerializedName(&quot;horaInicio&quot;) val horaInicio: String,</span>
+<span class="nc" id="L304">    @SerializedName(&quot;horaFin&quot;) val horaFin: String,</span>
+<span class="nc" id="L305">    @SerializedName(&quot;aula&quot;) val aula: String? = null,</span>
+<span class="nc" id="L306">    @SerializedName(&quot;asignatura&quot;) val asignatura: String,</span>
+<span class="nc" id="L307">    @SerializedName(&quot;docente&quot;) val docente: String,</span>
+<span class="nc" id="L308">    @SerializedName(&quot;grado&quot;) val grado: String,</span>
+<span class="nc" id="L309">    @SerializedName(&quot;paralelo&quot;) val paralelo: String</span>
+<span class="nc" id="L310">)</span>
+
+<span class="nc" id="L312">data class HorarioGrillaResponseDTO(</span>
+<span class="nc" id="L313">    @SerializedName(&quot;periodos&quot;) val periodos: List&lt;PeriodoHorarioDTO&gt; = emptyList(),</span>
+<span class="nc" id="L314">    @SerializedName(&quot;slots&quot;) val slots: List&lt;HorarioSlotDTO&gt; = emptyList(),</span>
+<span class="nc" id="L315">    @SerializedName(&quot;totalHoras&quot;) val totalHoras: Int? = null</span>
+<span class="nc" id="L316">)</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

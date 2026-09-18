@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncWorker.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.sync</a> &gt; <span class="el_source">SyncWorker.kt</span></div><h1>SyncWorker.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.sync
+
+import android.content.Context
+import androidx.work.*
+import ec.edu.uteq.sga.representante.SgaRepresentanteApp
+import ec.edu.uteq.sga.representante.core.Resource
+import kotlinx.coroutines.flow.first
+import java.util.concurrent.TimeUnit
+
+<span class="nc" id="L10">class SyncWorker(</span>
+    appContext: Context,
+    workerParams: WorkerParameters
+<span class="nc" id="L13">) : CoroutineWorker(appContext, workerParams) {</span>
+
+<span class="nc" id="L15">    override suspend fun doWork(): Result {</span>
+<span class="nc" id="L16">        val app = applicationContext as SgaRepresentanteApp</span>
+<span class="nc bnc" id="L17" title="All 2 branches missed.">        val representados = app.representanteRepository.getRepresentados().first { it !is Resource.Loading }</span>
+<span class="nc bnc" id="L18" title="All 2 branches missed.">        if (representados !is Resource.Success) return Result.retry()</span>
+<span class="nc bnc" id="L19" title="All 2 branches missed.">        val comunicados = app.representanteRepository.getComunicados().first { it !is Resource.Loading }</span>
+<span class="nc bnc" id="L20" title="All 2 branches missed.">        if (comunicados !is Resource.Success) return Result.retry()</span>
+<span class="nc bnc" id="L21" title="All 2 branches missed.">        for (representado in representados.data) {</span>
+<span class="nc bnc" id="L22" title="All 2 branches missed.">            val notas = app.representanteRepository.getCalificaciones(representado.idEstudiante).first { it !is Resource.Loading }</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">            val asistencia = app.representanteRepository.getAsistencia(representado.idEstudiante).first { it !is Resource.Loading }</span>
+<span class="nc bnc" id="L24" title="All 4 branches missed.">            if (notas !is Resource.Success || asistencia !is Resource.Success) return Result.retry()</span>
+        }
+<span class="nc" id="L26">        return Result.success()</span>
+    }
+
+    companion object {
+        const val WORK_NAME = &quot;sga_representante_cache_refresh&quot;
+
+        fun schedulePeriodicSync(context: Context) {
+<span class="nc" id="L33">            val constraints = Constraints.Builder()</span>
+<span class="nc" id="L34">                .setRequiredNetworkType(NetworkType.CONNECTED)</span>
+<span class="nc" id="L35">                .build()</span>
+
+<span class="nc" id="L37">            val syncRequest = PeriodicWorkRequestBuilder&lt;SyncWorker&gt;(15, TimeUnit.MINUTES)</span>
+<span class="nc" id="L38">                .setConstraints(constraints)</span>
+<span class="nc" id="L39">                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)</span>
+<span class="nc" id="L40">                .build()</span>
+
+<span class="nc" id="L42">            WorkManager.getInstance(context).enqueueUniquePeriodicWork(</span>
+<span class="nc" id="L43">                WORK_NAME,</span>
+<span class="nc" id="L44">                ExistingPeriodicWorkPolicy.KEEP,</span>
+<span class="nc" id="L45">                syncRequest</span>
+            )
+<span class="nc" id="L47">        }</span>
+
+        fun triggerImmediateSync(context: Context) {
+<span class="nc" id="L50">            val constraints = Constraints.Builder()</span>
+<span class="nc" id="L51">                .setRequiredNetworkType(NetworkType.CONNECTED)</span>
+<span class="nc" id="L52">                .build()</span>
+
+<span class="nc" id="L54">            val oneTimeRequest = OneTimeWorkRequestBuilder&lt;SyncWorker&gt;()</span>
+<span class="nc" id="L55">                .setConstraints(constraints)</span>
+<span class="nc" id="L56">                .build()</span>
+
+<span class="nc" id="L58">            WorkManager.getInstance(context).enqueue(oneTimeRequest)</span>
+<span class="nc" id="L59">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityScreens.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.security</a> &gt; <span class="el_source">SecurityScreens.kt</span></div><h1>SecurityScreens.kt</h1><pre class="source lang-java linenums">@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+package ec.edu.uteq.sga.representante.ui.screens.security
+
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.core.BiometricResult
+import ec.edu.uteq.sga.representante.core.BiometricUnlockGate
+import ec.edu.uteq.sga.representante.notifications.NotificationSupport
+
+private const val AUTHENTICATORS = BiometricManager.Authenticators.BIOMETRIC_STRONG or
+    BiometricManager.Authenticators.BIOMETRIC_WEAK
+
+fun isBiometricAvailable(activity: FragmentActivity): Boolean =
+<span class="nc bnc" id="L39" title="All 2 branches missed.">    BiometricManager.from(activity).canAuthenticate(AUTHENTICATORS) == BiometricManager.BIOMETRIC_SUCCESS</span>
+
+private fun authenticate(
+    activity: FragmentActivity,
+    onSuccess: () -&gt; Unit,
+    onError: (String) -&gt; Unit
+) {
+<span class="nc" id="L46">    val prompt = BiometricPrompt(activity, ContextCompat.getMainExecutor(activity), object : BiometricPrompt.AuthenticationCallback() {</span>
+        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            if (BiometricUnlockGate.mayEnterHome(BiometricResult.SUCCESS)) onSuccess()</span>
+<span class="nc" id="L49">        }</span>
+<span class="nc" id="L50">        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) = onError(errString.toString())</span>
+<span class="nc" id="L51">        override fun onAuthenticationFailed() = onError(&quot;No se reconoció la biometría. Intenta nuevamente.&quot;)</span>
+    })
+<span class="nc" id="L53">    val info = BiometricPrompt.PromptInfo.Builder()</span>
+<span class="nc" id="L54">        .setTitle(&quot;Acceder a SGA Representante&quot;)</span>
+<span class="nc" id="L55">        .setSubtitle(&quot;Confirma tu identidad para proteger la sesión guardada&quot;)</span>
+<span class="nc" id="L56">        .setAllowedAuthenticators(AUTHENTICATORS)</span>
+<span class="nc" id="L57">        .setNegativeButtonText(&quot;Cancelar&quot;)</span>
+<span class="nc" id="L58">        .build()</span>
+<span class="nc" id="L59">    prompt.authenticate(info)</span>
+<span class="nc" id="L60">}</span>
+
+@Composable
+<span class="nc" id="L63">fun BiometricUnlockScreen(session: SessionManager, onUnlocked: () -&gt; Unit, onUseLogin: () -&gt; Unit) {</span>
+<span class="nc" id="L64">    val activity = LocalContext.current as FragmentActivity</span>
+<span class="nc" id="L65">    var error by remember { mutableStateOf&lt;String?&gt;(null) }</span>
+<span class="nc" id="L66">    val launch = { authenticate(activity, onUnlocked) { error = it } }</span>
+<span class="nc" id="L67">    LaunchedEffect(Unit) { launch() }</span>
+
+<span class="nc" id="L69">    Scaffold(topBar = { TopAppBar(title = { Text(&quot;Sesión protegida&quot;) }) }) { padding -&gt;</span>
+<span class="nc" id="L70">        Column(Modifier.padding(padding).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {</span>
+<span class="nc" id="L71">            Text(&quot;Usa la biometría del dispositivo para desbloquear tu sesión válida.&quot;)</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }</span>
+<span class="nc" id="L73">            Button(onClick = launch) { Text(&quot;Desbloquear con biometría&quot;) }</span>
+<span class="nc" id="L74">            TextButton(onClick = { session.clearSession(); onUseLogin() }) { Text(&quot;Usar usuario y contraseña&quot;) }</span>
+<span class="nc" id="L75">        }</span>
+    }
+<span class="nc" id="L77">}</span>
+
+@Composable
+<span class="nc" id="L80">fun BiometricFallbackScreen(session: SessionManager, onUseLogin: () -&gt; Unit) {</span>
+<span class="nc" id="L81">    Scaffold(topBar = { TopAppBar(title = { Text(&quot;Biometría no disponible&quot;) }) }) { padding -&gt;</span>
+<span class="nc" id="L82">        Column(Modifier.padding(padding).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {</span>
+<span class="nc" id="L83">            Text(&quot;La biometría configurada no está disponible. Inicia sesión nuevamente con tus credenciales.&quot;)</span>
+<span class="nc" id="L84">            Button(onClick = { session.clearSession(); onUseLogin() }) { Text(&quot;Ir al inicio de sesión&quot;) }</span>
+<span class="nc" id="L85">        }</span>
+    }
+<span class="nc" id="L87">}</span>
+
+@Composable
+<span class="nc" id="L90">fun SecurityScreen(session: SessionManager, back: () -&gt; Unit) {</span>
+<span class="nc" id="L91">    val activity = LocalContext.current as FragmentActivity</span>
+<span class="nc" id="L92">    var biometricEnabled by remember { mutableStateOf(session.isBiometricEnabled()) }</span>
+<span class="nc" id="L93">    var notificationsEnabled by remember { mutableStateOf(session.areNotificationsEnabled()) }</span>
+<span class="nc" id="L94">    var message by remember { mutableStateOf&lt;String?&gt;(null) }</span>
+<span class="nc" id="L95">    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -&gt;</span>
+<span class="nc" id="L96">        notificationsEnabled = granted</span>
+<span class="nc" id="L97">        session.setNotificationsEnabled(granted)</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (granted) NotificationSupport.schedule(activity) else NotificationSupport.cancel(activity)</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (!granted) message = &quot;El permiso de notificaciones no fue concedido.&quot;</span>
+<span class="nc" id="L100">    }</span>
+
+<span class="nc" id="L102">    Scaffold(</span>
+<span class="nc" id="L103">        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),</span>
+<span class="nc" id="L104">        topBar = { TopAppBar(title = { Text(&quot;Seguridad&quot;, fontWeight = FontWeight.SemiBold) }, navigationIcon = {</span>
+<span class="nc" id="L105">            IconButton(onClick = back) { Icon(Icons.Default.ArrowBack, &quot;Volver&quot;) }</span>
+        }) }
+<span class="nc" id="L107">    ) { padding -&gt;</span>
+<span class="nc" id="L108">        Column(</span>
+<span class="nc" id="L109">            Modifier.padding(padding).padding(horizontal = 16.dp, vertical = 14.dp).verticalScroll(rememberScrollState()),</span>
+<span class="nc" id="L110">            verticalArrangement = Arrangement.spacedBy(14.dp)</span>
+        ) {
+<span class="nc" id="L112">            Text(&quot;Protección y alertas&quot;, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L113">            Text(&quot;Administre cómo protege su acceso y recibe avisos.&quot;, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+
+<span class="nc" id="L115">            SecuritySection(&quot;Biometría&quot;, Icons.Default.Fingerprint, MaterialTheme.colorScheme.primary) {</span>
+<span class="nc" id="L116">                SettingSwitch(&quot;Usar biometría para desbloquear&quot;, biometricEnabled) { enabled -&gt;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (!enabled) {</span>
+<span class="nc" id="L118">                    biometricEnabled = false</span>
+<span class="nc" id="L119">                    session.setBiometricEnabled(false)</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                } else if (!isBiometricAvailable(activity)) {</span>
+<span class="nc" id="L121">                    message = &quot;No hay biometría disponible o registrada en este dispositivo.&quot;</span>
+                } else {
+<span class="nc" id="L123">                    authenticate(activity, {</span>
+<span class="nc" id="L124">                        biometricEnabled = true</span>
+<span class="nc" id="L125">                        session.setBiometricEnabled(true)</span>
+<span class="nc" id="L126">                        message = &quot;Desbloqueo biométrico activado.&quot;</span>
+<span class="nc" id="L127">                    }) { message = it }</span>
+                }
+<span class="nc" id="L129">                }</span>
+<span class="nc" id="L130">                Text(&quot;La biometría solo desbloquea una sesión JWT local que siga vigente.&quot;, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+            }
+
+<span class="nc" id="L133">            SecuritySection(&quot;Sesión&quot;, Icons.Default.Security, Color(0xFF0D9488)) {</span>
+<span class="nc" id="L134">                Text(&quot;Su acceso permanece protegido mientras la sesión local siga vigente.&quot;, style = MaterialTheme.typography.bodyMedium)</span>
+            }
+
+<span class="nc" id="L137">            SecuritySection(&quot;Notificaciones&quot;, Icons.Default.Notifications, Color(0xFFD97706)) {</span>
+<span class="nc" id="L138">                SettingSwitch(&quot;Avisarme cuando la sesión expire&quot;, notificationsEnabled) { enabled -&gt;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if (!enabled) {</span>
+<span class="nc" id="L140">                    notificationsEnabled = false</span>
+<span class="nc" id="L141">                    session.setNotificationsEnabled(false)</span>
+<span class="nc" id="L142">                    NotificationSupport.cancel(activity)</span>
+<span class="nc bnc" id="L143" title="All 4 branches missed.">                } else if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.TIRAMISU &amp;&amp; !NotificationSupport.hasPermission(activity)) {</span>
+<span class="nc" id="L144">                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)</span>
+                } else {
+<span class="nc" id="L146">                    notificationsEnabled = true</span>
+<span class="nc" id="L147">                    session.setNotificationsEnabled(true)</span>
+<span class="nc" id="L148">                    NotificationSupport.schedule(activity)</span>
+                }
+<span class="nc" id="L150">                }</span>
+<span class="nc" id="L151">                Text(&quot;Las alertas de expiración son locales. Las notificaciones académicas push se reciben mediante Firebase Cloud Messaging (FCM).&quot;, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</span>
+            }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            message?.let {</span>
+<span class="nc" id="L154">                Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.09f), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {</span>
+<span class="nc" id="L155">                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(12.dp))</span>
+                }
+<span class="nc" id="L157">            }</span>
+<span class="nc" id="L158">        }</span>
+    }
+<span class="nc" id="L160">}</span>
+
+@Composable
+<span class="nc" id="L163">private fun SettingSwitch(label: String, checked: Boolean, onChange: (Boolean) -&gt; Unit) {</span>
+<span class="nc" id="L164">    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {</span>
+<span class="nc" id="L165">        Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)</span>
+<span class="nc" id="L166">        Switch(checked = checked, onCheckedChange = onChange)</span>
+<span class="nc" id="L167">    }</span>
+}
+
+@Composable
+<span class="nc" id="L171">private fun SecuritySection(title: String, icon: ImageVector, accent: Color, content: @Composable ColumnScope.() -&gt; Unit) {</span>
+<span class="nc" id="L172">    ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {</span>
+<span class="nc" id="L173">        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L174">            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {</span>
+<span class="nc" id="L175">                Surface(color = accent.copy(alpha = 0.12f), shape = RoundedCornerShape(12.dp), modifier = Modifier.size(42.dp)) {</span>
+<span class="nc" id="L176">                    Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = accent, modifier = Modifier.size(23.dp)) }</span>
+                }
+<span class="nc" id="L178">                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)</span>
+<span class="nc" id="L179">            }</span>
+<span class="nc" id="L180">            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))</span>
+<span class="nc" id="L181">            content()</span>
+<span class="nc" id="L182">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
