@@ -43,4 +43,4 @@ Salidas esperadas:
 - APK: `app/build/outputs/apk/release/app-release.apk`
 - AAB: `app/build/outputs/bundle/release/app-release.aab`
 
-Antes de publicar, compruebe la firma, calcule el SHA-256 de cada artefacto y confirme `versionName` y `versionCode`. La creación del tag y del GitHub Release es un paso manual y deliberado; no se almacenan tokens ni credenciales de publicación en este proyecto.
+El job `build-mobile-apk` comprueba la configuración de firma, genera el APK y el AAB de Release, verifica sus firmas y calcula el SHA-256 de ambos artefactos. La creación del tag de versión es una acción explícita; al recibir un tag con formato `vN.N.N`, CI comprueba que coincida con `versionName` y publica automáticamente en GitHub Release el `app-release.apk`, `app-release.aab` y `SHA256SUMS.txt` generados y verificados en esa misma ejecución.

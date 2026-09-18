@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 @DisplayName("Pruebas Unitarias: Seguridad, JWT y Argument Resolver")
 class SecurityTest {
 
-    private static final String SECRET = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    private static final String SECRET = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";  // gitleaks:allow
 
     @Test
     @DisplayName("1. AuthenticatedUser -- Roles y permisos jerárquicos")

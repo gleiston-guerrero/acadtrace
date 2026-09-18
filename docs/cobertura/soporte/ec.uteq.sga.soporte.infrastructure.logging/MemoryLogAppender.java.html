@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MemoryLogAppender.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-soporte-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.soporte.infrastructure.logging</a> &gt; <span class="el_source">MemoryLogAppender.java</span></div><h1>MemoryLogAppender.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.soporte.infrastructure.logging;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.AppenderBase;
+
+import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Appender de Logback que guarda en memoria (buffer circular) los ultimos
+ * eventos ERROR/WARN del propio proceso, para que el Dashboard pueda
+ * mostrarlos sin depender de &quot;docker logs&quot; por SSH. Registrado desde
+ * logback-spring.xml.
+ *
+ * Es memoria pura, no persiste entre reinicios -- para eso ya existe el log
+ * de auditoria de negocio (tabla en BD). Esto es solo para diagnostico
+ * operativo rapido de excepciones tecnicas.
+ */
+<span class="fc" id="L24">public class MemoryLogAppender extends AppenderBase&lt;ILoggingEvent&gt; {</span>
+
+    private static final int CAPACIDAD_MAXIMA = 200;
+
+    // Deque no es thread-safe por si solo; se sincroniza manualmente porque
+    // Logback puede invocar append() desde varios hilos concurrentemente.
+<span class="fc" id="L30">    private static final Deque&lt;Map&lt;String, Object&gt;&gt; BUFFER = new ArrayDeque&lt;&gt;(CAPACIDAD_MAXIMA);</span>
+
+    @Override
+    protected void append(ILoggingEvent event) {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (event.getLevel().toInt() &lt; ch.qos.logback.classic.Level.WARN.toInt()) {</span>
+<span class="fc" id="L35">            return; // solo nos interesan WARN y ERROR para el panel de fallos</span>
+        }
+
+<span class="fc" id="L38">        Map&lt;String, Object&gt; entrada = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L39">        entrada.put(&quot;timestamp&quot;, Instant.ofEpochMilli(event.getTimeStamp()).toString());</span>
+<span class="fc" id="L40">        entrada.put(&quot;nivel&quot;, event.getLevel().toString());</span>
+<span class="fc" id="L41">        entrada.put(&quot;logger&quot;, acortarLogger(event.getLoggerName()));</span>
+<span class="fc" id="L42">        entrada.put(&quot;mensaje&quot;, event.getFormattedMessage());</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (event.getThrowableProxy() != null) {</span>
+<span class="fc" id="L44">            entrada.put(&quot;excepcion&quot;, event.getThrowableProxy().getClassName() + &quot;: &quot; + event.getThrowableProxy().getMessage());</span>
+        }
+
+<span class="fc" id="L47">        synchronized (BUFFER) {</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">            if (BUFFER.size() &gt;= CAPACIDAD_MAXIMA) {</span>
+<span class="nc" id="L49">                BUFFER.removeLast();</span>
+            }
+<span class="fc" id="L51">            BUFFER.addFirst(entrada); // mas reciente primero</span>
+<span class="fc" id="L52">        }</span>
+<span class="fc" id="L53">    }</span>
+
+    /** com.foo.bar.MiClase -&gt; MiClase, para no saturar la UI con paquetes completos. */
+    private String acortarLogger(String nombreCompleto) {
+<span class="fc" id="L57">        int i = nombreCompleto.lastIndexOf('.');</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        return i &gt;= 0 ? nombreCompleto.substring(i + 1) : nombreCompleto;</span>
+    }
+
+    public static List&lt;Map&lt;String, Object&gt;&gt; ultimos(int limite) {
+<span class="fc" id="L62">        synchronized (BUFFER) {</span>
+<span class="fc" id="L63">            return BUFFER.stream().limit(limite).collect(Collectors.toList());</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

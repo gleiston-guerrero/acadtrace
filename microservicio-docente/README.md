@@ -69,7 +69,7 @@ SHA256(hash_anterior + JSON_CANONICO(evento, timestamp, payload, Lamport y vecto
 
 ```powershell
 python -m pytest
-python -m pytest --cov=. --cov-report=term-missing --cov-report=html:..\docs\cobertura\docente
+python -m pytest --cov=docentes --cov-fail-under=70 --cov-report=term-missing --cov-report=html:..\docs\cobertura\docente
 python experimentos/verificador_cadena.py
 python experimentos/generador_sintetico.py --salida dataset-docente.json
 ```
