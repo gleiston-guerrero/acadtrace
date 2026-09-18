@@ -60,7 +60,7 @@ Para eliminar el sesgo estocástico y permitir la replicación exacta de los exp
 - **Población Estudiantil:** $N = 344$ estudiantes de educación básica distribuidos uniformemente en 10 grados y paralelos.
 - **Población Docente:** $M = 14$ docentes titulares asignados a las materias curriculares.
 - **Ponderación de Calificaciones (LOEI):** Evaluación Formativa = 70\%, Evaluación Sumativa = 30\%.
-- **Diseño Factorial:** 30 repeticiones $\times$ 4 mecanismos de auditoría $\times$ 5 tipos de manipulación = **120 corridas factoriales independientes**.
+- **Diseño Factorial:** 30 repeticiones $\times$ 4 mecanismos de auditoría $\times$ 5 tipos de manipulación = **600 corridas factoriales independientes**.
 - **Muestras Totales de Manipulación:** 600 eventos transaccionales evaluados individualmente.
 
 ---
@@ -80,11 +80,13 @@ Para eliminar el sesgo estocástico y permitir la replicación exacta de los exp
 
 | Código | Tipo de Ataque / Manipulación | Vector de Inyección | Regla de Detección Violada | Tasa en $M_2$/$M_3$ | Tasa en $M_0$/$M_1$ |
 | :---: | :--- | :--- | :--- | :---: | :---: |
-| **$T_1$** | **Inserción / Modificación directa en BD** | Alteración arbitraria de la nota final en la tabla relacional sin pasar por el servicio. | `HASH_MISMATCH_SHA256`: El hash recalculado del registro no coincide con el hash almacenado. | **100.0\%** | 0.0\% |
-| **$T_2$** | **Borrado de evento transaccional** | Eliminación de una fila intermedia en la cadena histórica de auditoría. | `BROKEN_HASH_CHAIN`: El $H_{\text{prev}}$ del evento subsecuente $e_{i+1}$ no apunta a un nodo existente válido. | **100.0\%** | 0.0\% |
-| **$T_3$** | **Permutación de orden causal (Swap)** | Intercambio de posición entre dos eventos consecutivos en la secuencia. | `LAMPORT_INVARIANT_VIOLATION`: Se detecta que $L(e_i) \ge L(e_{i+1})$, rompiendo el invariante de causalidad. | **100.0\%** | 0.0\% |
-| **$T_4$** | **Inyección de evento retroactivo** | Inserción de una calificación con fecha pasada dentro de la cadena ya cerrada. | `RETROACTIVE_HASH_INVALID`: Invalida recursivamente todos los hashes encadenados posteriores. | **100.0\%** | 0.0\% |
-| **$T_5$** | **Falsificación de timestamp / reloj** | Modificación del timestamp físico o manipulación del contador de Lamport. | `MONOTONIC_TIMESTAMP_VIOLATION` / `HASH_MISMATCH_SHA256`: Discrepancia en la firma del bloque. | **100.0\%** | 0.0\% |
+| **$T_1$** | **Alteración de calificación fuera de la bitácora** | Modificación de la calificación en la tabla simulada sin actualizar el evento de auditoría. | Comparación del estado de la tabla frente a la bitácora protegida. | **100.0\%** | 0.0\% |
+| **$T_2$** | **Alteración del payload protegido** | Modificación de `nota_final` en el payload y en el contenido canónico sin recalcular el hash. | Verificación del contenido canónico y de la cadena almacenada. | **100.0\%** | 0.0\% |
+| **$T_3$** | **Alteración del reloj de Lamport** | Reducción artificial del contador Lamport del evento seleccionado. | Verificación de integridad del contenido canónico y de la cadena. | **100.0\%** | 0.0\% |
+| **$T_4$** | **Eliminación de evento** | Eliminación física del evento seleccionado de la secuencia. | Verificación global de continuidad e integridad de la cadena. | **100.0\%** | 0.0\% |
+| **$T_5$** | **Alteración retroactiva del timestamp** | Retroceso de 86,400 segundos en el timestamp y en el contenido canónico sin recalcular el hash. | Verificación del contenido canónico frente al hash almacenado. | **100.0\%** | 0.0\% |
+
+Los IC 95 % de detección son exactos bilaterales de Clopper-Pearson por mecanismo con n=150 (5 tipos × 30 repeticiones): M0/M1 = 0/150, IC [0.0000 %, 2.4293 %]; M2/M3 = 150/150, IC [97.5707 %, 100.0000 %].
 
 ---
 
@@ -143,10 +145,13 @@ Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para s
 
 La fuente única del bloque evaluado es `experimentos/resultados/exp1_concurrencia.csv`. El archivo contiene 160 registros: 40 observaciones para cada mecanismo M0, M1, M2 y M3. El análisis usa exclusivamente la columna `latencia_mediana_ms`; su entrada y su salida están expresadas directamente en milisegundos (ms), sin multiplicar ni dividir por 1000.
 
+**Alcance de la medición:** este bloque corresponde a un microbenchmark local secuencial en memoria. El factor histórico `concurrencia_docentes` representa tamaño de lote experimental; no demuestra solicitudes simultáneas, acceso real a base de datos ni concurrencia HTTP. Las 40 observaciones por mecanismo se conservan completas.
+
 1. **Estimadores descriptivos:** mediana y percentil 95 ($P_{95}$) de las 40 observaciones por mecanismo.
-2. **Intervalos de confianza (IC 95\%):** Bootstrap no paramétrico de la **mediana**, con $B = 10{,}000$ remuestras y semilla fija `20260831`.
-3. **Generación documental:** `experimentos/generar_tabla_latencias.py` valida la estructura del CSV y genera `Informe-E4_BCEL/tabla_latencias_generada.tex` y `Informe-E4_BCEL/boxplot_latencia.png` desde la misma fuente.
-4. **Resultados inferenciales históricos:** los contrastes Mann-Whitney $U$, valores $p$ y tamaños de efecto Vargha-Delaney asociados a otra fuente no forman parte de los resultados vigentes y no se publican en la tabla regenerada.
+2. **Intervalos de confianza (IC 95\%):** bootstrap no paramétrico de la **mediana**, con $B = 10{,}000$ remuestras y semilla fija `20260831`.
+3. **Magnitud del efecto en unidades originales:** diferencia de medianas de cada mecanismo frente a M0, expresada en ms, con IC 95\% mediante bootstrap no paramétrico independiente con $B = 10{,}000$ y la misma semilla. No se interpreta como tamaño de efecto estandarizado.
+4. **Generación documental:** `experimentos/generar_tabla_latencias.py` valida la estructura del CSV y genera `Informe-E4_BCEL/tabla_latencias_generada.tex` y `Informe-E4_BCEL/boxplot_latencia.png` desde la misma fuente.
+5. **Contrastes históricos descartados:** los contrastes Mann-Whitney $U$, valores $p$ y tamaños de efecto Vargha-Delaney asociados a otra fuente no forman parte de los resultados vigentes.
 
 ---
 
