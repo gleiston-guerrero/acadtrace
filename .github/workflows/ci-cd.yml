@@ -978,13 +978,21 @@ jobs:
           test -s "$AAB"
           test -s SHA256SUMS.txt
 
-          gh release create "$GITHUB_REF_NAME" \
-            "$APK#app-release.apk" \
-            "$AAB#app-release.aab" \
-            "SHA256SUMS.txt#SHA256SUMS.txt" \
-            --target "$GITHUB_SHA" \
-            --title "AcadTrace $GITHUB_REF_NAME" \
-            --notes "Release móvil generado, firmado, verificado y publicado automáticamente por CI desde el commit $GITHUB_SHA."
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" \
+              "$APK#app-release.apk" \
+              "$AAB#app-release.aab" \
+              "SHA256SUMS.txt#SHA256SUMS.txt" \
+              --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "$APK#app-release.apk" \
+              "$AAB#app-release.aab" \
+              "SHA256SUMS.txt#SHA256SUMS.txt" \
+              --target "$GITHUB_SHA" \
+              --title "AcadTrace $GITHUB_REF_NAME" \
+              --notes "Release móvil generado, firmado, verificado y publicado automáticamente por CI desde el commit $GITHUB_SHA."
+          fi
 
   # ─── 7. JOB INTEGRATION & DEPLOY ───────────────────────────────────────────
   integration:
