@@ -62,7 +62,7 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 ### Soporte
 
 - archivo: `release/screenshots/soporte_tickets.png`
-- estado: captura actual del Módulo de Tickets/Kanban. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
+- estado: captura real y actual del portal de Soporte (Módulo de Tickets/tablero Kanban). Su trazabilidad está registrada en [manifest.yml](manifest.yml) y está integrada en el manuscrito; la copia utilizada por el informe está en `Informe-E4_BCEL/soporte_tickets.png`.
 
 ### IA
 

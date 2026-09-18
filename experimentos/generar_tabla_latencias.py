@@ -57,6 +57,9 @@ class MechanismStatistics:
     ci_low_ms: float
     ci_high_ms: float
     p95_ms: float
+    effect_vs_m0_ms: float
+    effect_ci_low_ms: float
+    effect_ci_high_ms: float
 
 
 def percentile(values: list[float], percentage: float) -> float:
@@ -150,14 +153,61 @@ def bootstrap_median_ci(
     )
 
 
+def bootstrap_median_difference_ci(
+    reference: list[float],
+    comparison: list[float],
+    rng: random.Random,
+) -> tuple[float, float]:
+    if len(reference) != len(comparison):
+        raise ValueError(
+            "La referencia M0 y el mecanismo comparado deben tener el mismo n"
+        )
+
+    sample_size = len(reference)
+    bootstrap_differences = []
+
+    for _ in range(BOOTSTRAP_REPLICATES):
+        reference_sample = rng.choices(reference, k=sample_size)
+        comparison_sample = rng.choices(comparison, k=sample_size)
+        bootstrap_differences.append(
+            statistics.median(comparison_sample)
+            - statistics.median(reference_sample)
+        )
+
+    return (
+        percentile(bootstrap_differences, 2.5),
+        percentile(bootstrap_differences, 97.5),
+    )
+
+
 def calculate_statistics(
     samples: dict[str, list[float]],
 ) -> list[MechanismStatistics]:
     rng = random.Random(BOOTSTRAP_SEED)
     results = []
+    reference = samples["M0"]
+    reference_median = statistics.median(reference)
+
     for mechanism in MECHANISMS:
         values = samples[mechanism]
         ci_low_ms, ci_high_ms = bootstrap_median_ci(values, rng)
+
+        if mechanism == "M0":
+            effect_vs_m0_ms = 0.0
+            effect_ci_low_ms = 0.0
+            effect_ci_high_ms = 0.0
+        else:
+            effect_vs_m0_ms = (
+                statistics.median(values) - reference_median
+            )
+            effect_ci_low_ms, effect_ci_high_ms = (
+                bootstrap_median_difference_ci(
+                    reference,
+                    values,
+                    rng,
+                )
+            )
+
         results.append(
             MechanismStatistics(
                 mechanism=mechanism,
@@ -166,13 +216,17 @@ def calculate_statistics(
                 ci_low_ms=ci_low_ms,
                 ci_high_ms=ci_high_ms,
                 p95_ms=percentile(values, 95),
+                effect_vs_m0_ms=effect_vs_m0_ms,
+                effect_ci_low_ms=effect_ci_low_ms,
+                effect_ci_high_ms=effect_ci_high_ms,
             )
         )
+
     return results
 
 
 def format_ms(value: float) -> str:
-    return f"{value:.3f}"
+    return f"{value:.6f}"
 
 
 def build_latex_table(results: list[MechanismStatistics]) -> str:
@@ -184,10 +238,11 @@ def build_latex_table(results: list[MechanismStatistics]) -> str:
         "\\caption{Resumen reproducible de latencia mediana por mecanismo "
         "($B = 10{,}000$; semilla 20260831).}",
         "\\label{tab:estadistica-inferencial}",
-        "\\begin{tabular}{|l|c|c|c|c|}",
+        "\\begin{tabular}{|l|c|c|c|c|c|}",
         "\\hline",
         "\\textbf{Mecanismo} & \\textbf{$n$} & \\textbf{Mediana (ms)} & "
-        "\\textbf{IC 95\\% bootstrap (ms)} & \\textbf{$P_{95}$ (ms)} \\\\",
+        "\\textbf{IC 95\\% bootstrap (ms)} & \\textbf{$P_{95}$ (ms)} & "
+        "\\textbf{$\\Delta$ mediana vs. $M_0$ (ms), IC 95\\%} \\\\",
         "\\hline",
     ]
     for result in results:
@@ -198,7 +253,10 @@ def build_latex_table(results: list[MechanismStatistics]) -> str:
                 f"$M_{mechanism_number}$ ({label}) & {result.count} & "
                 f"{format_ms(result.median_ms)} & "
                 f"[{format_ms(result.ci_low_ms)}, {format_ms(result.ci_high_ms)}] & "
-                f"{format_ms(result.p95_ms)} \\\\",
+                f"{format_ms(result.p95_ms)} & "
+                f"{format_ms(result.effect_vs_m0_ms)} "
+                f"[{format_ms(result.effect_ci_low_ms)}, "
+                f"{format_ms(result.effect_ci_high_ms)}] \\\\",
                 "\\hline",
             ]
         )
@@ -210,9 +268,13 @@ def build_latex_table(results: list[MechanismStatistics]) -> str:
             "\\footnotesize Fuente: \\texttt{experimentos/resultados/exp1\\_concurrencia.csv}, "
             "columna \\texttt{latencia\\_mediana\\_ms}. Entrada y salida expresadas "
             "directamente en milisegundos (ms), sin conversi\\'on adicional. "
-            "Cada mecanismo contiene $n=40$ observaciones. El IC 95\\% corresponde "
-            "al bootstrap no param\\'etrico de la mediana con $B=10{,}000$ y semilla "
-            "fija 20260831.",
+            "Cada mecanismo contiene $n=40$ observaciones. El IC 95\\% de la mediana "
+            "corresponde al bootstrap no param\\'etrico con $B=10{,}000$ y semilla "
+            "fija 20260831. La magnitud $\\Delta$ mediana vs. $M_0$ se define como "
+            "la mediana del mecanismo menos la mediana de $M_0$; su IC 95\\% se "
+            "obtiene mediante bootstrap no param\\'etrico independiente con "
+            "$B=10{,}000$ y la misma semilla fija. No se reportan contrastes de "
+            "hip\\'otesis ni valores $p$.",
             "\\end{minipage}",
             "\\end{table}",
             "",
@@ -275,7 +337,7 @@ def build_boxplot(
         axis.set_ylabel(
             "latencia_mediana_ms (ms)", fontsize=11, fontweight="semibold"
         )
-        axis.yaxis.set_major_formatter(FormatStrFormatter("%.3f"))
+        axis.yaxis.set_major_formatter(FormatStrFormatter("%.6f"))
         axis.grid(axis="y", linestyle=":", alpha=0.6, color="#cbd5e1")
 
         vertical_span = max(

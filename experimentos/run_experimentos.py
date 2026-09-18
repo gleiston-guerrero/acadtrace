@@ -287,8 +287,17 @@ def percentile(data: List[float], p: float) -> float:
     return d0 + d1
 
 
-def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[str, Any]]:
-    print(f"[1/5] Ejecutando Experimento 1 (Concurrencia) â€” Modo: {'HTTP EN VIVO' if client.is_live else 'CRIPTO-ENGINE LOCAL'}...")
+def ejecutar_experimento_1_concurrencia(
+    client: LiveBackendClient,
+    *,
+    escribir_resultados: bool = True,
+) -> List[Dict[str, Any]]:
+    # En modo local este experimento es un microbenchmark secuencial.
+    # Los valores 1, 5, 10 y 14 controlan el tamaño del lote
+    # (20 operaciones por unidad); no representan usuarios simultáneos.
+    # Se conserva el nombre histórico concurrencia_docentes en el CSV
+    # para mantener compatibilidad con el generador reproducible.
+    print(f"[1/5] Ejecutando Experimento 1 ({'HTTP' if client.is_live else 'microbenchmark secuencial'}) — Modo: {'HTTP EN VIVO' if client.is_live else 'CRIPTO-ENGINE LOCAL'}...")
     concurrencias = [1, 5, 10, 14]
     mecanismos = ["M0", "M1", "M2", "M3"]
     repeticiones = 10
@@ -303,6 +312,8 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
 
             for rep in range(1, repeticiones + 1):
                 t_inicio = time.perf_counter()
+                # En local, conc es únicamente el factor histórico de tamaño
+                # de lote. La ejecución de estas operaciones es secuencial.
                 transacciones = conc * 20
                 latencias_op = []
 
@@ -316,15 +327,15 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
                     nota = 8.5
 
                     if client.is_live:
-                        ok, lat_ms, status = client.enviar_calificacion_http(est_id, doc_id, nota)
-                        if not ok:
-                            raise RuntimeError(f"Falló la transacción HTTP: estado {status}")
-
                         ok, lat_ms, status = client.enviar_calificacion_http(
                             est_id,
                             doc_id,
                             nota,
                         )
+                        if not ok:
+                            raise RuntimeError(
+                                f"Falló la transacción HTTP: estado {status}"
+                            )
                         latencias_op.append(lat_ms)
                     else:
                         t_op0 = time.perf_counter_ns()
@@ -368,22 +379,9 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
 
                         t_op1 = time.perf_counter_ns()
 
-                        base_net = 1.25 + (conc * 0.35)
-                        overhead_mec = {
-                            "M0": 0.0,
-                            "M1": 2.15,
-                            "M2": 4.85,
-                            "M3": 7.30,
-                        }[mec]
-                        jitter = random.gauss(0, 0.35)
-
-                        lat_op = max(
-                            0.5,
-                            base_net
-                            + overhead_mec
-                            + (t_op1 - t_op0) / 1e6
-                            + jitter,
-                        )
+                        # Microbenchmark local: únicamente tiempo observado.
+                        # No se añaden latencias, sobrecargas ni ruido sintético.
+                        lat_op = (t_op1 - t_op0) / 1e6
                         latencias_op.append(lat_op)
 
 
@@ -397,19 +395,28 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
                     "repeticion": rep,
                     "transacciones_totales": transacciones,
                     "throughput_tps": throughput,
-                    "latencia_media_ms": round(statistics.mean(latencias_op), 3),
-                    "latencia_mediana_ms": round(statistics.median(latencias_op), 3),
-                    "latencia_p95_ms": round(percentile(latencias_op, 95), 3),
-                    "latencia_p99_ms": round(percentile(latencias_op, 99), 3),
-                    "desviacion_std_ms": round(statistics.stdev(latencias_op) if len(latencias_op) > 1 else 0.0, 3)
+                    "latencia_media_ms": round(statistics.mean(latencias_op), 6),
+                    "latencia_mediana_ms": round(statistics.median(latencias_op), 6),
+                    "latencia_p95_ms": round(percentile(latencias_op, 95), 6),
+                    "latencia_p99_ms": round(percentile(latencias_op, 99), 6),
+                    "desviacion_std_ms": round(statistics.stdev(latencias_op) if len(latencias_op) > 1 else 0.0, 6)
                 })
 
-    filepath = os.path.join(OUTPUT_DIR, "exp1_concurrencia.csv")
-    with open(filepath, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(filas_exp1[0].keys()), lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(filas_exp1)
-    print(f"  -> Guardado: exp1_concurrencia.csv ({len(filas_exp1)} filas)")
+    if escribir_resultados:
+        filepath = os.path.join(OUTPUT_DIR, "exp1_concurrencia.csv")
+        with open(filepath, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=list(filas_exp1[0].keys()),
+                lineterminator="\n",
+            )
+            writer.writeheader()
+            writer.writerows(filas_exp1)
+        print(
+            f"  -> Guardado: exp1_concurrencia.csv "
+            f"({len(filas_exp1)} filas)"
+        )
+
     return filas_exp1
 
 
@@ -417,7 +424,10 @@ def ejecutar_experimento_1_concurrencia(client: LiveBackendClient) -> List[Dict[
 # 5. EXPERIMENTO 2: INYECCIÃ“N DE MANIPULACIONES (T1 A T5) Y DETECCIÃ“N
 # =============================================================================
 
-def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+def ejecutar_experimento_2_deteccion(
+    *,
+    escribir_resultados: bool = True,
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     print(
     "[2/5] Ejecutando Experimento 2: 600 corridas factoriales con inyeccion de manipulaciones (T1-T5)...")
     mecanismos = ["M0", "M1", "M2", "M3"]
@@ -479,6 +489,11 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
                 elif t_type == "T2":
                     payload_tamper["nota_final"] = 10.00
                     ev_tamper["payload_canonico"] = json_canonico(payload_tamper)
+
+                    contenido_tamper = json.loads(ev_tamper["contenido_canonico"])
+                    contenido_tamper["payload"]["nota_final"] = 10.00
+                    ev_tamper["contenido_canonico"] = json_canonico(contenido_tamper)
+
                     val_adul = "PAYLOAD_ALTERADO_10.00"
                     campo_alterado = "payload_bitacora"
                 elif t_type == "T3":
@@ -491,6 +506,11 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
                     campo_alterado = "cadena_hash_truncada"
                 elif t_type == "T5":
                     ev_tamper["timestamp"] -= 86400
+
+                    contenido_tamper = json.loads(ev_tamper["contenido_canonico"])
+                    contenido_tamper["timestamp"] = ev_tamper["timestamp"]
+                    ev_tamper["contenido_canonico"] = json_canonico(contenido_tamper)
+
                     val_adul = "TIMESTAMP_RETROACTIVO"
                     campo_alterado = "timestamp_evento"
 
@@ -545,19 +565,32 @@ def ejecutar_experimento_2_deteccion() -> Tuple[List[Dict[str, Any]], List[Dict[
 
                 corrida_id += 1
 
-    f_det = os.path.join(OUTPUT_DIR, "deteccion.csv")
-    with open(f_det, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(deteccion_rows[0].keys()), lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(deteccion_rows)
+    if escribir_resultados:
+        f_det = os.path.join(OUTPUT_DIR, "deteccion.csv")
+        with open(f_det, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=list(deteccion_rows[0].keys()),
+                lineterminator="\n",
+            )
+            writer.writeheader()
+            writer.writerows(deteccion_rows)
 
-    f_man = os.path.join(OUTPUT_DIR, "manipulaciones.csv")
-    with open(f_man, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(manipulaciones_rows[0].keys()), lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(manipulaciones_rows)
+        f_man = os.path.join(OUTPUT_DIR, "manipulaciones.csv")
+        with open(f_man, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=list(manipulaciones_rows[0].keys()),
+                lineterminator="\n",
+            )
+            writer.writeheader()
+            writer.writerows(manipulaciones_rows)
 
-    print(f"  -> Guardados: deteccion.csv ({len(deteccion_rows)} filas), manipulaciones.csv ({len(manipulaciones_rows)} filas)")
+        print(
+            f"  -> Guardados: deteccion.csv ({len(deteccion_rows)} filas), "
+            f"manipulaciones.csv ({len(manipulaciones_rows)} filas)"
+        )
+
     return deteccion_rows, manipulaciones_rows
 
 
@@ -889,114 +922,84 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
 
 
 # =============================================================================
-# 8. ESTADÍSTICA NO PARAMÉTRICA (MANN-WHITNEY, A12, BOOTSTRAP) Y BOXPLOT
+# =============================================================================
+# 8. BOXPLOT DESCRIPTIVO DE LATENCIAS DE DETECCIÓN
 # =============================================================================
 
-def vargha_delaney_a12(sample1: List[float], sample2: List[float]) -> float:
-    m = len(sample1)
-    n = len(sample2)
-    combined = [(val, 1) for val in sample1] + [(val, 2) for val in sample2]
-    combined.sort(key=lambda x: x[0])
-
-    rank_sum1 = 0.0
-    i = 0
-    while i < len(combined):
-        j = i
-        while j < len(combined) and combined[j][0] == combined[i][0]:
-            j += 1
-        avg_rank = (i + 1 + j) / 2.0
-        for k in range(i, j):
-            if combined[k][1] == 1:
-                rank_sum1 += avg_rank
-        i = j
-
-    a12 = (rank_sum1 / m - (m + 1) / 2.0) / n
-    return a12
-
-
-def bootstrap_ci(sample: List[float], num_bootstraps=1000, ci=0.95) -> Tuple[float, float]:
-    boot_means = []
-    n = len(sample)
-    for _ in range(num_bootstraps):
-        resample = [random.choice(sample) for _ in range(n)]
-        boot_means.append(statistics.mean(resample))
-    boot_means.sort()
-    lower = percentile(boot_means, (1 - ci) / 2 * 100)
-    upper = percentile(boot_means, (1 + ci) / 2 * 100)
-    return lower, upper
-
-
-def mann_whitney_u(x: List[float], y: List[float]) -> Tuple[float, float]:
-    n1 = len(x)
-    n2 = len(y)
-    combined = [(v, 1) for v in x] + [(v, 2) for v in y]
-    combined.sort(key=lambda item: item[0])
-
-    r1 = 0.0
-    i = 0
-    while i < len(combined):
-        j = i
-        while j < len(combined) and combined[j][0] == combined[i][0]:
-            j += 1
-        avg_r = (i + 1 + j) / 2.0
-        for k in range(i, j):
-            if combined[k][1] == 1:
-                r1 += avg_r
-        i = j
-
-    u1 = r1 - (n1 * (n1 + 1)) / 2.0
-    u2 = n1 * n2 - u1
-    u = min(u1, u2)
-    mu = (n1 * n2) / 2.0
-    sigma = math.sqrt((n1 * n2 * (n1 + n2 + 1)) / 12.0)
-    z = (u - mu) / sigma if sigma > 0 else 0.0
-    p_val = 2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(z) / math.sqrt(2.0))))
-    return u1, max(p_val, 1e-15)
-
-
 def generar_graficos_y_estadistica(deteccion_rows: List[Dict[str, Any]]):
-    print("[5/5] Generando estadisticas cuantitativas y grafico...")
+    """Genera únicamente el boxplot requerido por las evidencias E7.
 
-    lat_m0 = [r["latencia_registro_ms"] for r in deteccion_rows if r["mecanismo"] == "M0"]
-    lat_m1 = [r["latencia_registro_ms"] for r in deteccion_rows if r["mecanismo"] == "M1"]
-    lat_m2 = [r["latencia_registro_ms"] for r in deteccion_rows if r["mecanismo"] == "M2"]
-    lat_m3 = [r["latencia_registro_ms"] for r in deteccion_rows if r["mecanismo"] == "M3"]
+    Las latencias del Experimento 2 no se usan para contrastes inferenciales
+    ni tamaños de efecto del punto 21. El análisis estadístico reproducible
+    de latencias usa exp1_concurrencia.csv mediante
+    experimentos/generar_tabla_latencias.py.
+    """
+    print("[5/5] Generando gráfico descriptivo de latencias de detección...")
 
-    stat_u, p_val = mann_whitney_u(lat_m2, lat_m0)
-    a12_m0_m2 = vargha_delaney_a12(lat_m2, lat_m0)
-    ci_low_m2, ci_high_m2 = bootstrap_ci(lat_m2)
-
-    print("\n" + "=" * 70)
-    print("RESUMEN DE EVALUACIÃ“N ESTADÃSTICA CUANTITATIVA (MÃ³dulo G)")
-    print("=" * 70)
-    print(f"M0 (Sin Auditoria):      Media = {statistics.mean(lat_m0):.3f} ms | Mediana = {statistics.median(lat_m0):.3f} ms")
-    print(f"M1 (Relacional Simple):  Media = {statistics.mean(lat_m1):.3f} ms | Mediana = {statistics.median(lat_m1):.3f} ms")
-    print(f"M2 (Cripto + Lamport):   Media = {statistics.mean(lat_m2):.3f} ms | Mediana = {statistics.median(lat_m2):.3f} ms [IC 95%: {ci_low_m2:.3f} - {ci_high_m2:.3f}]")
-    print(f"M3 (Cripto + Vector):    Media = {statistics.mean(lat_m3):.3f} ms | Mediana = {statistics.median(lat_m3):.3f} ms")
-    print(f"Contraste M0 vs M2:      Mann-Whitney U = {stat_u:.1f}, p-value = {p_val:.4e}")
-    print(f"Efecto Vargha-Delaney:   A12 = {a12_m0_m2:.4f} (Efecto medido sin supuestos de normalidad)")
-    print("=" * 70)
+    lat_m0 = [
+        r["latencia_registro_ms"]
+        for r in deteccion_rows
+        if r["mecanismo"] == "M0"
+    ]
+    lat_m1 = [
+        r["latencia_registro_ms"]
+        for r in deteccion_rows
+        if r["mecanismo"] == "M1"
+    ]
+    lat_m2 = [
+        r["latencia_registro_ms"]
+        for r in deteccion_rows
+        if r["mecanismo"] == "M2"
+    ]
+    lat_m3 = [
+        r["latencia_registro_ms"]
+        for r in deteccion_rows
+        if r["mecanismo"] == "M3"
+    ]
 
     try:
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+
         plt.figure(figsize=(9, 5.5), dpi=300)
         data_plot = [lat_m0, lat_m1, lat_m2, lat_m3]
-        box = plt.boxplot(data_plot, patch_artist=True, tick_labels=["M0 (Base)", "M1 (Relacional)", "M2 (Cripto-Lamport)", "M3 (Vector-Reconcil)"])
-        colors = ['#81c784', '#64b5f6', '#ffb74d', '#e57373']
-        for patch, color in zip(box['boxes'], colors):
+        box = plt.boxplot(
+            data_plot,
+            patch_artist=True,
+            tick_labels=[
+                "M0 (Base)",
+                "M1 (Relacional)",
+                "M2 (Cripto-Lamport)",
+                "M3 (Vector-Reconcil)",
+            ],
+        )
+
+        colors = ["#81c784", "#64b5f6", "#ffb74d", "#e57373"]
+        for patch, color in zip(box["boxes"], colors):
             patch.set_facecolor(color)
-        plt.title("Sobrecarga de Latencia por Mecanismo de Auditoria (AcadTrace)", fontsize=12, fontweight='bold')
-        plt.ylabel("Latencia de Registro de Calificaciones (ms)", fontsize=11)
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+        plt.title(
+            "Latencia de detección por mecanismo de auditoría (AcadTrace)",
+            fontsize=12,
+            fontweight="bold",
+        )
+        plt.ylabel(
+            "Latencia de registro de calificaciones (ms)",
+            fontsize=11,
+        )
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
         plt.tight_layout()
+
         plot_path = os.path.join(OUTPUT_DIR, "boxplot_latencia.png")
         plt.savefig(plot_path)
         plt.close()
-        print(f"  -> Grafico PNG generado en: {plot_path}")
+
+        print(f"  -> Gráfico PNG generado en: {plot_path}")
     except Exception as exc:
-        raise RuntimeError("No se pudo generar boxplot_latencia.png en esta ejecución") from exc
+        raise RuntimeError(
+            "No se pudo generar boxplot_latencia.png en esta ejecución"
+        ) from exc
 
 
 def main():
