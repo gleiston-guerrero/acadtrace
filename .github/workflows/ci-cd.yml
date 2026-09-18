@@ -38,6 +38,27 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  verificar-matriz-iso25010:
+    name: Verificar matriz ISO 25010 del informe
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Regenerar matriz ISO 25010
+        run: python generar_matriz.py --write-latex
+
+      - name: Verificar matriz generada y sincronizada
+        run: |
+          test -s Informe-E4_BCEL/matriz_iso25010_generada.tex
+          git diff --exit-code -- Informe-E4_BCEL/matriz_iso25010_generada.tex
+
   ci-docente:
     name: CI Microservicio Docente
     runs-on: ubuntu-latest
