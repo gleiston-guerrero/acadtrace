@@ -17,7 +17,7 @@ def usuario(rol="REPRESENTANTE"):
 
 
 def test_jwt_representante_valido(monkeypatch):
-    monkeypatch.setenv("JWT_SECRET", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    monkeypatch.setenv("JWT_SECRET", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")  # gitleaks:allow
     token = jwt.encode({"sub": "madre", "roles": ["REPRESENTANTE"]}, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", algorithm="HS384")
     request = APIRequestFactory().get("/", HTTP_AUTHORIZATION=f"Bearer {token}")
     authenticated, claims = RepresentanteJWTAuthentication().authenticate(request)
@@ -27,7 +27,7 @@ def test_jwt_representante_valido(monkeypatch):
 
 
 def test_jwt_invalido_es_401(monkeypatch):
-    monkeypatch.setenv("JWT_SECRET", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    monkeypatch.setenv("JWT_SECRET", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")  # gitleaks:allow
     request = APIRequestFactory().get("/", HTTP_AUTHORIZATION="Bearer inválido")
     with pytest.raises(AuthenticationFailed):
         RepresentanteJWTAuthentication().authenticate(request)
