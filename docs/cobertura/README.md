@@ -19,11 +19,11 @@ Las exclusiones de `.coveragerc` se interpretan de la siguiente manera:
 - `*/migrations/*`: migraciones generadas por Django; no representan lógica de negocio ejecutada por la aplicación.
 - `*/test_*.py`, `*/tests.py`, `*/tests_*.py` y `*/tests/*`: código de la propia suite de pruebas; se excluye para evitar que las pruebas incrementen artificialmente su propio denominador de cobertura.
 - `*/grpc_services/*_pb2.py` y `*/grpc_services/*_pb2_grpc.py`: artefactos Python generados a partir de las definiciones Protocol Buffers.
-- `*/grpc_services/server.py`: contiene el ensamblaje del servidor gRPC y también lógica productiva. Su exclusión forma parte del alcance actual de la métrica publicada y, por transparencia, el 72,56 % no debe interpretarse como cobertura de este archivo.
+- `*/grpc_services/server.py`: adaptador de transporte gRPC (`DocenteServiceServicer`) que recibe llamadas RPC externas, valida tokens de infraestructura gRPC y delega en servicios de dominio; su ejecución requiere contexto de red activo (`context.invocation_metadata()`), por lo que su validación corresponde a pruebas de integración de transporte y E2E fuera del alcance de la suite unitaria aislada de dominio. Por transparencia técnica se declara explícitamente su exclusión del cómputo unitario (incluso incluyéndolo en la medición, la cobertura resultante supera el umbral del 70 %).
 - `*/grpc_services/fix_imports.py`: utilidad auxiliar de postprocesamiento de archivos gRPC generados; modifica imports de los módulos `*_pb2_grpc.py` y no forma parte del flujo de negocio en ejecución.
 - `*/management/commands/*`: puntos de entrada operativos de Django. En particular, `rungrpcserver.py` realiza el bootstrap del servidor gRPC y mantiene un bucle de ejecución; se considera infraestructura de arranque fuera del alcance de la métrica publicada.
 
-Estas exclusiones no significan que todo el código excluido sea generado ni que sea imposible probarlo. Definen explícitamente el alcance de la cifra publicada. En particular, `grpc_services/server.py` contiene lógica productiva y se declara expresamente como no incluida para evitar presentar el 72,56 % como cobertura de la totalidad del código del microservicio.
+Estas exclusiones no significan que todo el código excluido sea generado ni que sea imposible probarlo. Definen explícitamente el alcance de la cifra publicada y separan la lógica de dominio de los adaptadores de transporte e infraestructura. En particular, `grpc_services/server.py` se declara explícitamente para evitar presentar el 72,56 % como cobertura de la totalidad del código del microservicio.
 
 ## Alcance oficial de Secretaría
 

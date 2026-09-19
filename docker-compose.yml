@@ -25,7 +25,7 @@ services:
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - FCM_ENABLED=${FCM_ENABLED:-false}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
-      - grpc.client.docente-service.address=static://microservicio-docente:9091
+      - grpc.client.docente-service.address=dns:///microservicio-docente:9091
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       
       
