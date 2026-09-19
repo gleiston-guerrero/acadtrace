@@ -574,8 +574,9 @@ jobs:
       DB_NAME: sga
       # Se usa sga_app en vez de postgres para evitar correr bypass de flyway o
       # tareas peligrosas con superusuario en la CI. Las migraciones corren por otro medio.
+      # El secret SGA_APP_PASSWORD debe existir en el repo; si no, cae al DB_PASSWORD.
       DB_USER: sga_app
-      DB_PASSWORD: ${{ secrets.SGA_APP_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.SGA_APP_PASSWORD || secrets.DB_PASSWORD }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
       FCM_ENABLED: "false"
