@@ -3,7 +3,6 @@ package ec.edu.uteq.sga.infrastructure.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -15,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 @Component
-@Profile("!test")
 public class RestriccionBitacoraValidator {
 
     private static final Logger log = LoggerFactory.getLogger(RestriccionBitacoraValidator.class);

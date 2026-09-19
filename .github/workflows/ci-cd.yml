@@ -689,6 +689,7 @@ jobs:
             -e DB_NAME \
             -e DB_USER \
             -e DB_PASSWORD \
+            -e SGA_APP_PASSWORD \
             -e FLYWAY_USER \
             -e FLYWAY_PASSWORD \
             -e SPRING_FLYWAY_ENABLED=false \
@@ -782,6 +783,7 @@ jobs:
             -e DB_NAME \
             -e DB_USER \
             -e DB_PASSWORD \
+            -e SGA_APP_PASSWORD \
             -e GRPC_INTERNAL_TOKEN \
             -e SGA_PRINCIPAL_URL=http://sga-principal:8080 \
             -e SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092 \
