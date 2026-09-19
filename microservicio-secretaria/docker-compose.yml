@@ -11,7 +11,7 @@ services:
       - "8080:8080"   # REST Gateway
       - "9092:9092"   # gRPC Server
     environment:
-      - DB_HOST=192.0.2.1
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres
@@ -31,7 +31,7 @@ services:
       - "8081:8000"   # REST (el contenedor Django siempre escucha en 8000, ver Dockerfile)
       - "9091:9091"   # gRPC Server
     environment:
-      - DB_HOST=192.0.2.1
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres
@@ -52,7 +52,7 @@ services:
     ports:
       - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
     environment:
-      - DB_HOST=192.0.2.1
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=${DB_USER:-sga_app}
@@ -76,7 +76,7 @@ services:
     ports:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
     environment:
-      - DB_HOST=192.0.2.1
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
       - DB_USER=postgres

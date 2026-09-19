@@ -90,10 +90,10 @@ npm run dev
 | Variable | Descripción | Valor Ejemplo / Placeholder |
 |---|---|---|
 | `PORT` | Puerto del servidor HTTP | `5176` |
-| `DB_HOST` | Host PostgreSQL | `192.0.2.1` |
+| `DB_HOST` | Host PostgreSQL | `localhost` |
 | `DB_PORT` | Puerto PostgreSQL | `5433` |
 | `DB_NAME` | Nombre base de datos | `sga` |
-| `DB_USER` | Usuario base de datos | `postgres` |
+| `DB_USER` | Usuario base de datos | `sga_app` |
 | `DB_PASSWORD` | Contraseña obligatoria (fail-fast) | `change-me` |
 | `JWT_SECRET` | Clave secreta obligatoria HMAC-SHA256 (mín. 256 bits) | `change-me` |
 | `AES_SECRET_KEY` | Clave AES-256 (32 bytes Base64) para campos sensibles | `change-me` |

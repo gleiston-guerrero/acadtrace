@@ -482,24 +482,24 @@ public class AuditoriaService {
 
     private static String usernameActual() {
         try {
-<span class="nc" id="L485">            ServletRequestAttributes attrs =</span>
-<span class="nc" id="L486">                    (ServletRequestAttributes)</span>
+<span class="fc" id="L485">            ServletRequestAttributes attrs =</span>
+<span class="fc" id="L486">                    (ServletRequestAttributes)</span>
                             RequestContextHolder
-<span class="nc" id="L488">                                    .currentRequestAttributes();</span>
+<span class="fc" id="L488">                                    .currentRequestAttributes();</span>
 
-<span class="nc" id="L490">            HttpServletRequest request =</span>
-<span class="nc" id="L491">                    attrs.getRequest();</span>
+<span class="fc" id="L490">            HttpServletRequest request =</span>
+<span class="fc" id="L491">                    attrs.getRequest();</span>
 
-<span class="nc" id="L493">            AuthenticatedUser user =</span>
-<span class="nc" id="L494">                    (AuthenticatedUser)</span>
-<span class="nc" id="L495">                            request.getAttribute(</span>
-<span class="nc" id="L496">                                    AuthenticatedUser</span>
+<span class="fc" id="L493">            AuthenticatedUser user =</span>
+<span class="fc" id="L494">                    (AuthenticatedUser)</span>
+<span class="fc" id="L495">                            request.getAttribute(</span>
+<span class="fc" id="L496">                                    AuthenticatedUser</span>
                                             .REQUEST_ATTRIBUTE
                             );
 
-<span class="nc bnc" id="L500" title="All 2 branches missed.">            return user != null</span>
+<span class="pc bpc" id="L500" title="1 of 2 branches missed.">            return user != null</span>
 <span class="nc" id="L501">                    ? user.username()</span>
-<span class="nc" id="L502">                    : null;</span>
+<span class="fc" id="L502">                    : null;</span>
 
 <span class="fc" id="L504">        } catch (IllegalStateException e) {</span>
 <span class="fc" id="L505">            return null;</span>
@@ -508,14 +508,14 @@ public class AuditoriaService {
 
     private static String ipActual() {
         try {
-<span class="nc" id="L511">            ServletRequestAttributes attrs =</span>
-<span class="nc" id="L512">                    (ServletRequestAttributes)</span>
+<span class="fc" id="L511">            ServletRequestAttributes attrs =</span>
+<span class="fc" id="L512">                    (ServletRequestAttributes)</span>
                             RequestContextHolder
-<span class="nc" id="L514">                                    .currentRequestAttributes();</span>
+<span class="fc" id="L514">                                    .currentRequestAttributes();</span>
 
-<span class="nc" id="L516">            return attrs</span>
-<span class="nc" id="L517">                    .getRequest()</span>
-<span class="nc" id="L518">                    .getRemoteAddr();</span>
+<span class="fc" id="L516">            return attrs</span>
+<span class="fc" id="L517">                    .getRequest()</span>
+<span class="fc" id="L518">                    .getRemoteAddr();</span>
 
 <span class="fc" id="L520">        } catch (IllegalStateException e) {</span>
 <span class="fc" id="L521">            return null;</span>

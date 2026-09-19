@@ -15,9 +15,9 @@ public class MallaCurricularController {
 
     private final MallaCurricularService mallaService;
 
-<span class="nc" id="L18">    public MallaCurricularController(MallaCurricularService mallaService) {</span>
-<span class="nc" id="L19">        this.mallaService = mallaService;</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L18">    public MallaCurricularController(MallaCurricularService mallaService) {</span>
+<span class="fc" id="L19">        this.mallaService = mallaService;</span>
+<span class="fc" id="L20">    }</span>
 
     @GetMapping(&quot;/grado/{idGrado}&quot;)
     public Map&lt;String, Object&gt; porGrado(@PathVariable long idGrado, @RequestParam long idAnoLectivo) {

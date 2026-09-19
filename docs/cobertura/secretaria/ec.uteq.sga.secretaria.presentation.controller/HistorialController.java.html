@@ -16,9 +16,9 @@ public class HistorialController {
 
     private final HistorialService service;
 
-<span class="nc" id="L19">    public HistorialController(HistorialService service) {</span>
-<span class="nc" id="L20">        this.service = service;</span>
-<span class="nc" id="L21">    }</span>
+<span class="fc" id="L19">    public HistorialController(HistorialService service) {</span>
+<span class="fc" id="L20">        this.service = service;</span>
+<span class="fc" id="L21">    }</span>
 
     @GetMapping(&quot;/estudiante/{id}&quot;)
     public Map&lt;String, Object&gt; historialEstudiante(@PathVariable Long id) {
