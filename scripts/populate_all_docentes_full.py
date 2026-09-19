@@ -1,11 +1,17 @@
 import urllib.request
 import json
+import os
+
+username = os.environ.get('SGA_ADMIN_USERNAME')
+password = os.environ.get('SGA_ADMIN_PASSWORD')
+if not username or not username.strip() or not password or not password.strip():
+    raise SystemExit('Debe definir SGA_ADMIN_USERNAME y SGA_ADMIN_PASSWORD con valores no vacíos.')
 
 # Script para actualizar todos los docentes en la base de datos de producción AWS
 url_login = 'http://192.0.2.1:8080/api/auth/login'
 req = urllib.request.Request(
     url_login, 
-    data=json.dumps({'username': 'pcastrol2', 'password': 'E46_REMOVED_CREDENTIAL'}).encode(), 
+    data=json.dumps({'username': username, 'password': password}).encode(),
     headers={'Content-Type': 'application/json'}
 )
 
@@ -14,8 +20,8 @@ try:
     with urllib.request.urlopen(req) as resp:
         res = json.loads(resp.read().decode())
         token = res.get('token')
-except Exception as e:
-    print("Error al autenticar:", e)
+except Exception:
+    print("Error al autenticar; no se muestran detalles para proteger las credenciales.")
 
 if token:
     print("Autenticado con éxito en AWS!")
@@ -74,5 +80,5 @@ if token:
                 
                 with urllib.request.urlopen(req_up) as resp_res:
                     print(f'✅ ACTUALIZADO COMPLETO: {uname} -> {d["nombres"]} {d["apellidos"]} ({d["tituloAcademico"]})')
-            except Exception as ex:
-                print(f'❌ ERROR AL ACTUALIZAR {uname}:', ex)
+            except Exception:
+                print(f'❌ ERROR AL ACTUALIZAR {uname}; no se muestran detalles de la respuesta.')

@@ -40,7 +40,7 @@ class AuditoriaPostgresContainerTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("db/init/baseline_flyway_v8.sql");
+            .withInitScript("db/migration/V8__baseline_completo.sql");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
