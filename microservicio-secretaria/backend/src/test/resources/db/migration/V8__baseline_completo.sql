@@ -23,6 +23,8 @@ CREATE SCHEMA IF NOT EXISTS sga_docente;
 
 CREATE SCHEMA IF NOT EXISTS sga_principal;
 
+CREATE SCHEMA IF NOT EXISTS sga_secretaria;
+
 CREATE SCHEMA IF NOT EXISTS sga_soporte;
 
 DO $$
@@ -99,7 +101,10 @@ BEGIN
     'LOGOUT',
     'CAMBIO_PASSWORD',
     'BLOQUEO',
-    'DESBLOQUEO'
+    'DESBLOQUEO',
+    'LOGIN_FALLIDO',
+    'ROL_ASIGNADO',
+    'LLAMADA_GRPC'
 );
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
@@ -308,7 +313,7 @@ CREATE SEQUENCE IF NOT EXISTS sga_principal.auditoria_id_auditoria_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE IF NOT EXISTS sga_principal.documentos_matricula_id_documento_seq
+CREATE SEQUENCE IF NOT EXISTS sga_secretaria.documentos_matricula_id_documento_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -324,7 +329,7 @@ CREATE SEQUENCE IF NOT EXISTS sga_principal.escala_calificaciones_id_escala_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE IF NOT EXISTS sga_principal.estudiantes_id_estudiante_seq
+CREATE SEQUENCE IF NOT EXISTS sga_secretaria.estudiantes_id_estudiante_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -332,7 +337,7 @@ CREATE SEQUENCE IF NOT EXISTS sga_principal.estudiantes_id_estudiante_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE IF NOT EXISTS sga_principal.fichas_estudiante_id_ficha_seq
+CREATE SEQUENCE IF NOT EXISTS sga_secretaria.fichas_estudiante_id_ficha_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -348,7 +353,7 @@ CREATE SEQUENCE IF NOT EXISTS sga_principal.grados_id_grado_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE IF NOT EXISTS sga_principal.historial_promocion_id_historial_seq
+CREATE SEQUENCE IF NOT EXISTS sga_secretaria.historial_promocion_id_historial_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -364,7 +369,7 @@ CREATE SEQUENCE IF NOT EXISTS sga_principal.horarios_id_horario_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE IF NOT EXISTS sga_principal.matriculas_id_matricula_seq
+CREATE SEQUENCE IF NOT EXISTS sga_secretaria.matriculas_id_matricula_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -412,7 +417,7 @@ CREATE SEQUENCE IF NOT EXISTS sga_principal.personas_id_persona_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE IF NOT EXISTS sga_principal.representantes_id_representante_seq
+CREATE SEQUENCE IF NOT EXISTS sga_secretaria.representantes_id_representante_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -729,10 +734,11 @@ CREATE TABLE IF NOT EXISTS sga_principal.auditoria (
     user_agent text,
     hmac character varying(64),
     fecha timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT auditoria_schema_origen_check CHECK (((schema_origen)::text = ANY (ARRAY[('PRINCIPAL'::character varying)::text, ('DOCENTE'::character varying)::text])))
+    lamport_ts bigint NOT NULL DEFAULT 0,
+    CONSTRAINT auditoria_schema_origen_check CHECK (((schema_origen)::text = ANY (ARRAY[('PRINCIPAL'::character varying)::text, ('DOCENTE'::character varying)::text, ('SECRETARIA'::character varying)::text, ('SOPORTE'::character varying)::text])))
 );
 
-CREATE TABLE IF NOT EXISTS sga_principal.documentos_matricula (
+CREATE TABLE IF NOT EXISTS sga_secretaria.documentos_matricula (
     id_documento integer NOT NULL,
     id_matricula integer NOT NULL,
     tipo_documento sga_principal.tipo_documento_t NOT NULL,
@@ -753,7 +759,7 @@ CREATE TABLE IF NOT EXISTS sga_principal.escala_calificaciones (
     CONSTRAINT escala_check CHECK ((nota_minima < nota_maxima))
 );
 
-CREATE TABLE IF NOT EXISTS sga_principal.estudiantes (
+CREATE TABLE IF NOT EXISTS sga_secretaria.estudiantes (
     id_estudiante integer NOT NULL,
     cedula character varying(10),
     codigo_estudiante character varying(20),
@@ -785,7 +791,7 @@ CREATE TABLE IF NOT EXISTS sga_principal.estudiantes (
     CONSTRAINT porcentaje_disc_check CHECK (((porcentaje_disc >= 0) AND (porcentaje_disc <= 100)))
 );
 
-CREATE TABLE IF NOT EXISTS sga_principal.fichas_estudiante (
+CREATE TABLE IF NOT EXISTS sga_secretaria.fichas_estudiante (
     id_ficha integer NOT NULL,
     id_estudiante integer NOT NULL,
     tipo_sangre character varying(5),
@@ -808,7 +814,7 @@ CREATE TABLE IF NOT EXISTS sga_principal.grados (
     activo boolean DEFAULT true NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS sga_principal.historial_promocion (
+CREATE TABLE IF NOT EXISTS sga_secretaria.historial_promocion (
     id_historial integer NOT NULL,
     id_matricula integer NOT NULL,
     id_estudiante integer NOT NULL,
@@ -828,7 +834,7 @@ CREATE TABLE IF NOT EXISTS sga_principal.horarios (
     dia_semana sga_principal.dia_semana_t NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS sga_principal.matriculas (
+CREATE TABLE IF NOT EXISTS sga_secretaria.matriculas (
     id_matricula integer NOT NULL,
     id_estudiante integer NOT NULL,
     id_grado integer NOT NULL,
@@ -894,7 +900,7 @@ CREATE TABLE IF NOT EXISTS sga_principal.personas (
     fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS sga_principal.representantes (
+CREATE TABLE IF NOT EXISTS sga_secretaria.representantes (
     id_representante integer NOT NULL,
     cedula character varying(10),
     nombres character varying(100) NOT NULL,
@@ -992,21 +998,21 @@ ALTER SEQUENCE sga_principal.asignaturas_id_asignatura_seq OWNED BY sga_principa
 
 ALTER SEQUENCE sga_principal.auditoria_id_auditoria_seq OWNED BY sga_principal.auditoria.id_auditoria;
 
-ALTER SEQUENCE sga_principal.documentos_matricula_id_documento_seq OWNED BY sga_principal.documentos_matricula.id_documento;
+ALTER SEQUENCE sga_secretaria.documentos_matricula_id_documento_seq OWNED BY sga_secretaria.documentos_matricula.id_documento;
 
 ALTER SEQUENCE sga_principal.escala_calificaciones_id_escala_seq OWNED BY sga_principal.escala_calificaciones.id_escala;
 
-ALTER SEQUENCE sga_principal.estudiantes_id_estudiante_seq OWNED BY sga_principal.estudiantes.id_estudiante;
+ALTER SEQUENCE sga_secretaria.estudiantes_id_estudiante_seq OWNED BY sga_secretaria.estudiantes.id_estudiante;
 
-ALTER SEQUENCE sga_principal.fichas_estudiante_id_ficha_seq OWNED BY sga_principal.fichas_estudiante.id_ficha;
+ALTER SEQUENCE sga_secretaria.fichas_estudiante_id_ficha_seq OWNED BY sga_secretaria.fichas_estudiante.id_ficha;
 
 ALTER SEQUENCE sga_principal.grados_id_grado_seq OWNED BY sga_principal.grados.id_grado;
 
-ALTER SEQUENCE sga_principal.historial_promocion_id_historial_seq OWNED BY sga_principal.historial_promocion.id_historial;
+ALTER SEQUENCE sga_secretaria.historial_promocion_id_historial_seq OWNED BY sga_secretaria.historial_promocion.id_historial;
 
 ALTER SEQUENCE sga_principal.horarios_id_horario_seq OWNED BY sga_principal.horarios.id_horario;
 
-ALTER SEQUENCE sga_principal.matriculas_id_matricula_seq OWNED BY sga_principal.matriculas.id_matricula;
+ALTER SEQUENCE sga_secretaria.matriculas_id_matricula_seq OWNED BY sga_secretaria.matriculas.id_matricula;
 
 ALTER SEQUENCE sga_principal.niveles_educativos_id_nivel_seq OWNED BY sga_principal.niveles_educativos.id_nivel;
 
@@ -1018,7 +1024,7 @@ ALTER SEQUENCE sga_principal.periodos_diarios_id_periodo_diario_seq OWNED BY sga
 
 ALTER SEQUENCE sga_principal.personas_id_persona_seq OWNED BY sga_principal.personas.id_persona;
 
-ALTER SEQUENCE sga_principal.representantes_id_representante_seq OWNED BY sga_principal.representantes.id_representante;
+ALTER SEQUENCE sga_secretaria.representantes_id_representante_seq OWNED BY sga_secretaria.representantes.id_representante;
 
 ALTER SEQUENCE sga_principal.roles_id_rol_seq OWNED BY sga_principal.roles.id_rol;
 
@@ -1054,21 +1060,21 @@ ALTER TABLE ONLY sga_principal.asignaturas ALTER COLUMN id_asignatura SET DEFAUL
 
 ALTER TABLE ONLY sga_principal.auditoria ALTER COLUMN id_auditoria SET DEFAULT nextval('sga_principal.auditoria_id_auditoria_seq'::regclass);
 
-ALTER TABLE ONLY sga_principal.documentos_matricula ALTER COLUMN id_documento SET DEFAULT nextval('sga_principal.documentos_matricula_id_documento_seq'::regclass);
+ALTER TABLE ONLY sga_secretaria.documentos_matricula ALTER COLUMN id_documento SET DEFAULT nextval('sga_secretaria.documentos_matricula_id_documento_seq'::regclass);
 
 ALTER TABLE ONLY sga_principal.escala_calificaciones ALTER COLUMN id_escala SET DEFAULT nextval('sga_principal.escala_calificaciones_id_escala_seq'::regclass);
 
-ALTER TABLE ONLY sga_principal.estudiantes ALTER COLUMN id_estudiante SET DEFAULT nextval('sga_principal.estudiantes_id_estudiante_seq'::regclass);
+ALTER TABLE ONLY sga_secretaria.estudiantes ALTER COLUMN id_estudiante SET DEFAULT nextval('sga_secretaria.estudiantes_id_estudiante_seq'::regclass);
 
-ALTER TABLE ONLY sga_principal.fichas_estudiante ALTER COLUMN id_ficha SET DEFAULT nextval('sga_principal.fichas_estudiante_id_ficha_seq'::regclass);
+ALTER TABLE ONLY sga_secretaria.fichas_estudiante ALTER COLUMN id_ficha SET DEFAULT nextval('sga_secretaria.fichas_estudiante_id_ficha_seq'::regclass);
 
 ALTER TABLE ONLY sga_principal.grados ALTER COLUMN id_grado SET DEFAULT nextval('sga_principal.grados_id_grado_seq'::regclass);
 
-ALTER TABLE ONLY sga_principal.historial_promocion ALTER COLUMN id_historial SET DEFAULT nextval('sga_principal.historial_promocion_id_historial_seq'::regclass);
+ALTER TABLE ONLY sga_secretaria.historial_promocion ALTER COLUMN id_historial SET DEFAULT nextval('sga_secretaria.historial_promocion_id_historial_seq'::regclass);
 
 ALTER TABLE ONLY sga_principal.horarios ALTER COLUMN id_horario SET DEFAULT nextval('sga_principal.horarios_id_horario_seq'::regclass);
 
-ALTER TABLE ONLY sga_principal.matriculas ALTER COLUMN id_matricula SET DEFAULT nextval('sga_principal.matriculas_id_matricula_seq'::regclass);
+ALTER TABLE ONLY sga_secretaria.matriculas ALTER COLUMN id_matricula SET DEFAULT nextval('sga_secretaria.matriculas_id_matricula_seq'::regclass);
 
 ALTER TABLE ONLY sga_principal.niveles_educativos ALTER COLUMN id_nivel SET DEFAULT nextval('sga_principal.niveles_educativos_id_nivel_seq'::regclass);
 
@@ -1080,7 +1086,7 @@ ALTER TABLE ONLY sga_principal.periodos_diarios ALTER COLUMN id_periodo_diario S
 
 ALTER TABLE ONLY sga_principal.personas ALTER COLUMN id_persona SET DEFAULT nextval('sga_principal.personas_id_persona_seq'::regclass);
 
-ALTER TABLE ONLY sga_principal.representantes ALTER COLUMN id_representante SET DEFAULT nextval('sga_principal.representantes_id_representante_seq'::regclass);
+ALTER TABLE ONLY sga_secretaria.representantes ALTER COLUMN id_representante SET DEFAULT nextval('sga_secretaria.representantes_id_representante_seq'::regclass);
 
 ALTER TABLE ONLY sga_principal.roles ALTER COLUMN id_rol SET DEFAULT nextval('sga_principal.roles_id_rol_seq'::regclass);
 
@@ -1235,7 +1241,7 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'documentos_matricula_pkey') THEN
-        ALTER TABLE sga_principal.documentos_matricula ADD CONSTRAINT documentos_matricula_pkey PRIMARY KEY (id_documento);
+        ALTER TABLE sga_secretaria.documentos_matricula ADD CONSTRAINT documentos_matricula_pkey PRIMARY KEY (id_documento);
     END IF;
 END $$;
 
@@ -1247,13 +1253,13 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'estudiantes_pkey') THEN
-        ALTER TABLE sga_principal.estudiantes ADD CONSTRAINT estudiantes_pkey PRIMARY KEY (id_estudiante);
+        ALTER TABLE sga_secretaria.estudiantes ADD CONSTRAINT estudiantes_pkey PRIMARY KEY (id_estudiante);
     END IF;
 END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fichas_estudiante_pkey') THEN
-        ALTER TABLE sga_principal.fichas_estudiante ADD CONSTRAINT fichas_estudiante_pkey PRIMARY KEY (id_ficha);
+        ALTER TABLE sga_secretaria.fichas_estudiante ADD CONSTRAINT fichas_estudiante_pkey PRIMARY KEY (id_ficha);
     END IF;
 END $$;
 
@@ -1265,7 +1271,7 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'historial_promocion_pkey') THEN
-        ALTER TABLE sga_principal.historial_promocion ADD CONSTRAINT historial_promocion_pkey PRIMARY KEY (id_historial);
+        ALTER TABLE sga_secretaria.historial_promocion ADD CONSTRAINT historial_promocion_pkey PRIMARY KEY (id_historial);
     END IF;
 END $$;
 
@@ -1277,7 +1283,7 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'matriculas_pkey') THEN
-        ALTER TABLE sga_principal.matriculas ADD CONSTRAINT matriculas_pkey PRIMARY KEY (id_matricula);
+        ALTER TABLE sga_secretaria.matriculas ADD CONSTRAINT matriculas_pkey PRIMARY KEY (id_matricula);
     END IF;
 END $$;
 
@@ -1313,7 +1319,7 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'representantes_pkey') THEN
-        ALTER TABLE sga_principal.representantes ADD CONSTRAINT representantes_pkey PRIMARY KEY (id_representante);
+        ALTER TABLE sga_secretaria.representantes ADD CONSTRAINT representantes_pkey PRIMARY KEY (id_representante);
     END IF;
 END $$;
 
@@ -1455,25 +1461,25 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'estudiantes_cedula_key') THEN
-        ALTER TABLE sga_principal.estudiantes ADD CONSTRAINT estudiantes_cedula_key UNIQUE (cedula);
+        ALTER TABLE sga_secretaria.estudiantes ADD CONSTRAINT estudiantes_cedula_key UNIQUE (cedula);
     END IF;
 END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'estudiantes_codigo_estudiante_key') THEN
-        ALTER TABLE sga_principal.estudiantes ADD CONSTRAINT estudiantes_codigo_estudiante_key UNIQUE (codigo_estudiante);
+        ALTER TABLE sga_secretaria.estudiantes ADD CONSTRAINT estudiantes_codigo_estudiante_key UNIQUE (codigo_estudiante);
     END IF;
 END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fichas_estudiante_id_estudiante_key') THEN
-        ALTER TABLE sga_principal.fichas_estudiante ADD CONSTRAINT fichas_estudiante_id_estudiante_key UNIQUE (id_estudiante);
+        ALTER TABLE sga_secretaria.fichas_estudiante ADD CONSTRAINT fichas_estudiante_id_estudiante_key UNIQUE (id_estudiante);
     END IF;
 END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'historial_matricula_unique') THEN
-        ALTER TABLE sga_principal.historial_promocion ADD CONSTRAINT historial_matricula_unique UNIQUE (id_matricula);
+        ALTER TABLE sga_secretaria.historial_promocion ADD CONSTRAINT historial_matricula_unique UNIQUE (id_matricula);
     END IF;
 END $$;
 
@@ -1485,7 +1491,7 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'matriculas_id_estudiante_id_ano_lectivo_key') THEN
-        ALTER TABLE sga_principal.matriculas ADD CONSTRAINT matriculas_id_estudiante_id_ano_lectivo_key UNIQUE (id_estudiante, id_ano_lectivo);
+        ALTER TABLE sga_secretaria.matriculas ADD CONSTRAINT matriculas_id_estudiante_id_ano_lectivo_key UNIQUE (id_estudiante, id_ano_lectivo);
     END IF;
 END $$;
 
@@ -1581,3 +1587,8 @@ ALTER TABLE sga_principal.auditoria
 ALTER TABLE sga_principal.auditoria
     ADD CONSTRAINT auditoria_schema_origen_check
     CHECK (schema_origen IN ('PRINCIPAL', 'DOCENTE', 'SECRETARIA', 'SOPORTE'));
+
+ALTER TABLE sga_principal.auditoria
+    ADD CONSTRAINT ck_auditoria_resultado CHECK (resultado IN ('EXITO', 'FALLO', 'ADVERTENCIA'));
+
+CREATE INDEX IF NOT EXISTS ix_auditoria_trace ON sga_principal.auditoria (trace_id);
