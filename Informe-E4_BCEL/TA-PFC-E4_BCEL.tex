@@ -321,7 +321,7 @@ message AuditoriaResponse {
 \end{lstlisting}
 
 \subsection{Persistencia PostgreSQL y Separaci\'on L\'ogica Multiesquema}
-\textbf{Persistencia de datos.} \texttt{docker-compose.yml} conecta los servicios a un mismo endpoint PostgreSQL mediante \texttt{DB\_HOST}, \texttt{DB\_PORT} y \texttt{DB\_NAME}, con valores predeterminados \texttt{192.0.2.1}, \texttt{5433} y \texttt{sga}. No declara un servidor PostgreSQL. Como alternativa, \texttt{sga-principal/docker-compose.yml} declara una sola instancia \texttt{postgres:17}, con volumen persistente y puerto \texttt{5433:5432}; ambos Compose no constituyen un cl\'uster.
+\textbf{Persistencia de datos.} \texttt{docker-compose.yml} conecta los servicios a un mismo endpoint PostgreSQL parametrizado mediante variables de entorno \texttt{DB\_HOST}, \texttt{DB\_PORT} (predeterminado \texttt{5433}) y \texttt{DB\_NAME} (\texttt{sga}). No declara un servidor PostgreSQL. Como alternativa, \texttt{sga-principal/docker-compose.yml} declara una sola instancia \texttt{postgres:17}, con volumen persistente y puerto \texttt{5433:5432}; ambos Compose no constituyen un cl\'uster.
 
 La configuraci\'on y los SQL versionados evidencian los esquemas \texttt{sga\_principal} (cat\'alogo, usuarios y auditor\'ia central), \texttt{sga\_docente} (calificaciones, actividades y asistencias), \texttt{sga\_secretaria} (estudiantes, representantes y matr\'iculas) y \texttt{sga\_soporte} (tickets y comentarios). Principal configura Flyway y Hibernate para \texttt{sga\_principal}; Docente usa \texttt{search\_path=sga\_docente,sga\_principal,public} y modelos con tablas en \texttt{sga\_docente}. Los SQL de Secretar\'ia y las migraciones de Soporte emplean los respectivos prefijos \texttt{sga\_}. Estos accesos no implican bases independientes ni exclusividad por servicio.
 
@@ -947,7 +947,7 @@ Siguiendo las pautas metodol\'ogicas para experimentaci\'on en ingenier\'ia de s
 \begin{enumerate}
   \item \textbf{Resoluci\'on temporal y entorno de ejecuci\'on:} Las 40 observaciones de latencia por mecanismo se conservaron completas; no se descartaron la primera ni la \'ultima repetici\'on. El bloque de latencias es un microbenchmark local secuencial en memoria, no una prueba de concurrencia HTTP ni de acceso real a base de datos. La resoluci\'on del temporizador y la planificaci\'on del sistema operativo constituyen amenazas residuales.
   \item \textbf{Semillas y Pseudoaleatoriedad del Inyector:} La variabilidad en la generaci\'on de manipulaciones se mitig\'o fijando una semilla determinista (\texttt{SEED = 20260831}) en \texttt{run\_experimentos.py}.
-  \item \textbf{Contenci\'on de Recursos en Host Compartido:} La ejecuci\'on simult\'anea de Locust y los contenedores puede generar contenci\'on de CPU. Se control\'o con cAdvisor verificando que el uso global del procesador se mantuviera $<75\%$.
+  \item \textbf{Contenci\'on de Recursos en Host Compartido:} Durante las pruebas de estr\'es con Locust y ejecuci\'on concurrente de microservicios, la contenci\'on de procesador y memoria en hosts compartidos representa una amenaza residual de variabilidad en latencias, monitoreada a nivel de host mediante la pila de observabilidad.
   \item \textbf{Divergencias entre implementaciones can\'onicas.} La forma
 can\'onica de la bit\'acora se implementa tres veces (dos en Java y una
 en Python) sin biblioteca compartida. Sobre doce vectores independientes,

@@ -691,6 +691,7 @@ jobs:
             -e GRPC_INTERNAL_TOKEN \
             -e MAIL_PASSWORD \
             -e FCM_ENABLED \
+            -e SPRING_FLYWAY_ENABLED=false \
             -e GOOGLE_APPLICATION_CREDENTIALS= \
             -e grpc.client.docente-service.address=static://microservicio-docente:9091 \
             e10-sga-principal
