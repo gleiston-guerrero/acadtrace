@@ -1,33 +1,85 @@
-.   ____          _            __ _ _
+
+  .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
   '  |____| .__|_| |_|_| |_\__, | / / / /
  =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::                (v3.1.5)
+ :: Spring Boot ::                (v3.2.5)
 
-2026-09-18T19:20:00.001-05:00  INFO 12345 --- [           main] ec.edu.uteq.sga.Application              : Starting Application using Java 17.0.14
-2026-09-18T19:20:00.500-05:00  INFO 12345 --- [           main] ec.edu.uteq.sga.Application              : No active profile set, falling back to 1 default profile: "default"
-2026-09-18T19:20:02.100-05:00  INFO 12345 --- [           main] o.f.c.internal.database.base.Database    : Flyway Community Edition 9.22.3 by Redgate
-2026-09-18T19:20:02.150-05:00  INFO 12345 --- [           main] o.f.c.internal.database.base.Database    : Database: jdbc:postgresql://localhost:5433/sga (PostgreSQL 17.11)
-2026-09-18T19:20:02.200-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbValidate     : Successfully validated 0 migrations (execution time 00:00.010s)
-2026-09-18T19:20:02.250-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbBaseline     : Creating Schema History table "sga_principal"."flyway_schema_history" with baseline ...
-2026-09-18T19:20:02.300-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbBaseline     : Successfully baselined schema with version: 8
-2026-09-18T19:20:02.350-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "sga_principal": 8
-2026-09-18T19:20:02.400-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "9 - representante usuario y rol"
-2026-09-18T19:20:02.450-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "10 - vincular cuentas representante"
-2026-09-18T19:20:02.500-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "12 - notificaciones push fcm"
-2026-09-18T19:20:02.550-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "13 - trigger y revocacion auditoria"
-2026-09-18T19:20:02.600-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "14 - cadena auditoria lamport"
-2026-09-18T19:20:02.650-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "15 - auditoria campos criptograficos"
-2026-09-18T19:20:02.700-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "16 - estado cadena auditoria"
-2026-09-18T19:20:02.750-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "17 - accion auditoria docente"
-2026-09-18T19:20:02.800-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "18 - rol aplicacion y revocacion auditoria"
-2026-09-18T19:20:02.850-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
-2026-09-18T19:20:02.900-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "20 - reparar checksum v18"
-2026-09-18T19:20:02.950-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "21 - trigger truncate auditoria"
-2026-09-18T19:20:03.000-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "22 - marca reparacion v18 confirmada"
-2026-09-18T19:20:03.050-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "23 - grants sga secretaria y auditoria diferidos"
-2026-09-18T19:20:03.100-05:00  INFO 12345 --- [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 14 migrations to schema "sga_principal", now at version v23 (execution time 00:00.750s)
-2026-09-18T19:20:05.100-05:00  INFO 12345 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
-2026-09-18T19:20:05.200-05:00  INFO 12345 --- [           main] ec.edu.uteq.sga.Application              : Started Application in 5.3 seconds (process running for 5.8)
+2026-09-18T23:26:05.720-05:00  INFO 3928 --- [sga-principal] [           main] e.edu.uteq.sga.SgaPrincipalApplication   : Starting SgaPrincipalApplication v0.0.1-SNAPSHOT using Java 17.0.20.1 with PID 3928 (C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\sga-principal-0.0.1-SNAPSHOT.jar started by leo23 in C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal)
+2026-09-18T23:26:05.738-05:00  INFO 3928 --- [sga-principal] [           main] e.edu.uteq.sga.SgaPrincipalApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-18T23:26:17.070-05:00  INFO 3928 --- [sga-principal] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-18T23:26:17.788-05:00  INFO 3928 --- [sga-principal] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 676 ms. Found 25 JPA repository interfaces.
+2026-09-18T23:26:25.887-05:00  INFO 3928 --- [sga-principal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8098 (http)
+2026-09-18T23:26:25.988-05:00  INFO 3928 --- [sga-principal] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-18T23:26:25.989-05:00  INFO 3928 --- [sga-principal] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-18T23:26:26.356-05:00  INFO 3928 --- [sga-principal] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-18T23:26:26.364-05:00  INFO 3928 --- [sga-principal] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 20203 ms
+2026-09-18T23:26:32.566-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 9.22.3 by Redgate
+2026-09-18T23:26:32.566-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.internal.license.VersionPrinter    : See release notes here: https://rd.gt/416ObMi
+2026-09-18T23:26:32.567-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.internal.license.VersionPrinter    : 
+2026-09-18T23:26:32.822-05:00  INFO 3928 --- [sga-principal] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5433/sga_nueva (PostgreSQL 15.19)
+2026-09-18T23:26:33.181-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.database.base.Schema   : Creating schema "sga_principal" ...
+2026-09-18T23:26:33.295-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "sga_principal"."flyway_schema_history" ...
+2026-09-18T23:26:34.221-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "sga_principal": null
+2026-09-18T23:26:34.553-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "8 - baseline completo"
+2026-09-18T23:26:34.638-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "public" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-18T23:26:34.730-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_principal" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-18T23:26:44.032-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "9 - representante usuario y rol"
+2026-09-18T23:26:44.468-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "10 - vincular cuentas representante"
+2026-09-18T23:26:44.617-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "12 - notificaciones push fcm"
+2026-09-18T23:26:44.968-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "13 - trigger y revocacion auditoria"
+2026-09-18T23:26:45.003-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: trigger "tg_auditoria_append_only" for relation "sga_principal.auditoria" does not exist, skipping
+2026-09-18T23:26:45.262-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "14 - cadena auditoria lamport"
+2026-09-18T23:26:45.282-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_anterior" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:45.283-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_actual" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:45.283-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "reloj_lamport" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:45.802-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "15 - auditoria campos criptograficos"
+2026-09-18T23:26:45.912-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_anterior" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:45.913-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_actual" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:45.913-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "reloj_lamport" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:45.915-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "vector_reloj" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:46.793-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "16 - estado cadena auditoria"
+2026-09-18T23:26:46.809-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "contenido_canonico" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:46.821-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "version_canonica" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-18T23:26:47.129-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "17 - accion auditoria docente"
+2026-09-18T23:26:47.318-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "18 - rol aplicacion y revocacion auditoria"
+2026-09-18T23:26:47.642-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
+2026-09-18T23:26:47.703-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_docente" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-18T23:26:47.793-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_secretaria" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-18T23:26:47.846-05:00  WARN 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_soporte" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-18T23:26:48.497-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "20 - reparar checksum v18"
+2026-09-18T23:26:48.542-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: V20: marca de reparacion aplicada. El checksum de V18 fue reparado por FlywayMigrationStrategy en el arranque de sga-principal.
+2026-09-18T23:26:48.741-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "21 - trigger truncate auditoria"
+2026-09-18T23:26:48.812-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: trigger "tg_auditoria_no_truncate" for relation "sga_principal.auditoria" does not exist, skipping
+2026-09-18T23:26:49.187-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "22 - marca reparacion v18 confirmada"
+2026-09-18T23:26:49.253-05:00  INFO 3928 --- [sga-principal] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: V22: reparacion del checksum de V18 confirmada el 2026-09-18. Ejecutada por FlywayConfig.repairAntesDeMigrar antes del migrate. Validacion de Flyway activa (validateOnMigrate=true por defecto).
+2026-09-18T23:26:49.639-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "23 - grants sga secretaria y auditoria diferidos"
+2026-09-18T23:26:49.876-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "24 - acotar revocacion bitacora"
+2026-09-18T23:26:49.989-05:00  INFO 3928 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 16 migrations to schema "sga_principal", now at version v24 (execution time 00:11.737s)
+2026-09-18T23:26:50.568-05:00  INFO 3928 --- [sga-principal] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-18T23:26:51.269-05:00  INFO 3928 --- [sga-principal] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-18T23:26:51.536-05:00  INFO 3928 --- [sga-principal] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-18T23:26:52.645-05:00  INFO 3928 --- [sga-principal] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-18T23:26:52.811-05:00  INFO 3928 --- [sga-principal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-18T23:26:52.989-05:00  INFO 3928 --- [sga-principal] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5e6bbe63
+2026-09-18T23:26:52.994-05:00  INFO 3928 --- [sga-principal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-18T23:26:53.095-05:00  WARN 3928 --- [sga-principal] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-18T23:27:00.511-05:00  INFO 3928 --- [sga-principal] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-18T23:27:00.527-05:00  INFO 3928 --- [sga-principal] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-18T23:27:03.345-05:00  INFO 3928 --- [sga-principal] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-18T23:27:11.285-05:00  INFO 3928 --- [sga-principal] [           main] n.d.b.g.c.a.GrpcClientAutoConfiguration  : Detected grpc-netty-shaded: Creating ShadedNettyChannelFactory + InProcessChannelFactory
+2026-09-18T23:27:15.721-05:00  INFO 3928 --- [sga-principal] [           main] e.e.u.s.i.c.RestriccionBitacoraValidator : Verificado: usuario sga_app no puede modificar la bitacora
+2026-09-18T23:27:15.988-05:00  WARN 3928 --- [sga-principal] [           main] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc$PrincipalServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-18T23:27:16.026-05:00  WARN 3928 --- [sga-principal] [           main] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.contexto.TeacherContextServiceGrpc$TeacherContextServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-18T23:27:22.868-05:00  INFO 3928 --- [sga-principal] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-18T23:27:23.125-05:00  INFO 3928 --- [sga-principal] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@33a800bf, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@1a0a6d71, org.springframework.security.web.context.SecurityContextHolderFilter@498ae73c, org.springframework.security.web.header.HeaderWriterFilter@5af87c49, org.springframework.web.filter.CorsFilter@6f1c9f54, org.springframework.security.web.authentication.logout.LogoutFilter@77e0d62f, ec.edu.uteq.sga.infrastructure.security.JwtFilter@55881f40, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3e9feb92, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@41621744, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@69d906c3, org.springframework.security.web.session.SessionManagementFilter@6d27fe0c, org.springframework.security.web.access.ExceptionTranslationFilter@6dd8e64b, org.springframework.security.web.access.intercept.AuthorizationFilter@3b95678b]
+2026-09-18T23:27:23.898-05:00  INFO 3928 --- [sga-principal] [           main] g.s.a.GrpcServerFactoryAutoConfiguration : Detected grpc-netty-shaded: Creating ShadedNettyGrpcServerFactory
+2026-09-18T23:27:25.246-05:00  INFO 3928 --- [sga-principal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8098 (http) with context path ''
+2026-09-18T23:27:25.268-05:00  INFO 3928 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.principal.PrincipalService, bean: principalGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.PrincipalGrpcService$$SpringCGLIB$$0
+2026-09-18T23:27:25.271-05:00  INFO 3928 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.contexto.TeacherContextService, bean: teacherContextGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.TeacherContextGrpcService$$SpringCGLIB$$0
+2026-09-18T23:27:25.272-05:00  INFO 3928 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.health.v1.Health, bean: grpcHealthService, class: io.grpc.protobuf.services.HealthServiceImpl
+2026-09-18T23:27:25.273-05:00  INFO 3928 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.reflection.v1alpha.ServerReflection, bean: protoReflectionService, class: io.grpc.protobuf.services.ProtoReflectionService
+2026-09-18T23:27:25.735-05:00  INFO 3928 --- [sga-principal] [           main] n.d.b.g.s.s.GrpcServerLifecycle          : gRPC Server started, listening on address: *, port: 9098
+2026-09-18T23:27:25.799-05:00  INFO 3928 --- [sga-principal] [           main] e.edu.uteq.sga.SgaPrincipalApplication   : Started SgaPrincipalApplication in 83.061 seconds (process running for 86.41)

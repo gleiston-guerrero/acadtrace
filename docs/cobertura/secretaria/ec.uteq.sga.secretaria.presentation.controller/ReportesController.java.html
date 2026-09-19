@@ -15,9 +15,9 @@ public class ReportesController {
 
     private final ReportesService service;
 
-<span class="nc" id="L18">    public ReportesController(ReportesService service) {</span>
-<span class="nc" id="L19">        this.service = service;</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L18">    public ReportesController(ReportesService service) {</span>
+<span class="fc" id="L19">        this.service = service;</span>
+<span class="fc" id="L20">    }</span>
 
     @GetMapping(&quot;/certificado-matricula/{id}&quot;)
     public ResponseEntity&lt;byte[]&gt; certificadoMatricula(@PathVariable Long id) throws IOException {

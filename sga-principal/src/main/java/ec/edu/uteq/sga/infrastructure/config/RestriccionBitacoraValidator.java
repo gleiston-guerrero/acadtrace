@@ -35,9 +35,7 @@ public class RestriccionBitacoraValidator {
         try (Connection con = dataSource.getConnection()) {
             String usuarioEfectivo = leerUsuarioEfectivo(con);
             if (esSuperusuario(con)) {
-                log.warn("Validacion de restriccion de bitacora omitida: el usuario efectivo {} es superusuario. " +
-                        "Este arranque no acredita la restriccion.", usuarioEfectivo);
-                return;
+                throw new IllegalStateException("El usuario efectivo " + usuarioEfectivo + " es superusuario; la restriccion append-only sobre la bitacora no puede acreditarse");
             }
             comprobarSinPrivilegio(con, usuarioEfectivo, "UPDATE");
             comprobarSinPrivilegio(con, usuarioEfectivo, "DELETE");
