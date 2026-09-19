@@ -49,7 +49,7 @@ public class SecretariaContainerIntegrationTest {
             .withDatabaseName("sga")
             .withUsername("postgres")
             .withPassword("test_secret_pass")
-            .withInitScript("db/init/baseline_flyway_v8.sql");
+            .withInitScript("db/migration/V8__baseline_completo.sql");
 
     @DynamicPropertySource
     static void dynamicProperties(DynamicPropertyRegistry registry) {

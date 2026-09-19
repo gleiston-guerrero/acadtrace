@@ -36,7 +36,7 @@ class AuditoriaFlywayMigrationContainerTest {
                     .withUsername("e4_e13_test")
                     .withPassword(DB_PASSWORD)
                     .withInitScript(
-                            "db/init/baseline_flyway_v8.sql"
+                            "db/migration/V8__baseline_completo.sql"
                     );
 
     @Test
