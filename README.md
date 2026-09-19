@@ -258,25 +258,6 @@ Ningun contenido generado por IA fue incorporado sin revision humana previa; los
 
 ---
 
-## Compilacion del Informe LaTeX
-
-Los informes individuales de cada integrante (carpeta `Informe-E4_BCEL/`) se compilan con `pdflatex` (TeX Live 2023 o superior). Desde la carpeta `Informe-E4_BCEL/`:
-
-```bash
-# 1ra pasada: genera el .aux con las referencias de citas pendientes
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-
-# Resuelve las citas bibliograficas contra referencias.bib
-bibtex TA_PFC_E4_Soporte
-
-# 2da y 3ra pasada: incorpora la bibliografia resuelta y fija la numeracion
-# de figuras/secciones cruzadas (se corre dos veces por convencion de LaTeX)
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-```
-
-El PDF resultante es `TA_PFC_E4_Soporte.pdf`, en la misma carpeta. El mismo procedimiento aplica para el resto de informes individuales del equipo (reemplazando el nombre del archivo `.tex`).
-
 ## 🤖 Declaración de Uso de Inteligencia Artificial Generativa
 
 En cumplimiento con los lineamientos académicos e institucionales, se declara el uso ético y transparente de herramientas de Asistencia de Inteligencia Artificial (Google Antigravity / Gemini 2.5 Pro) durante el desarrollo de la Entrega 4 del proyecto **AcadTrace**:

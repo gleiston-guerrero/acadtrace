@@ -20,7 +20,7 @@ Container_Boundary(soporte, "microservicio-soporte") {
     Component(jdbc_template, "JdbcTemplate", "Spring JDBC", "Acceso a tablas del esquema sga_soporte.")
     Component(named_jdbc, "NamedParameterJdbcTemplate", "Spring JDBC", "Actualización programada de tickets con parámetros nombrados.")
     Component(tecnico_grpc, "TecnicoGrpcClient", "gRPC Client", "Consulta usuarios y roles en sga-principal.")
-    Component(incidencia_server, "IncidenciaGrpcServer", "gRPC Server", "Recibe incidencias de otros servicios en :9094.")
+    Component(incidencia_server, "IncidenciaGrpcServer", "gRPC Server", "Servidor gRPC en :9094 para recepción de incidencias automatizadas.")
 
     Component(jwt_filter, "JwtAuthFilter", "Spring Security Filter", "Autentica peticiones REST con el JWT compartido.")
     Component(memory_appender, "MemoryLogAppender", "Logging Appender", "Conserva eventos de log para consulta operativa.")

@@ -109,6 +109,10 @@ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
+ALTER TYPE sga_principal.accion_auditoria_t ADD VALUE IF NOT EXISTS 'LOGIN_FALLIDO';
+ALTER TYPE sga_principal.accion_auditoria_t ADD VALUE IF NOT EXISTS 'ROL_ASIGNADO';
+ALTER TYPE sga_principal.accion_auditoria_t ADD VALUE IF NOT EXISTS 'LLAMADA_GRPC';
+
 DO $$
 BEGIN
     CREATE TYPE sga_principal.dia_semana_t AS ENUM (
@@ -825,7 +829,8 @@ CREATE TABLE IF NOT EXISTS sga_secretaria.historial_promocion (
     promedio_anual numeric(4,2),
     observaciones text,
     registrado_por integer,
-    fecha_registro timestamp with time zone DEFAULT now() NOT NULL
+    fecha_registro timestamp with time zone DEFAULT now() NOT NULL,
+    lamport_ts bigint
 );
 
 CREATE TABLE IF NOT EXISTS sga_principal.horarios (
