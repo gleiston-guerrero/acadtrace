@@ -14,7 +14,7 @@ services:
       - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - grpc.client.docente-service.address=static://microservicio-docente:9091
@@ -34,7 +34,7 @@ services:
       - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
@@ -79,7 +79,7 @@ services:
       - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
