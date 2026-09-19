@@ -612,18 +612,21 @@ jobs:
           set -euo pipefail
 
           DB_PASSWORD="$(openssl rand -hex 32)"
+          SGA_APP_PASSWORD="$(openssl rand -hex 32)"
           AES_SECRET_KEY="$(openssl rand -base64 32)"
           GRPC_INTERNAL_TOKEN="$(openssl rand -hex 32)"
           E2E_DOCENTE_PASSWORD="E10-$(openssl rand -hex 16)"
           E2E_DOCENTE_HASH="$(docker run --rm httpd:2.4-alpine htpasswd -nbBC 10 e10 "$E2E_DOCENTE_PASSWORD" | cut -d: -f2)"
 
           echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$SGA_APP_PASSWORD"
           echo "::add-mask::$AES_SECRET_KEY"
           echo "::add-mask::$GRPC_INTERNAL_TOKEN"
           echo "::add-mask::$E2E_DOCENTE_PASSWORD"
           echo "::add-mask::$E2E_DOCENTE_HASH"
 
           echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
+          echo "SGA_APP_PASSWORD=$SGA_APP_PASSWORD" >> "$GITHUB_ENV"
           echo "FLYWAY_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
           echo "AES_SECRET_KEY=$AES_SECRET_KEY" >> "$GITHUB_ENV"
           echo "GRPC_INTERNAL_TOKEN=$GRPC_INTERNAL_TOKEN" >> "$GITHUB_ENV"
@@ -657,6 +660,19 @@ jobs:
             sga-principal/src/main/resources/db/migration/V8__baseline_completo.sql \
             postgres-e10:/baseline_flyway_v8.sql
 
+          # Flyway esta deshabilitado para sga-principal en E10 (entregable #36),
+          # asi que V18 (creacion del rol sga_app de menor privilegio) tampoco
+          # corre automaticamente. Se aplica aqui manualmente, igual que el
+          # baseline V8, sustituyendo el placeholder ${sga_app_password} que
+          # Flyway normalmente resuelve por su cuenta.
+          sed "s/\${sga_app_password}/${SGA_APP_PASSWORD}/" \
+            sga-principal/src/main/resources/db/migration/V18__rol_aplicacion_y_revocacion_auditoria.sql \
+            > /tmp/v18_rol_sga_app.sql
+
+          docker cp \
+            /tmp/v18_rol_sga_app.sql \
+            postgres-e10:/v18_rol_sga_app.sql
+
           for intento in {1..30}; do
             if [ "$(docker inspect --format='{{.State.Health.Status}}' postgres-e10)" = "healthy" ]; then
               break
@@ -674,6 +690,14 @@ jobs:
             -d "$DB_NAME" \
             -f /baseline_flyway_v8.sql
 
+          docker exec \
+            -e PGPASSWORD="$DB_PASSWORD" \
+            postgres-e10 \
+            psql -v ON_ERROR_STOP=1 \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -f /v18_rol_sga_app.sql
+
           docker build -t e10-sga-principal ./sga-principal
           docker build -t e10-microservicio-docente ./microservicio-docente
 
@@ -687,8 +711,8 @@ jobs:
             -e DB_HOST \
             -e DB_PORT \
             -e DB_NAME \
-            -e DB_USER \
-            -e DB_PASSWORD \
+            -e DB_USER=sga_app \
+            -e DB_PASSWORD="$SGA_APP_PASSWORD" \
             -e SGA_APP_PASSWORD \
             -e FLYWAY_USER \
             -e FLYWAY_PASSWORD \
@@ -698,7 +722,6 @@ jobs:
             -e GRPC_INTERNAL_TOKEN \
             -e MAIL_PASSWORD \
             -e FCM_ENABLED \
-            -e SPRING_FLYWAY_ENABLED=false \
             -e GOOGLE_APPLICATION_CREDENTIALS= \
             -e grpc.client.docente-service.address=dns:///microservicio-docente:9091 \
             e10-sga-principal
