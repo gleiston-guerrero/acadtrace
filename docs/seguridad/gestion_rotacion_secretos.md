@@ -67,9 +67,11 @@ La revocación efectiva permanece **PENDIENTE DE VERIFICACIÓN** en los proveedo
 
 Cambios aplicados al arbol vivo antes del cierre del PFC:
 
-- `docker-compose.yml`: eliminado el valor de reserva de la IP publica
-  del servidor en `DB_HOST` (postgres-exporter). Ahora exige la variable
-  via `${DB_HOST:?...}`.
+- `docker-compose.yml`, `microservicio-secretaria/docker-compose.yml`,
+  `application.properties` (sga-principal y microservicio-secretaria),
+  `DataSourceConfig.java`, `micro_docente/settings.py` y `.env.example`:
+  sustituido el valor de reserva de la IP publica del servidor en `DB_HOST`
+  por `localhost` (y fail-fast `${DB_HOST:?...}` en postgres-exporter).
 - `docker-compose.yml`: `GRAFANA_ADMIN_PASSWORD` ya usaba fail-fast
   `${GRAFANA_ADMIN_PASSWORD:?...}`.
 - `sga-principal/docker-compose.yml`: eliminado el literal

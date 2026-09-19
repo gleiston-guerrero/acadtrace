@@ -7,7 +7,6 @@ title Diagrama C4 - Nivel 1: Contexto de AcadTrace
 
 Person(docente, "Docente", "Gestiona asistencia, actividades y calificaciones.")
 Person(representante, "Representante", "Consulta información académica de sus estudiantes mediante la aplicación móvil.")
-Person(estudiante, "Estudiante", "Consulta su información académica cuando dispone de acceso propio.")
 Person(secretaria, "Secretaría", "Gestiona matrículas, expedientes, representantes y reportes.")
 Person(director, "DIRECTOR", "Consulta y administra información académica y de soporte según su rol.")
 Person(soporte, "Soporte técnico", "Atiende incidencias, asigna y escala tickets.")
@@ -22,7 +21,6 @@ System_Ext(fcm, "Firebase Cloud Messaging (FCM)", "Integración opcional para no
 
 Rel(docente, acadtrace, "Gestiona clases, asistencia y calificaciones", "REST / gRPC")
 Rel(representante, acadtrace, "Consulta información académica", "Aplicación móvil / REST")
-Rel(estudiante, acadtrace, "Consulta información académica", "REST")
 Rel(secretaria, acadtrace, "Gestiona matrículas y expedientes", "REST")
 Rel(director, acadtrace, "Consulta y gestiona información autorizada", "REST")
 Rel(soporte, acadtrace, "Gestiona tickets", "REST")

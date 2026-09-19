@@ -124,4 +124,40 @@ class AuditHashServiceCanonicalTest {
                 canonico.contains("VALOR-FICTICIO")
         );
     }
+
+    @Test
+    void materialSensibleExcluyeContrasenaConTilde() {
+        AuditHashService service = new AuditHashService();
+        Map<String, Object> payload = new TreeMap<>();
+        payload.put("contraseña", "secreto123");
+        payload.put("contrase\u00f1a", "secreto456");
+        payload.put("campo_valido", "ok");
+
+        Map<String, Object> contenido = service.contenidoEvento(
+                "AUDITORIA", "estudiante", "10", "LOGIN", "admin",
+                "2026-09-18T10:00:00Z", payload, "m1", 1L, null, "APLICADO"
+        );
+
+        String canonico = service.jsonCanonico(contenido);
+        assertFalse(canonico.contains("secreto123"));
+        assertFalse(canonico.contains("secreto456"));
+        assertFalse(canonico.contains("contraseña"));
+    }
+
+    @Test
+    void normalizarSoportaFechasSinFailOpen() {
+        AuditHashService service = new AuditHashService();
+        Map<String, Object> payload = new TreeMap<>();
+        payload.put("fecha_nacimiento", java.time.LocalDate.of(2005, 5, 20));
+        payload.put("fecha_registro", java.time.LocalDateTime.of(2026, 9, 18, 14, 30, 0));
+
+        Map<String, Object> contenido = service.contenidoEvento(
+                "AUDITORIA", "estudiante", "10", "CREAR", "admin",
+                "2026-09-18T10:00:00Z", payload, "m1", 1L, null, "APLICADO"
+        );
+
+        String canonico = service.jsonCanonico(contenido);
+        org.junit.jupiter.api.Assertions.assertTrue(canonico.contains("\"fecha_nacimiento\":\"2005-05-20\""));
+        org.junit.jupiter.api.Assertions.assertTrue(canonico.contains("\"fecha_registro\":\"2026-09-18T14:30"));
+    }
 }
