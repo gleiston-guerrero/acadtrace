@@ -1,6 +1,10 @@
 package ec.edu.uteq.sga.integration;
 
 import ec.edu.uteq.sga.application.service.AuditoriaService;
+import org.junit.jupiter.api.BeforeAll;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,11 +52,25 @@ class AuditoriaCadenaConcurrencyServicioE3Test {
                     .withPassword("postgres")
                     .withInitScript("db/migration/V8__baseline_completo.sql");
 
+
+    @BeforeAll
+    static void initSgaApp() throws Exception {
+        try (Connection conn = DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='sga_app') THEN CREATE ROLE sga_app WITH LOGIN PASSWORD 'test_pass_123' NOSUPERUSER NOCREATEDB NOCREATEROLE; END IF; END $$;");
+            stmt.execute("GRANT CONNECT ON DATABASE " + POSTGRES.getDatabaseName() + " TO sga_app;");
+            stmt.execute("GRANT USAGE ON SCHEMA public TO sga_app;");
+        }
+    }
+
     @DynamicPropertySource
     static void configurarPropiedades(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES::getUsername);
-        registry.add("spring.datasource.password", POSTGRES::getPassword);
+        registry.add("spring.datasource.username", () -> "sga_app");
+        registry.add("spring.datasource.password", () -> "test_pass_123");
+        registry.add("spring.flyway.user", POSTGRES::getUsername);
+        registry.add("spring.flyway.password", POSTGRES::getPassword);
+        registry.add("spring.flyway.placeholders.sga_app_password", () -> "test_pass_123");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.flyway.locations", () -> "classpath:db/migration");
