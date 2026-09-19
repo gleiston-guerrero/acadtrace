@@ -300,13 +300,32 @@ sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recomm
 ### Compilación limpia del informe maestro:
 ```bash
 cd Informe-E4_BCEL
-python ../generar_matriz.py --write-latex
+python ../generar_matriz.py --write-csv --write-latex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 bibtex TA-PFC-E4_BCEL
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 ```
-`generar_matriz.py` deriva la evidencia ISO 25010 de los CSV de carga de Soporte y genera `Informe-E4_BCEL/matriz_iso25010_generada.tex` antes de compilar el manuscrito, que la incorpora mediante `\input{matriz_iso25010_generada.tex}`.
+`generar_matriz.py` usa solo la biblioteca estándar de Python (CI usa Python 3.13) y genera tanto `docs/experimentos/resultados/matriz_iso25010.csv` como `Informe-E4_BCEL/matriz_iso25010_generada.tex`. El manuscrito incorpora el segundo mediante `\input{matriz_iso25010_generada.tex}`.
+
+Fuentes y límites de la evaluación #22:
+
+- **Nominal local:** `microservicio-soporte/locust_esc1_stats.csv` (fila `Aggregated`) y `locust_esc1_stats_history.csv` (máximo `User Count`). P99 es una medición; el umbral estricto de 500 ms procede del criterio documental PI-1.
+- **Histórica / perfil no validado:** ventanas de `experimentos/resultados/iso25010.csv` derivadas de `experimentos/resultados/locust_esc3_stats_history.csv`. No constituyen estrés oficial actual ni disponibilidad temporal de producción.
+- **Sintética:** observaciones M2 de `experimentos/resultados/falsos_positivos.csv`; no miden seguridad en producción.
+- **Cobertura:** contadores globales `LINE` de `docs/cobertura/secretaria/jacoco.xml` y `docs/cobertura/soporte/jacoco.xml`; porcentaje calculado como `covered / (covered + missed) * 100`, con las exclusiones de esos reportes. Se compara sin redondear con el criterio de la matriz de 70% LINE. Reporte ausente o inválido impide generar; no se sustituye por porcentajes de respaldo.
+- **Principal:** `No verificable con la evidencia versionada`. Su compuerta particular de 30% INSTRUCTION no es la métrica LINE de la matriz. Las compuertas de Secretaría y Soporte son 70% LINE, según sus respectivos `pom.xml`.
+
+Los reportes versionados no prueban una nueva ejecución sobre el HEAD actual. La integridad de un hash tampoco demuestra vigencia de una medición.
+
+Desde la raíz, regenerar ambos artefactos y comprobar que coinciden con las versiones almacenadas (la comprobación falla si hay cambios pendientes en ellos):
+
+```bash
+python generar_matriz.py --write-csv --write-latex
+git diff --exit-code -- docs/experimentos/resultados/matriz_iso25010.csv Informe-E4_BCEL/matriz_iso25010_generada.tex
+```
+
+El job de matriz ISO en CI ejecuta esta misma comprobación para ambos archivos. Para consultar sin escribir, usar `python generar_matriz.py --preview --format json` (también admite `csv` y `latex`). La generación reproduce los artefactos desde las fuentes conservadas; no ejecuta carga ni regenera las mediciones históricas.
 
 *(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
 

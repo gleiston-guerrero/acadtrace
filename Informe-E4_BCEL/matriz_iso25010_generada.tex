@@ -47,11 +47,11 @@ veredicto & Evidencia parcial; no certifica seguridad global \\ \hline
 \hline
 caracteristica & Mantenibilidad \\ \hline
 indicador & Cobertura de pruebas en microservicios \\ \hline
-valor & Secretaria: 71.42\%; Soporte: 71.61\%; Principal: 31.6\% \\ \hline
-fuente & docs/cobertura/README.md; reportes oficiales JaCoCo y pytest \\ \hline
-alcance & Cobertura de codigo a nivel BUNDLE/LINE en microservicios backend \\ \hline
-criterio & Cobertura \textgreater{}= 70\% LINE \\ \hline
-veredicto & Cumple en Secretaría (71.42\%) y Soporte (71.61\%); Principal 31.6\% en curso \\ \hline
+valor & Secretaría: LINE 2217/3104 = 71.42\%; Soporte: LINE 459/641 = 71.61\%; Principal: No verificable con la evidencia versionada \\ \hline
+fuente & docs/cobertura/secretaria/jacoco.xml (contador global LINE); docs/cobertura/soporte/jacoco.xml (contador global LINE); compuertas: microservicio-secretaria/backend/pom.xml, microservicio-soporte/backend/pom.xml, sga-principal/pom.xml; limitacion Principal: docs/cobertura/README.md (evidencia insuficiente e incoherente) \\ \hline
+alcance & Contadores BUNDLE/LINE de reportes versionados, con sus exclusiones; no acredita una nueva ejecucion ni cobertura del HEAD actual. Compuertas particulares: Secretaría y Soporte \textgreater{}= 70\% LINE; Principal \textgreater{}= 30\% INSTRUCTION (no equivale a LINE; cumplimiento no verificado) \\ \hline
+criterio & Criterio de evaluacion de esta matriz: cobertura \textgreater{}= 70\% LINE por modulo \\ \hline
+veredicto & Secretaría: Cumple el criterio LINE de la matriz; Soporte: Cumple el criterio LINE de la matriz; Principal: No verificable con la evidencia versionada \\ \hline
 \end{tabularx}
 \par\medskip
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
