@@ -7,6 +7,7 @@ import csv
 import io
 import json
 import sys
+import xml.etree.ElementTree as ET
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -23,6 +24,31 @@ FIELDS = {'peticiones': 'Request Count', 'fallos': 'Failure Count',
 COLUMNS = ('caracteristica', 'indicador', 'valor', 'fuente', 'alcance', 'criterio', 'veredicto')
 # Criterio documental, nunca resultado esperado.
 P99_LIMIT_MS = Decimal('500')
+COVERAGE_LIMIT_PCT = Decimal('70')  # Criterio de esta matriz, no medicion.
+COVERAGE_REPORTS = (
+    ('Secretaría', Path('docs/cobertura/secretaria/jacoco.xml')),
+    ('Soporte', Path('docs/cobertura/soporte/jacoco.xml')),
+)
+
+
+def derive_coverage():
+    results = []
+    for module, relative in COVERAGE_REPORTS:
+        try:
+            report = ET.parse(ROOT / relative).getroot()
+        except ET.ParseError as exc:
+            raise ValueError(f'{relative}: XML JaCoCo invalido') from exc
+        counters = [c for c in report.findall('counter') if c.get('type') == 'LINE']
+        if report.tag != 'report' or len(counters) != 1:
+            raise ValueError(f'{relative}: se requiere un contador global BUNDLE/LINE')
+        covered = number(counters[0].get('covered'), f'{relative}: covered', True)
+        missed = number(counters[0].get('missed'), f'{relative}: missed', True)
+        total = covered + missed
+        if total == 0:
+            raise ValueError(f'{relative}: contador LINE sin lineas')
+        percent = covered * 100 / total
+        results.append((module, relative, covered, total, percent))
+    return results
 
 
 def read_rows(relative, required):
@@ -160,12 +186,25 @@ def build_rows(metrics, false_positives, historical_windows):
         'Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion',
         'Falsos positivos observados / muestras validas',
         'Evidencia parcial; no certifica seguridad global')
+    coverage = derive_coverage()
     add('Mantenibilidad', 'Cobertura de pruebas en microservicios',
-        'Secretaria: 71.42%; Soporte: 71.61%; Principal: 31.6%',
-        'docs/cobertura/README.md; reportes oficiales JaCoCo y pytest',
-        'Cobertura de codigo a nivel BUNDLE/LINE en microservicios backend',
-        'Cobertura >= 70% LINE',
-        'Cumple en Secretaría (71.42%) y Soporte (71.61%); Principal 31.6% en curso')
+        '; '.join(f'{module}: LINE {covered}/{total} = {percent:.2f}%'
+                  for module, _, covered, total, percent in coverage)
+        + '; Principal: No verificable con la evidencia versionada',
+        '; '.join(f'{path.as_posix()} (contador global LINE)'
+                  for _, path, _, _, _ in coverage)
+        + '; compuertas: microservicio-secretaria/backend/pom.xml, '
+        'microservicio-soporte/backend/pom.xml, sga-principal/pom.xml; '
+        'limitacion Principal: docs/cobertura/README.md (evidencia insuficiente e incoherente)',
+        'Contadores BUNDLE/LINE de reportes versionados, con sus exclusiones; '
+        'no acredita una nueva ejecucion ni cobertura del HEAD actual. '
+        'Compuertas particulares: Secretaría y Soporte >= 70% LINE; '
+        'Principal >= 30% INSTRUCTION (no equivale a LINE; cumplimiento no verificado)',
+        f'Criterio de evaluacion de esta matriz: cobertura >= {COVERAGE_LIMIT_PCT}% LINE por modulo',
+        '; '.join(f'{module}: {"Cumple" if percent >= COVERAGE_LIMIT_PCT else "No cumple"} '
+                  'el criterio LINE de la matriz'
+                  for module, _, _, _, percent in coverage)
+        + '; Principal: No verificable con la evidencia versionada')
     unevaluated = (
         ('Adecuaci\u00f3n funcional', 'Satisfaccion de requisitos funcionales',
          'No se evalua evidencia funcional en este generador'),
@@ -220,9 +259,9 @@ def main():
                           derive_historical_windows())
         csv_text, tex_text = serialize_csv(rows), serialize_latex(rows)
         if args.write_csv:
-            CSV_OUTPUT.write_text(csv_text, encoding='utf-8')
+            CSV_OUTPUT.write_text(csv_text, encoding='utf-8', newline='\n')
         if args.write_latex:
-            TEX_OUTPUT.write_text(tex_text, encoding='utf-8')
+            TEX_OUTPUT.write_text(tex_text, encoding='utf-8', newline='\n')
         if args.format == 'json':
             print(json.dumps(rows, ensure_ascii=False, indent=2))
         else:

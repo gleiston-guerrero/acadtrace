@@ -2,8 +2,8 @@
 
 Solo --generate-latex escribe un archivo; --emit-latex-block imprime macros.
 
---check-latex valida las afirmaciones numéricas explícitas de los párrafos
-oficiales y filas nominales del manuscrito actual; no es un parser general
+--check-latex valida las publicaciones oficiales delimitadas en Markdown,
+las macros y los párrafos oficiales del manuscrito; no es un parser general
 de LaTeX ni certifica resultados históricos o causas de fallos.
 Salidas: 0 correcto, 1 discrepancias, 2 entrada inválida.
 """
@@ -130,8 +130,8 @@ def render(metrics):
 
 NUM = r"(?<![\d.,])([0-9]+(?:[.,][0-9]+)*)"
 PATTERNS = {
-    "peticiones": [NUM + r"\s*(?:peticiones|reqs\b)"],
-    "fallos": [NUM + r"\s*fallos\b"],
+    "peticiones": [NUM + r"\s*(?:peticiones|reqs\b|requests\b)"],
+    "fallos": [NUM + r"\s*(?:fallos|failures)\b"],
     "rps": [NUM + r"\s*(?:req/s|RPS)"],
     "media_ms": [r"(?:promedio|media)\s*" + NUM],
     "p50_ms": [r"P_?50\s*=\s*" + NUM],
@@ -169,13 +169,19 @@ def check_latex(metrics, text):
         # Revisar métricas oficiales; excluir discusiones históricas y endpoints.
         selected = ("OFICIAL NOMINAL" in raw or "Nominal oficial:" in raw
                     or "Nominal Esc-1:" in raw
+                    or "official local nominal Support run" in raw
+                    or any("\\" + macro in raw for macro in MACROS.values())
                     or (in_official_section and "El perfil configura" in raw))
-        if not selected:
+        if not selected or 'pruebas-carga/image.png' in raw:
             continue
         line = raw.split("Nominal Esc-1:", 1)[-1].split("Estrés Esc-2:", 1)[0]
         if "Nominal oficial:" in line:
             # Solo la celda de resultados agregados, no recomendaciones por endpoint.
             line = line.split("Nominal oficial:", 1)[1].split("&", 1)[0]
+        # Expandir solo las macros de carga desde A, nunca desde literales alternativos.
+        for key, macro in MACROS.items():
+            line = re.sub(r"\\" + macro + r"\b(?:\{\})?",
+                          format(metrics[key], 'f'), line)
         line = line.replace(r"\,", " ").replace(r"\;", " ")
         line = re.sub(r"\\[A-Za-z]+", "", line)
         line = re.sub(r"[{}$]", "", line)
@@ -187,6 +193,79 @@ def check_latex(metrics, text):
                     if not matches(token, metrics[key], key in ("peticiones", "fallos", "usuarios_maximos")):
                         errors.append(f"Línea {line_no}: {key}={token}; CSV={metrics[key]}")
     errors.extend(f"No se encontró una afirmación oficial verificable para {key}" for key in metrics if key not in seen)
+    return errors
+
+
+# Secciones oficiales explícitas; los inventarios B-F, protocolos históricos,
+# capturas descritas y resultados experimentales no son cifras oficiales de A.
+PUBLICATIONS = {
+    'README.md': ('## Resultados oficiales de carga', '**Corrida oficial de estrés:'),
+    'docs/locust/README.md': ('## 1.', '## 2.'),
+    'docs/locust/entorno_medicion.md': ('> CSV oficial:', '> **Estrés oficial:'),
+    'experimentos/protocolo-e4.md': ('## 5. Resultados de carga E5', '**Corrida oficial de estrés:'),
+    'docs/experimentos/protocolo-e4.md': ('## 5. Resultados de carga E5', '**Corrida oficial de estrés:'),
+    'experimentos/resultados/corridas-e5.md': ('## Artefactos y métricas oficiales de A', '## Evidencia visual'),
+}
+TABLE_FIELDS = {
+    'Peticiones': ('peticiones',), 'Fallos': ('fallos',),
+    'Peticiones / fallos': ('peticiones', 'fallos'),
+    'RPS': ('rps',), 'Promedio': ('media_ms',),
+    'P50': ('p50_ms',), 'P95': ('p95_ms',), 'P99': ('p99_ms',),
+    'P50 / P95 / P99': ('p50_ms', 'p95_ms', 'p99_ms'),
+    'Máximo': ('maximo_ms',),
+    'Request Count': ('peticiones',), 'Failure Count': ('fallos',),
+    'Requests/s': ('rps',), 'Average Response Time': ('media_ms',),
+    'Median Response Time / 50%': ('p50_ms',), '95%': ('p95_ms',),
+    '99%': ('p99_ms',), 'Max Response Time': ('maximo_ms',),
+    'Peticiones Totales': ('peticiones',), 'Fallos Totales': ('fallos',),
+    'Throughput Promedio': ('rps',), 'Latencia Promedio': ('media_ms',),
+    'Percentil 50 (P50 / Mediana)': ('p50_ms',),
+    'Percentil 95 (P95)': ('p95_ms',), 'Percentil 99 (P99)': ('p99_ms',),
+    'Latencia Máxima': ('maximo_ms',),
+}
+
+
+def check_publication(path, text, metrics):
+    start, end = PUBLICATIONS[path]
+    if start not in text or end not in text.split(start, 1)[1]:
+        return [f'{path}: falta delimitador de la publicación oficial']
+    block = text.split(start, 1)[1].split(end, 1)[0]
+    errors, seen = [], set()
+
+    def check(key, token):
+        seen.add(key)
+        if not matches(token, metrics[key], key in ('peticiones', 'fallos', 'usuarios_maximos')):
+            errors.append(f'{path}: {key}={token}; CSV A={metrics[key]}')
+
+    for raw in block.splitlines():
+        line = raw.replace('**', '').strip().lstrip('> ').lstrip('- ')
+        if line.startswith('|'):
+            cells = [cell.strip() for cell in line.strip('|').split('|')]
+            label, value = cells[:2] if len(cells) >= 2 else ('', '')
+        else:
+            label, _, value = line.partition(':')
+        if label in TABLE_FIELDS:
+            keys = TABLE_FIELDS[label]
+            tokens = re.findall(NUM, value)
+            if len(tokens) < len(keys):
+                errors.append(f'{path}: valor ausente para {label}')
+            for key, token in zip(keys, tokens):
+                check(key, token)
+        for key, patterns in PATTERNS.items():
+            for pattern in patterns:
+                for match in re.finditer(pattern, line, re.IGNORECASE):
+                    check(key, match.group(1))
+        # Resumen oficial de entorno_medicion; los bloques historicos quedan fuera.
+        for pattern, key in [(r'P50\s+' + NUM, 'p50_ms'),
+                             (r'P95\s+' + NUM, 'p95_ms'),
+                             (r'P99\s+' + NUM, 'p99_ms'),
+                             (r'máximo\s+' + NUM, 'maximo_ms')]:
+            for match in re.finditer(pattern, line, re.IGNORECASE):
+                check(key, match.group(1))
+    required = set(FIELDS) | {'maximo_ms'}
+    if path != 'experimentos/resultados/corridas-e5.md':
+        required.add('usuarios_maximos')
+    errors.extend(f'{path}: falta métrica oficial verificable {key}' for key in sorted(required - seen))
     return errors
 
 
@@ -235,6 +314,9 @@ def main():
         if args.check_latex:
             errors = check_latex(metrics, MANUSCRIPT.read_text(encoding="utf-8"))
             errors.extend(check_generated_latex(metrics))
+            for path in PUBLICATIONS:
+                errors.extend(check_publication(path, (ROOT / path).read_text(encoding='utf-8'),
+                                                {**metrics, **extra}))
             for error in errors:
                 print("ERROR: " + error, file=sys.stderr)
             if errors:
