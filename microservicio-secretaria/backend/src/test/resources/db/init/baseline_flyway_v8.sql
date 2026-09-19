@@ -101,10 +101,17 @@ BEGIN
     'LOGOUT',
     'CAMBIO_PASSWORD',
     'BLOQUEO',
-    'DESBLOQUEO'
+    'DESBLOQUEO',
+    'LOGIN_FALLIDO',
+    'ROL_ASIGNADO',
+    'LLAMADA_GRPC'
 );
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+ALTER TYPE sga_principal.accion_auditoria_t ADD VALUE IF NOT EXISTS 'LOGIN_FALLIDO';
+ALTER TYPE sga_principal.accion_auditoria_t ADD VALUE IF NOT EXISTS 'ROL_ASIGNADO';
+ALTER TYPE sga_principal.accion_auditoria_t ADD VALUE IF NOT EXISTS 'LLAMADA_GRPC';
 
 DO $$
 BEGIN
