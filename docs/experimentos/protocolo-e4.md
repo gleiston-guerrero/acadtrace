@@ -109,7 +109,7 @@ Inicio registrado: 2026-09-11 03:59:05 UTC. Commit de conservación: `956cafcb`;
 
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio** de cero fallos. El conjunto D conserva 106.735 peticiones con 26 fallos (15 HTTP 500 y 11 HTTP 503) y es FALLIDA/HISTÓRICA. El conjunto E conserva 565 HTTP 401 y solo un usuario máximo observado. Ninguno se presenta como estrés oficial válido.
 
-La captura `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png` es histórica/complementaria: muestra 13.031 peticiones en terminal y no coincide con las 12.994 del CSV oficial. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su fila `Aggregated`.
+Se conserva la descripción histórica/complementaria de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado; esa descripción atribuye 13.031 peticiones en terminal y no coincide con las 12.994 del CSV oficial. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su fila `Aggregated`.
 
 ### Perfiles y cifras históricas (sin carácter oficial E5)
 
