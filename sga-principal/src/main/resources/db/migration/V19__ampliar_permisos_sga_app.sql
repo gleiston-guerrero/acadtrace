@@ -63,3 +63,8 @@ REVOKE UPDATE, DELETE, TRUNCATE ON TABLE sga_principal.auditoria FROM PUBLIC;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA sga_principal
     REVOKE UPDATE, DELETE, TRUNCATE ON TABLES FROM sga_app;
+
+    -- NOTA (2026-09-19): la revocacion por omision amplia sobre todo
+    -- sga_principal introducida en las lineas 64-65 fue acotada en
+    -- V24__acotar_revocacion_bitacora.sql, que restablece los privilegios
+    -- por omision del esquema y deja el REVOKE unicamente sobre auditoria.
