@@ -21,10 +21,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(&quot;/api/secretario/uploads&quot;)
-<span class="nc" id="L24">public class FotoUploadController {</span>
+<span class="fc" id="L24">public class FotoUploadController {</span>
 
-<span class="nc" id="L26">    private static final Logger log = LoggerFactory.getLogger(FotoUploadController.class);</span>
-<span class="nc" id="L27">    private static final long MAX_BYTES = 5 * 1024 * 1024; // 5 MB</span>
+<span class="fc" id="L26">    private static final Logger log = LoggerFactory.getLogger(FotoUploadController.class);</span>
+<span class="fc" id="L27">    private static final long MAX_BYTES = 5 * 1024 * 1024; // 5 MB</span>
 
     @Value(&quot;${app.uploads.dir:uploads}&quot;)
     private String baseDir;
