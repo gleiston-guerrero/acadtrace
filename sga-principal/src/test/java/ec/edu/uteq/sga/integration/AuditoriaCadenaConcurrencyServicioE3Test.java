@@ -46,7 +46,7 @@ class AuditoriaCadenaConcurrencyServicioE3Test {
                     .withDatabaseName("e37_servicio")
                     .withUsername("postgres")
                     .withPassword("postgres")
-                    .withInitScript("db/init/baseline_flyway_v8.sql");
+                    .withInitScript("db/migration/V8__baseline_completo.sql");
 
     @DynamicPropertySource
     static void configurarPropiedades(DynamicPropertyRegistry registry) {

@@ -59,7 +59,7 @@ RPS, promedio y máximo se muestran redondeados a seis decimales; los valores de
 
 ## Evidencia visual e integridad
 
-La [captura de Juliana](../../evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png) se conserva como **HISTÓRICA/COMPLEMENTARIA**. Muestra una salida de terminal de una ejecución cuya cifra final visible es **13.031** peticiones, mientras el CSV oficial conservado contiene **12.994**. La causa de la diferencia **no está demostrada**. Para las métricas oficiales prevalece siempre el CSV, sin alterarlo para coincidir con la captura.
+Se conserva la **descripción HISTÓRICA/COMPLEMENTARIA** de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado. Esa descripción atribuye una salida de terminal de una ejecución cuya cifra final visible es **13.031** peticiones, mientras el CSV oficial conservado contiene **12.994**. La causa de la diferencia **no está demostrada**. Para las métricas oficiales prevalece siempre el CSV, sin alterarlo para coincidir con la captura.
 
 **Captura exacta del CSV oficial: pendiente de toma manual.** Debe mostrar la ruta/nombre `microservicio-soporte/locust_esc1_stats.csv`, la fila `Aggregated`, Request Count = 12994, Failure Count = 0, Requests/s, promedio, P50, P95, P99 y máximo. Puede tomarse del CSV abierto o de su lectura en terminal; debe identificarse como verificación del artefacto conservado, no como nueva ejecución.
 
