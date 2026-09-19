@@ -7,25 +7,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-<span class="nc" id="L10">public class SecurityFilterConfig {</span>
+<span class="fc" id="L10">public class SecurityFilterConfig {</span>
 
     @Bean
     public FilterRegistrationBean&lt;TraceIdFilter&gt; traceIdFilterRegistration() {
-<span class="nc" id="L14">        FilterRegistrationBean&lt;TraceIdFilter&gt; registration = new FilterRegistrationBean&lt;&gt;();</span>
-<span class="nc" id="L15">        registration.setFilter(new TraceIdFilter());</span>
-<span class="nc" id="L16">        registration.addUrlPatterns(&quot;/api/secretario/*&quot;);</span>
-<span class="nc" id="L17">        registration.setOrder(0);</span>
-<span class="nc" id="L18">        return registration;</span>
+<span class="fc" id="L14">        FilterRegistrationBean&lt;TraceIdFilter&gt; registration = new FilterRegistrationBean&lt;&gt;();</span>
+<span class="fc" id="L15">        registration.setFilter(new TraceIdFilter());</span>
+<span class="fc" id="L16">        registration.addUrlPatterns(&quot;/api/secretario/*&quot;);</span>
+<span class="fc" id="L17">        registration.setOrder(0);</span>
+<span class="fc" id="L18">        return registration;</span>
     }
 
     @Bean
     public FilterRegistrationBean&lt;JwtAuthFilter&gt; jwtAuthFilterRegistration(
             JwtService jwtService, ObjectMapper objectMapper) {
-<span class="nc" id="L24">        FilterRegistrationBean&lt;JwtAuthFilter&gt; registration = new FilterRegistrationBean&lt;&gt;();</span>
-<span class="nc" id="L25">        registration.setFilter(new JwtAuthFilter(jwtService, objectMapper));</span>
-<span class="nc" id="L26">        registration.addUrlPatterns(&quot;/api/secretario/*&quot;);</span>
-<span class="nc" id="L27">        registration.setOrder(1);</span>
-<span class="nc" id="L28">        return registration;</span>
+<span class="fc" id="L24">        FilterRegistrationBean&lt;JwtAuthFilter&gt; registration = new FilterRegistrationBean&lt;&gt;();</span>
+<span class="fc" id="L25">        registration.setFilter(new JwtAuthFilter(jwtService, objectMapper));</span>
+<span class="fc" id="L26">        registration.addUrlPatterns(&quot;/api/secretario/*&quot;);</span>
+<span class="fc" id="L27">        registration.setOrder(1);</span>
+<span class="fc" id="L28">        return registration;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
