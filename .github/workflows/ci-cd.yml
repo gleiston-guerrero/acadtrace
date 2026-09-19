@@ -736,6 +736,34 @@ jobs:
             -d "$DB_NAME" \
             -f /seed_e10.sql
 
+      - name: Verificar asignacion sintetica E10
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TOTAL="$(
+            docker exec \
+              -e PGPASSWORD="$DB_PASSWORD" \
+              postgres-e10 \
+              psql -At \
+              -U "$DB_USER" \
+              -d "$DB_NAME" \
+              -c "
+                SELECT COUNT(*)
+                FROM sga_principal.asignaciones
+                WHERE id_asignacion = 900001
+                  AND id_docente = 900001
+                  AND activo = true;
+              "
+          )"
+
+          echo "Asignaciones E10 encontradas: $TOTAL"
+
+          if [ "$TOTAL" != "1" ]; then
+            echo "::error::La asignacion sintetica E10 no fue cargada correctamente."
+            exit 1
+          fi
+
       - name: Levantar backend Docente
         shell: bash
         run: |
