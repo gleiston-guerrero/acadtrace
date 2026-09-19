@@ -41,14 +41,14 @@ public class HistorialService {
     @PostConstruct
     void seedLamportClock() {
         try {
-<span class="nc" id="L44">            Long max = jdbc.getJdbcTemplate().queryForObject(</span>
-<span class="nc" id="L45">                    &quot;SELECT COALESCE(MAX(lamport_ts), 0) FROM sga_principal.historial_promocion&quot;, Long.class);</span>
-<span class="nc bnc" id="L46" title="All 2 branches missed.">            lamportClock.seed(max == null ? 0 : max);</span>
-<span class="nc" id="L47">        } catch (DataAccessException e) {</span>
+<span class="fc" id="L44">            Long max = jdbc.getJdbcTemplate().queryForObject(</span>
+<span class="fc" id="L45">                    &quot;SELECT COALESCE(MAX(lamport_ts), 0) FROM sga_principal.historial_promocion&quot;, Long.class);</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">            lamportClock.seed(max == null ? 0 : max);</span>
+<span class="pc" id="L47">        } catch (DataAccessException e) {</span>
 <span class="nc" id="L48">            log.warn(&quot;No se pudo leer lamport_ts (¿falta correr db/migrations/002_lamport_clock.sql?). &quot; +</span>
 <span class="nc" id="L49">                    &quot;El reloj logico arranca en 0.&quot;, e);</span>
         }
-<span class="nc" id="L51">    }</span>
+<span class="fc" id="L51">    }</span>
 
     public Map&lt;String, Object&gt; historialEstudiante(long idEstudiante) {
 <span class="fc" id="L54">        List&lt;Map&lt;String, Object&gt;&gt; est = jdbc.query(</span>

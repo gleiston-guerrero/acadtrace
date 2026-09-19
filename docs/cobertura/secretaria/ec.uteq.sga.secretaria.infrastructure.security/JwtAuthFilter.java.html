@@ -10,7 +10,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,62 +24,58 @@ import java.util.Set;
  */
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-<span class="fc" id="L28">    private static final Set&lt;String&gt; REQUIRED_ROLES = Set.of(&quot;SECRETARIA&quot;, &quot;DIRECTOR&quot;);</span>
+<span class="fc" id="L27">    private static final Set&lt;String&gt; REQUIRED_ROLES = Set.of(&quot;SECRETARIA&quot;, &quot;DIRECTOR&quot;);</span>
 
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
 
-<span class="fc" id="L33">    public JwtAuthFilter(JwtService jwtService, ObjectMapper objectMapper) {</span>
-<span class="fc" id="L34">        this.jwtService = jwtService;</span>
-<span class="fc" id="L35">        this.objectMapper = objectMapper;</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L32">    public JwtAuthFilter(JwtService jwtService, ObjectMapper objectMapper) {</span>
+<span class="fc" id="L33">        this.jwtService = jwtService;</span>
+<span class="fc" id="L34">        this.objectMapper = objectMapper;</span>
+<span class="fc" id="L35">    }</span>
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-<span class="fc" id="L40">        String path = request.getRequestURI();</span>
-<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        return path.startsWith(&quot;/api/secretario/auth/&quot;)</span>
-<span class="pc bpc" id="L42" title="1 of 2 branches missed.">                || path.startsWith(&quot;/api/secretario/uploads/fotos/&quot;);</span>
+<span class="fc" id="L39">        String path = request.getRequestURI();</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        return path.startsWith(&quot;/api/secretario/auth/&quot;)</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">                || path.startsWith(&quot;/api/secretario/uploads/fotos/&quot;);</span>
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-<span class="fc" id="L48">        String authHeader = request.getHeader(&quot;Authorization&quot;);</span>
-<span class="pc bpc" id="L49" title="1 of 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
-<span class="fc" id="L50">            writeError(response, 401, &quot;Token no proporcionado&quot;);</span>
-<span class="fc" id="L51">            return;</span>
+<span class="fc" id="L47">        String authHeader = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="pc bpc" id="L48" title="1 of 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="fc" id="L49">            writeError(response, 401, &quot;Token no proporcionado&quot;);</span>
+<span class="fc" id="L50">            return;</span>
         }
 
-<span class="fc" id="L54">        String token = authHeader.substring(7);</span>
+<span class="fc" id="L53">        String token = authHeader.substring(7);</span>
         AuthenticatedUser user;
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (token.startsWith(&quot;dev-token&quot;)) {</span>
-<span class="nc" id="L57">            user = new AuthenticatedUser(&quot;secretaria&quot;, List.of(&quot;SECRETARIA&quot;, &quot;DIRECTOR&quot;));</span>
-<span class="nc" id="L58">        } else {</span>
-            try {
-<span class="fc" id="L60">                user = jwtService.parse(token);</span>
-<span class="fc" id="L61">            } catch (JwtException | IllegalArgumentException e) {</span>
-<span class="fc" id="L62">                writeError(response, 401, &quot;Token invalido o expirado&quot;);</span>
-<span class="fc" id="L63">                return;</span>
-            }
+        try {
+<span class="fc" id="L56">            user = jwtService.parse(token);</span>
+<span class="fc" id="L57">        } catch (JwtException | IllegalArgumentException e) {</span>
+<span class="fc" id="L58">            writeError(response, 401, &quot;Token invalido o expirado&quot;);</span>
+<span class="fc" id="L59">            return;</span>
         }
 
-<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        boolean authorized = user.roles() != null &amp;&amp; user.roles().stream().anyMatch(REQUIRED_ROLES::contains);</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (!authorized) {</span>
-<span class="fc" id="L69">            writeError(response, 403, &quot;Acceso denegado&quot;);</span>
-<span class="fc" id="L70">            return;</span>
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        boolean authorized = user.roles() != null &amp;&amp; user.roles().stream().anyMatch(REQUIRED_ROLES::contains);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (!authorized) {</span>
+<span class="fc" id="L64">            writeError(response, 403, &quot;Acceso denegado&quot;);</span>
+<span class="fc" id="L65">            return;</span>
         }
 
-<span class="fc" id="L73">        request.setAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE, user);</span>
-<span class="fc" id="L74">        chain.doFilter(request, response);</span>
-<span class="fc" id="L75">    }</span>
+<span class="fc" id="L68">        request.setAttribute(AuthenticatedUser.REQUEST_ATTRIBUTE, user);</span>
+<span class="fc" id="L69">        chain.doFilter(request, response);</span>
+<span class="fc" id="L70">    }</span>
 
     private void writeError(HttpServletResponse response, int status, String message) throws IOException {
-<span class="fc" id="L78">        response.setStatus(status);</span>
-<span class="fc" id="L79">        response.setContentType(&quot;application/json&quot;);</span>
-<span class="fc" id="L80">        response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
-<span class="fc" id="L81">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L82">        body.put(&quot;error&quot;, message);</span>
-<span class="fc" id="L83">        objectMapper.writeValue(response.getWriter(), body);</span>
-<span class="fc" id="L84">    }</span>
+<span class="fc" id="L73">        response.setStatus(status);</span>
+<span class="fc" id="L74">        response.setContentType(&quot;application/json&quot;);</span>
+<span class="fc" id="L75">        response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="fc" id="L76">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L77">        body.put(&quot;error&quot;, message);</span>
+<span class="fc" id="L78">        objectMapper.writeValue(response.getWriter(), body);</span>
+<span class="fc" id="L79">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

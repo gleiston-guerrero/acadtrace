@@ -15,9 +15,9 @@ public class ImportacionEstudiantesController {
 
     private final ImportacionEstudiantesService service;
 
-<span class="nc" id="L18">    public ImportacionEstudiantesController(ImportacionEstudiantesService service) {</span>
-<span class="nc" id="L19">        this.service = service;</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L18">    public ImportacionEstudiantesController(ImportacionEstudiantesService service) {</span>
+<span class="fc" id="L19">        this.service = service;</span>
+<span class="fc" id="L20">    }</span>
 
     @PostMapping(value = &quot;/parsear&quot;, consumes = &quot;multipart/form-data&quot;)
     public ImportacionResultado parsear(@RequestParam(&quot;archivo&quot;) MultipartFile archivo) {
