@@ -235,8 +235,11 @@ jobs:
           DB_HOST: 192.0.2.1
           DB_PORT: 5433
           DB_NAME: sga
-          DB_USER: postgres
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_USER: sga_app
+          DB_PASSWORD: ${{ secrets.SGA_APP_PASSWORD || secrets.DB_PASSWORD }}
+          FLYWAY_USER: postgres
+          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SGA_APP_PASSWORD: ${{ secrets.SGA_APP_PASSWORD || secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           GRPC_INTERNAL_TOKEN: test-internal-token
@@ -398,7 +401,7 @@ jobs:
           env.update(ephemeral)
           env.update({
               "DB_HOST": "localhost", "DB_NAME": "sga",
-              "DB_USER": "postgres", "DB_SSL": "false", "PORT": "5176",
+              "DB_USER": "sga_app", "DB_SSL": "false", "PORT": "5176",
               "POSTGRES_DB": "sga", "POSTGRES_USER": "postgres",
               "POSTGRES_PASSWORD": ephemeral["DB_PASSWORD"],
           })
