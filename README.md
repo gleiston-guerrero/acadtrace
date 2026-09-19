@@ -300,13 +300,33 @@ sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recomm
 ### Compilación limpia del informe maestro:
 ```bash
 cd Informe-E4_BCEL
-python ../generar_matriz.py --write-latex
+python ../scripts/recalcular_metricas_carga.py --generate-latex --check-latex
+python ../generar_matriz.py --write-csv --write-latex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 bibtex TA-PFC-E4_BCEL
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 ```
-`generar_matriz.py` deriva la evidencia ISO 25010 de los CSV de carga de Soporte y genera `Informe-E4_BCEL/matriz_iso25010_generada.tex` antes de compilar el manuscrito, que la incorpora mediante `\input{matriz_iso25010_generada.tex}`.
+`generar_matriz.py` usa solo la biblioteca estándar de Python (CI usa Python 3.13) y genera tanto `docs/experimentos/resultados/matriz_iso25010.csv` como `Informe-E4_BCEL/matriz_iso25010_generada.tex`. El manuscrito incorpora el segundo mediante `\input{matriz_iso25010_generada.tex}`.
+
+Fuentes y límites de la evaluación #22:
+
+- **Nominal local:** `microservicio-soporte/locust_esc1_stats.csv` (fila `Aggregated`) y `locust_esc1_stats_history.csv` (máximo `User Count`). P99 es una medición; el umbral estricto de 500 ms procede del criterio documental PI-1.
+- **Histórica / perfil no validado:** ventanas de `experimentos/resultados/iso25010.csv` derivadas de `experimentos/resultados/locust_esc3_stats_history.csv`. No constituyen estrés oficial actual ni disponibilidad temporal de producción.
+- **Sintética:** observaciones M2 de `experimentos/resultados/falsos_positivos.csv`; no miden seguridad en producción.
+- **Cobertura:** contadores globales `LINE` de `docs/cobertura/secretaria/jacoco.xml` y `docs/cobertura/soporte/jacoco.xml`; porcentaje calculado como `covered / (covered + missed) * 100`, con las exclusiones de esos reportes. Se compara sin redondear con el criterio de la matriz de 70% LINE. Reporte ausente o inválido impide generar; no se sustituye por porcentajes de respaldo.
+- **Principal:** `No verificable con la evidencia versionada`. Su compuerta particular de 30% INSTRUCTION no es la métrica LINE de la matriz. Las compuertas de Secretaría y Soporte son 70% LINE, según sus respectivos `pom.xml`.
+
+Los reportes versionados no prueban una nueva ejecución sobre el HEAD actual. La integridad de un hash tampoco demuestra vigencia de una medición.
+
+Desde la raíz, regenerar ambos artefactos y comprobar que coinciden con las versiones almacenadas (la comprobación falla si hay cambios pendientes en ellos):
+
+```bash
+python generar_matriz.py --write-csv --write-latex
+git diff --exit-code -- docs/experimentos/resultados/matriz_iso25010.csv Informe-E4_BCEL/matriz_iso25010_generada.tex
+```
+
+El job de matriz ISO en CI ejecuta esta misma comprobación para ambos archivos. Para consultar sin escribir, usar `python generar_matriz.py --preview --format json` (también admite `csv` y `latex`). La generación reproduce los artefactos desde las fuentes conservadas; no ejecuta carga ni regenera las mediciones históricas.
 
 *(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
 
@@ -329,3 +349,16 @@ Inicio registrado: **2026-09-11 03:59:05 UTC** (2026-09-10 22:59:05 UTC−05:00)
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
 
 La captura histórica/complementaria de Juliana no está disponible en el árbol actual. La descripción conservada le atribuye 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.
+
+
+### Reproducción de cifras de carga (#48)
+
+```bash
+python scripts/recalcular_metricas_carga.py --json
+python scripts/recalcular_metricas_carga.py --check-latex
+python scripts/recalcular_metricas_carga.py --emit-latex-block
+```
+
+`--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
+
+Antes de compilar, `--generate-latex --check-latex` regenera `Informe-E4_BCEL/cifras_carga_generadas.tex` desde A y comprueba las publicaciones oficiales. Para comprobar sin regenerar, usar solo `--check-latex`; no confundir regeneración con validación del archivo previamente almacenado. Los pasos de #22 se mantienen independientes.

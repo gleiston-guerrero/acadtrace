@@ -1,8 +1,8 @@
 # Gestión de secretos fuera del árbol versionado — Tarea 46
 
-**Fecha de verificación:** 2026-09-16
+**Fecha de actualización:** 2026-09-18
 **Rama:** `Juliana-Emanuel`
-**HEAD de referencia del saneamiento:** `5ef594c1`
+**HEAD de referencia del saneamiento inicial:** `5ef594c1`; baselines saneados en `8c07513b`.
 **Estado:** PARCIAL. Saneamiento del alcance identificado verificado; revocación de credenciales históricas pendiente de verificación externa.
 
 ## Alcance y límites
@@ -49,7 +49,7 @@ Se conserva `Informe-E4_BCEL/evidencias/tolerancia/evidencia_tolerancia_20260811
 
 - **Variables de entorno:** referencias a configuración externa, sin confundir el nombre de una variable con un secreto.
 - **Placeholders/examples:** plantillas `.env.example` y ejemplos de Prometheus; no acreditan credenciales válidas.
-- **Desarrollo/pruebas:** se mantienen valores predeterminados o de demostración en `sga-principal/docker-compose.yml`, `scripts/populate_all_docentes_full.py` y `microservicio-docente/micro_docente/settings.py`, además de fixtures de pruebas. No se ha acreditado su vigencia como credenciales reales ni una restricción técnica que impida utilizarlos fuera de desarrollo. Deben revisarse antes de declarar externalización total.
+- **Desarrollo/pruebas:** los fixtures ficticios no acreditan credenciales reales. El Compose de Principal ya exige una contraseña externa y Django genera un secreto aleatorio si falta su variable. El script operativo `scripts/populate_all_docentes_full.py` obtiene ahora sus credenciales del entorno; no se clasifica como fixture ni se ha comprobado la vigencia de sus credenciales anteriores.
 - **Falsos positivos:** DTO, formularios, traducciones, validadores y variables que reciben tokens en ejecución.
 - **Secretos reales:** no se identificaron valores reales adicionales confirmados en el alcance textual revisado. La ausencia de coincidencias no certifica todos los formatos ni la configuración desplegada.
 
@@ -92,9 +92,21 @@ Cambios aplicados al arbol vivo antes del cierre del PFC:
 
 ### Historial
 
-El historial de main, tags y ramas remotas conserva valores de reserva
-ya rotados fuera del arbol vivo. La reescritura del historial con
+El historial conserva valores retirados del árbol vivo. Su rotación o
+revocación permanece pendiente de verificación externa; retirarlos del
+repositorio actual no demuestra que hayan dejado de ser válidos. La reescritura del historial con
 `git filter-repo` no se ejecuta en esta entrega para no romper el tag
 `v1.0.1`, las etiquetas de release moviles ni los clones de los
 integrantes durante el plazo. Se documenta como deuda tecnica: ejecutar
 la reescritura tras el cierre del PFC coordinando con el equipo.
+
+## Corrección acotada de #46 (2026-09-18)
+
+Comprobable mediante los archivos del repositorio:
+
+- Principal obtiene `SGA_APP_PASSWORD` y los dos tokens internos basados en `GRPC_INTERNAL_TOKEN` sin credenciales literales de respaldo en `application.properties`.
+- El Compose raíz transmite `SGA_APP_PASSWORD` al contenedor de Principal y rechaza su ausencia o valor vacío.
+- `scripts/populate_all_docentes_full.py` exige `SGA_ADMIN_USERNAME` y `SGA_ADMIN_PASSWORD` antes de construir la petición. No imprime sus valores ni detalles de excepciones de autenticación o actualización. No se ejecutó contra AWS ni contra otro servidor durante esta corrección.
+- `8c07513b` retiró `sga-principal/src/main/resources/db/init/baseline_completo.sql` y la antigua ruta `db/baseline/baseline_flyway_v8.sql`. Los baselines V8 actuales en `sga-principal/src/main/resources/db/migration/` y `microservicio-secretaria/backend/src/test/resources/db/migration/` contienen esquema, sin cargas de usuarios ni hashes de contraseñas identificados. El baseline V0 de pruebas no constituye por sí mismo una exposición de secretos. No se modificaron estas migraciones ni baselines en esta corrección.
+
+Requiere comprobación externa: confirmar el suministro de variables en cada despliegue y acreditar la revocación o rotación de las credenciales históricas, incluidas las del script operativo. Esta corrección no demuestra que las cuentas existentes hayan cambiado de contraseña, no valida servicios desplegados y no aporta evidencia de rotación. El cierre externo continúa pendiente.
