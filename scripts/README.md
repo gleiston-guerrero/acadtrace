@@ -16,13 +16,15 @@ El script no modifica archivos, índice ni certificados.
 
 ## Recálculo y Derivación Determinista de Métricas de Carga (E5 / Item 48)
 
-`python scripts/recalcular_metricas_carga.py` lee exclusivamente el conjunto oficial declarado en `microservicio-soporte/locust_esc1_stats.csv` y sus archivos complementarios (`stats_history.csv`, `failures.csv`, `exceptions.csv`).
+El dataset canónico es A (`microservicio-soporte/locust_esc1_stats.csv` y sus tres CSV complementarios). El inventario documental comprende seis conjuntos distintos: A oficial nominal; B nominal anterior; C nominal preliminar; D estrés fallido; E ejecución fallida con HTTP 401; F carga corta de 59 segundos. Las rutas y resultados se conservan en [el registro E5](../experimentos/resultados/corridas-e5.md). El script deriva A y consulta B y E; no clasifica automáticamente todo el inventario.
 
-- Deriva deterministamente el total de peticiones (12.994), fallos (0), rendimiento (43.537580 req/s), latencia promedio (109.113664 ms), percentiles (P50=6 ms, P95=440 ms, P99=850 ms, Max=2037.104700 ms) y desglose por endpoint.
-- Clasifica formalmente los 5 juegos de datos existentes en el repositorio (1 oficial, 4 preliminares/históricos/retirados).
-- Audita automáticamente que `Informe-E4_BCEL/TA-PFC-E4_BCEL.tex` se encuentre 100% sincronizado y libre de cifras retractadas o inventadas (como 12.265 o 12.735).
-- Soporta exportación en formato JSON (`--json`) o verificación estricta (`--check-latex`).
+```bash
+python scripts/recalcular_metricas_carga.py --json
+python scripts/recalcular_metricas_carga.py --check-latex
+python scripts/recalcular_metricas_carga.py --emit-latex-block
+```
 
+`--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
 
 ## `seed_e3_500k.sql`
 
