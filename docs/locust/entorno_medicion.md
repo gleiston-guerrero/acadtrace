@@ -6,7 +6,7 @@
 >
 > **Estrés oficial: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** Las secciones siguientes son antecedentes HISTÓRICOS: C es PRELIMINAR y D es FALLIDA (26 fallos). Sus metadatos y hashes históricos no certifican A. La fecha histórica declarada abajo no coincide con el inicio de C en CSV: 2026-09-05 00:05:03 UTC.
 >
-> La captura de Juliana con 13.031 peticiones es complementaria; no coincide exactamente con el CSV oficial de 12.994 y la causa no está demostrada. Falta una captura manual de la fila Aggregated del CSV oficial.
+> Se conserva la descripción histórica de la captura de Juliana con 13.031 peticiones, pero no el archivo de imagen versionado; no coincide exactamente con el CSV oficial de 12.994 y la causa no está demostrada. Falta una captura manual de la fila Aggregated del CSV oficial.
 
 Este documento registra formalmente los metadatos de ejecución, especificaciones del entorno de pruebas y las firmas criptográficas SHA-256 de los conjuntos de datos obtenidos durante la evaluación de rendimiento y resiliencia del sistema **AcadTrace**.
 
@@ -53,7 +53,7 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 | `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
 | `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
 
-### 3.2. Conjuntos No Oficiales / Históricos (B, C, D, E)
+### 3.2. Hashes de conjuntos no oficiales B, C, D y F (E se identifica en el registro E5)
 | Archivo | Hash SHA-256 |
 |---|---|
 | `experimentos/resultados/locust_esc1_stats.csv` | `FC63845A59A397EAEA6E9EA15746BCDEBEA7A479EB09582B4691B016371903EA` |
