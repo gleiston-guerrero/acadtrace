@@ -300,6 +300,7 @@ sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recomm
 ### Compilación limpia del informe maestro:
 ```bash
 cd Informe-E4_BCEL
+python ../scripts/recalcular_metricas_carga.py --generate-latex --check-latex
 python ../generar_matriz.py --write-csv --write-latex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 bibtex TA-PFC-E4_BCEL
@@ -348,3 +349,16 @@ Inicio registrado: **2026-09-11 03:59:05 UTC** (2026-09-10 22:59:05 UTC−05:00)
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
 
 La captura histórica/complementaria de Juliana no está disponible en el árbol actual. La descripción conservada le atribuye 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.
+
+
+### Reproducción de cifras de carga (#48)
+
+```bash
+python scripts/recalcular_metricas_carga.py --json
+python scripts/recalcular_metricas_carga.py --check-latex
+python scripts/recalcular_metricas_carga.py --emit-latex-block
+```
+
+`--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
+
+Antes de compilar, `--generate-latex --check-latex` regenera `Informe-E4_BCEL/cifras_carga_generadas.tex` desde A y comprueba las publicaciones oficiales. Para comprobar sin regenerar, usar solo `--check-latex`; no confundir regeneración con validación del archivo previamente almacenado. Los pasos de #22 se mantienen independientes.
