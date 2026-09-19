@@ -11,7 +11,7 @@ services:
       - "8080"
       - "9092"
     environment:
-      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-sga_app}
@@ -66,7 +66,7 @@ services:
       - "8000"
       - "9091"
     environment:
-      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-sga_app}
@@ -95,7 +95,7 @@ services:
       - "8090:8080"
     environment:
       - SPARK_NO_DAEMONIZE=true
-      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-sga_app}
@@ -116,7 +116,7 @@ services:
       - "5176:5176"   # REST & Frontend integrado en Spring Boot
       # - "8082:5176"  # REST Backend alias compatible
     environment:
-      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-sga_app}
@@ -142,7 +142,7 @@ services:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
       - "9094:9094"   # gRPC Servidor (IncidenciaService)
     environment:
-      - DB_HOST=${DB_HOST:-192.0.2.1}
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=${DB_PORT:-5433}
       - DB_NAME=${DB_NAME:-sga}
       - DB_USER=${DB_USER:-sga_app}
