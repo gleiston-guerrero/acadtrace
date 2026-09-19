@@ -17,7 +17,7 @@ services:
       - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
-      - grpc.client.docente-service.address=static://microservicio-docente:9091
+      - grpc.client.docente-service.address=dns:///microservicio-docente:9091
     networks:
       - sga-distribuido-net
 
