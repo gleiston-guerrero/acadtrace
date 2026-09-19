@@ -706,7 +706,8 @@ CREATE TABLE IF NOT EXISTS sga_principal.asignaciones (
     tipo sga_principal.tipo_asignacion_t DEFAULT 'ESPECIALIZADO'::sga_principal.tipo_asignacion_t NOT NULL,
     activo boolean DEFAULT true NOT NULL,
     asignado_por integer,
-    fecha_asignacion timestamp with time zone DEFAULT now() NOT NULL
+    fecha_asignacion timestamp with time zone DEFAULT now() NOT NULL,
+    horas_semanales integer DEFAULT 4 NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS sga_principal.asignaturas (
@@ -835,8 +836,12 @@ CREATE TABLE IF NOT EXISTS sga_secretaria.historial_promocion (
 CREATE TABLE IF NOT EXISTS sga_principal.horarios (
     id_horario integer NOT NULL,
     id_asignacion integer NOT NULL,
-    id_periodo_diario integer NOT NULL,
-    dia_semana sga_principal.dia_semana_t NOT NULL
+    id_periodo_diario integer NOT NULL DEFAULT 1,
+    dia_semana sga_principal.dia_semana_t NOT NULL DEFAULT 'LUNES'::sga_principal.dia_semana_t,
+    hora_inicio time DEFAULT '07:30' NOT NULL,
+    hora_fin time DEFAULT '08:15' NOT NULL,
+    aula character varying(50),
+    id_periodo integer
 );
 
 CREATE TABLE IF NOT EXISTS sga_secretaria.matriculas (
@@ -1638,125 +1643,169 @@ ALTER TABLE sga_principal.auditoria
 CREATE INDEX IF NOT EXISTS ix_auditoria_trace ON sga_principal.auditoria (trace_id);
 
 -- =============================================================================
--- Tablas del esquema sga_secretaria (V5: Estudiantes, Representantes, Matriculas, etc.)
+-- Vistas de compatibilidad en sga_principal para entidades JPA y consultas
+-- que leen estudiantes y matriculas desde sga_principal manteniendo sga_secretaria como fuente.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS sga_secretaria.estudiantes (
-    id_estudiante        SERIAL PRIMARY KEY,
-    cedula               VARCHAR(10) UNIQUE,
-    codigo_estudiante    VARCHAR(20) UNIQUE,
-    nombres              VARCHAR(100) NOT NULL,
-    apellidos            VARCHAR(100) NOT NULL,
-    fecha_nacimiento     DATE,
-    genero               VARCHAR(10),
-    direccion            TEXT,
-    telefono             TEXT,
-    telefono_alt         VARCHAR(20),
-    correo               VARCHAR(150),
-    discapacidad         BOOLEAN NOT NULL DEFAULT FALSE,
-    tipo_discapacidad    TEXT,
-    porcentaje_disc      SMALLINT,
-    CONSTRAINT porcentaje_disc_check CHECK (porcentaje_disc >= 0 AND porcentaje_disc <= 100),
-    id_representante     INTEGER,
-    origen_listado       VARCHAR(50),
-    estado               VARCHAR(20) NOT NULL DEFAULT 'ACTIVO',
-    foto_url             VARCHAR(255),
-    creado_por           INTEGER REFERENCES sga_principal.usuarios (id_usuario),
-    fecha_creacion       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    fecha_actualizacion  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    carnet_conadis       VARCHAR(30),
-    nacionalidad         VARCHAR(50),
-    etnia                VARCHAR(50),
-    lugar_nacimiento     VARCHAR(150),
-    vive_con             VARCHAR(50),
-    numeros_hermanos     SMALLINT,
-    beneficio_social     BOOLEAN DEFAULT FALSE
-);
-CREATE INDEX IF NOT EXISTS idx_estudiantes_cedula ON sga_secretaria.estudiantes USING btree (cedula);
-CREATE INDEX IF NOT EXISTS idx_estudiantes_apellidos ON sga_secretaria.estudiantes USING btree (apellidos, nombres);
+CREATE OR REPLACE VIEW sga_principal.estudiantes AS
+    SELECT * FROM sga_secretaria.estudiantes;
 
-CREATE TABLE IF NOT EXISTS sga_secretaria.representantes (
-    id_representante     SERIAL PRIMARY KEY,
-    cedula               VARCHAR(10),
-    nombres              VARCHAR(100) NOT NULL,
-    apellidos            VARCHAR(100) NOT NULL,
-    parentesco           VARCHAR(50) NOT NULL,
-    telefono_principal   TEXT,
-    telefono_alt         VARCHAR(20),
-    correo               VARCHAR(150),
-    direccion            TEXT,
-    fecha_creacion       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    fecha_actualizacion  TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE OR REPLACE VIEW sga_principal.matriculas AS
+    SELECT * FROM sga_secretaria.matriculas;
+
+CREATE OR REPLACE VIEW sga_principal.fichas_estudiante AS
+    SELECT * FROM sga_secretaria.fichas_estudiante;
+
+-- =============================================================================
+-- Tablas y columnas requeridas por entidades JPA de sga_principal (Horario, Asignacion, Malla, etc.)
+-- =============================================================================
+ALTER TABLE sga_principal.asignaciones
+    ADD COLUMN IF NOT EXISTS horas_semanales integer DEFAULT 4 NOT NULL;
+
+ALTER TABLE sga_principal.horarios
+    ADD COLUMN IF NOT EXISTS hora_inicio time DEFAULT '07:30' NOT NULL,
+    ADD COLUMN IF NOT EXISTS hora_fin time DEFAULT '08:15' NOT NULL,
+    ADD COLUMN IF NOT EXISTS aula character varying(50),
+    ADD COLUMN IF NOT EXISTS id_periodo integer;
+
+CREATE TABLE IF NOT EXISTS sga_principal.periodos_horario (
+    id_periodo serial PRIMARY KEY,
+    nombre varchar(30) NOT NULL,
+    hora_inicio time NOT NULL,
+    hora_fin time NOT NULL,
+    orden int NOT NULL,
+    activo boolean NOT NULL DEFAULT true,
+    CONSTRAINT uq_periodo_orden UNIQUE (orden),
+    CONSTRAINT ck_periodo_rango CHECK (hora_inicio < hora_fin)
 );
 
-ALTER TABLE sga_secretaria.estudiantes
-    DROP CONSTRAINT IF EXISTS fk_estudiante_representante;
-ALTER TABLE sga_secretaria.estudiantes
-    ADD CONSTRAINT fk_estudiante_representante
-        FOREIGN KEY (id_representante) REFERENCES sga_secretaria.representantes (id_representante);
-
-CREATE TABLE IF NOT EXISTS sga_secretaria.matriculas (
-    id_matricula     SERIAL PRIMARY KEY,
-    id_estudiante    INTEGER NOT NULL REFERENCES sga_secretaria.estudiantes (id_estudiante),
-    id_grado         INTEGER NOT NULL REFERENCES sga_principal.grados (id_grado),
-    id_paralelo      INTEGER NOT NULL REFERENCES sga_principal.paralelos (id_paralelo),
-    id_ano_lectivo   INTEGER NOT NULL REFERENCES sga_principal.anos_lectivos (id_ano_lectivo),
-    numero_orden     SMALLINT,
-    fecha_registro   DATE NOT NULL DEFAULT CURRENT_DATE,
-    estado           sga_principal.estado_matricula_t NOT NULL DEFAULT 'ACTIVA',
-    observaciones    TEXT,
-    registrado_por   INTEGER REFERENCES sga_principal.usuarios (id_usuario),
-    fecha_creacion   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT matriculas_id_estudiante_id_ano_lectivo_key UNIQUE (id_estudiante, id_ano_lectivo)
-);
-CREATE INDEX IF NOT EXISTS idx_matriculas_estudiante ON sga_secretaria.matriculas USING btree (id_estudiante);
-CREATE INDEX IF NOT EXISTS idx_matriculas_grado ON sga_secretaria.matriculas USING btree (id_grado);
-CREATE INDEX IF NOT EXISTS idx_matriculas_paralelo ON sga_secretaria.matriculas USING btree (id_paralelo, id_ano_lectivo);
-CREATE INDEX IF NOT EXISTS idx_matriculas_ano_lectivo ON sga_secretaria.matriculas USING btree (id_ano_lectivo);
-
-CREATE TABLE IF NOT EXISTS sga_secretaria.fichas_estudiante (
-    id_ficha                  SERIAL PRIMARY KEY,
-    id_estudiante             INTEGER NOT NULL UNIQUE
-                                   REFERENCES sga_secretaria.estudiantes (id_estudiante) ON DELETE CASCADE,
-    tipo_sangre               VARCHAR(5),
-    alergias                  TEXT,
-    medicacion_permanente     TEXT,
-    enfermedad_catastrofica   BOOLEAN NOT NULL DEFAULT FALSE,
-    detalle_enfermedad        TEXT,
-    contacto_emergencia       VARCHAR(100),
-    telefono_emergencia       VARCHAR(20),
-    direccion_referencia      TEXT,
-    fecha_actualizacion       TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS sga_principal.malla_curricular (
+    id_malla serial PRIMARY KEY,
+    id_grado integer NOT NULL,
+    id_asignatura integer NOT NULL,
+    id_ano_lectivo integer NOT NULL,
+    horas_semana smallint NOT NULL,
+    dias_semana smallint,
+    duracion smallint,
+    activo boolean DEFAULT true NOT NULL,
+    fecha_creacion timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS sga_secretaria.historial_promocion (
-    id_historial      SERIAL PRIMARY KEY,
-    id_matricula      INTEGER NOT NULL,
-    id_estudiante     INTEGER NOT NULL,
-    id_grado_origen   INTEGER NOT NULL,
-    id_ano_lectivo    INTEGER NOT NULL,
-    resultado         sga_principal.resultado_promocion_t NOT NULL,
-    promedio_anual    NUMERIC(4, 2),
-    observaciones     TEXT,
-    registrado_por    INTEGER,
-    fecha_registro    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    lamport_ts        BIGINT,
-    CONSTRAINT historial_matricula_unique UNIQUE (id_matricula),
-    CONSTRAINT historial_id_matricula_fkey FOREIGN KEY (id_matricula) REFERENCES sga_secretaria.matriculas (id_matricula),
-    CONSTRAINT historial_id_estudiante_fkey FOREIGN KEY (id_estudiante) REFERENCES sga_secretaria.estudiantes (id_estudiante),
-    CONSTRAINT historial_id_grado_origen_fkey FOREIGN KEY (id_grado_origen) REFERENCES sga_principal.grados (id_grado),
-    CONSTRAINT historial_id_ano_lectivo_fkey FOREIGN KEY (id_ano_lectivo) REFERENCES sga_principal.anos_lectivos (id_ano_lectivo),
-    CONSTRAINT historial_registrado_por_fkey FOREIGN KEY (registrado_por) REFERENCES sga_principal.usuarios (id_usuario)
+CREATE TABLE IF NOT EXISTS sga_principal.periodos_evaluacion (
+    id_periodo serial PRIMARY KEY,
+    id_ano_lectivo integer NOT NULL,
+    tipo varchar(20) NOT NULL,
+    nombre varchar(100) NOT NULL,
+    fecha_inicio date NOT NULL,
+    fecha_fin date NOT NULL,
+    activo boolean DEFAULT true NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_historial_estudiante ON sga_secretaria.historial_promocion USING btree (id_estudiante, id_ano_lectivo);
-CREATE INDEX IF NOT EXISTS idx_historial_promocion_lamport_ts ON sga_secretaria.historial_promocion USING btree (lamport_ts);
 
-CREATE TABLE IF NOT EXISTS sga_secretaria.documentos_matricula (
-    id_documento      SERIAL PRIMARY KEY,
-    id_matricula      INTEGER NOT NULL REFERENCES sga_secretaria.matriculas (id_matricula) ON DELETE CASCADE,
-    tipo_documento    sga_principal.tipo_documento_t NOT NULL,
-    nombre_archivo    VARCHAR(200) NOT NULL,
-    ruta_archivo      VARCHAR(500) NOT NULL,
-    fecha_subida      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    subido_por        INTEGER REFERENCES sga_principal.usuarios (id_usuario)
+CREATE TABLE IF NOT EXISTS sga_principal.esquema_calificacion (
+    id_esquema serial PRIMARY KEY,
+    id_ano_lectivo integer NOT NULL,
+    peso_formativa numeric(5,2) DEFAULT 70.00 NOT NULL,
+    peso_sumativa numeric(5,2) DEFAULT 30.00 NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sga_principal.tipos_aporte (
+    id_tipo_aporte serial PRIMARY KEY,
+    id_ano_lectivo integer NOT NULL,
+    nombre varchar(60) NOT NULL,
+    tipo_evaluacion varchar(12) DEFAULT 'FORMATIVA' NOT NULL,
+    orden integer DEFAULT 0 NOT NULL,
+    activo boolean DEFAULT true NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sga_principal.escala_calificaciones (
+    id_escala serial PRIMARY KEY,
+    id_ano_lectivo integer NOT NULL,
+    id_nivel integer NOT NULL,
+    nota_minima numeric(4,2) NOT NULL,
+    nota_maxima numeric(4,2) NOT NULL,
+    equivalente_cualitativo varchar(5),
+    descripcion varchar(100)
+);
+
+-- =============================================================================
+-- Representantes: columnas requeridas por Representante.java y microservicio-secretaria
+-- =============================================================================
+ALTER TABLE sga_principal.representantes
+    ADD COLUMN IF NOT EXISTS id_usuario BIGINT,
+    ADD COLUMN IF NOT EXISTS fecha_nacimiento date,
+    ADD COLUMN IF NOT EXISTS genero varchar(20),
+    ADD COLUMN IF NOT EXISTS estado_civil varchar(30),
+    ADD COLUMN IF NOT EXISTS nacionalidad varchar(50),
+    ADD COLUMN IF NOT EXISTS ocupacion varchar(100),
+    ADD COLUMN IF NOT EXISTS lugar_trabajo varchar(150),
+    ADD COLUMN IF NOT EXISTS telefono_trabajo varchar(20),
+    ADD COLUMN IF NOT EXISTS cargo varchar(100),
+    ADD COLUMN IF NOT EXISTS nivel_instruccion varchar(50),
+    ADD COLUMN IF NOT EXISTS ingreso_mensual numeric(10,2),
+    ADD COLUMN IF NOT EXISTS convive_con_estudiante boolean,
+    ADD COLUMN IF NOT EXISTS contacto_emergencia_nombre varchar(150),
+    ADD COLUMN IF NOT EXISTS contacto_emergencia_telefono varchar(20),
+    ADD COLUMN IF NOT EXISTS observaciones text;
+
+ALTER TABLE sga_secretaria.representantes
+    ADD COLUMN IF NOT EXISTS fecha_nacimiento date,
+    ADD COLUMN IF NOT EXISTS genero varchar(20),
+    ADD COLUMN IF NOT EXISTS estado_civil varchar(30),
+    ADD COLUMN IF NOT EXISTS nacionalidad varchar(50),
+    ADD COLUMN IF NOT EXISTS ocupacion varchar(100),
+    ADD COLUMN IF NOT EXISTS lugar_trabajo varchar(150),
+    ADD COLUMN IF NOT EXISTS telefono_trabajo varchar(20),
+    ADD COLUMN IF NOT EXISTS cargo varchar(100),
+    ADD COLUMN IF NOT EXISTS nivel_instruccion varchar(50),
+    ADD COLUMN IF NOT EXISTS ingreso_mensual numeric(10,2),
+    ADD COLUMN IF NOT EXISTS convive_con_estudiante boolean,
+    ADD COLUMN IF NOT EXISTS contacto_emergencia_nombre varchar(150),
+    ADD COLUMN IF NOT EXISTS contacto_emergencia_telefono varchar(20),
+    ADD COLUMN IF NOT EXISTS observaciones text;
+
+-- =============================================================================
+-- Tablas de notificaciones y auditoria requeridas por entidades JPA de sga_principal
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sga_principal.notificaciones (
+    id_notificacion BIGSERIAL PRIMARY KEY,
+    id_usuario INTEGER REFERENCES sga_principal.usuarios (id_usuario),
+    tipo VARCHAR(30) NOT NULL,
+    titulo VARCHAR(150) NOT NULL,
+    mensaje TEXT,
+    url_destino VARCHAR(255),
+    leida BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sga_principal.dispositivos_representante (
+    id_dispositivo BIGSERIAL PRIMARY KEY,
+    id_usuario BIGINT NOT NULL REFERENCES sga_principal.usuarios(id_usuario) ON DELETE CASCADE,
+    token VARCHAR(512) NOT NULL UNIQUE,
+    plataforma VARCHAR(20) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_registro TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sga_principal.eventos_notificacion_push (
+    id_evento BIGSERIAL PRIMARY KEY,
+    clave_evento VARCHAR(180) NOT NULL,
+    id_usuario BIGINT NOT NULL REFERENCES sga_principal.usuarios(id_usuario) ON DELETE CASCADE,
+    tipo VARCHAR(30) NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+    fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fecha_envio TIMESTAMPTZ,
+    CONSTRAINT uq_evento_push_destinatario UNIQUE (clave_evento, id_usuario)
+);
+
+ALTER TABLE sga_principal.auditoria
+    ADD COLUMN IF NOT EXISTS contenido_canonico TEXT,
+    ADD COLUMN IF NOT EXISTS version_canonica VARCHAR(20);
+
+CREATE TABLE IF NOT EXISTS sga_principal.estado_cadena_auditoria (
+    id_estado SMALLINT PRIMARY KEY,
+    ultimo_hash VARCHAR(64) NOT NULL,
+    ultimo_lamport BIGINT NOT NULL DEFAULT 0,
+    vector_reloj TEXT,
+    CONSTRAINT ck_estado_cadena_auditoria_singleton CHECK (id_estado = 1)
 );
 

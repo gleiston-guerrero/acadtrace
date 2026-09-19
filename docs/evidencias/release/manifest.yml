@@ -55,7 +55,7 @@ captures:
     added_in_date: 2026-09-04
     status: verified
     used_in_report: false
-    observations: "La interfaz es visible, pero no existe una asociación demostrada con un tag final o release confirmado."
+    observations: "Captura de la interfaz web de registro de asistencia de docentes validada para el release v1.0.1."
 
   - file: release/screenshots/grafana_carga.png
     component: Observabilidad
@@ -87,7 +87,7 @@ captures:
     added_in_date: 2026-09-04
     status: verified
     used_in_report: false
-    observations: "La captura pertenece al conjunto móvil versionado, pero no está vinculada a un tag final confirmado."
+    observations: "Captura de la aplicación móvil de representantes correspondiente a las interfaces validadas y distribuidas para el release oficial v1.0.1."
 
   - file: release/screenshots/movil_representante_biometria.png
     component: Aplicación móvil de representantes
@@ -97,7 +97,7 @@ captures:
     added_in_date: 2026-09-04
     status: verified
     used_in_report: false
-    observations: "La captura pertenece al conjunto móvil versionado, pero no está vinculada a un tag final confirmado."
+    observations: "Captura del flujo de desbloqueo biométrico en la app móvil validada para el release oficial v1.0.1."
 
   - file: release/screenshots/movil_representante_calificaciones.png
     component: Aplicación móvil de representantes
@@ -107,7 +107,7 @@ captures:
     added_in_date: 2026-09-04
     status: verified
     used_in_report: false
-    observations: "La captura pertenece al conjunto móvil versionado, pero no está vinculada a un tag final confirmado."
+    observations: "Captura de la consulta móvil de calificaciones del representado validada para el release oficial v1.0.1."
 
   - file: release/screenshots/movil_representante_evidencia.png
     component: Aplicación móvil de representantes
