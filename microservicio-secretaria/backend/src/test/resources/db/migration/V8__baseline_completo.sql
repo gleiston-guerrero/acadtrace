@@ -1577,6 +1577,45 @@ ALTER TABLE sga_principal.auditoria
     ADD COLUMN IF NOT EXISTS version_canonica    varchar(20);
 
 -- =============================================================================
+-- Tabla sga_principal.representantes (recuperada del volcado original).
+-- V9 hace ALTER TABLE sobre esta tabla; si no existe, V9 falla en base nueva.
+-- =============================================================================
+CREATE SEQUENCE IF NOT EXISTS sga_principal.representantes_id_representante_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE IF NOT EXISTS sga_principal.representantes (
+    id_representante integer NOT NULL DEFAULT nextval('sga_principal.representantes_id_representante_seq'::regclass),
+    cedula character varying(10),
+    nombres character varying(100) NOT NULL,
+    apellidos character varying(100) NOT NULL,
+    parentesco character varying(50) NOT NULL,
+    telefono_principal character varying(20),
+    telefono_alt character varying(20),
+    correo character varying(150),
+    direccion text,
+    fecha_creacion timestamp with time zone DEFAULT now() NOT NULL,
+    fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER SEQUENCE sga_principal.representantes_id_representante_seq
+    OWNED BY sga_principal.representantes.id_representante;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'representantes_principal_pkey'
+    ) THEN
+        ALTER TABLE sga_principal.representantes
+            ADD CONSTRAINT representantes_principal_pkey PRIMARY KEY (id_representante);
+    END IF;
+END $$;
+
+-- =============================================================================
 -- Ampliar el CHECK de schema_origen a los 4 modulos reales de produccion.
 -- El volcado antiguo solo contemplaba PRINCIPAL y DOCENTE, pero Secretaria
 -- y Soporte tambien escriben en sga_principal.auditoria en el sistema real.
