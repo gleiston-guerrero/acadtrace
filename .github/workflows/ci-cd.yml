@@ -67,12 +67,13 @@ jobs:
           python-version: "3.13"
 
       - name: Regenerar matriz ISO 25010
-        run: python generar_matriz.py --write-latex
+        run: python generar_matriz.py --write-csv --write-latex
 
       - name: Verificar matriz generada y sincronizada
         run: |
+          test -s docs/experimentos/resultados/matriz_iso25010.csv
           test -s Informe-E4_BCEL/matriz_iso25010_generada.tex
-          git diff --exit-code -- Informe-E4_BCEL/matriz_iso25010_generada.tex
+          git diff --exit-code -- docs/experimentos/resultados/matriz_iso25010.csv Informe-E4_BCEL/matriz_iso25010_generada.tex
 
   ci-docente:
     name: CI Microservicio Docente
@@ -640,6 +641,7 @@ jobs:
             -e DB_PASSWORD \
             -e FLYWAY_USER \
             -e FLYWAY_PASSWORD \
+            -e SPRING_FLYWAY_ENABLED=false \
             -e JWT_SECRET \
             -e AES_SECRET_KEY \
             -e GRPC_INTERNAL_TOKEN \
