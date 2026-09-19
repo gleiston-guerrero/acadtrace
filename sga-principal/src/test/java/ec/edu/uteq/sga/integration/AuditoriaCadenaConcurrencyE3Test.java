@@ -40,7 +40,7 @@ class AuditoriaCadenaConcurrencyE3Test {
                     .withDatabaseName("e3_auditoria")
                     .withUsername("postgres")
                     .withPassword("postgres")
-                    .withInitScript("db/init/baseline_flyway_v8.sql");
+                    .withInitScript("db/migration/V8__baseline_completo.sql");
 
     private static final String GENESIS =
             "0000000000000000000000000000000000000000000000000000000000000000";
