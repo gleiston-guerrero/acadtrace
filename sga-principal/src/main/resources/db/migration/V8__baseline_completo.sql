@@ -1631,3 +1631,16 @@ ALTER TABLE sga_principal.auditoria
     ADD CONSTRAINT ck_auditoria_resultado CHECK (resultado IN ('EXITO', 'FALLO', 'ADVERTENCIA'));
 
 CREATE INDEX IF NOT EXISTS ix_auditoria_trace ON sga_principal.auditoria (trace_id);
+
+-- =============================================================================
+-- Vistas de compatibilidad en sga_principal para entidades JPA y consultas
+-- que leen estudiantes y matriculas desde sga_principal manteniendo sga_secretaria como fuente.
+-- =============================================================================
+CREATE OR REPLACE VIEW sga_principal.estudiantes AS
+    SELECT * FROM sga_secretaria.estudiantes;
+
+CREATE OR REPLACE VIEW sga_principal.matriculas AS
+    SELECT * FROM sga_secretaria.matriculas;
+
+CREATE OR REPLACE VIEW sga_principal.fichas_estudiante AS
+    SELECT * FROM sga_secretaria.fichas_estudiante;

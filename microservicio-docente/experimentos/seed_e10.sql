@@ -167,8 +167,18 @@ INSERT INTO sga_principal.asignaciones (
     true
 );
 
--- Estudiante sintetico.
-INSERT INTO sga_principal.estudiantes (
+-- Vistas de compatibilidad en sga_principal para entidades JPA y servicios
+CREATE OR REPLACE VIEW sga_principal.estudiantes AS
+    SELECT * FROM sga_secretaria.estudiantes;
+
+CREATE OR REPLACE VIEW sga_principal.matriculas AS
+    SELECT * FROM sga_secretaria.matriculas;
+
+CREATE OR REPLACE VIEW sga_principal.fichas_estudiante AS
+    SELECT * FROM sga_secretaria.fichas_estudiante;
+
+-- Estudiante sintetico (almacenado en sga_secretaria y expuesto en sga_principal).
+INSERT INTO sga_secretaria.estudiantes (
     id_estudiante,
     cedula,
     codigo_estudiante,
@@ -182,9 +192,13 @@ INSERT INTO sga_principal.estudiantes (
     'Estudiante',
     'Sintetico E10',
     'ACTIVO'
-);
+) ON CONFLICT (id_estudiante) DO UPDATE SET
+    cedula = EXCLUDED.cedula,
+    nombres = EXCLUDED.nombres,
+    apellidos = EXCLUDED.apellidos,
+    estado = EXCLUDED.estado;
 
-INSERT INTO sga_principal.matriculas (
+INSERT INTO sga_secretaria.matriculas (
     id_matricula,
     id_estudiante,
     id_grado,
@@ -200,6 +214,11 @@ INSERT INTO sga_principal.matriculas (
     900001,
     1,
     'ACTIVA'
-);
+) ON CONFLICT (id_matricula) DO UPDATE SET
+    id_estudiante = EXCLUDED.id_estudiante,
+    id_grado = EXCLUDED.id_grado,
+    id_paralelo = EXCLUDED.id_paralelo,
+    id_ano_lectivo = EXCLUDED.id_ano_lectivo,
+    estado = EXCLUDED.estado;
 
 COMMIT;
