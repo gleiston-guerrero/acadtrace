@@ -15,9 +15,9 @@ public class AsistenciaConsultaController {
 
     private final AsistenciaConsultaService service;
 
-<span class="nc" id="L18">    public AsistenciaConsultaController(AsistenciaConsultaService service) {</span>
-<span class="nc" id="L19">        this.service = service;</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L18">    public AsistenciaConsultaController(AsistenciaConsultaService service) {</span>
+<span class="fc" id="L19">        this.service = service;</span>
+<span class="fc" id="L20">    }</span>
 
     @GetMapping(&quot;/asignacion/{idAsignacion}&quot;)
     public Map&lt;String, Object&gt; porAsignacion(@PathVariable long idAsignacion) {
