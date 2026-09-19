@@ -56,7 +56,7 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Scripts de verificación de bitácora y datasets de reproducibilidad | `DB_HOST=<host> DB_PORT=<port> DB_USER=<user> DB_PASSWORD=<pass> DB_NAME=sga python experimentos/verificador_cadena.py` |
 | Documentación técnica (complementario) | [`docs/`](docs/), [`docs/api/openapi.yaml`](docs/api/openapi.yaml), [`docs/api/README.md`](docs/api/README.md) | Arquitectura, seguridad, documentación API y contrato OpenAPI versionado | No aplica al mapa |
 | Utilidades (complementario) | [`scripts/`](scripts/), [`scripts/verificar_openapi.py`](scripts/verificar_openapi.py), [`docs/api/validate_openapi.py`](docs/api/validate_openapi.py) | Utilidades del proyecto; verificación del contrato OpenAPI runtime y validación estática del contrato versionado | No aplica al mapa |
-| Entregables (complementario) | [`release/`](release/) | Artefactos y capturas asociados al release; no acredita un release final confirmado | No aplica al mapa |
+| Entregables (complementario) | [`release/`](release/) | Artefactos y capturas asociados al Release v1.0.1 y su manifiesto oficial | No aplica al mapa |
 | Trazabilidad del release (complementario) | [`docs/evidencias/release/`](docs/evidencias/release/) | Manifiesto y documentación de las evidencias del release | No aplica al mapa |
 | Informe académico (complementario) | [`Informe-E4_BCEL/`](Informe-E4_BCEL/), [`TA-PFC-E4_BCEL.tex`](Informe-E4_BCEL/TA-PFC-E4_BCEL.tex) | Informe académico acumulativo del proyecto y sus recursos | No aplica al mapa |
 | Evidencias (complementario) | [`evidencias/`](evidencias/) | Evidencias organizadas del proyecto y por integrantes | No aplica al mapa |
@@ -257,25 +257,6 @@ En cumplimiento de la transparencia academica exigida por la catedra, se declara
 Ningun contenido generado por IA fue incorporado sin revision humana previa; los hallazgos tecnicos documentados (cuello de botella, tasas de error, latencias) provienen de ejecuciones reales de las herramientas (Locust, Prometheus, Grafana) sobre el sistema, no de datos simulados o inventados por el modelo de IA.
 
 ---
-
-## Compilacion del Informe LaTeX
-
-Los informes individuales de cada integrante (carpeta `Informe-E4_BCEL/`) se compilan con `pdflatex` (TeX Live 2023 o superior). Desde la carpeta `Informe-E4_BCEL/`:
-
-```bash
-# 1ra pasada: genera el .aux con las referencias de citas pendientes
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-
-# Resuelve las citas bibliograficas contra referencias.bib
-bibtex TA_PFC_E4_Soporte
-
-# 2da y 3ra pasada: incorpora la bibliografia resuelta y fija la numeracion
-# de figuras/secciones cruzadas (se corre dos veces por convencion de LaTeX)
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-```
-
-El PDF resultante es `TA_PFC_E4_Soporte.pdf`, en la misma carpeta. El mismo procedimiento aplica para el resto de informes individuales del equipo (reemplazando el nombre del archivo `.tex`).
 
 ## 🤖 Declaración de Uso de Inteligencia Artificial Generativa
 
