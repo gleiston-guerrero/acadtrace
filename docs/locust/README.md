@@ -29,14 +29,15 @@ En cumplimiento del criterio de cierre **E5 / E14 (Item 48)** de la guía rector
 
 ## 2. Conjuntos No Oficiales, Preliminares y Retirados
 
-Los siguientes cuatro conjuntos de datos existentes en el repositorio son **NO OFICIALES** y se conservan exclusivamente como evidencia histórica o exploratoria. **No deben ser utilizados como métricas del sistema en el informe ni en publicaciones**:
+Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OFICIALES** y se conservan como evidencia histórica o exploratoria. Pueden citarse con ese alcance explícito, pero **no deben presentarse como resultados oficiales del conjunto A**:
 
 | Identificador | Archivo | Peticiones | Fallos | Estado y Dictamen |
 |---|---|---|---|---|
 | **B** | `experimentos/resultados/locust_esc1_stats.csv` | 12,236 | 0 | **HISTÓRICO / NO OFICIAL:** Corrida nominal anterior previa a la instrumentación definitiva. Retirada de las métricas oficiales. |
 | **C** | `docs/locust/escenario1_nominal_stats.csv` | 13,606 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida exploratoria inicial. Se retira su carácter oficial previo en favor del conjunto A. |
 | **D** | `docs/locust/escenario2_estres_stats.csv` | 106,735 | 26 | **FALLIDO / NO OFICIAL:** Prueba de estrés escalonado (hasta 200 usuarios) fallida con 15 HTTP 500 y 11 HTTP 503. No satisface el criterio de cero fallos. **No existe estrés oficial válido.** |
-| **E** | `docs/locust/resultados_carga_stats.csv` | 2,419 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida corta de calibración (59 segundos); no cumple el perfil nominal de 5 minutos. |
+| **E** | `experimentos/resultados/locust_esc3_stats.csv` | 717 | 565 | **FALLIDO / NO OFICIAL:** Ejecución con HTTP 401; máximo un usuario observado. No acredita estrés oficial válido. |
+| **F** | `docs/locust/resultados_carga_stats.csv` | 2,419 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida corta de calibración (59 segundos); no cumple el perfil nominal de 5 minutos. |
 
 ---
 
@@ -51,19 +52,16 @@ Los siguientes cuatro conjuntos de datos existentes en el repositorio son **NO O
 | No oficial (B) | `experimentos/resultados/locust_esc1_stats.csv` | `FC63845A59A397EAEA6E9EA15746BCDEBEA7A479EB09582B4691B016371903EA` |
 | No oficial (C) | `docs/locust/escenario1_nominal_stats.csv` | `539C7F827F950FE572178A8CED7E25ACD3976E5C0289066896ECEC870B323B03` |
 | No oficial (D) | `docs/locust/escenario2_estres_stats.csv` | `2AD7C788EA7E13DD48424F591DD170E2A8B3C7600C1EA0FAF24BFC25BB06B143` |
-| No oficial (E) | `docs/locust/resultados_carga_stats.csv` | `D9C99B33A05DA637B7C1AEB2743FD5E2F98FFF06FAC4CDB8FCC9C15D9B501AE6` |
+| No oficial (F) | `docs/locust/resultados_carga_stats.csv` | `D9C99B33A05DA637B7C1AEB2743FD5E2F98FFF06FAC4CDB8FCC9C15D9B501AE6` |
 
 ---
 
 ## 4. Reproducibilidad y Validación Automatizada
 
-Para reproducir y derivar deterministamente cada una de las cifras publicadas en el informe técnico a partir del conjunto de datos oficial:
-
 ```bash
-python scripts/recalcular_metricas_carga.py
+python scripts/recalcular_metricas_carga.py --json
+python scripts/recalcular_metricas_carga.py --check-latex
+python scripts/recalcular_metricas_carga.py --emit-latex-block
 ```
 
-El guion valida automáticamente que:
-1. Los valores agregados y por endpoint coincidan de manera exacta con el CSV crudo.
-2. El informe técnico `Informe-E4_BCEL/TA-PFC-E4_BCEL.tex` cite únicamente los valores del conjunto oficial (12,994 reqs, 43.537580 req/s, P50=6ms, P95=440ms, P99=850ms).
-3. No existan cifras inventadas ni retractadas (como 12,265 o 12,735) en la matriz de evaluación ISO/IEC 25010 ni en las tablas principales.
+`--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
