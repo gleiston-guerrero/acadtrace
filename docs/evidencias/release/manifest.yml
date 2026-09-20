@@ -2,7 +2,7 @@ schema_version: 1
 release_reference:
   tag_found: v1.0.1
   final_tag_confirmed: true
-  note: "v1.0.1 es el release final confirmado."
+  note: "v1.0.1 corresponde al tag de publicacion automatizada en GitHub Releases generado por el job build-mobile-apk (artefactos app-release.apk, app-release.aab y SHA256SUMS.txt)."
 
 captures:
   - file: release/screenshots/sga_principal.png
@@ -12,8 +12,9 @@ captures:
     added_in_commit: 2dab9279
     added_in_date: 2026-09-15
     status: current
-    used_in_report: false
-    observations: "Captura real y actual del dashboard de SGA Principal obtenida en entorno local de demostración; período visible 2026-2027."
+    used_in_report: true
+    report_reference: ../release/screenshots/sga_principal.png
+    observations: "Captura real y actual del dashboard de SGA Principal obtenida en entorno local de demostracion; periodo visible 2026-2027."
 
   - file: release/screenshots/secretaria_portal.png
     component: Secretaría
@@ -24,7 +25,7 @@ captures:
     status: current
     used_in_report: true
     report_reference: Informe-E4_BCEL/secretaria_portal.png
-    observations: "Captura real y actual del dashboard de Secretaría obtenida en entorno local de demostración, localhost:5176/dashboard; muestra Director.Local y los módulos Estudiantes, Grados y Cursos, Matrículas y Usuarios."
+    observations: "Captura real y actual del dashboard de Secretaría obtenida en entorno local de demostracion, localhost:5176/dashboard; muestra Director.Local y los modulos Estudiantes, Grados y Cursos, Matrículas y Usuarios."
 
   - file: release/screenshots/soporte_tickets.png
     component: Soporte
@@ -35,7 +36,7 @@ captures:
     status: current
     used_in_report: true
     report_reference: Informe-E4_BCEL/soporte_tickets.png
-    observations: "Captura real y actual del Módulo de Tickets obtenida en entorno local de demostración, localhost:8083/soporte; muestra el tablero Kanban con tarjetas visibles y el indicador de 150 tickets encontrados."
+    observations: "Captura real y actual del Módulo de Tickets obtenida en entorno local de demostracion, localhost:8083/soporte; muestra el tablero Kanban con tarjetas visibles y el indicador de 150 tickets encontrados."
 
   - file: release/screenshots/microservicio_ia.png
     component: IA
@@ -44,7 +45,8 @@ captures:
     added_in_commit: 04159b3c
     added_in_date: 2026-09-15
     status: current
-    used_in_report: false
+    used_in_report: true
+    report_reference: ../release/screenshots/microservicio_ia.png
     observations: "Captura real y actual de la interfaz Swagger/OpenAPI de SGA - Microservicio de Inteligencia Artificial (Google Gemini); muestra los endpoints /health, /api/ia/diagnostico-estudiante y /api/ia/asistente."
 
   - file: release/screenshots/docente_asistencia.png
@@ -53,9 +55,10 @@ captures:
     sha256: CF8E2821D0F53D6CCDC9D983B139003125A57726F218CFBEF9BC85A2A56D7770
     added_in_commit: f650bd2552bb677a7a48ce6883e8d41a6fcf8246
     added_in_date: 2026-09-04
-    status: verified
-    used_in_report: false
-    observations: "Captura de la interfaz web de registro de asistencia de docentes validada para el release v1.0.1."
+    status: current
+    used_in_report: true
+    report_reference: ../release/screenshots/docente_asistencia.png
+    observations: "Captura de la interfaz web de registro de asistencia de docentes validada para el release; muestra seleccion de asignacion, paralelo y lista de estudiantes."
 
   - file: release/screenshots/grafana_carga.png
     component: Observabilidad
@@ -63,10 +66,10 @@ captures:
     sha256: 930AE09833815591BE4842EEDC4CDC73186B6CFA9C1960C25052D179BA7BE747
     added_in_commit: 3d73c41a6532702a70918095becd95cfb3b155a8
     added_in_date: 2026-09-01
-    status: verified
+    status: historical
     used_in_report: true
     report_reference: Informe-E4_BCEL/grafana_bajo_carga.png
-    observations: "El informe la presenta como evidencia histórica/complementaria; la copia del informe tiene el mismo SHA-256."
+    observations: "El informe la presenta como evidencia historica/complementaria; la copia del informe tiene el mismo SHA-256."
 
   - file: release/screenshots/grafana_hikari_p95.png
     component: Carga y observabilidad
@@ -77,47 +80,50 @@ captures:
     status: historical
     used_in_report: true
     report_reference: Informe-E4_BCEL/locust_resultados.png
-    observations: "El informe la presenta como histórica/complementaria; la copia del informe tiene el mismo SHA-256."
+    observations: "El informe la presenta como historica/complementaria de observabilidad de pool HikariCP y percentiles de latencia; la copia del informe tiene el mismo SHA-256."
 
   - file: release/screenshots/movil_representante_asistencia.png
     component: Aplicación móvil de representantes
     purpose: "Consulta móvil de asistencia."
-    sha256: 890A2C2917A59FE19ACE222D02C737757FC0B04027620BB5666BB90FA87B5F4E
-    added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
-    added_in_date: 2026-09-04
-    status: verified
-    used_in_report: false
-    observations: "Captura de la aplicación móvil de representantes correspondiente a las interfaces validadas y distribuidas para el release oficial v1.0.1."
+    sha256: B28420AED9C18EE84D84FB71CB19D83DB2DF8502468A64C0E5F53DF3B09B3F2D
+    added_in_commit: 5ec2926c
+    added_in_date: 2026-09-18
+    status: current
+    used_in_report: true
+    report_reference: ../release/screenshots/movil_representante_asistencia.png
+    observations: "Captura real obtenida en dispositivo movil con la barra de estado real de Android (hora y bateria); muestra el resumen general de asistencia (87,83 %) y desglose por estados (presentes, ausentes, atrasos, justificados)."
 
   - file: release/screenshots/movil_representante_biometria.png
     component: Aplicación móvil de representantes
     purpose: "Desbloqueo mediante biometría."
-    sha256: 419490F29E1FDFB3E997018A4442D1F1607104CC22A8D22A4432912B13B52074
-    added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
-    added_in_date: 2026-09-04
-    status: verified
-    used_in_report: false
-    observations: "Captura del flujo de desbloqueo biométrico en la app móvil validada para el release oficial v1.0.1."
+    sha256: 3A9322202575FB8F32E3B450E67E4E5BCA4FB08F72D74C22D8A3C0EF234C8D7C
+    added_in_commit: 5ec2926c
+    added_in_date: 2026-09-18
+    status: current
+    used_in_report: true
+    report_reference: ../release/screenshots/movil_representante_biometria.png
+    observations: "Captura real obtenida en dispositivo movil de la pantalla de ajustes de Seguridad (Proteccion y alertas, interruptor de biometria y gestion de sesion)."
 
   - file: release/screenshots/movil_representante_calificaciones.png
     component: Aplicación móvil de representantes
     purpose: "Consulta móvil de calificaciones."
-    sha256: ACA2BE52FFE1F212E11D685E52C29FBB712ED42E17C3315E3372DAE41C733014
-    added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
-    added_in_date: 2026-09-04
-    status: verified
-    used_in_report: false
-    observations: "Captura de la consulta móvil de calificaciones del representado validada para el release oficial v1.0.1."
+    sha256: EE939DEBCCDA0F6A5F6FCEE6E2083A6D9CD2206A8BA2885C389B92867FF25F7D
+    added_in_commit: 5ec2926c
+    added_in_date: 2026-09-18
+    status: current
+    used_in_report: true
+    report_reference: ../release/screenshots/movil_representante_calificaciones.png
+    observations: "Captura real obtenida en dispositivo movil de la consulta de calificaciones por trimestre (Acompanamiento Integral, Animacion a la Lectura, Ciencias Naturales, etc.)."
 
   - file: release/screenshots/movil_representante_evidencia.png
     component: Aplicación móvil de representantes
     purpose: "Composición de biometría, calificaciones y asistencia offline-first."
-    sha256: 3F4BC1C1D7F19A09965789E056F8904B724124ECA8F56764D222ADF91EC49C07
-    added_in_commit: 032162020155e0d827cac6bca1b2646f75a192dc
-    added_in_date: 2026-09-04
-    status: verified
+    sha256: 3F7A9DC78259AB9ACF28E8F45210ACAB20F77DEF5512A9429A45B6E612DDD499
+    added_in_commit: 5ec2926c
+    added_in_date: 2026-09-18
+    status: current
     used_in_report: true
     report_reference: Informe-E4_BCEL/movil_representante_evidencia.png
-    observations: "La copia del informe tiene el mismo SHA-256; la documentación móvil indica que el APK instalado era anterior a cambios locales posteriores."
+    observations: "Composicion integral de las tres pantallas reales del dispositivo movil (Biometría, Calificaciones y Asistencia) con subtitulos claros; la copia de Informe-E4_BCEL/ comparte identico SHA-256."
 
 pending: []
