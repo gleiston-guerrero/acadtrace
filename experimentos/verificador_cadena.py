@@ -91,6 +91,22 @@ __all__ = [
 
 import json
 
+def _normalizar_ts(val):
+    if val is None:
+        return ""
+    if hasattr(val, "isoformat"):
+        s = val.isoformat()
+    else:
+        s = str(val)
+    s = s.replace(" ", "T")
+    if "." in s:
+        s = s.split(".")[0]
+    if "+" in s:
+        s = s.split("+")[0]
+    s = s.rstrip("Z")
+    return s
+
+
 def cotejar_columnas_visibles(fila):
     """Devuelve la lista de columnas cuyo valor visible difiere del canonico.
 
@@ -103,43 +119,96 @@ def cotejar_columnas_visibles(fila):
     except (TypeError, ValueError):
         return ["contenido_canonico"]
 
-    payload = canonico.get("payload", {}) if isinstance(canonico, dict) else {}
+    if not isinstance(canonico, dict):
+        return ["contenido_canonico"]
+
+    payload = canonico.get("payload", {}) if isinstance(canonico.get("payload"), dict) else {}
     discrepancias = []
 
-    # Descripcion vive en payload segun el esquema v1
-    desc_canonico = payload.get("descripcion") if isinstance(payload, dict) else None
-    if desc_canonico is not None and fila.get("descripcion") != desc_canonico:
-        discrepancias.append("descripcion")
+    # 1. Descripcion:
+    # En Principal/Secretaria viaja en payload.get("descripcion").
+    # En Docente, central_ledger escribe tipo_evento en la columna descripcion si payload no tiene descripcion.
+    desc_canonico = payload.get("descripcion")
+    if desc_canonico is None:
+        desc_canonico = canonico.get("tipo_evento")
 
-    # Fecha del canonico es timestamp del evento
-    ts_canonico = canonico.get("timestamp") if isinstance(canonico, dict) else None
+    if desc_canonico is not None:
+        val_desc = fila.get("descripcion")
+        if val_desc is None or str(val_desc) != str(desc_canonico):
+            discrepancias.append("descripcion")
+
+    # 2. Fecha:
+    # Comparar normalizando a segundos (evita falso positivo cuando Instant de Java
+    # tiene 0 ms, p.ej. ...:01Z vs Postgres ...:01+00:00).
+    ts_canonico = canonico.get("timestamp")
     if ts_canonico is not None and fila.get("fecha") is not None:
-        # Comparar en ISO string sin milisegundos para tolerar formato
-        try:
-            fecha_col = fila["fecha"].isoformat().split(".")[0]
-            fecha_can = str(ts_canonico).split(".")[0].split("+")[0].rstrip("Z")
-            if fecha_col != fecha_can:
-                discrepancias.append("fecha")
-        except AttributeError:
-            pass
+        f_col = _normalizar_ts(fila.get("fecha"))
+        f_can = _normalizar_ts(ts_canonico)
+        if f_col != f_can:
+            discrepancias.append("fecha")
 
-    # Actor y entidad_id
-    actor_canonico = canonico.get("actor_id") if isinstance(canonico, dict) else None
-    if actor_canonico is not None and fila.get("username") != actor_canonico:
-        discrepancias.append("username")
+    # 3. Actor (username):
+    # Comparar como texto para evitar falso positivo con actor_id entero de Docente (p.ej. 7 vs "7")
+    actor_canonico = canonico.get("actor_id")
+    if actor_canonico is not None:
+        user_col = fila.get("username")
+        if user_col is None or str(user_col) != str(actor_canonico):
+            discrepancias.append("username")
 
-    entidad_id_canonico = canonico.get("entidad_id") if isinstance(canonico, dict) else None
-    if entidad_id_canonico is not None and fila.get("registro_id") != entidad_id_canonico:
-        # entidad_id puede venir como str; comparar por texto
-        if str(fila.get("registro_id")) != str(entidad_id_canonico):
+    # 4. Registro ID (entidad_id):
+    entidad_id_canonico = canonico.get("entidad_id")
+    if entidad_id_canonico is not None:
+        reg_col = fila.get("registro_id")
+        if reg_col is not None and str(reg_col) != str(entidad_id_canonico):
             discrepancias.append("registro_id")
 
-    # Reloj lamport
-    lamport_canonico = canonico.get("reloj_lamport") if isinstance(canonico, dict) else None
-    if lamport_canonico is not None and fila.get("reloj_lamport") != lamport_canonico:
-        discrepancias.append("reloj_lamport")
+    # 5. Reloj lamport:
+    lamport_canonico = canonico.get("reloj_lamport")
+    if lamport_canonico is not None and fila.get("reloj_lamport") is not None:
+        try:
+            if int(fila.get("reloj_lamport")) != int(lamport_canonico):
+                discrepancias.append("reloj_lamport")
+        except (ValueError, TypeError):
+            discrepancias.append("reloj_lamport")
+
+    # 6. Schema origen:
+    schema_can = payload.get("schema_origen")
+    if schema_can is None and canonico.get("reloj_vectorial") and "docente" in str(canonico.get("reloj_vectorial")).lower():
+        schema_can = "DOCENTE"
+    if schema_can and "schema_origen" in fila and fila.get("schema_origen") is not None:
+        if str(fila.get("schema_origen")).upper() != str(schema_can).upper():
+            discrepancias.append("schema_origen")
+
+    # 7. Tabla afectada (entidad):
+    entidad_can = canonico.get("entidad")
+    if entidad_can and "tabla_afectada" in fila and fila.get("tabla_afectada") is not None:
+        if str(fila.get("tabla_afectada")).lower() != str(entidad_can).lower():
+            discrepancias.append("tabla_afectada")
+
+    # 8. Accion (operacion):
+    operacion_can = canonico.get("operacion")
+    if "accion" in fila and fila.get("accion") is not None:
+        val_accion = str(fila.get("accion")).upper()
+        if str(fila.get("schema_origen", "")).upper() == "DOCENTE":
+            if val_accion != "AUDITAR":
+                discrepancias.append("accion")
+        elif operacion_can and val_accion != str(operacion_can).upper():
+            discrepancias.append("accion")
+
+    # 9. Resultado:
+    res_can = payload.get("resultado") or "EXITO"
+    if "resultado" in fila and fila.get("resultado") is not None:
+        if str(fila.get("resultado")).upper() != str(res_can).upper():
+            discrepancias.append("resultado")
+
+    # 10. IP address:
+    ip_can = payload.get("ip_address")
+    if ip_can and "ip_address" in fila and fila.get("ip_address") is not None:
+        if str(fila.get("ip_address")) != str(ip_can):
+            discrepancias.append("ip_address")
 
     return discrepancias
+
 
 def main():
     print("=== AcadTrace: Verificador de Cadena de Auditoria (Criterio E2) ===")
@@ -164,38 +233,34 @@ def main():
                     contenido_canonico,
                     hash_anterior,
                     hash_actual,
-                    version_canonica
+                    version_canonica,
+                    schema_origen,
+                    tabla_afectada,
+                    accion,
+                    resultado,
+                    ip_address
                 FROM sga_principal.auditoria
                 ORDER BY reloj_lamport ASC, id_auditoria ASC
             """)
             columnas = [col[0] for col in cur.description]
             todas_las_filas = [dict(zip(columnas, fila)) for fila in cur.fetchall()]
 
-        filas_v1_con_hash = [f for f in todas_las_filas if f.get("version_canonica") == "v1" and f.get("hash_actual")]
-        filas_fuera_alcance = total_filas - len(filas_v1_con_hash)
-
-        if filas_fuera_alcance > 0:
-            print(f"[AVISO] Hay {filas_fuera_alcance} fila(s) fuera del alcance del verificador "
-                  "(sin hash o con version_canonica != 'v1'). No se garantiza su integridad.")
-
-        # Deteccion de INSERT falso sin hash con rol restringido (criterio E43).
-        # Una fila con version_canonica='v1' pero hash_actual NULL indica que
-        # alguien inserto una fila sin sellarla criptograficamente. Con el rol
-        # sga_app esto es posible sin desactivar el trigger, por lo que se
-        # trata como ERROR fuerte y no como aviso.
-        filas_v1_sin_hash = [
+        # Deteccion estricta de filas no versionadas, sin hash o fuera de v1
+        filas_invalidas = [
             f for f in todas_las_filas
-            if f.get("version_canonica") == "v1" and not f.get("hash_actual")
+            if f.get("version_canonica") != "v1" or not f.get("hash_actual") or not f.get("hash_anterior") or not f.get("contenido_canonico")
         ]
-        if filas_v1_sin_hash:
-            ids_sospechosos = [f.get("id_auditoria") for f in filas_v1_sin_hash]
-            print(f"[ERROR] Se detectaron {len(filas_v1_sin_hash)} fila(s) con "
-                  f"version_canonica='v1' pero sin hash_actual. IDs sospechosos: "
-                  f"{ids_sospechosos}. Estas filas pueden ser INSERTs falsos "
-                  "producidos por el rol restringido sga_app sin sello "
-                  "criptografico.")
+        if filas_invalidas:
+            ids_invalidos = [f.get("id_auditoria") for f in filas_invalidas]
+            print(f"[ERROR] Se detectaron {len(filas_invalidas)} fila(s) invalidas o fuera del alcance "
+                  f"(sin hash_actual, sin contenido_canonico o con version_canonica != 'v1'). "
+                  f"IDs sospechosos: {ids_invalidos}. Manipulacion detectada: "
+                  "eslabones no sellados criptograficamente o desversionados.")
             return 2
 
+        filas_v1_con_hash = todas_las_filas
+
+        # Verificacion del eslabon inicial respecto al GENESIS
         GENESIS = "0" * 64
         if filas_v1_con_hash:
             primer_hash_anterior = filas_v1_con_hash[0].get("hash_anterior")
@@ -205,16 +270,45 @@ def main():
                       "Alguien borro los eslabones anteriores.")
                 return 2
 
-        # Deteccion de retroceso de cabeza (criterio E43).
-        # estado_cadena_auditoria.ultimo_hash debe coincidir con el hash_actual
-        # del ultimo eslabon v1 con hash. Si un atacante borra el ultimo eslabon
-        # y retrocede la cabeza para que "cuadre", esta comprobacion lo detecta.
+        # Deteccion de truncamiento final / borrado de ultimos eslabones:
+        # 1. Comprobar la secuencia de PostgreSQL para verificar que no falte la cola
+        try:
+            with connection.cursor() as cur_seq:
+                cur_seq.execute(
+                    "SELECT last_value, is_called FROM sga_principal.auditoria_id_auditoria_seq"
+                )
+                seq_row = cur_seq.fetchone()
+                if seq_row and seq_row[1]:  # si ya fue llamada (is_called = true)
+                    seq_val = seq_row[0]
+                    max_id = max((f.get("id_auditoria") or 0) for f in todas_las_filas) if todas_las_filas else 0
+                    if max_id < seq_val:
+                        print(f"[ERROR] Truncamiento final detectado: la secuencia auditoria_id_auditoria_seq esta en {seq_val} "
+                              f"pero el ultimo registro es id={max_id}. Se eliminaron los ultimos eslabones y se retrocedio la cabeza.")
+                        return 2
+        except Exception:
+            pass
+
+        # 2. Comprobar monotonicidad estricta y orden de IDs y reloj Lamport
+        for i in range(len(todas_las_filas) - 1):
+            cur_f = todas_las_filas[i]
+            next_f = todas_las_filas[i + 1]
+            if int(cur_f["id_auditoria"]) >= int(next_f["id_auditoria"]):
+                print(f"[ERROR] Inconsistencia en orden de IDs: {cur_f['id_auditoria']} >= {next_f['id_auditoria']}")
+                return 2
+            if int(cur_f["reloj_lamport"]) >= int(next_f["reloj_lamport"]):
+                print(f"[ERROR] Lamport no monotonico: {cur_f['reloj_lamport']} >= {next_f['reloj_lamport']}")
+                return 2
+
+        # Deteccion de retroceso o divergencia de cabeza
+        cabeza_hash = None
+        cabeza_lamport = None
         if filas_v1_con_hash:
             ultimo_hash_esperado = filas_v1_con_hash[-1].get("hash_actual")
+            ultimo_lamport_esperado = int(filas_v1_con_hash[-1].get("reloj_lamport") or 0)
             try:
                 with connection.cursor() as cur_cabeza:
                     cur_cabeza.execute(
-                        "SELECT ultimo_hash FROM sga_principal.estado_cadena_auditoria "
+                        "SELECT ultimo_hash, ultimo_lamport FROM sga_principal.estado_cadena_auditoria "
                         "WHERE id_estado = 1"
                     )
                     fila_cabeza = cur_cabeza.fetchone()
@@ -223,13 +317,13 @@ def main():
                               "sga_principal.estado_cadena_auditoria (id_estado=1). "
                               "La cabeza de cadena no puede verificarse.")
                         return 2
-                    cabeza_almacenada = fila_cabeza[0]
-                    if cabeza_almacenada != ultimo_hash_esperado:
-                        print(f"[ERROR] Retroceso de cabeza detectado. La cabeza "
-                              f"almacenada es {cabeza_almacenada[:16]!r}... pero el "
-                              f"ultimo eslabon v1 tiene hash "
-                              f"{ultimo_hash_esperado[:16]!r}... "
-                              "Alguien borro eslabones y ajusto la cabeza.")
+                    cabeza_hash = fila_cabeza[0]
+                    cabeza_lamport = int(fila_cabeza[1] or 0)
+                    if cabeza_hash != ultimo_hash_esperado or cabeza_lamport != ultimo_lamport_esperado:
+                        print(f"[ERROR] Divergencia de cabeza detectada. La cabeza "
+                              f"almacenada es hash={cabeza_hash[:16]!r}..., lamport={cabeza_lamport} pero el "
+                              f"ultimo eslabon v1 tiene hash={ultimo_hash_esperado[:16]!r}..., lamport={ultimo_lamport_esperado}. "
+                              "Alguien altero eslabones o ajusto la cabeza fraudulentamente.")
                         return 2
             except Exception as exc_cabeza:
                 print(f"[ERROR] No se pudo consultar la cabeza de cadena en "
@@ -242,16 +336,16 @@ def main():
                 print(f"[ERROR] Eslabon id={fila['id_auditoria']}: columnas alteradas fuera del hash: {discrepancias}")
                 return 2
 
-        resultado = verificar_cadena_global()
+        resultado = verificar_cadena_global(
+            filas_v1_con_hash,
+            hash_cabeza=cabeza_hash,
+            lamport_cabeza=cabeza_lamport,
+        )
         print(f"[INFO] Eslabones leidos y comprobados: {resultado.registros_verificados}")
         if resultado.valido:
             print(f"[OK] Verificacion completada: {len(filas_v1_con_hash)} eslabon(es) validado(s), "
-                  f"{filas_fuera_alcance} fila(s) fuera del alcance.")
-            if filas_fuera_alcance == 0:
-                print(f"=== Resultado: Cadena global integra sobre {len(filas_v1_con_hash)} eslabones (sin filas fuera del alcance) ===")
-            else:
-                print(f"=== Resultado: Cadena global integra sobre {len(filas_v1_con_hash)} eslabones; "
-                      f"{filas_fuera_alcance} fila(s) fuera del alcance no verificadas ===")
+                  f"0 fila(s) fuera del alcance.")
+            print(f"=== Resultado: Cadena global integra sobre {len(filas_v1_con_hash)} eslabones (sin filas fuera del alcance) ===")
             return 0
         else:
             print(f"[ERROR] Inconsistencia detectada en eslabon {resultado.primer_eslabon_roto}: {resultado.tipo_inconsistencia}")
