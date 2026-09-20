@@ -25,11 +25,11 @@ Estados usados:
 
 ## Release versionado
 
-El tag confirmado del release final es `v1.0.1`, publicado en la punta de main. Las capturas y el APK versionado corresponden a ese release.
+El tag oficial de versión es `v1.0.1`, publicado automáticamente en GitHub Releases por el job `build-mobile-apk` del flujo de CI/CD junto con los binarios `app-release.apk`, `app-release.aab` y su manifiesto `SHA256SUMS.txt`.
 
-Las capturas móviles y el APK fueron incorporados en el commit `03216202` el 2026-09-04. La documentación de la demo móvil indica que el APK instalado era anterior a cambios locales posteriores, por lo que esas capturas ahora se marcan como `verified` tras su reemplazo real.
+Las capturas móviles corresponden a pantallas reales de un dispositivo Android físico/emulado y fueron actualizadas en el commit `5ec2926c` el 2026-09-18, marcándose con estado `current` en [manifest.yml](manifest.yml).
 
-Las capturas de Grafana y Locust se conservan como evidencia histórica. El informe también las describe como históricas o complementarias.
+Las capturas de Grafana y Locust se conservan con estado `historical`. El informe también las describe como históricas o complementarias.
 
 ## Verificar SHA-256
 
