@@ -83,6 +83,26 @@ test.describe("Frontend Docente conectado al entorno real", () => {
     await expect(semana).toBeVisible();
     await expect(trimestre).toBeVisible();
 
+    await expect
+      .poll(
+        async () => {
+          const opciones = await trimestre
+            .locator("option")
+            .evaluateAll((options) =>
+              options
+                .map((option) => option.value)
+                .filter((value) => value !== "")
+            );
+          return opciones.length;
+        },
+        {
+          timeout: 15_000,
+          message:
+            "El selector de trimestres no cargó los períodos de evaluación disponibles",
+        }
+      )
+      .toBeGreaterThan(0);
+
     const periodos = await trimestre
       .locator("option")
       .evaluateAll((options) =>
@@ -90,10 +110,6 @@ test.describe("Frontend Docente conectado al entorno real", () => {
           .map((option) => option.value)
           .filter((value) => value !== "")
       );
-
-      if (periodos.length === 0) {
-        return;
-      }
 
     for (const periodo of periodos) {
       if (nota) {
