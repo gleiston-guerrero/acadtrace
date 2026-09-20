@@ -1,6 +1,7 @@
 package ec.uteq.sga.soporte.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,16 +17,16 @@ import java.util.List;
 @Component
 public class JwtService {
 
-    private final SecretKey key;
+    private final JwtParser parser;
 
     public JwtService(@Value("${app.jwt.secret}") String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        // El parser construido es thread-safe; cada peticion sigue verificando el JWT.
+        this.parser = Jwts.parser().verifyWith(key).build();
     }
 
     public AuthenticatedUser parse(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
+        Claims claims = parser
                 .parseSignedClaims(token)
                 .getPayload();
 

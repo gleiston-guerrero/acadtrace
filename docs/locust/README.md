@@ -12,22 +12,25 @@ En cumplimiento del criterio de cierre **E5 / E14 (Item 48)** de la guía rector
 > - **Ubicación:** [`microservicio-soporte/locust_esc1_stats.csv`](../../microservicio-soporte/locust_esc1_stats.csv)
 > - **Archivos asociados:**
 >   - [`microservicio-soporte/locust_esc1_stats_history.csv`](../../microservicio-soporte/locust_esc1_stats_history.csv)
->   - [`microservicio-soporte/locust_esc1_failures.csv`](../../microservicio-soporte/locust_esc1_failures.csv)
->   - [`microservicio-soporte/locust_esc1_exceptions.csv`](../../microservicio-soporte/locust_esc1_exceptions.csv)
 > - **Métricas oficiales (Fila `Aggregated`):**
->   - **Peticiones Totales:** 12,994
+>   - **Peticiones Totales:** 12,217
 >   - **Fallos Totales:** 0 (0.00% tasa de error; sin 401 ni 500)
->   - **Throughput Promedio:** 43.537580 req/s
->   - **Latencia Promedio:** 109.113664 ms
->   - **Percentil 50 (P50 / Mediana):** 6 ms
->   - **Percentil 95 (P95):** 440 ms
->   - **Percentil 99 (P99):** 850 ms
->   - **Latencia Máxima:** 2,037.104700 ms
-> - **Perfil de ejecución:** 50 usuarios concurrentes, spawn rate 5 usuarios/s, 5 minutos nominales (299 s observados entre primera y última muestra), host `http://localhost:8083` con JWT instrumentado.
+>   - **Throughput Promedio:** 40.955420 req/s
+>   - **Latencia Promedio:** 10.181439 ms
+>   - **Percentil 50 (P50 / Mediana):** 4 ms
+>   - **Percentil 95 (P95):** 9 ms
+>   - **Percentil 99 (P99):** 23 ms
+>   - **Latencia Máxima:** 47889.955900 ms
+> - **Criterio PI-1:** P99 < 500 ms; cumple en escenario nominal local.
+> - **Perfil de ejecución validado manualmente:** 50 usuarios concurrentes, spawn rate 5 usuarios/s, 5 minutos nominales (298 s observados entre primera y última muestra), host `http://localhost:8083` con JWT instrumentado.
 
 ---
 
 ## 2. Conjuntos No Oficiales, Preliminares y Retirados
+
+La ejecución A anterior, conservada en `microservicio-soporte/resultados_historicos/`, registró 12.994 peticiones, 0 fallos y P99=850 ms: no cumplía PI-1. No se ha demostrado equivalencia exacta de datasets y entornos con la actual, por lo que la diferencia no se atribuye exclusivamente a `JwtParser`.
+
+El máximo actual de 47.889,96 ms es un evento aislado de `/api/soporte/tickets`, con P95=13 ms, P99=32 ms y 0 fallos; permanece sin filtrar. Cero fallos no demuestra disponibilidad de producción. El log y el JSON candidatos son anteriores, no acreditan esta corrida. Los auxiliares vacíos de fallos/excepciones tampoco acreditan su procedencia actual. Véase [E48](../../evidencias/Juliana_Emanuel/E48_actual_README.md).
 
 Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OFICIALES** y se conservan como evidencia histórica o exploratoria. Pueden citarse con ese alcance explícito, pero **no deben presentarse como resultados oficiales del conjunto A**:
 
@@ -45,10 +48,12 @@ Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OF
 
 | Tipo | Archivo | Hash SHA-256 |
 |---|---|---|
-| **OFICIAL** | `microservicio-soporte/locust_esc1_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+| **OFICIAL** | `microservicio-soporte/locust_esc1_stats.csv` | `9EF6F59D131AA9D4FAB42A9542A18BD25AEC2E4861AA4BF361A942E59AC16A95` |
+| Histórico anterior | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
+| **OFICIAL** | `microservicio-soporte/locust_esc1_stats_history.csv` | `2E07E6788BC9BE8FDBC7E3743670CFA33AA7A6BF3C9B748C489718358E6D1E34` |
+| Histórico anterior | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
+| Histórico; no acredita corrida actual | Histórico, no actual: `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
+| Histórico; no acredita corrida actual | Histórico, no actual: `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
 | No oficial (B) | `experimentos/resultados/locust_esc1_stats.csv` | `FC63845A59A397EAEA6E9EA15746BCDEBEA7A479EB09582B4691B016371903EA` |
 | No oficial (C) | `docs/locust/escenario1_nominal_stats.csv` | `539C7F827F950FE572178A8CED7E25ACD3976E5C0289066896ECEC870B323B03` |
 | No oficial (D) | `docs/locust/escenario2_estres_stats.csv` | `2AD7C788EA7E13DD48424F591DD170E2A8B3C7600C1EA0FAF24BFC25BB06B143` |
