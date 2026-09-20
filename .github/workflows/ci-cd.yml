@@ -828,6 +828,18 @@ jobs:
           docker exec microservicio-docente \
             python manage.py migrate --noinput
 
+          docker exec \
+            -e PGPASSWORD="$DB_PASSWORD" \
+            postgres-e10 \
+            psql -v ON_ERROR_STOP=1 \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -c "
+              GRANT USAGE ON SCHEMA sga_docente, sga_secretaria TO sga_app;
+              GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_docente, sga_secretaria TO sga_app;
+              GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA sga_docente, sga_secretaria TO sga_app;
+            "
+
       - name: Esperar backend Docente
         shell: bash
         run: |
@@ -873,10 +885,10 @@ jobs:
               tipo='TAREA',
               nombre='Actividad E10',
               descripcion='Actividad sintetica exclusiva de Playwright E10',
-              fecha_entrega='2026-03-01',
-              ponderacion=100,
+              fecha_entrega='2026-01-05',
+              ponderacion=10,
               nota_maxima=10,
-              es_sumativa=True
+              es_sumativa=False
           )
 
           Calificacion.objects.create(
@@ -889,6 +901,18 @@ jobs:
 
           print('Datos sinteticos de Docente E10 creados')
           "
+
+          docker exec \
+            -e PGPASSWORD="$DB_PASSWORD" \
+            postgres-e10 \
+            psql -v ON_ERROR_STOP=1 \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -c "
+              GRANT USAGE ON SCHEMA sga_docente, sga_secretaria TO sga_app;
+              GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_docente, sga_secretaria TO sga_app;
+              GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA sga_docente, sga_secretaria TO sga_app;
+            "
 
       - name: Levantar frontend Principal
         shell: bash
