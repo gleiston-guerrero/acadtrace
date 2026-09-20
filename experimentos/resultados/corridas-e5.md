@@ -4,11 +4,11 @@
 
 **OFICIAL NOMINAL de Soporte: conjunto A vigente (2026-09-20).** Las métricas oficiales proceden exclusivamente de la fila `Aggregated` del CSV conservado. Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**, con usuarios virtuales; no representa tráfico real de producción.
 
-**Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio** de cero fallos. E5 permanece **PARCIAL** por la ausencia de estrés válido y de una captura exacta del agregado oficial.
+**Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. Nominal y estrés son ejecuciones distintas. Las tres capturas nominales están conservadas en `332158e4`; sigue sin estar disponible la evidencia original del perfil nominal. El estado de HikariCP no queda acreditado.
 
 El perfil de [run_locust.py](../../microservicio-soporte/run_locust.py) configura 50 usuarios virtuales, spawn rate de 5 usuarios/s, duración de 5 minutos y host `http://localhost:8083`. El [locustfile.py](../../microservicio-soporte/locustfile.py) envía JWT a los endpoints protegidos y registra como fallos las respuestas HTTP 401 y 500. El conjunto A vigente contiene cero fallos en sus estadísticas. Los auxiliares vacíos no acreditan su procedencia actual.
 
-El **commit de conservación del resultado** identifica una versión de Git que contiene el artefacto; no demuestra qué código estaba desplegado al ejecutarlo. Para todas las corridas, el **commit del código ejecutado** es: **No disponible en la evidencia conservada**. Tampoco se atribuyen a A el hardware ni las versiones descritas en documentos de otras campañas.
+El **commit de conservación del resultado** identifica una versión de Git que contiene el artefacto; no demuestra qué código estaba desplegado al ejecutarlo. Para el nominal y las corridas históricas, el **commit del código ejecutado** es: **No disponible en la evidencia conservada**. Para el estrés oficial vigente, `perfil.txt` registra `88649f3f`; su evidencia se conserva en `b43008e5`. Tampoco se atribuyen a A el hardware ni las versiones descritas en documentos de otras campañas.
 
 ## Tabla de trazabilidad
 
@@ -16,7 +16,8 @@ Las fechas A–F son el primer timestamp de `stats_history`, expresado en UTC. U
 
 | Estado | Escenario | Fecha UTC | Commit de conservación | Entorno | Usuarios | Duración | Peticiones | Fallos | P50 | P95 | P99 | Archivo | Motivo de aceptación/descarte |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **A vigente — OFICIAL NOMINAL** | Nominal local Soporte | 2026-09-20 08:46:16 | Pendiente: sin commit | Entorno local actual | 50 | 5 min configurados según validación manual; 298 s entre muestras | **12.217** | **0** | **4** | **9** | **23** | [A actual stats](../../microservicio-soporte/locust_esc1_stats.csv) | Cumple PI-1 en escenario nominal local; CSV promovidos sin edición. |
+| **A vigente — OFICIAL NOMINAL** | Nominal local Soporte | 2026-09-20 08:46:16 | `332158e4` (capturas nominales) | Entorno local actual | 50 | 5 min configurados según validación manual; 298 s entre muestras | **12.217** | **0** | **4** | **9** | **23** | [A actual stats](../../microservicio-soporte/locust_esc1_stats.csv) | Cumple PI-1 en escenario nominal local; CSV promovidos sin edición. |
+| **Estrés vigente — OFICIAL** | Estrés local Soporte | 2026-09-20 21:47:25 | `b43008e5` | localhost:8085; código `88649f3f` | 200 | 10 min configurados; 599 s entre muestras | **98.684** | **0** | **7** | **15** | **23** | [Estrés stats](../../microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats.csv) | P95 < 500 ms y 0 fallos: CUMPLE; incorporación 1 usuario/s. |
 | **A anterior — HISTÓRICA** | Nominal Soporte | 2026-09-11 03:59:05 | `956cafcb` (datos); `c5c0e6f5` (normalización posterior) | Local/contenedorizado; localhost:8083 configurado | 50 | 5 min configurados; 299 s entre muestras | **12.994** | **0** | **6** | **440** | **850** | [A stats](../../microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv) | Autenticación instrumentada; 0 fallos, sin 401/500 registrados. Resultado nominal anterior; no cumplía PI-1. |
 | B — PRELIMINAR/HISTÓRICA | Nominal anterior | 2026-09-11 03:32:11 | `df0112d3` | ND | 50 | 299 s entre muestras | 12.236 | 0 | 110 | 370 | 460 | [B stats](locust_esc1_stats.csv) | Anterior a A; conservada sin carácter oficial. |
 | C — PRELIMINAR/HISTÓRICA | Nominal anterior | 2026-09-05 00:05:03 | `683cc17f` | Local/contenedorizado declarado en documento histórico; host efectivo ND | 50 | 5 min declarados; 298 s entre muestras | 13.606 | 0 | 6 | 340 | 450 | [C stats](../../docs/locust/escenario1_nominal_stats.csv) | Se retira la declaración oficial anterior; no sustituye A. |
@@ -67,11 +68,43 @@ El `locust_esc1_candidato_console.log` y el `locust_esc1_candidato_validation.js
 
 Se conserva la **descripción HISTÓRICA/COMPLEMENTARIA** de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado. Esa descripción atribuye una salida de terminal de una ejecución cuya cifra final visible es **13.031** peticiones, mientras el CSV histórico anterior contiene **12.994**. La causa de la diferencia **no está demostrada**. Para las métricas oficiales prevalece siempre el CSV, sin alterarlo para coincidir con la captura.
 
-**Captura exacta del CSV oficial: pendiente de toma manual.** Debe mostrar la ruta/nombre `microservicio-soporte/locust_esc1_stats.csv`, la fila `Aggregated`, Request Count = 12217, Failure Count = 0, Requests/s, promedio, P50, P95, P99 y máximo. Puede tomarse del CSV abierto o de su lectura en terminal; debe identificarse como verificación del artefacto conservado, no como nueva ejecución.
+**Capturas nominales disponibles (commit `332158e4`):** [CSV](../../evidencias/Juliana_Emanuel/E48_actual_csv.png), [matriz](../../evidencias/Juliana_Emanuel/E48_actual_matriz.png) e [historial y usuarios](../../evidencias/Juliana_Emanuel/E48_actual_usuarios_historial.png). Documentan los artefactos nominales conservados; no sustituyen la evidencia original del perfil, que sigue no disponible.
 
 Las imágenes [locust_resultados.png](../../Informe-E4_BCEL/locust_resultados.png) y [grafana_hikari_p95.png](../../release/screenshots/grafana_hikari_p95.png) muestran Grafana y son **HISTÓRICAS/COMPLEMENTARIAS**, sin vinculación exacta demostrada con A. Las demás capturas de Grafana y el health-check no acreditan por sí solas las métricas oficiales.
 
 El [certificado anterior de Soporte](../../microservicio-soporte/REPRODUCIBILIDAD.txt) se conserva como histórico: sus hashes no coinciden con los bytes actuales. Git registra normalizaciones de finales de línea posteriores; no se atribuye una causa única sin una comprobación adicional. No se modifica ese certificado ni los CSV.
+
+## Estrés oficial vigente: ejecución separada de A
+
+Ruta: `microservicio-soporte/resultados_estres/20260920_164722/`.
+Código ejecutado: `88649f3f`; commit de conservación: `b43008e5`.
+Host: `http://localhost:8085`; incorporación: 1 usuario/s; duración configurada:
+10 minutos. Timestamps: 1789940845–1789941444, 599 s entre muestras.
+
+| Métrica del estrés oficial | Valor |
+|---|---|
+| Usuarios máximos | 200 |
+| Peticiones | 98.684 |
+| Fallos | 0 |
+| Requests/s | 164.86740285525565 |
+| Average Response Time | 7.86715629893033 ms |
+| P50 | 7 ms |
+| P95 | 15 ms |
+| P99 | 23 ms |
+| Max Response Time | 324.8848000075668 ms |
+| EXIT_CODE | 0 |
+| Criterio de aceptación | P95 < 500 ms y 0 fallos |
+| Resultado | CUMPLE |
+
+La carpeta conserva `perfil.txt`, `resumen_validacion.txt`,
+`locust_estres_200_stats.csv`, `locust_estres_200_stats_history.csv`,
+`locust_estres_200_failures.csv` y `locust_estres_200_exceptions.csv`.
+La [captura del resumen](../../evidencias/Juliana_Emanuel/E48_estres_200_resumen.png)
+está conservada en el mismo commit. Los contadores corresponden al agregado
+completo de la rampa, no exclusivamente al intervalo con 200 usuarios.
+No demuestran disponibilidad de producción ni el estado del pool HikariCP.
+La corrida incompleta `20260920_163041/` no es oficial ni se usa en estas métricas.
+El histórico D (106.735 peticiones, 26 fallos) permanece FALLIDO/HISTÓRICO.
 
 ## Otras evidencias y límites
 
@@ -83,4 +116,4 @@ El [certificado anterior de Soporte](../../microservicio-soporte/REPRODUCIBILIDA
 - La numeración histórica es ambigua: el protocolo denomina escenario 2 a calificaciones y escenario 3 a cierre/estrés; `docs/locust/escenario2_estres_*` usa escenario 2 para estrés. Se conserva el nombre original de cada archivo y se explicita el perfil.
 - [reproducibilidad.sh](../reproducibilidad.sh) ejecuta el banco experimental; no certifica por sí solo A. Los scripts existentes pueden escribir sobre resultados: no se ejecutaron al documentar E5.
 
-No hay un resultado adicional declarado OFICIAL para calificaciones o estrés. Los estados PRELIMINAR, FALLIDA y CALIBRACIÓN describen evidencia histórica; DESCARTADA significa excluida de las conclusiones oficiales, nunca eliminada del repositorio.
+Existe la corrida oficial de estrés documentada arriba; no hay un resultado adicional declarado OFICIAL para calificaciones. Los estados PRELIMINAR, FALLIDA y CALIBRACIÓN describen evidencia histórica; DESCARTADA significa excluida de las conclusiones oficiales, nunca eliminada del repositorio.
