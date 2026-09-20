@@ -318,4 +318,21 @@ INSERT INTO sga_secretaria.matriculas (
     id_ano_lectivo = EXCLUDED.id_ano_lectivo,
     estado = EXCLUDED.estado;
 
+-- Conceder permisos al rol de aplicacion sga_app sobre sga_secretaria y sga_docente si existen
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sga_app') THEN
+        IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'sga_secretaria') THEN
+            GRANT USAGE ON SCHEMA sga_secretaria TO sga_app;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_secretaria TO sga_app;
+            GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA sga_secretaria TO sga_app;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'sga_docente') THEN
+            GRANT USAGE ON SCHEMA sga_docente TO sga_app;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sga_docente TO sga_app;
+            GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA sga_docente TO sga_app;
+        END IF;
+    END IF;
+END $$;
+
 COMMIT;
