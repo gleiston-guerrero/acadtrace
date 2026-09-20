@@ -2,6 +2,17 @@
 
 Esta tabla es la fuente central de cobertura documentada para E8.
 
+Actualización de Soporte (2026-09-20): el resultado actual es LINE 458/640 =
+71,5625 %, umbral 70 %, compuerta aprobada.
+El [XML actual](soporte/actual/jacoco.xml) es una copia sin edición del reporte
+local `microservicio-soporte/backend/target/site/jacoco/jacoco.xml` y es la
+fuente que consume `generar_matriz.py`. En la revisión final se ejecutó
+`mvn -o verify` con Maven 3.9.9 y Java 21 (compilación release 17): 74 pruebas,
+0 fallos, 0 errores y 0 omitidas; `BUILD SUCCESS` y todas las comprobaciones
+de cobertura aprobadas. El XML recién generado confirma LINE 458/640;
+la copia conservada no se reemplazó. Las cifras 459/641 y los reportes de Soporte enlazados
+más abajo se conservan como evidencia histórica anterior.
+
 | Módulo | Herramienta | Alcance | LINE | INSTRUCTION | BRANCH | Umbral | Fecha | Estado | Comando |
 |---|---|---|---:|---:|---:|---|---|---|---|
 | `microservicio-soporte/backend` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 71,61 % (459/641) | 73,03 % (2323/3181) | 59,61 % (121/203) | 70 % LINE | 2026-09-17 | Reporte versionado en `a03d0abf`, generado con Maven 3.9.9 y Java 21; cumple el umbral de 70 % LINE | Desde `microservicio-soporte/backend`: `./mvnw clean verify` en Linux/CI; `./mvnw.cmd verify` en Windows |
