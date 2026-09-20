@@ -27,7 +27,7 @@ P99_LIMIT_MS = Decimal('500')
 COVERAGE_LIMIT_PCT = Decimal('70')  # Criterio de esta matriz, no medicion.
 COVERAGE_REPORTS = (
     ('Secretaría', Path('docs/cobertura/secretaria/jacoco.xml')),
-    ('Soporte', Path('docs/cobertura/soporte/jacoco.xml')),
+    ('Soporte', Path('docs/cobertura/soporte/actual/jacoco.xml')),
 )
 
 
