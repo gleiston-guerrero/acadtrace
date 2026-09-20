@@ -1,18 +1,20 @@
 # Entorno de Medición y Metadatos de Pruebas de Carga (Locust) — Entrega 4
 
-> **E5 vigente:** la única corrida OFICIAL NOMINAL de Soporte es `microservicio-soporte/locust_esc1_stats.csv` y sus tres CSV asociados. Ver [registro, métricas y trazabilidad E5](../../experimentos/resultados/corridas-e5.md).
+> **E5 vigente:** la única corrida OFICIAL NOMINAL de Soporte es `microservicio-soporte/locust_esc1_stats.csv` y `microservicio-soporte/locust_esc1_stats_history.csv`. Ver [registro, métricas y trazabilidad E5](../../experimentos/resultados/corridas-e5.md).
 >
-> CSV oficial: **12.994 peticiones, 0 fallos, 43,537580 req/s, promedio 109,113664 ms, P50 6 ms, P95 440 ms, P99 850 ms y máximo 2.037,104700 ms**. Prueba de carga reproducible ejecutada en entorno local/contenedorizado; perfil configurado: 50 usuarios virtuales, 5 usuarios/s, 5 minutos, localhost:8083. Inicio registrado: 2026-09-11 03:59:05 UTC. Commit de conservación `956cafcb` (normalización posterior `c5c0e6f5`); commit del código ejecutado: **No disponible en la evidencia conservada**.
+> CSV oficial: **12.217 peticiones, 0 fallos, 40,955420 req/s, promedio 10,181439 ms, P50 4 ms, P95 9 ms, P99 23 ms y máximo 47889,955900 ms**. Prueba de carga reproducible ejecutada en entorno local/contenedorizado; perfil configurado: 50 usuarios virtuales, 5 usuarios/s, 5 minutos, localhost:8083. Historial actual: 2026-09-20 08:46:16–08:51:14 UTC (03:46:16–03:51:14 UTC−05:00), 298 segundos entre muestras. Perfil validado manualmente; 5 minutos configurados. PI-1: P99 < 500 ms, cumple en escenario nominal local. Resultado promovido aún sin commit; commit del código ejecutado: **No disponible en la evidencia conservada**.
 >
 > **Estrés oficial: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** Las secciones siguientes son antecedentes HISTÓRICOS: C es PRELIMINAR y D es FALLIDA (26 fallos). Sus metadatos y hashes históricos no certifican A. La fecha histórica declarada abajo no coincide con el inicio de C en CSV: 2026-09-05 00:05:03 UTC.
 >
-> Se conserva la descripción histórica de la captura de Juliana con 13.031 peticiones, pero no el archivo de imagen versionado; no coincide exactamente con el CSV oficial de 12.994 y la causa no está demostrada. Falta una captura manual de la fila Aggregated del CSV oficial.
+> Se conserva la descripción histórica de la captura de Juliana con 13.031 peticiones, pero no el archivo de imagen versionado; no coincide exactamente con el CSV histórico anterior de 12.994 y la causa no está demostrada. Falta una captura manual de la fila Aggregated del CSV oficial.
 
 Este documento registra formalmente los metadatos de ejecución, especificaciones del entorno de pruebas y las firmas criptográficas SHA-256 de los conjuntos de datos obtenidos durante la evaluación de rendimiento y resiliencia del sistema **AcadTrace**.
 
 ---
 
-## 1. Especificaciones del Entorno de Medición
+La corrida anterior registró P99=850 ms y no cumplía PI-1; se conserva en [el registro E5](../../experimentos/resultados/corridas-e5.md). No está demostrada la equivalencia exacta de datasets y entornos, ni causalidad exclusiva de `JwtParser`. El máximo actual de 47.889,96 ms corresponde a tickets (P95=13 ms, P99=32 ms, 0 fallos), conservado sin filtrar. No se demuestra disponibilidad de producción. El `console.log` y el `validation.json` candidatos pertenecen a una corrida anterior y no acreditan la actual; los auxiliares vacíos tampoco acreditan su procedencia.
+
+## 1. Especificaciones históricas del Entorno de Medición
 
 | Parámetro | Valor Registrado |
 |---|---|
@@ -27,7 +29,7 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 
 ---
 
-## 2. Parámetros de los Escenarios de Carga
+## 2. Parámetros históricos de los Escenarios de Carga
 
 1. **Escenario 1 (Carga Nominal):**
    - **Usuarios Concurrentes:** 50 usuarios simultáneos.
@@ -48,10 +50,12 @@ Este documento registra formalmente los metadatos de ejecución, especificacione
 ### 3.1. Conjunto Oficial Declarado (Corrida A)
 | Archivo | Hash SHA-256 |
 |---|---|
-| `microservicio-soporte/locust_esc1_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
-| `microservicio-soporte/locust_esc1_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
-| `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
-| `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+| `microservicio-soporte/locust_esc1_stats.csv` | `9EF6F59D131AA9D4FAB42A9542A18BD25AEC2E4861AA4BF361A942E59AC16A95` |
+| `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
+| `microservicio-soporte/locust_esc1_stats_history.csv` | `2E07E6788BC9BE8FDBC7E3743670CFA33AA7A6BF3C9B748C489718358E6D1E34` |
+| `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
+| Histórico, no actual: `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
+| Histórico, no actual: `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
 
 ### 3.2. Hashes de conjuntos no oficiales B, C, D y F (E se identifica en el registro E5)
 | Archivo | Hash SHA-256 |
