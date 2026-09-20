@@ -36,6 +36,8 @@ public class AuditHashService {
 
     public AuditHashService() {
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.mapper.configure(
                 SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,
                 true
