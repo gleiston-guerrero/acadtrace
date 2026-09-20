@@ -53,7 +53,7 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | `infra/gateway` | [`infra/haproxy/`](infra/haproxy/) | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
 | `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/), [`docker-compose.yml`](docker-compose.yml) | Observabilidad con Prometheus (:9090), Grafana (:3001) y Dozzle (:8888); el Compose raíz contiene su configuración de despliegue | `docker compose up prometheus grafana dozzle -d` |
 | Operación (complementario) | [`ops/`](ops/) | Recursos y configuración operativa de Prometheus y Grafana, en una ubicación distinta de la infraestructura agrupada en `infra/` | No aplica al mapa |
-| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Scripts de verificación de bitácora y datasets de reproducibilidad | `DB_HOST=<host> DB_PORT=<port> DB_USER=<user> DB_PASSWORD=<pass> DB_NAME=sga python experimentos/verificador_cadena.py` |
+| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Verificación de bitácora, arnés de 12 vectores canónicos y reproducibilidad experimental | `python experimentos/arnes_12_vectores.py` (arnés canónico E2) y `python -m pytest experimentos/test_verificador_cadena_base.py` (22 pruebas E3). Para base PostgreSQL: `DB_HOST=<host> DB_PORT=<port> DB_USER=<user> DB_PASSWORD=<pass> DB_NAME=sga python experimentos/verificador_cadena.py` |
 | Documentación técnica (complementario) | [`docs/`](docs/), [`docs/api/openapi.yaml`](docs/api/openapi.yaml), [`docs/api/README.md`](docs/api/README.md) | Arquitectura, seguridad, documentación API y contrato OpenAPI versionado | No aplica al mapa |
 | Utilidades (complementario) | [`scripts/`](scripts/), [`scripts/verificar_openapi.py`](scripts/verificar_openapi.py), [`docs/api/validate_openapi.py`](docs/api/validate_openapi.py) | Utilidades del proyecto; verificación del contrato OpenAPI runtime y validación estática del contrato versionado | No aplica al mapa |
 | Entregables (complementario) | [`release/`](release/) | Índice y documentación de verificación del release oficial `v1.0.1` (`app-release.apk`, `app-release.aab` y `SHA256SUMS.txt` publicados en GitHub Release) | No aplica al mapa |
@@ -208,7 +208,9 @@ LIMIT 20;
 
 El job `build-images` de `.github/workflows/ci-cd.yml` publica imágenes propias
 en `ghcr.io/<repository_owner-en-minúsculas>/<imagen>`, mediante `GITHUB_TOKEN`.
-Conserva las dependencias `test-backend`, `test-soporte-backend` y `test-web`.
+Depende de los 10 trabajos bloqueantes de prueba, validación y contrato del pipeline:
+`test-backend`, `test-soporte-backend`, `test-secretaria-backend`, `test-web`, `lint`,
+`ci-docente`, `ci-movil-representante`, `test-mobile`, `e2e-docente` y `contract-openapi`.
 
 | Imagen | Contexto de construcción | Dockerfile desde la raíz |
 |---|---|---|
@@ -229,10 +231,11 @@ postgres-exporter) no se republican. PostgreSQL en el Compose de Principal
 también es externo. Las imágenes base de los Dockerfiles son dependencias,
 no módulos propios a publicar.
 
-Esta configuración publica paquetes; no cambia el despliegue existente, que
-continúa construyendo mediante Compose. La construcción y publicación efectiva
-de las cinco imágenes deberá confirmarse en GitHub Actions/GHCR después de
-integrar y enviar los cambios. La modificación local no acredita publicación.
+Esta configuración publica paquetes en GitHub Container Registry (GHCR); el despliegue
+local se realiza mediante Docker Compose. Las cinco imágenes del sistema (`sga-principal`,
+`microservicio-docente`, `microservicio-secretaria`, `microservicio-soporte` y `microservicio-ia`)
+se construyen y publican en GHCR con la etiqueta del commit SHA y la etiqueta `latest`
+al completar exitosamente el pipeline en la rama `main`.
 
 ## Requisitos del Sistema
 
