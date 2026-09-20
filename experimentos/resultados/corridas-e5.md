@@ -2,11 +2,11 @@
 
 ## Declaración y alcance
 
-**OFICIAL NOMINAL de Soporte: conjunto A.** Las métricas oficiales proceden exclusivamente de la fila `Aggregated` del CSV conservado. Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**, con usuarios virtuales; no representa tráfico real de producción.
+**OFICIAL NOMINAL de Soporte: conjunto A vigente (2026-09-20).** Las métricas oficiales proceden exclusivamente de la fila `Aggregated` del CSV conservado. Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**, con usuarios virtuales; no representa tráfico real de producción.
 
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio** de cero fallos. E5 permanece **PARCIAL** por la ausencia de estrés válido y de una captura exacta del agregado oficial.
 
-El perfil de [run_locust.py](../../microservicio-soporte/run_locust.py) configura 50 usuarios virtuales, spawn rate de 5 usuarios/s, duración de 5 minutos y host `http://localhost:8083`. El [locustfile.py](../../microservicio-soporte/locustfile.py) envía JWT a los endpoints protegidos y registra como fallos las respuestas HTTP 401 y 500. El conjunto A contiene cero fallos y ninguna excepción registrada.
+El perfil de [run_locust.py](../../microservicio-soporte/run_locust.py) configura 50 usuarios virtuales, spawn rate de 5 usuarios/s, duración de 5 minutos y host `http://localhost:8083`. El [locustfile.py](../../microservicio-soporte/locustfile.py) envía JWT a los endpoints protegidos y registra como fallos las respuestas HTTP 401 y 500. El conjunto A vigente contiene cero fallos en sus estadísticas. Los auxiliares vacíos no acreditan su procedencia actual.
 
 El **commit de conservación del resultado** identifica una versión de Git que contiene el artefacto; no demuestra qué código estaba desplegado al ejecutarlo. Para todas las corridas, el **commit del código ejecutado** es: **No disponible en la evidencia conservada**. Tampoco se atribuyen a A el hardware ni las versiones descritas en documentos de otras campañas.
 
@@ -16,14 +16,15 @@ Las fechas A–F son el primer timestamp de `stats_history`, expresado en UTC. U
 
 | Estado | Escenario | Fecha UTC | Commit de conservación | Entorno | Usuarios | Duración | Peticiones | Fallos | P50 | P95 | P99 | Archivo | Motivo de aceptación/descarte |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **A — OFICIAL NOMINAL** | Nominal Soporte | 2026-09-11 03:59:05 | `956cafcb` (datos); `c5c0e6f5` (normalización posterior) | Local/contenedorizado; localhost:8083 configurado | 50 | 5 min configurados; 299 s entre muestras | **12.994** | **0** | **6** | **440** | **850** | [A stats](../../microservicio-soporte/locust_esc1_stats.csv) | Autenticación instrumentada; 0 fallos, sin 401/500 registrados. Único nominal seleccionado. |
+| **A vigente — OFICIAL NOMINAL** | Nominal local Soporte | 2026-09-20 08:46:16 | Pendiente: sin commit | Entorno local actual | 50 | 5 min configurados según validación manual; 298 s entre muestras | **12.217** | **0** | **4** | **9** | **23** | [A actual stats](../../microservicio-soporte/locust_esc1_stats.csv) | Cumple PI-1 en escenario nominal local; CSV promovidos sin edición. |
+| **A anterior — HISTÓRICA** | Nominal Soporte | 2026-09-11 03:59:05 | `956cafcb` (datos); `c5c0e6f5` (normalización posterior) | Local/contenedorizado; localhost:8083 configurado | 50 | 5 min configurados; 299 s entre muestras | **12.994** | **0** | **6** | **440** | **850** | [A stats](../../microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv) | Autenticación instrumentada; 0 fallos, sin 401/500 registrados. Resultado nominal anterior; no cumplía PI-1. |
 | B — PRELIMINAR/HISTÓRICA | Nominal anterior | 2026-09-11 03:32:11 | `df0112d3` | ND | 50 | 299 s entre muestras | 12.236 | 0 | 110 | 370 | 460 | [B stats](locust_esc1_stats.csv) | Anterior a A; conservada sin carácter oficial. |
 | C — PRELIMINAR/HISTÓRICA | Nominal anterior | 2026-09-05 00:05:03 | `683cc17f` | Local/contenedorizado declarado en documento histórico; host efectivo ND | 50 | 5 min declarados; 298 s entre muestras | 13.606 | 0 | 6 | 340 | 450 | [C stats](../../docs/locust/escenario1_nominal_stats.csv) | Se retira la declaración oficial anterior; no sustituye A. |
 | D — FALLIDA/HISTÓRICA | Estrés (escenario2 en docs/locust) | 2026-09-06 21:15:19 | `6a239c99` | Local/contenedorizado declarado en documento histórico; host efectivo ND | 200 | 10 min declarados; 599 s entre muestras | 106.735 | 26 | 7 | 230 | 370 | [D stats](../../docs/locust/escenario2_estres_stats.csv) | 15 HTTP 500 y 11 HTTP 503; no satisface cero fallos. |
 | E — FALLIDA/HISTÓRICA | Cierre de período (escenario3) | 2026-09-09 12:28:29 | `46d8a897` | localhost:8080 según reporte HTML | 1 | 599 s entre muestras | 717 | 565 | 5 | 260 | 460 | [E stats](locust_esc3_stats.csv) | 565 HTTP 401; no demuestra una rampa a 200 usuarios. |
 | F — PRELIMINAR | Carga corta | 2026-08-31 20:51:20 | `2d125061` | ND | 50 | 59 s entre muestras | 2.419 | 0 | 5 | 440 | 1.100 | [F stats](../../docs/locust/resultados_carga_stats.csv) | Ejecución corta, no satisface el perfil nominal de 5 minutos. |
 
-Cada prefijo A–F conserva también `_stats_history.csv`, `_failures.csv` y `_exceptions.csv` en el mismo directorio. En A, B, C y F no hay fallos HTTP registrados. La ausencia de fallos en una muestra no demuestra disponibilidad de producción.
+Los prefijos históricos B–F conservan también `_stats_history.csv`, `_failures.csv` y `_exceptions.csv` en el mismo directorio. A anterior conserva sus estadísticas e historial sin alterar en `resultados_historicos/`. A vigente se acredita exclusivamente con estadísticas e historial promovidos; los auxiliares vacíos no se vinculan a ella. En las estadísticas de A, B, C y F no hay fallos registrados. La ausencia de fallos en una muestra no demuestra disponibilidad de producción.
 
 ### Versiones históricas conservadas en Git
 
@@ -41,27 +42,32 @@ Consulta sin modificar el árbol, por ejemplo: `git show 46d8a897:experimentos/r
 
 - [Estadísticas oficiales](../../microservicio-soporte/locust_esc1_stats.csv).
 - [Historial oficial](../../microservicio-soporte/locust_esc1_stats_history.csv).
-- [Fallos oficiales: solo encabezado](../../microservicio-soporte/locust_esc1_failures.csv).
-- [Excepciones oficiales: solo encabezado](../../microservicio-soporte/locust_esc1_exceptions.csv).
+- [Matriz derivada actual](../../docs/experimentos/resultados/matriz_iso25010.csv).
 
 | Campo de Aggregated | Valor oficial |
 |---|---|
-| Request Count | 12.994 |
+| Request Count | 12.217 |
 | Failure Count | 0 |
-| Requests/s | 43,537580 req/s |
-| Average Response Time | 109,113664 ms |
-| Median Response Time / 50% | 6 ms |
-| 95% | 440 ms |
-| 99% | 850 ms |
-| Max Response Time | 2.037,104700 ms |
+| Requests/s | 40,955420 req/s |
+| Average Response Time | 10,181439 ms |
+| Median Response Time / 50% | 4 ms |
+| 95% | 9 ms |
+| 99% | 23 ms |
+| Max Response Time | 47889,955900 ms |
 
-RPS, promedio y máximo se muestran redondeados a seis decimales; los valores de precisión completa permanecen en el CSV. El historial abarca 2026-09-11 03:59:05–04:04:04 UTC (2026-09-10 22:59:05–23:04:04 en UTC−05:00). No se confunde esta fecha con la del commit.
+RPS, promedio y máximo se muestran redondeados a seis decimales; los valores de precisión completa permanecen en el CSV. El historial actual abarca 2026-09-20 08:46:16–08:51:14 UTC (03:46:16–03:51:14 en UTC−05:00): 298 segundos entre muestras. PI-1 exige P99 < 500 ms; cumple en escenario nominal local. No se confunde esta fecha con la del commit.
 
 ## Evidencia visual e integridad
 
-Se conserva la **descripción HISTÓRICA/COMPLEMENTARIA** de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado. Esa descripción atribuye una salida de terminal de una ejecución cuya cifra final visible es **13.031** peticiones, mientras el CSV oficial conservado contiene **12.994**. La causa de la diferencia **no está demostrada**. Para las métricas oficiales prevalece siempre el CSV, sin alterarlo para coincidir con la captura.
+La corrida anterior registró media 109,113664 ms, P50=6 ms, P95=440 ms y P99=850 ms: no cumplía PI-1. Sus estadísticas e historial se conservan intactos en `microservicio-soporte/resultados_historicos/`. La diferencia no se atribuye exclusivamente a `JwtParser`: no está demostrada la equivalencia exacta de datasets y entornos.
 
-**Captura exacta del CSV oficial: pendiente de toma manual.** Debe mostrar la ruta/nombre `microservicio-soporte/locust_esc1_stats.csv`, la fila `Aggregated`, Request Count = 12994, Failure Count = 0, Requests/s, promedio, P50, P95, P99 y máximo. Puede tomarse del CSV abierto o de su lectura en terminal; debe identificarse como verificación del artefacto conservado, no como nueva ejecución.
+El máximo actual aislado de 47.889,96 ms pertenece a `/api/soporte/tickets`, con P95=13 ms, P99=32 ms y 0 fallos. Se conserva sin filtrar y no equivale al P99 agregado.
+
+El `locust_esc1_candidato_console.log` y el `locust_esc1_candidato_validation.json` corresponden a una ejecución anterior (07:09 UTC), no a los CSV promovidos (08:46–08:51 UTC). No acreditan temporalmente esta corrida ni se usan como validación retrospectiva. El perfil configurado procede de la validación manual comunicada, con captura pendiente; los CSV acreditan 50 usuarios máximos y 298 segundos entre muestras. Los CSV auxiliares vacíos no permiten acreditar su procedencia.
+
+Se conserva la **descripción HISTÓRICA/COMPLEMENTARIA** de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado. Esa descripción atribuye una salida de terminal de una ejecución cuya cifra final visible es **13.031** peticiones, mientras el CSV histórico anterior contiene **12.994**. La causa de la diferencia **no está demostrada**. Para las métricas oficiales prevalece siempre el CSV, sin alterarlo para coincidir con la captura.
+
+**Captura exacta del CSV oficial: pendiente de toma manual.** Debe mostrar la ruta/nombre `microservicio-soporte/locust_esc1_stats.csv`, la fila `Aggregated`, Request Count = 12217, Failure Count = 0, Requests/s, promedio, P50, P95, P99 y máximo. Puede tomarse del CSV abierto o de su lectura en terminal; debe identificarse como verificación del artefacto conservado, no como nueva ejecución.
 
 Las imágenes [locust_resultados.png](../../Informe-E4_BCEL/locust_resultados.png) y [grafana_hikari_p95.png](../../release/screenshots/grafana_hikari_p95.png) muestran Grafana y son **HISTÓRICAS/COMPLEMENTARIAS**, sin vinculación exacta demostrada con A. Las demás capturas de Grafana y el health-check no acreditan por sí solas las métricas oficiales.
 

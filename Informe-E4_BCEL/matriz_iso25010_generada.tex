@@ -3,18 +3,18 @@
 \hline
 caracteristica & Eficiencia de desempeño \\ \hline
 indicador & Carga y latencias del agregado nominal \\ \hline
-valor & peticiones=12994; fallos=0; rps=43.53758011606015; media\_ms=109.1136640344576; p50\_ms=6; p95\_ms=440; p99\_ms=850; usuarios\_maximos=50 \\ \hline
+valor & peticiones=12217; fallos=0; rps=40.95542036966924; media\_ms=10.181439175291882; p50\_ms=4; p95\_ms=9; p99\_ms=23; usuarios\_maximos=50 \\ \hline
 fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); microservicio-soporte/locust\_esc1\_stats\_history.csv (maximo User Count) \\ \hline
 alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms) \\ \hline
 criterio & p99 \textless{} 500 ms \\ \hline
-veredicto & No cumple: P99=850 ms supera umbral 500 ms \\ \hline
+veredicto & Cumple el umbral en escenario nominal local \\ \hline
 \end{tabularx}
 \par\medskip
 \begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
 \hline
 caracteristica & Fiabilidad \\ \hline
 indicador & Nominal A y ventanas historicas de locust\_esc3 \\ \hline
-valor & peticiones nominales=12994; fallos nominales=0; 10 ventanas historicas; exito derivado entre 12,78 \% y 34,5781 \% \\ \hline
+valor & peticiones nominales=12217; fallos nominales=0; 10 ventanas historicas; exito derivado entre 12,78 \% y 34,5781 \% \\ \hline
 fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); experimentos/resultados/iso25010.csv (ventanas locust\_esc3) \\ \hline
 alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion; ventanas historicas / perfil no validado; no son estres oficial actual \\ \hline
 criterio & Cero fallos para estres oficial; sin criterio suficiente para fiabilidad global \\ \hline
@@ -47,8 +47,8 @@ veredicto & Evidencia parcial; no certifica seguridad global \\ \hline
 \hline
 caracteristica & Mantenibilidad \\ \hline
 indicador & Cobertura de pruebas en microservicios \\ \hline
-valor & Secretaría: LINE 2313/3108 = 74.42\%; Soporte: LINE 459/641 = 71.61\%; Principal: No verificable con la evidencia versionada \\ \hline
-fuente & docs/cobertura/secretaria/jacoco.xml (contador global LINE); docs/cobertura/soporte/jacoco.xml (contador global LINE); compuertas: microservicio-secretaria/backend/pom.xml, microservicio-soporte/backend/pom.xml, sga-principal/pom.xml; limitacion Principal: docs/cobertura/README.md (evidencia insuficiente e incoherente) \\ \hline
+valor & Secretaría: LINE 2313/3108 = 74.42\%; Soporte: LINE 458/640 = 71.56\%; Principal: No verificable con la evidencia versionada \\ \hline
+fuente & docs/cobertura/secretaria/jacoco.xml (contador global LINE); docs/cobertura/soporte/actual/jacoco.xml (contador global LINE); compuertas: microservicio-secretaria/backend/pom.xml, microservicio-soporte/backend/pom.xml, sga-principal/pom.xml; limitacion Principal: docs/cobertura/README.md (evidencia insuficiente e incoherente) \\ \hline
 alcance & Contadores BUNDLE/LINE de reportes versionados, con sus exclusiones; no acredita una nueva ejecucion ni cobertura del HEAD actual. Compuertas particulares: Secretaría y Soporte \textgreater{}= 70\% LINE; Principal \textgreater{}= 30\% INSTRUCTION (no equivale a LINE; cumplimiento no verificado) \\ \hline
 criterio & Criterio de evaluacion de esta matriz: cobertura \textgreater{}= 70\% LINE por modulo \\ \hline
 veredicto & Secretaría: Cumple el criterio LINE de la matriz; Soporte: Cumple el criterio LINE de la matriz; Principal: No verificable con la evidencia versionada \\ \hline

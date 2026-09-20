@@ -1,0 +1,84 @@
+name: Diagnóstico Flyway EC2
+
+on:
+  push:
+    branches:
+      - Juliana-Emanuel
+    paths:
+      - '.github/workflows/diagnostico-flyway.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar diagnóstico de Flyway en EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            bash -se <<'BASH'
+            set +x
+
+            if [ -d "$HOME/acadtrace" ]; then
+              cd "$HOME/acadtrace"
+            elif [ -d "$HOME/sga-sistema-distribuido" ]; then
+              cd "$HOME/sga-sistema-distribuido"
+            else
+              printf '%s\n' 'No se encontró el directorio del proyecto.'
+              exit 1
+            fi
+
+            if [ ! -f .env ]; then
+              printf '%s\n' 'No existe .env en el directorio del proyecto.'
+              exit 1
+            fi
+
+            set -a
+            source .env
+            set +a
+
+            printf 'DB_HOST=%s\n' "${DB_HOST:-}"
+            printf 'DB_PORT=%s\n' "${DB_PORT:-}"
+            printf 'DB_NAME=%s\n' "${DB_NAME:-}"
+            printf 'DB_USER=%s\n' "${DB_USER:-}"
+            printf 'FLYWAY_USER=%s\n' "${FLYWAY_USER:-}"
+
+            for variable in DB_PASSWORD FLYWAY_PASSWORD SGA_APP_PASSWORD; do
+              if [ -n "${!variable}" ]; then
+                printf '%s: CONFIGURADA\n' "$variable"
+              else
+                printf '%s: FALTANTE\n' "$variable"
+              fi
+            done
+
+            printf '\n%s\n' 'Versión desplegada:'
+            git rev-parse --short HEAD
+            git status --short
+
+            if command -v psql >/dev/null 2>&1; then
+              printf '\n%s\n' 'psql: DISPONIBLE'
+              PGPASSWORD="$FLYWAY_PASSWORD" psql -X -w \
+                -h "$DB_HOST" \
+                -p "$DB_PORT" \
+                -U "${FLYWAY_USER:-postgres}" \
+                -d "$DB_NAME" \
+                -v ON_ERROR_STOP=1 \
+                -c "SELECT
+              installed_rank,
+              version,
+              description,
+              script,
+              checksum,
+              success
+            FROM sga_principal.flyway_schema_history
+            WHERE version IN ('19','23','24')
+            ORDER BY installed_rank;"
+            else
+              printf '\n%s\n' 'psql: NO INSTALADO; consulta omitida.'
+            fi
+            BASH
