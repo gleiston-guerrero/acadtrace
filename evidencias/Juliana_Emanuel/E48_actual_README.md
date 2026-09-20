@@ -5,7 +5,7 @@ Los CSV candidatos validados manualmente se promovieron mediante copia binaria a
 `microservicio-soporte/locust_esc1_stats_history.csv`. Los candidatos originales
 permanecen en `microservicio-soporte/resultados_candidatos/`.
 
-La evidencia válida actual se limita a `locust_esc1_stats.csv`,
+La evidencia nominal actual se basa en `locust_esc1_stats.csv`,
 `locust_esc1_stats_history.csv` (ambos en `microservicio-soporte/`) y la matriz
 ISO derivada de ellos: `docs/experimentos/resultados/matriz_iso25010.csv` e
 `Informe-E4_BCEL/matriz_iso25010_generada.tex`. Las macros de
@@ -19,7 +19,7 @@ P99=23 ms, 12.217 peticiones y 0 fallos, por lo que el escenario actual cumple
 el criterio de latencia PI-1. La comparación no se utiliza para atribuir
 causalidad exclusiva a un cambio concreto, incluido `JwtParser`, porque no
 está acreditada la equivalencia del dataset histórico y el actual.
-No se acredita estrés hasta 200 usuarios ni el estado de HikariCP.
+Existe una corrida oficial separada de estrés hasta 200 usuarios, documentada abajo. El estado de HikariCP no está acreditado.
 
 El máximo observado de 47889.95589996921 ms pertenece a
 `/api/soporte/tickets`: evento aislado según la validación manual, conservado
@@ -46,24 +46,37 @@ permiten determinar su corrida de origen. Se excluyen de la evidencia
 actual hasta acreditar su procedencia. Los cero fallos actuales se derivan
 de los CSV actuales de estadísticas, no de estos archivos vacíos.
 
-## Capturas manuales pendientes
+## Capturas nominales disponibles
 
-1. `E48_actual_csv.png`: abrir el CSV oficial con ruta, encabezados y fila
-   `Aggregated` visibles: Request Count=12217, Failure Count=0, 95%=9 y 99%=23.
-   Incluir la fila tickets con su máximo, P95 y P99 si cabe; de lo contrario,
-   tomar una captura adicional `E48_actual_tickets.png`.
-2. `E48_actual_usuarios_historial.png`: mostrar la ruta del historial actual,
-   User Count máximo=50 y los timestamps inicial y final. Se puede capturar
-   la salida de `scripts/recalcular_metricas_carga.py`, que calcula usuarios
-   y duración observada directamente de los CSV.
-3. `E48_actual_perfil.png`: capturar la configuración o consola ORIGINAL de
-   esta corrida con 50 usuarios, 5 usuarios/s y `--run-time 5m`, junto con
-   fechas que permitan vincularla al historial. Si ya no está disponible,
-   declarar la evidencia faltante; una ejecución nueva tendrá sus propios
-   resultados y no debe presentarse como esta corrida de 12.217 peticiones.
-4. `E48_actual_matriz.png`: ejecutar `generar_matriz.py --preview --format csv`
-   y capturar la fila de rendimiento con p99_ms=23, criterio `p99 < 500 ms`
-   y veredicto de cumplimiento nominal.
+Conservadas en el commit `332158e4`:
+
+- [CSV nominal actual](E48_actual_csv.png).
+- [Matriz nominal actual](E48_actual_matriz.png).
+- [Usuarios e historial nominal](E48_actual_usuarios_historial.png).
+
+Estas tres capturas ya no están pendientes. La evidencia original de
+configuración del perfil nominal sigue sin estar disponible; no se reconstruye
+retrospectivamente ni se sustituye con el log/JSON de la corrida anterior.
+
+## Corrida oficial de estrés de 200 usuarios
+
+Evidencia: `microservicio-soporte/resultados_estres/20260920_164722/`.
+Código ejecutado `88649f3f`; conservación `b43008e5`.
+Host `http://localhost:8085`, spawn rate 1 usuario/s, 10 minutos configurados,
+599 s observados (timestamps 1789940845–1789941444), 200 usuarios máximos.
+Agregado: 98.684 peticiones, 0 fallos, RPS=164.86740285525565,
+media=7.86715629893033 ms, P50=7 ms, P95=15 ms, P99=23 ms,
+máximo=324.8848000075668 ms; `EXIT_CODE=0`.
+Criterio: P95 < 500 ms y 0 fallos. Resultado: **CUMPLE**.
+
+La carpeta contiene `perfil.txt`, `resumen_validacion.txt` y los cuatro CSV
+`locust_estres_200_stats.csv`, `locust_estres_200_stats_history.csv`,
+`locust_estres_200_failures.csv` y `locust_estres_200_exceptions.csv`.
+Captura conservada en `b43008e5`: [resumen de estrés](E48_estres_200_resumen.png).
+Es una corrida distinta de A nominal y de D FALLIDA/HISTÓRICA (106.735 peticiones,
+26 fallos). La incompleta `20260920_163041/` no es oficial ni se utiliza.
+El agregado de la rampa no certifica por sí solo el estado de HikariCP,
+ni disponibilidad de producción, ni equivalencia de datasets históricos.
 
 No se han creado ni alterado imágenes. `Evidencia_11_E48_CSV_Oficial.png`
 se conserva como captura histórica anterior a la promoción, no como CSV

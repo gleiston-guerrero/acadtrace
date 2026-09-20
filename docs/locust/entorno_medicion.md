@@ -1,18 +1,22 @@
 # Entorno de Medición y Metadatos de Pruebas de Carga (Locust) — Entrega 4
 
-> **E5 vigente:** la única corrida OFICIAL NOMINAL de Soporte es `microservicio-soporte/locust_esc1_stats.csv` y `microservicio-soporte/locust_esc1_stats_history.csv`. Ver [registro, métricas y trazabilidad E5](../../experimentos/resultados/corridas-e5.md).
+> **E5 vigente:** la corrida OFICIAL NOMINAL de Soporte es `microservicio-soporte/locust_esc1_stats.csv` y `microservicio-soporte/locust_esc1_stats_history.csv`. Ver [registro, métricas y trazabilidad E5](../../experimentos/resultados/corridas-e5.md).
 >
-> CSV oficial: **12.217 peticiones, 0 fallos, 40,955420 req/s, promedio 10,181439 ms, P50 4 ms, P95 9 ms, P99 23 ms y máximo 47889,955900 ms**. Prueba de carga reproducible ejecutada en entorno local/contenedorizado; perfil configurado: 50 usuarios virtuales, 5 usuarios/s, 5 minutos, localhost:8083. Historial actual: 2026-09-20 08:46:16–08:51:14 UTC (03:46:16–03:51:14 UTC−05:00), 298 segundos entre muestras. Perfil validado manualmente; 5 minutos configurados. PI-1: P99 < 500 ms, cumple en escenario nominal local. Resultado promovido aún sin commit; commit del código ejecutado: **No disponible en la evidencia conservada**.
+> CSV oficial: **12.217 peticiones, 0 fallos, 40,955420 req/s, promedio 10,181439 ms, P50 4 ms, P95 9 ms, P99 23 ms y máximo 47889,955900 ms**. Prueba de carga reproducible ejecutada en entorno local/contenedorizado; perfil configurado: 50 usuarios virtuales, 5 usuarios/s, 5 minutos, localhost:8083. Historial actual: 2026-09-20 08:46:16–08:51:14 UTC (03:46:16–03:51:14 UTC−05:00), 298 segundos entre muestras. Perfil validado manualmente; 5 minutos configurados. PI-1: P99 < 500 ms, cumple en escenario nominal local. Capturas nominales conservadas en `332158e4`; commit del código ejecutado: **No disponible en la evidencia conservada**.
 >
-> **Estrés oficial: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** Las secciones siguientes son antecedentes HISTÓRICOS: C es PRELIMINAR y D es FALLIDA (26 fallos). Sus metadatos y hashes históricos no certifican A. La fecha histórica declarada abajo no coincide con el inicio de C en CSV: 2026-09-05 00:05:03 UTC.
+> **Estrés oficial: DISPONIBLE y CUMPLE.** Corrida `20260920_164722`: 200 usuarios máximos, 98.684 peticiones, 0 fallos y P95=15 ms < 500 ms; código `88649f3f`, evidencia `b43008e5`. Las secciones siguientes son antecedentes HISTÓRICOS: C es PRELIMINAR y D es FALLIDA (26 fallos). Sus metadatos y hashes históricos no certifican A. La fecha histórica declarada abajo no coincide con el inicio de C en CSV: 2026-09-05 00:05:03 UTC.
 >
-> Se conserva la descripción histórica de la captura de Juliana con 13.031 peticiones, pero no el archivo de imagen versionado; no coincide exactamente con el CSV histórico anterior de 12.994 y la causa no está demostrada. Falta una captura manual de la fila Aggregated del CSV oficial.
+> Se conserva la descripción histórica de la captura de Juliana con 13.031 peticiones, pero no el archivo de imagen versionado; no coincide exactamente con el CSV histórico anterior de 12.994 y la causa no está demostrada. Las capturas nominales actuales de CSV, matriz e historial están conservadas en `332158e4`; falta únicamente la evidencia original de configuración del perfil nominal.
 
 Este documento registra formalmente los metadatos de ejecución, especificaciones del entorno de pruebas y las firmas criptográficas SHA-256 de los conjuntos de datos obtenidos durante la evaluación de rendimiento y resiliencia del sistema **AcadTrace**.
 
 ---
 
 La corrida anterior registró P99=850 ms y no cumplía PI-1; se conserva en [el registro E5](../../experimentos/resultados/corridas-e5.md). No está demostrada la equivalencia exacta de datasets y entornos, ni causalidad exclusiva de `JwtParser`. El máximo actual de 47.889,96 ms corresponde a tickets (P95=13 ms, P99=32 ms, 0 fallos), conservado sin filtrar. No se demuestra disponibilidad de producción. El `console.log` y el `validation.json` candidatos pertenecen a una corrida anterior y no acreditan la actual; los auxiliares vacíos tampoco acreditan su procedencia.
+
+## Entorno de la corrida oficial de estrés vigente
+
+Ruta: `microservicio-soporte/resultados_estres/20260920_164722/`. El `perfil.txt` registra host `http://localhost:8085`, código `88649f3f`, 200 usuarios máximos, spawn rate de 1 usuario/s, 10 minutos configurados y `EXIT_CODE=0`. El historial abarca timestamps 1789940845–1789941444 (599 s). La evidencia se conservó en `b43008e5`, incluida `E48_estres_200_resumen.png`. Las métricas completas están en [el registro E5](../../experimentos/resultados/corridas-e5.md). No se atribuyen a esta corrida las especificaciones históricas siguientes ni se acredita el estado de HikariCP.
 
 ## 1. Especificaciones históricas del Entorno de Medición
 
@@ -87,4 +91,4 @@ La corrida anterior registró P99=850 ms y no cumplía PI-1; se conserva en [el 
   - **Latencia Mediana (P50):** 7 ms.
   - **Latencia P95:** 230 ms.
   - **Latencia P99:** 370 ms.
-  - **Clasificación E5:** FALLIDA: 15 HTTP 500 y 11 HTTP 503. No satisface cero fallos. La corrida anterior conservada en `683cc17f` registró 12.735 fallos con código 0 el 2026-09-04; Locust por sí solo no demuestra la causa raíz. No se declara una reejecución oficial exitosa.
+  - **Clasificación E5:** FALLIDA: 15 HTTP 500 y 11 HTTP 503. No satisface cero fallos. La corrida anterior conservada en `683cc17f` registró 12.735 fallos con código 0 el 2026-09-04; Locust por sí solo no demuestra la causa raíz. Esta corrida D permanece fallida; la corrida oficial vigente es una ejecución distinta, conservada en `b43008e5`.

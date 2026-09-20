@@ -4,11 +4,11 @@ Este directorio conserva artefactos de las pruebas de rendimiento y carga ejecut
 
 ---
 
-## 1. Declaración Formal del Conjunto Único Oficial
+## 1. Declaración Formal del Conjunto Nominal Oficial
 
 En cumplimiento del criterio de cierre **E5 / E14 (Item 48)** de la guía rectora del PFC:
 
-> **ÚNICO CONJUNTO OFICIAL DECLARADO (Corrida A):**
+> **CONJUNTO OFICIAL NOMINAL (Corrida A):**
 > - **Ubicación:** [`microservicio-soporte/locust_esc1_stats.csv`](../../microservicio-soporte/locust_esc1_stats.csv)
 > - **Archivos asociados:**
 >   - [`microservicio-soporte/locust_esc1_stats_history.csv`](../../microservicio-soporte/locust_esc1_stats_history.csv)
@@ -38,11 +38,15 @@ Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OF
 |---|---|---|---|---|
 | **B** | `experimentos/resultados/locust_esc1_stats.csv` | 12,236 | 0 | **HISTÓRICO / NO OFICIAL:** Corrida nominal anterior previa a la instrumentación definitiva. Retirada de las métricas oficiales. |
 | **C** | `docs/locust/escenario1_nominal_stats.csv` | 13,606 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida exploratoria inicial. Se retira su carácter oficial previo en favor del conjunto A. |
-| **D** | `docs/locust/escenario2_estres_stats.csv` | 106,735 | 26 | **FALLIDO / NO OFICIAL:** Prueba de estrés escalonado (hasta 200 usuarios) fallida con 15 HTTP 500 y 11 HTTP 503. No satisface el criterio de cero fallos. **No existe estrés oficial válido.** |
+| **D** | `docs/locust/escenario2_estres_stats.csv` | 106,735 | 26 | **FALLIDO / NO OFICIAL:** Prueba de estrés escalonado (hasta 200 usuarios) fallida con 15 HTTP 500 y 11 HTTP 503. No satisface el criterio de cero fallos. Antecedente distinto de la nueva corrida oficial de estrés. |
 | **E** | `experimentos/resultados/locust_esc3_stats.csv` | 717 | 565 | **FALLIDO / NO OFICIAL:** Ejecución con HTTP 401; máximo un usuario observado. No acredita estrés oficial válido. |
 | **F** | `docs/locust/resultados_carga_stats.csv` | 2,419 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida corta de calibración (59 segundos); no cumple el perfil nominal de 5 minutos. |
 
 ---
+
+## Corrida oficial de estrés vigente
+
+**Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. Evidencia: `microservicio-soporte/resultados_estres/20260920_164722/`; host `http://localhost:8085`, incorporación de 1 usuario/s, 10 minutos configurados y 599 s entre muestras. Véase [registro E5](../../experimentos/resultados/corridas-e5.md). Las capturas nominales están conservadas en `332158e4` y la captura de estrés en `b43008e5`; solo la evidencia original del perfil nominal sigue no disponible. El estado de HikariCP no está acreditado.
 
 ## 3. Firmas Criptográficas (SHA-256)
 
