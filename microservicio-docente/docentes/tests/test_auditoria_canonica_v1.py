@@ -1,3 +1,22 @@
+import os
+import sys
+from pathlib import Path
+
+if not os.environ.get("DJANGO_SETTINGS_MODULE"):
+    from django.conf import settings
+    if not settings.configured:
+        settings.configure(
+            SECRET_KEY="secret-key-canonical-test",
+            INSTALLED_APPS=[
+                "django.contrib.contenttypes",
+                "django.contrib.auth",
+                "docentes",
+            ],
+            DATABASES={"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}},
+        )
+        import django
+        django.setup()
+
 from docentes.auditoria.hashing import (
     GENESIS_HASH,
     calcular_hash,
