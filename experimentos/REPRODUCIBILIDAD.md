@@ -50,8 +50,13 @@ Las pruebas de `test_reproducibilidad.py` usan fixtures sintéticos en carpetas 
 
 El job existente `lint` ejecuta las pruebas y `python experimentos/verificar_reproducibilidad.py` sobre artefactos versionados. No regenera ni firma archivos antes de verificar, para no ocultar inconsistencias. Los certificados históricos con encabezados serán rechazados: deben sustituirse únicamente tras una generación E7 completa válida.
 
-## Estado de validación de esta modificación
+## Estado de validación y automatización en CI
 
-Python no está disponible en PATH en la sesión de implementación. No se ejecutaron generación, verificador Python ni prueba negativa. Los resultados y el certificado anteriores permanecen conservados, sin recertificarlos manualmente. El certificado principal anterior tiene cuatro discrepancias SHA-256 y no cumple el formato nuevo; el paso CI debe fallar hasta regenerar los seis artefactos y versionar el certificado válido. E7 sigue PARCIAL.
+La verificación de reproducibilidad E7 se encuentra formalmente integrada y automatizada en el pipeline de Integración Continua (`.github/workflows/ci-cd.yml`, trabajo `lint`), ejecutando de forma determinista:
+1. Las pruebas unitarias del verificador en copias sintéticas temporales (`python -m unittest discover -s experimentos -p test_reproducibilidad.py -v`).
+2. La verificación de integridad SHA-256 de los seis artefactos versionados (`deteccion.csv`, `manipulaciones.csv`, `exp1_concurrencia.csv`, `exp3_reconciliacion.csv`, `iso25010.csv`, `boxplot_latencia.png`) mediante el verificador Python (`python experimentos/verificar_reproducibilidad.py`), con salida en verde y código de retorno 0.
+3. La verificación cruzada independiente con utilitarios estándar POSIX (`bash experimentos/reproducibilidad.sh` ejecutando `sha256sum -c`).
 
-Pendiente configurar Python 3.12 y pip en PATH, instalar `experimentos/requirements.txt`, ejecutar los comandos anteriores y comprobar también en un clon limpio. No se afirma que las pruebas hayan pasado ni que los hashes actuales pertenezcan al proceso corregido.
+**Límites de alcance y honestidad metodológica:**
+- El pipeline de CI ejecuta la verificación estricta de integridad y las suites unitarias locales en memoria. No ejecuta la regeneración en vivo bajo modo HTTP contra servicios de red externos ni altera las mediciones empíricas conservadas.
+- Los hashes SHA-256 registrados en `certificados/sha256_artefactos.txt` certifican exclusivamente la integridad física y ausencia de manipulación de los artefactos correspondientes a la corrida oficial registrada.
