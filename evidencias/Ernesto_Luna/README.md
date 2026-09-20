@@ -19,7 +19,7 @@ Este directorio contiene la consolidación estructurada de evidencias técnicas,
 
 1. **Microservicio de Secretaría (Spring Boot 3.2.5 + Java 21):**
    - Interfaz web del portal administrativo (Dashboard de estudiantes, matrículas, cursos y reportes).
-   - Cobertura de pruebas con JaCoCo certificada en **71.42 % de líneas (LINE)** y **71.34 % de instrucciones** a nivel de `BUNDLE` (superando la compuerta mínima estricta del 70 %).
+   - Cobertura de pruebas con JaCoCo certificada en **74.42 % de líneas (LINE)** y **72.74 % de instrucciones** a nivel de `BUNDLE` (superando la compuerta mínima estricta del 70 %).
    - Integración con base de datos real en contenedores efímeros vía **Testcontainers (PostgreSQL 16)** y migraciones deterministas con **Flyway** (Criterios E13, E6 y E37).
 2. **Criptografía, Seguridad e Inmutabilidad (Criterios C9, C10, P5):**
    - Disparador de base de datos **Append-Only** (`tg_auditoria_append_only`) en PostgreSQL que rechaza cualquier intento de `UPDATE` o `DELETE` con excepción fatal.
@@ -46,7 +46,7 @@ evidencias/
     │   ├── portal-secretaria.png                    # Captura real del dashboard administrativo (localhost:5176/dashboard)
     │   ├── grados-cursos-secretaira.png             # Captura del módulo de Grados y Cursos de Secretaría
     │   ├── secretaria_portal.png                    # Captura integrada oficial del portal administrativo
-    │   └── jacoco_cobertura_71_porciento.png        # Captura del reporte oficial JaCoCo al 71.42 % LINE
+    │   └── jacoco_cobertura_71_porciento.png        # Captura del reporte oficial JaCoCo superando el 70 % LINE (74.42 % LINE actual)
     │
     ├── 02-criptografia-y-seguridad/                 # Evidencias de seguridad, inmutabilidad y criptografía
     │   ├── trigger_append_only_rechazo.png          # Captura en terminal demostrando rechazo de UPDATE/DELETE por el trigger
@@ -79,11 +79,12 @@ evidencias/
   - Gestión de Usuarios y Roles.
   - Importación Masiva y Reportes PDF institucionales.
 
-### B. Cobertura de Pruebas JaCoCo al 71.42 % (`Tarea E8 / Punto 38`)
+### B. Cobertura de Pruebas JaCoCo al 74.42 % (`Tarea E8 / Punto 38`)
 * **Ubicación del reporte oficial:** `docs/cobertura/secretaria/index.html`
 * **Métrica oficial:**
-  - **Líneas cubiertas (LINE):** 71.42 % (2,217 cubiertas de 3,104 líneas totales analizadas).
-  - **Instrucciones cubiertas (INSTRUCTION):** 71.34 % (11,048 de 15,487 instrucciones).
+  - **Líneas cubiertas (LINE):** 74.42 % (2,313 cubiertas de 3,108 líneas totales analizadas).
+  - **Instrucciones cubiertas (INSTRUCTION):** 72.74 % (11,272 de 15,497 instrucciones).
+  - **Batería de pruebas:** 96 pruebas automatizadas (0 fallos, 0 errores, 0 omitidas).
   - **Compuerta mínima:** Enforceable a nivel de `BUNDLE` al 70.00 % en `microservicio-secretaria/backend/pom.xml`.
 * **Comando reproducible:**
   ```powershell
