@@ -313,23 +313,23 @@ El job de matriz ISO en CI ejecuta esta misma comprobación para ambos archivos.
 
 ## Resultados oficiales de carga — E5
 
-La única corrida **OFICIAL NOMINAL de Soporte** es [locust_esc1_stats.csv](microservicio-soporte/locust_esc1_stats.csv), junto con [su historial](microservicio-soporte/locust_esc1_stats_history.csv), [fallos](microservicio-soporte/locust_esc1_failures.csv) y [excepciones](microservicio-soporte/locust_esc1_exceptions.csv). La [tabla E5](experimentos/resultados/corridas-e5.md) clasifica las demás corridas y conserva las referencias históricas.
+La corrida **nominal local vigente de Soporte** se acredita con [sus estadísticas](microservicio-soporte/locust_esc1_stats.csv) y [su historial](microservicio-soporte/locust_esc1_stats_history.csv). **PI-1 cumplido: P99=23 ms < 500 ms, 0 fallos y 50 usuarios máximos.**
 
 Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. Perfil configurado: 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. No representa tráfico real de producción.
 
 | Métrica de Aggregated | Valor oficial |
 |---|---|
-| Peticiones / fallos | **12.994 / 0**; sin HTTP 401 ni HTTP 500 registrados |
-| RPS | 43,537580 req/s |
-| Promedio | 109,113664 ms |
-| P50 / P95 / P99 | 6 / 440 / 850 ms |
-| Máximo | 2.037,104700 ms |
+| Peticiones / fallos | **12.217 / 0**; sin HTTP 401 ni HTTP 500 registrados |
+| RPS | 40,955420 req/s |
+| Promedio | 10,181439 ms |
+| P50 / P95 / P99 | 4 / 9 / 23 ms |
+| Máximo | 47889,955900 ms |
 
-Inicio registrado: **2026-09-11 03:59:05 UTC** (2026-09-10 22:59:05 UTC−05:00); 299 segundos entre muestras. Commit de conservación: `956cafcb` (normalización posterior `c5c0e6f5`). Commit del código ejecutado: **No disponible en la evidencia conservada**.
+El máximo aislado pertenece a `/api/soporte/tickets`; no es el P99. Fechas, detalle por endpoint y antecedentes: [registro E5](experimentos/resultados/corridas-e5.md).
 
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
 
-La captura histórica/complementaria de Juliana no está disponible en el árbol actual. La descripción conservada le atribuye 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.
+La [tabla E5](experimentos/resultados/corridas-e5.md) conserva el resultado histórico anterior P99=850 ms, que no cumplía PI-1. No se atribuye la diferencia exclusivamente a `JwtParser`: la equivalencia de datasets y entornos no está demostrada. **E5: PARCIAL** por las [capturas E48 pendientes](evidencias/Juliana_Emanuel/E48_actual_README.md) y la ausencia de estrés válido.
 
 
 ### Reproducción de cifras de carga (#48)
