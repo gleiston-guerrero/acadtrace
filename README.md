@@ -330,9 +330,9 @@ Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado
 
 El máximo aislado pertenece a `/api/soporte/tickets`; no es el P99. Fechas, detalle por endpoint y antecedentes: [registro E5](experimentos/resultados/corridas-e5.md).
 
-**Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
+**Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. El conjunto D permanece FALLIDA/HISTÓRICA: 106.735 peticiones y 26 fallos (15 HTTP 500 y 11 HTTP 503), una ejecución distinta. Detalle: [registro E5](experimentos/resultados/corridas-e5.md).
 
-La [tabla E5](experimentos/resultados/corridas-e5.md) conserva el resultado histórico anterior P99=850 ms, que no cumplía PI-1. No se atribuye la diferencia exclusivamente a `JwtParser`: la equivalencia de datasets y entornos no está demostrada. **E5: PARCIAL** por las [capturas E48 pendientes](evidencias/Juliana_Emanuel/E48_actual_README.md) y la ausencia de estrés válido.
+La [tabla E5](experimentos/resultados/corridas-e5.md) conserva el resultado histórico anterior P99=850 ms, que no cumplía PI-1. No se atribuye la diferencia exclusivamente a `JwtParser`: la equivalencia de datasets y entornos no está demostrada. Las [capturas nominales E48](evidencias/Juliana_Emanuel/E48_actual_README.md) están conservadas en `332158e4` y existe estrés oficial válido. Sigue sin estar disponible la evidencia original del perfil nominal; no se acredita el estado de HikariCP.
 
 
 ### Reproducción de cifras de carga (#48)
