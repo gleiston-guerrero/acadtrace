@@ -90,26 +90,28 @@ Para eliminar el sesgo estocástico y permitir la replicación exacta de los exp
 
 ## 5. Resultados de carga E5
 
-**OFICIAL NOMINAL de Soporte:** `microservicio-soporte/locust_esc1_stats.csv`, junto con sus archivos `_stats_history.csv`, `_failures.csv` y `_exceptions.csv`. La clasificación y las rutas están en [el registro E5](../../experimentos/resultados/corridas-e5.md).
+**OFICIAL NOMINAL de Soporte:** `microservicio-soporte/locust_esc1_stats.csv`, junto con su historial `_stats_history.csv`; los auxiliares vacíos no acreditan su procedencia actual. La clasificación y las rutas están en [el registro E5](../../experimentos/resultados/corridas-e5.md).
 
-Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. El perfil de `microservicio-soporte/run_locust.py` configura 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. El historial registra 50 usuarios máximos y 299 segundos entre muestras. Se consultan `/health`, `/actuator/health`, `/api/soporte/tickets` y `/api/soporte/election/status`; los endpoints protegidos reciben JWT.
+Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. El perfil de `microservicio-soporte/run_locust.py` configura 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. El historial registra 50 usuarios máximos y 298 segundos entre muestras. Se consultan `/health`, `/actuator/health`, `/api/soporte/tickets` y `/api/soporte/election/status`; los endpoints protegidos reciben JWT.
 
 | Métrica oficial (Aggregated) | Valor |
 |---|---|
-| Peticiones | 12.994 |
+| Peticiones | 12.217 |
 | Fallos | 0; sin HTTP 401 ni HTTP 500 registrados |
-| RPS | 43,537580 req/s |
-| Promedio | 109,113664 ms |
-| P50 | 6 ms |
-| P95 | 440 ms |
-| P99 | 850 ms |
-| Máximo | 2.037,104700 ms |
+| RPS | 40,955420 req/s |
+| Promedio | 10,181439 ms |
+| P50 | 4 ms |
+| P95 | 9 ms |
+| P99 | 23 ms |
+| Máximo | 47889,955900 ms |
 
-Inicio registrado: 2026-09-11 03:59:05 UTC. Commit de conservación: `956cafcb`; normalización posterior: `c5c0e6f5`. Commit del código ejecutado: **No disponible en la evidencia conservada**. Las especificaciones de hardware, software y AWS anteriores corresponden a la descripción histórica del banco, no certifican el entorno efectivo de esta corrida local.
+Historial actual: 2026-09-20 08:46:16–08:51:14 UTC; 298 segundos entre muestras. Perfil validado manualmente: 50 usuarios, 5 usuarios/s y 5 minutos configurados. El criterio PI-1 exige P99 < 500 ms: cumple en escenario nominal local. Resultado promovido aún sin commit; commit del código ejecutado no disponible. Las especificaciones previas del banco no certifican el entorno efectivo actual ni disponibilidad de producción.
 
 **Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio** de cero fallos. El conjunto D conserva 106.735 peticiones con 26 fallos (15 HTTP 500 y 11 HTTP 503) y es FALLIDA/HISTÓRICA. El conjunto E conserva 565 HTTP 401 y solo un usuario máximo observado. Ninguno se presenta como estrés oficial válido.
 
-Se conserva la descripción histórica/complementaria de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado; esa descripción atribuye 13.031 peticiones en terminal y no coincide con las 12.994 del CSV oficial. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su fila `Aggregated`.
+Se conserva la descripción histórica/complementaria de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado; esa descripción atribuye 13.031 peticiones en terminal y no coincide con las 12.994 del CSV histórico anterior. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su fila `Aggregated`.
+
+La ejecución histórica anterior registró P99=850 ms y no cumplía PI-1; permanece conservada en `microservicio-soporte/resultados_historicos/`. La equivalencia exacta de datasets y entornos no está demostrada; no se atribuye la diferencia exclusivamente a `JwtParser`. El máximo actual aislado de 47.889,96 ms pertenece a `/api/soporte/tickets` (P95=13 ms, P99=32 ms, 0 fallos) y no se filtró. El log/JSON candidatos son anteriores y no acreditan esta ejecución. Estas referencias actualizan los resultados E5; no modifican las instrucciones ni los perfiles del protocolo.
 
 ### Perfiles y cifras históricas (sin carácter oficial E5)
 
