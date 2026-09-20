@@ -576,8 +576,8 @@ jobs:
       DB_HOST: postgres-e10
       DB_PORT: "5432"
       DB_NAME: sga
-      DB_USER: postgres
-      FLYWAY_USER: postgres
+      DB_USER: sga_app
+      FLYWAY_USER: sga_app
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
       FCM_ENABLED: "false"
@@ -648,9 +648,9 @@ jobs:
             --name postgres-e10 \
             --network e10-docente \
             -e POSTGRES_DB="$DB_NAME" \
-            -e POSTGRES_USER="$DB_USER" \
+            -e POSTGRES_USER="postgres" \
             -e POSTGRES_PASSWORD="$DB_PASSWORD" \
-            --health-cmd="pg_isready -U $DB_USER -d $DB_NAME" \
+            --health-cmd="pg_isready -U postgres -d $DB_NAME" \
             --health-interval=2s \
             --health-timeout=3s \
             --health-retries=30 \
@@ -686,7 +686,7 @@ jobs:
             -e PGPASSWORD="$DB_PASSWORD" \
             postgres-e10 \
             psql -v ON_ERROR_STOP=1 \
-            -U "$DB_USER" \
+            -U postgres \
             -d "$DB_NAME" \
             -f /baseline_flyway_v8.sql
 
@@ -694,7 +694,7 @@ jobs:
             -e PGPASSWORD="$DB_PASSWORD" \
             postgres-e10 \
             psql -v ON_ERROR_STOP=1 \
-            -U "$DB_USER" \
+            -U postgres \
             -d "$DB_NAME" \
             -f /v18_rol_sga_app.sql
 
@@ -762,7 +762,7 @@ jobs:
             postgres-e10 \
             psql -v ON_ERROR_STOP=1 \
             -v e2e_docente_hash="$E2E_DOCENTE_HASH" \
-            -U "$DB_USER" \
+            -U postgres \
             -d "$DB_NAME" \
             -f /seed_e10.sql
 
@@ -776,7 +776,7 @@ jobs:
               -e PGPASSWORD="$DB_PASSWORD" \
               postgres-e10 \
               psql -At \
-              -U "$DB_USER" \
+              -U postgres \
               -d "$DB_NAME" \
               -c "
                 SELECT COUNT(*)
@@ -805,7 +805,7 @@ jobs:
             -e DB_PORT \
             -e DB_NAME \
             -e DB_USER \
-            -e DB_PASSWORD \
+            -e DB_PASSWORD="$SGA_APP_PASSWORD" \
             -e SGA_APP_PASSWORD \
             -e GRPC_INTERNAL_TOKEN \
             -e SGA_PRINCIPAL_URL=http://sga-principal:8080 \
@@ -821,9 +821,9 @@ jobs:
             -e PGPASSWORD="$DB_PASSWORD" \
             postgres-e10 \
             psql -v ON_ERROR_STOP=1 \
-            -U "$DB_USER" \
+            -U postgres \
             -d "$DB_NAME" \
-            -c "DROP SCHEMA IF EXISTS sga_docente CASCADE; CREATE SCHEMA sga_docente;"
+            -c "DROP SCHEMA IF EXISTS sga_docente CASCADE; CREATE SCHEMA sga_docente AUTHORIZATION sga_app;"
 
           docker exec microservicio-docente \
             python manage.py migrate --noinput
