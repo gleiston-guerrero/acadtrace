@@ -96,14 +96,17 @@
 17:38:25.779 [main] INFO org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- DB: V20: marca de reparacion aplicada. El checksum de V18 fue reparado por FlywayMigrationStrategy en el arranque de sga-principal.
 17:38:25.784 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "sga_principal" to version "21 - trigger truncate auditoria"
 17:38:25.786 [main] INFO org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- DB: trigger "tg_auditoria_no_truncate" for relation "sga_principal.auditoria" does not exist, skipping
-17:38:25.791 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 12 migrations to schema "sga_principal", now at version v21 (execution time 00:00.104s)
+17:38:25.790 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "sga_principal" to version "22 - marca reparacion v18 confirmada"
+17:38:25.793 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "sga_principal" to version "23 - grants sga secretaria y auditoria diferidos"
+17:38:25.796 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "sga_principal" to version "24 - acotar revocacion bitacora"
+17:38:25.800 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 15 migrations to schema "sga_principal", now at version v24 (execution time 00:00.125s)
 ]]></system-out>
   </testcase>
   <testcase name="criterioE6_rolCreadoPorMigracionRechazaModificacionInclusoSinTrigger" classname="ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest" time="0.134">
     <system-out><![CDATA[17:38:25.898 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://localhost:32770/e4_e13_migraciones (PostgreSQL 16.15)
 17:38:25.900 [main] WARN org.flywaydb.core.internal.database.base.Database -- Flyway upgrade recommended: PostgreSQL 16.15 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-17:38:25.921 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 13 migrations (execution time 00:00.016s)
-17:38:25.934 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "sga_principal": 21
+17:38:25.921 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 16 migrations (execution time 00:00.018s)
+17:38:25.934 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "sga_principal": 24
 17:38:25.934 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "sga_principal" is up to date. No migration necessary.
 ]]></system-out>
   </testcase>
