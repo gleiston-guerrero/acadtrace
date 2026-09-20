@@ -578,7 +578,7 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{movil_representante_evidencia.png}
-\caption{Interfaz de la Aplicaci\'on M\'ovil para Representantes (Kotlin + Jetpack Compose): (a) Desbloqueo seguro de sesi\'on mediante autenticaci\'on biom\'etrica nativa (\texttt{BiometricPrompt}), (b) Consulta acad\'emica con soporte de cach\'e desconectado \textit{offline-first} en SQLite Room, y (c) M\'odulo de asistencia y resumen escolar con reconciliaci\'on autom\'atica mediante \texttt{WorkManager}.}
+\caption{Vistas reales de la Aplicaci\'on M\'ovil para Representantes (Kotlin + Jetpack Compose): (a) Configuraci\'on de seguridad y protecci\'on de acceso biom\'etrico, (b) Consulta de asignaturas y calificaciones trimestrales del estudiante representado, y (c) Resumen cuantitativo y consolidado de asistencia escolar categorizado por estados.}
 \label{fig:app_movil_representante}
 \end{figure}
 
@@ -608,21 +608,21 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_biometria.png}
-    \caption{Aplicaci\'on m\'ovil del representante con la solicitud de acceso mediante huella dactilar visible.}
+    \caption{Aplicaci\'on m\'ovil del representante: pantalla de ajustes de seguridad con gesti\'on de protecci\'on, interruptor para desbloqueo biom\'etrico y avisos de expiraci\'on de sesi\'on.}
     \label{fig:movil-biometria}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_calificaciones.png}
-    \caption{Aplicaci\'on m\'ovil del representante en la vista de calificaciones, con el aviso de modo sin conexi\'on visible.}
+    \caption{Aplicaci\'on m\'ovil del representante: vista de calificaciones detalladas por trimestre con listado de asignaturas y ponderaciones.}
     \label{fig:movil-calificaciones}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_asistencia.png}
-    \caption{Aplicaci\'on m\'ovil del representante en la vista de asistencia, con resumen y registros fechados visibles.}
+    \caption{Aplicaci\'on m\'ovil del representante: resumen porcentual global de asistencia (87,83\,\%) y desglose interactivo por categor\'ias (presentes, ausentes, atrasos y justificados).}
     \label{fig:movil-asistencia}
 \end{figure}
 
@@ -634,7 +634,7 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \subsection{Pir\'amide de Pruebas de Cinco Niveles}
 La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \begin{enumerate}
-  \item \textbf{Unitarias:} Evidencia hist\'orica conservada de pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python): Cobertura JaCoCo del modulo sga-principal: 48.1\% de instrucciones sobre el BUNDLE completo (excluyendo codigo generado gRPC, DTOs, entidades JPA y configuracion Spring). Compuerta CI configurada al 40\% minimo con \texttt{<element>BUNDLE</element>}, deuda tecnica documentada para elevar el umbral al 70\% en iteraciones posteriores.
+  \item \textbf{Unitarias:} Evidencia conservada de pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python): Cobertura JaCoCo del m\'odulo \texttt{sga-principal}: 30,9\,\% de instrucciones (4394/14202) y 31,6\,\% de l\'ineas sobre el BUNDLE completo (excluyendo c\'odigo generado gRPC, DTOs, entidades JPA y configuraci\'on Spring). Compuerta CI configurada al 30\,\% m\'inimo con \texttt{<element>BUNDLE</element>} en \texttt{pom.xml}.
   \item \textbf{Integraci\'on:} Validaci\'on de repositorios y transacciones con aislamiento de esquemas.
   \item \textbf{Contrato:} Pruebas con \textbf{Pact} (\texttt{portal-docente-microservicio-docente.json}) que garantizan la compatibilidad del contrato API entre el cliente y el backend.
   \item \textbf{Extremo a Extremo (E2E):} Verificaci\'on de flujos completos desde la autenticaci\'on hasta la consulta de datos.
@@ -648,8 +648,8 @@ La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{locust_resultados.png}
-\caption{Captura histórica/complementaria de Grafana. No acredita el agregado del CSV oficial nominal de Soporte.}
-\label{fig:locust-resultados}
+\caption{M\'etricas de observabilidad en Grafana durante la ejecuci\'on de pruebas de carga: monitoreo del pool HikariCP y percentiles de latencia ($P_{50}$ y $P_{99}$) como evidencia complementaria.}
+\label{fig:grafana-hikari-latencias}
 \end{figure}
 
 \subsection{Pipeline CI/CD de Siete Trabajos Encadenados (GitHub Actions)}
@@ -667,7 +667,7 @@ El archivo \texttt{.github/workflows/ci-cd.yml} orquesta siete trabajos bloquean
 \hline
 1 & \texttt{lint} & An\'alisis est\'atico con Flake8 y validaci\'on de formato en Python y Java. \\
 \hline
-2 & \texttt{test-backend} & Tests unitarios Java (Surefire/JaCoCo, umbral m\'inimo de 70\% LINE) y Python (\texttt{pytest-cov}); el umbral es criterio de calidad, no resultado medido. \\
+2 & \texttt{test-backend} & Tests unitarios Java (Surefire/JaCoCo con umbrales configurados por m\'odulo en Maven) y Python (\texttt{pytest-cov} al 70\,\%); el umbral es criterio de calidad, no resultado medido. \\
 \hline
 3 & \texttt{test-web} & Compilaci\'on TypeScript y empaquetado de distribuciones React en \texttt{.tar.gz}. \\
 \hline
