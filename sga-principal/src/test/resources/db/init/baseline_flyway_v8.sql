@@ -23,6 +23,8 @@ CREATE SCHEMA IF NOT EXISTS sga_docente;
 
 CREATE SCHEMA IF NOT EXISTS sga_principal;
 
+CREATE SCHEMA IF NOT EXISTS sga_secretaria;
+
 CREATE SCHEMA IF NOT EXISTS sga_soporte;
 
 DO $$
