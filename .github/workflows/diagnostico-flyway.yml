@@ -42,7 +42,12 @@ jobs:
             source .env
             set +a
 
-            printf 'DB_HOST=%s\n' "${DB_HOST:-}"
+            if [ -n "${DB_HOST:-}" ]; then
+              printf '::add-mask::%s\n' "$DB_HOST"
+              printf '%s\n' 'DB_HOST: CONFIGURADA'
+            else
+              printf '%s\n' 'DB_HOST: FALTANTE'
+            fi
             printf 'DB_PORT=%s\n' "${DB_PORT:-}"
             printf 'DB_NAME=%s\n' "${DB_NAME:-}"
             printf 'DB_USER=%s\n' "${DB_USER:-}"

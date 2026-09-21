@@ -79,7 +79,7 @@ captures:
     added_in_date: 2026-09-04
     status: historical
     used_in_report: true
-    report_reference: Informe-E4_BCEL/locust_resultados.png
+    report_reference: Informe-E4_BCEL/grafana_hikari_p95.png
     observations: "El informe la presenta como historica/complementaria de observabilidad de pool HikariCP y percentiles de latencia; la copia del informe tiene el mismo SHA-256."
 
   - file: release/screenshots/movil_representante_asistencia.png
@@ -119,7 +119,7 @@ captures:
     component: Aplicación móvil de representantes
     purpose: "Composición de biometría, calificaciones y asistencia offline-first."
     sha256: 3F7A9DC78259AB9ACF28E8F45210ACAB20F77DEF5512A9429A45B6E612DDD499
-    added_in_commit: 5ec2926c
+    added_in_commit: f7996415
     added_in_date: 2026-09-18
     status: current
     used_in_report: true

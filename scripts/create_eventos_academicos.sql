@@ -8,7 +8,7 @@
 --
 -- Como correrlo:
 -- Suministrar PGPASSWORD desde el entorno antes de ejecutar psql; no guardar la clave en el repositorio.
--- psql -h 3.23.195.43 -p 5433 -U postgres -d sga \
+-- psql -h "${DB_HOST:?Configure DB_HOST}" -p 5433 -U postgres -d sga \
 --   -v ON_ERROR_STOP=1 -f scripts/create_eventos_academicos.sql
 
 CREATE TABLE IF NOT EXISTS sga_principal.eventos_academicos (

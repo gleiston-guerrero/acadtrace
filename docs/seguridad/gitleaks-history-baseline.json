@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "scanner": "8.18.0",
+  "created": "2026-09-21",
+  "status": "pending-historical-debt-not-resolved",
+  "identity": "sha256(JSON([Commit, File with forward slashes, RuleID, StartLine, EndLine, StartColumn, EndColumn])); no secret content",
+  "findings": [
+    {
+      "id": "08af90bcb4681dc853856ad471bd3231f59b81675ed51f3df5c77a940b91b76e",
+      "path": "microservicio-soporte/backend/src/test/java/ec/uteq/sga/soporte/security/SecurityTest.java",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "2e02dbcea68b338ea0192ed380d8cf2a42a2951ae03c8a2ae26ff606684076e3",
+      "path": ".github/workflows/ci-cd.yml",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "39a129faa7575d168fcc6e4494d3585bc932a832686065c87ce18cb0211cd6bd",
+      "path": "microservicio-soporte/backend/src/test/java/ec/uteq/sga/soporte/security/SecurityTest.java",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "4f682b23d3f88c20ec34a6a27828acd64cad7bd663b27886c34995d5995819de",
+      "path": "microservicio-soporte/backend/src/test/java/ec/uteq/sga/soporte/security/SecurityTest.java",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "74c553ef627e33d15e11ed9c97ef761c17c6d8d72c39225a0926dd32f1f13235",
+      "path": "microservicio-soporte/backend/src/test/java/ec/uteq/sga/soporte/security/SecurityTest.java",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "9001efdbd139d3be614aa559af7f0b101b89e2fad4ff05d5b4e350b7dac06e5e",
+      "path": "tests/browser/test_sga_navegador.py",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "9e6432da2bec2756c1b33c3c09eb7018de86b127b109c3428225cc4f7124aa5e",
+      "path": ".github/workflows/ci-cd.yml",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "a87f200321e71c72777a41d22672555838953c5f898dff864fe259566104d346",
+      "path": ".github/workflows/ci-cd.yml",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "cdaa78e1007ea423a4879d41ce34893062a3a900df681ec4160b428fe06add54",
+      "path": "tests/browser/test_sga_navegador.py",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "dd671f9c12d8b50581cf42e339ae75c0499a93f2d20690d08b93ce3a1e07010b",
+      "path": "microservicio-soporte/backend/src/test/java/ec/uteq/sga/soporte/security/SecurityTest.java",
+      "type": "generic-api-key"
+    },
+    {
+      "id": "e7128c2f6fca5ef784c30e31c380fc6efb79a1f54c2a85a1bdc2e87e05fa36db",
+      "path": ".github/workflows/ci-cd.yml",
+      "type": "generic-api-key"
+    }
+  ]
+}
