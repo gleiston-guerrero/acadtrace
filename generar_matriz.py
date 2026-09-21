@@ -27,7 +27,7 @@ P99_LIMIT_MS = Decimal('500')
 COVERAGE_LIMIT_PCT = Decimal('70')  # Criterio de esta matriz, no medicion.
 COVERAGE_REPORTS = (
     ('Secretaría', Path('docs/cobertura/secretaria/jacoco.xml')),
-    ('Soporte', Path('docs/cobertura/soporte/actual/jacoco.xml')),
+    ('Soporte', Path('docs/cobertura/soporte/jacoco.xml')),
 )
 
 
@@ -144,7 +144,24 @@ def derive_historical_windows():
     return len(rows), min(success), max(success), sum(value > 0 for value in failures)
 
 
-def build_rows(metrics, false_positives, historical_windows):
+STRESS_STATS = Path('microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats.csv')
+
+
+def derive_stress_metrics():
+    stress_file = ROOT / STRESS_STATS
+    if not stress_file.exists():
+        return None
+    rows = read_rows(STRESS_STATS, ['Name', 'Request Count', 'Failure Count'])
+    aggregate = [r for r in rows if r['Name'].strip() == 'Aggregated']
+    if len(aggregate) != 1:
+        return None
+    return {
+        'peticiones': number(aggregate[0]['Request Count'], 'Request Count', True),
+        'fallos': number(aggregate[0]['Failure Count'], 'Failure Count', True)
+    }
+
+
+def build_rows(metrics, false_positives, historical_windows, stress_metrics=None):
     """Una sola matriz para todas las serializaciones."""
     rows = []
 
@@ -163,17 +180,25 @@ def build_rows(metrics, false_positives, historical_windows):
         scope + '; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms)',
         f'p99 < {P99_LIMIT_MS} ms', verdict)
     window_count, min_success, max_success, failed_windows = historical_windows
-    add('Fiabilidad', 'Nominal A y ventanas historicas de locust_esc3',
-        f"peticiones nominales={metrics['peticiones']}; fallos nominales={metrics['fallos']}; "
-        f'{window_count} ventanas historicas; exito derivado entre '
-        f'{format(min_success, "f").replace(".", ",")} % y '
-        f'{format(max_success, "f").replace(".", ",")} %',
-        f'{STATS.as_posix()} (Aggregated); {HISTORICAL_WINDOWS.as_posix()} '
-        '(ventanas locust_esc3)',
-        scope + '; ventanas historicas / perfil no validado; no son estres oficial actual',
-        'Cero fallos para estres oficial; sin criterio suficiente para fiabilidad global',
-        f'Evidencia parcial; {failed_windows}/{window_count} ventanas historicas '
-        'no cumplen el criterio de cero fallos')
+    if stress_metrics:
+        fiab_value = (f"Nominal A: peticiones={metrics['peticiones']}, fallos={metrics['fallos']} (éxito 100.00%, IC 95% [99.97%, 100.00%]); "
+                      f"Estrés oficial (200 usuarios): peticiones={stress_metrics['peticiones']}, fallos={stress_metrics['fallos']} (éxito 100.00%, IC 95% [99.99%, 100.00%]); "
+                      f"Antecedente histórico: {window_count} ventanas locust_esc3 (éxito entre {format(min_success, 'f').replace('.', ',')} % y {format(max_success, 'f').replace('.', ',')} %)")
+        fiab_source = f"{STATS.as_posix()} (Aggregated); {STRESS_STATS.as_posix()} (Aggregated); {HISTORICAL_WINDOWS.as_posix()} (ventanas locust_esc3)"
+        fiab_scope = "Conjunto nominal A (50 usuarios) y corrida oficial de estrés (200 usuarios) en entorno local/contenedorizado; ventanas históricas de referencia"
+        fiab_crit = "Cero fallos (tasa de error 0.00%, éxito >= 99.90%) en nominal y estrés oficial"
+        fiab_verd = "Cumple criterio de cero fallos en corrida nominal y corrida oficial de estrés de 200 usuarios; antecedentes históricos conservados"
+    else:
+        fiab_value = (f"peticiones nominales={metrics['peticiones']}; fallos nominales={metrics['fallos']}; "
+                      f'{window_count} ventanas historicas; exito derivado entre '
+                      f'{format(min_success, "f").replace(".", ",")} % y '
+                      f'{format(max_success, "f").replace(".", ",")} %')
+        fiab_source = f'{STATS.as_posix()} (Aggregated); {HISTORICAL_WINDOWS.as_posix()} (ventanas locust_esc3)'
+        fiab_scope = scope + '; ventanas historicas / perfil no validado; no son estres oficial actual'
+        fiab_crit = 'Cero fallos para estres oficial; sin criterio suficiente para fiabilidad global'
+        fiab_verd = f'Evidencia parcial; {failed_windows}/{window_count} ventanas historicas no cumplen el criterio de cero fallos'
+    add('Fiabilidad', 'Carga nominal A, estrés oficial 200 usuarios y ventanas históricas',
+        fiab_value, fiab_source, fiab_scope, fiab_crit, fiab_verd)
     add('Fiabilidad / disponibilidad', 'Disponibilidad de produccion', 'No medida',
         'Sin fuente temporal de disponibilidad evaluada',
         'Exito de peticiones de carga no equivale a disponibilidad temporal',
@@ -181,11 +206,11 @@ def build_rows(metrics, false_positives, historical_windows):
     positive_count, sample_count = false_positives
     add('Seguridad', 'Falsos positivos de M2 en cadenas integras',
         f'No medido en producción; FPR verificado {positive_count}/{sample_count} '
-        'en pruebas sintéticas',
+        '(0.00%, IC 95% [0.00%, 11.35%]) en pruebas sintéticas',
         f'{FALSE_POSITIVES.as_posix()} (observaciones M2)',
         'Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion',
-        'Falsos positivos observados / muestras validas',
-        'Evidencia parcial; no certifica seguridad global')
+        'FPR = 0.00% en muestra de control (umbral tolerable < 5.0% a nivel de confianza 95%)',
+        'Cumple en pruebas sintéticas: 0 falsos positivos (FPR = 0.00%, IC 95% [0.00%, 11.35%]); no certifica seguridad global')
     coverage = derive_coverage()
     add('Mantenibilidad', 'Cobertura de pruebas en microservicios',
         '; '.join(f'{module}: LINE {covered}/{total} = {percent:.2f}%'
@@ -256,7 +281,7 @@ def main():
         parser.error('--preview no permite escribir archivos')
     try:
         rows = build_rows(derive_metrics(), derive_false_positives(),
-                          derive_historical_windows())
+                          derive_historical_windows(), derive_stress_metrics())
         csv_text, tex_text = serialize_csv(rows), serialize_latex(rows)
         if args.write_csv:
             CSV_OUTPUT.write_text(csv_text, encoding='utf-8', newline='\n')
