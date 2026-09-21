@@ -51,7 +51,7 @@ La variable `PGPASSWORD` debe suministrarse externamente en el entorno del proce
 antes de ejecutar `psql`. No guardar la contrasena en el repositorio.
 
 ```bash
-psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
+psql -h "${DB_HOST:?Configure DB_HOST}" -p 5433 -U postgres -d sga \
   -v ON_ERROR_STOP=1 -f scripts/seed_e3_500k.sql
 ```
 

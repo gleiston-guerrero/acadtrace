@@ -7,7 +7,7 @@
 --
 -- Como correrlo:
 -- Suministrar PGPASSWORD desde el entorno antes de ejecutar psql; no guardar la clave en el repositorio.
--- psql -h 192.0.2.1 -p 5433 -U postgres -d sga \
+-- psql -h "${DB_HOST:?Configure DB_HOST}" -p 5433 -U postgres -d sga \
 --   -v ON_ERROR_STOP=1 -f scripts/create_notificaciones.sql
 
 CREATE TABLE IF NOT EXISTS sga_principal.notificaciones (
