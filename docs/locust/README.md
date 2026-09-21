@@ -52,9 +52,9 @@ Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OF
 
 | Tipo | Archivo | Hash SHA-256 |
 |---|---|---|
-| **OFICIAL** | `microservicio-soporte/locust_esc1_stats.csv` | `9EF6F59D131AA9D4FAB42A9542A18BD25AEC2E4861AA4BF361A942E59AC16A95` |
+| **OFICIAL** | `microservicio-soporte/locust_esc1_stats.csv` | `900BED90BFD113B06F9FCA11EE58974ACAD632A6C599FE2C3EFC214217D26A4C` |
 | Histórico anterior | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_stats_history.csv` | `2E07E6788BC9BE8FDBC7E3743670CFA33AA7A6BF3C9B748C489718358E6D1E34` |
+| **OFICIAL** | `microservicio-soporte/locust_esc1_stats_history.csv` | `FFB37013E8A01EC99C1F1ED24400999A1B48564A67AE1EBE1DC29288B8678EA3` |
 | Histórico anterior | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
 | Histórico; no acredita corrida actual | Histórico, no actual: `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
 | Histórico; no acredita corrida actual | Histórico, no actual: `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
@@ -74,3 +74,30 @@ python scripts/recalcular_metricas_carga.py --emit-latex-block
 ```
 
 `--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
+
+## Integridad y límites de evidencia (#48)
+
+El manifiesto `docs/locust/manifest_carga.json` fija los SHA-256 de los dos
+CSV nominales vigentes y los cuatro CSV del estrés `20260920_164722`, además
+de sus métricas declaradas. `scripts/recalcular_metricas_carga.py` verifica
+ambos conjuntos antes de emitir resultados o generar macros; `--check-latex`
+verifica también los hashes nominales publicados y las afirmaciones nominales
+seleccionadas. No valida automáticamente toda la prosa de estrés del informe.
+Los hashes se calculan sobre bytes exactos, incluidos finales de línea;
+una normalización del archivo provoca fallo y requiere revisión explícita.
+
+Hay **n=1 corrida nominal y n=1 corrida de estrés**. No existen repeticiones
+independientes oficiales para estimar variabilidad entre ejecuciones: el
+intervalo de confianza entre corridas **no es estimable**. Los percentiles
+son descriptivos de peticiones dentro de cada corrida, no repeticiones.
+
+La carpeta oficial de estrés conserva cuatro CSV y dos TXT. `perfil.txt` y
+`resumen_validacion.txt` son documentación derivada; la captura relee los CSV.
+No se conserva consola original de Locust ni otra evidencia primaria adicional
+que acredite independientemente la ejecución. El commit ejecutado, host,
+spawn rate, duración configurada y EXIT_CODE son metadatos declarados en esos
+TXT, no comprobados por el hash ni por la captura. El nominal tampoco conserva
+la evidencia original de configuración. La compuerta acredita integridad y
+coherencia de los artefactos declarados, no una validación retrospectiva.
+No se usa la corrida incompleta `20260920_163041/` ni los candidatos.
+No se ejecutaron nuevas cargas ni se fabricaron repeticiones o logs.
