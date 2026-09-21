@@ -1239,7 +1239,7 @@ jobs:
 
           KEYSTORE_CERT_SHA256="$(openssl x509 -in "$KEYSTORE_CERT" -noout -fingerprint -sha256 | sed 's/^.*=//' | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
 
-          APK_CERT_SHA256="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner-cert.txt" | head -n1 | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+          APK_CERT_SHA256="$(sed -n 's/^.*certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner-cert.txt" | head -n1 | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
 
           AAB_CERT_SHA256="$(openssl x509 -in "$AAB_CERT" -noout -fingerprint -sha256 | sed 's/^.*=//' | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
 

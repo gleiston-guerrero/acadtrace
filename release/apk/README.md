@@ -29,7 +29,7 @@ La firma del paquete de entrega utiliza una clave privada de producción propia,
 - **Vigencia:** Desde el 2026-09-16 hasta el año 2054
 - **Algoritmo de clave:** RSA de 2048 bits
 - **Algoritmo de firma:** SHA256withRSA
-- **Huella digital SHA-256 del certificado:** CI obtiene autom?ticamente la huella SHA-256 completa del certificado del keystore de Release, comprueba que coincida exactamente con los certificados del APK y del AAB y publica el valor completo en `CERTIFICATE_SHA256.txt`.
+- **Huella digital SHA-256 del certificado:** `F7:7C:A1:2B:4E:DA:1A:EA:C2:7C:55:47:88:4A:19:AF:42:6F:45:A7:45:41:CE:B2:6B:18:C6:8E:E7:8C:A1:79`. CI obtiene esta huella del keystore de Release y comprueba que coincida exactamente con los certificados del APK y del AAB. El mismo valor se publica en `CERTIFICATE_SHA256.txt`.
 - **Tipo de keystore:** PKCS12 (`acadtrace-release.jks`)
 - **Validación del keystore en CI:** Tamaño exacto de 2782 bytes y SHA-256 `C076C5BDB2B017E8F2FC8F3AE5D1228B7B01331B032397EBBC2058DAC4DF9E9A`.
 
@@ -59,10 +59,10 @@ apksigner verify --verbose --print-certs app-release.apk
 
 Salida esperada:
 - `Verifies: true`
-- `Verified using v1 scheme (JAR signing): true`
+- `Verified using v1 scheme (JAR signing): false`
 - `Verified using v2 scheme (APK Signature Scheme v2): true`
 - `Signer #1 certificate DN: CN=Keyla Bedón, OU=BCEL, O=UTEQ`
-- `Signer #1 certificate SHA-256 digest: <huella SHA-256 completa>`
+- `V2 Signer: certificate SHA-256 digest: f77ca12b4eda1aeac27c5547884a19af426f45a74541ceb26b18c68ee78ca179`
 - La huella obtenida debe coincidir exactamente con el valor publicado en `CERTIFICATE_SHA256.txt`.
 
 Esto demuestra fehacientemente que el APK está firmado válidamente, no ha sido alterado y fue emitido por el titular institucional correspondiente.
