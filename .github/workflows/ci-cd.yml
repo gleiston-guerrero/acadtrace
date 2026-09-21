@@ -34,25 +34,42 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Ejecutar Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Escanear arbol completo con gitleaks
-        if: always()
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Instalar Gitleaks 8.18.0
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz | tar xz
-          ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 0 --report-format json --report-path gitleaks-tree-report.json
-          echo "Escaneo del arbol completo terminado. Ver artefacto gitleaks-tree-report.json."
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/gitleaks-bin"
+          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz | tar xz -C "$RUNNER_TEMP/gitleaks-bin"
+          echo "$RUNNER_TEMP/gitleaks-bin" >> "$GITHUB_PATH"
 
-      - name: Subir reporte de gitleaks del arbol
-        if: always()
+      - name: Escanear arbol versionado (compuerta)
+        env:
+          SECRET_SCAN_REPORT_DIR: ${{ runner.temp }}/secret-scan-reports
+        run: node scripts/scan-secrets.cjs tree
+
+      - name: Escanear historial completo y bloquear hallazgos nuevos frente a deuda documentada
+        if: ${{ !cancelled() }}
+        env:
+          SECRET_SCAN_REPORT_DIR: ${{ runner.temp }}/secret-scan-reports
+        run: node scripts/scan-secrets.cjs history
+
+      - name: Verificar compuerta con mutacion sintetica temporal
+        if: ${{ !cancelled() }}
+        run: node scripts/scan-secrets.cjs self-test
+
+      - name: Verificar rechazo de hallazgos historicos nuevos
+        if: ${{ !cancelled() }}
+        run: node scripts/scan-secrets.cjs self-test-history
+
+      - name: Subir metadata sanitizada de hallazgos y deuda historica
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: gitleaks-tree-report
-          path: gitleaks-tree-report.json
-          retention-days: 30
+          name: secret-scan-paths-types
+          path: ${{ runner.temp }}/secret-scan-reports/*.json
+          retention-days: 7
 
   verificar-matriz-iso25010:
     name: Verificar matriz ISO 25010 del informe
@@ -232,7 +249,7 @@ jobs:
 
       - name: Pruebas Unitarias SGA Principal (Spring Boot)
         env:
-          DB_HOST: 3.23.195.43
+          DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: 5433
           DB_NAME: sga
           DB_USER: sga_app
