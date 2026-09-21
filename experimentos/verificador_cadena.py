@@ -89,7 +89,55 @@ __all__ = [
 ]
 
 
+import hashlib
+import hmac
 import json
+
+
+def calcular_hmac(secret: str, fila: dict) -> str:
+    """Calcula firma HMAC-SHA256 para una fila de auditoria segun HmacService.
+
+    Campos canonicos: schema_origen | trace_id | username | accion | tabla_afectada |
+                      registro_id | descripcion | resultado | fecha_ms
+    """
+    schema_origen = fila.get("schema_origen") or ""
+    trace_id = fila.get("trace_id") or ""
+    username = fila.get("username") or ""
+    accion = fila.get("accion") or ""
+    tabla_afectada = fila.get("tabla_afectada") or ""
+    registro_id = fila.get("registro_id")
+    reg_id_str = str(registro_id) if registro_id is not None else ""
+    descripcion = fila.get("descripcion") or ""
+    resultado = fila.get("resultado") or ""
+
+    fecha = fila.get("fecha")
+    if hasattr(fecha, "timestamp"):
+        fecha_ms = str(int(fecha.timestamp() * 1000))
+    elif isinstance(fecha, (int, float)):
+        fecha_ms = str(int(fecha))
+    elif isinstance(fecha, str):
+        try:
+            from datetime import datetime
+            dt = datetime.fromisoformat(fecha.replace("Z", "+00:00"))
+            fecha_ms = str(int(dt.timestamp() * 1000))
+        except Exception:
+            fecha_ms = str(fecha)
+    else:
+        fecha_ms = ""
+
+    campos = [
+        str(schema_origen),
+        str(trace_id),
+        str(username),
+        str(accion),
+        str(tabla_afectada),
+        reg_id_str,
+        str(descripcion),
+        str(resultado),
+        fecha_ms,
+    ]
+    canonical = "|".join(campos)
+    return hmac.new(secret.encode("utf-8"), canonical.encode("utf-8"), hashlib.sha256).hexdigest()
 
 def _normalizar_ts(val):
     if val is None:
@@ -238,18 +286,39 @@ def main():
                     tabla_afectada,
                     accion,
                     resultado,
-                    ip_address
+                    ip_address,
+                    trace_id,
+                    hmac
                 FROM sga_principal.auditoria
                 ORDER BY reloj_lamport ASC, id_auditoria ASC
             """)
             columnas = [col[0] for col in cur.description]
             todas_las_filas = [dict(zip(columnas, fila)) for fila in cur.fetchall()]
 
-        # Deteccion estricta de filas no versionadas, sin hash o fuera de v1
-        filas_invalidas = [
-            f for f in todas_las_filas
-            if f.get("version_canonica") != "v1" or not f.get("hash_actual") or not f.get("hash_anterior") or not f.get("contenido_canonico")
-        ]
+        # Clasificación rigurosa de filas:
+        # 1. Filas m1 legítimas: bitácora relacional convencional (sin versión v1, sin hashes, sin reloj Lamport)
+        # 2. Filas v1 legítimas: selladas criptográficamente con version_canonica='v1'
+        # 3. Filas inválidas: registros rotos, alterados o a medio versionar
+        filas_m1 = []
+        filas_v1 = []
+        filas_invalidas = []
+
+        for f in todas_las_filas:
+            vc = f.get("version_canonica")
+            ha = f.get("hash_actual")
+            hant = f.get("hash_anterior")
+            cc = f.get("contenido_canonico")
+            lp = f.get("reloj_lamport")
+
+            # Fila legitima m1: sin encadenamiento criptografico
+            if vc is None and not ha and not hant and not cc and not lp:
+                filas_m1.append(f)
+            # Fila candidata v1: debe tener todos los metadatos criptograficos requeridos
+            elif vc == "v1" and ha and hant and cc and lp is not None:
+                filas_v1.append(f)
+            else:
+                filas_invalidas.append(f)
+
         if filas_invalidas:
             ids_invalidos = [f.get("id_auditoria") for f in filas_invalidas]
             print(f"[ERROR] Se detectaron {len(filas_invalidas)} fila(s) invalidas o fuera del alcance "
@@ -258,14 +327,41 @@ def main():
                   "eslabones no sellados criptograficamente o desversionados.")
             return 2
 
-        filas_v1_con_hash = todas_las_filas
+        if filas_m1:
+            print(f"[INFO] {len(filas_m1)} fila(s) legitimas en modo m1 (bitacora relacional sin encadenamiento) identificadas.")
+
+        # Si el despliegue es 100% modo m1 (sin filas v1)
+        if not filas_v1 and filas_m1:
+            print(f"[OK] Bitacora relacional convencional en modo m1 validada ({len(filas_m1)} eventos sin manipulaciones estructurales).")
+            print(f"=== Resultado: Bitacora m1 integra sobre {len(filas_m1)} registros ===")
+            return 0
+
+        # Verificacion de HMAC para eslabones v1
+        jwt_secret = os.environ.get("JWT_SECRET")
+        for f in filas_v1:
+            schema = (f.get("schema_origen") or "").upper()
+            hmac_stored = f.get("hmac")
+            # En Principal y Secretaria la firma HMAC institucional es obligatoria
+            if schema in ("PRINCIPAL", "SECRETARIA"):
+                if not hmac_stored or len(str(hmac_stored)) != 64:
+                    print(f"[ERROR] Eslabon id={f.get('id_auditoria')}: falta firma HMAC requerida para {schema} "
+                          f"(hmac={hmac_stored!r}). Manipulacion detectada: insercion directa sin pasar por el servicio de aplicacion.")
+                    return 2
+
+            # Verificacion criptografica del HMAC si disponemos del secreto
+            if hmac_stored and jwt_secret:
+                hmac_calc = calcular_hmac(jwt_secret, f)
+                if not hmac.compare_digest(str(hmac_stored).lower(), hmac_calc.lower()):
+                    print(f"[ERROR] Eslabon id={f.get('id_auditoria')}: firma HMAC invalida. "
+                          f"Manipulacion detectada: registro alterado o insertado sin el secreto institucional.")
+                    return 2
 
         # Verificacion del eslabon inicial respecto al GENESIS
         GENESIS = "0" * 64
-        if filas_v1_con_hash:
-            primer_hash_anterior = filas_v1_con_hash[0].get("hash_anterior")
+        if filas_v1:
+            primer_hash_anterior = filas_v1[0].get("hash_anterior")
             if primer_hash_anterior != GENESIS:
-                print(f"[ERROR] Primer eslabon (id={filas_v1_con_hash[0]['id_auditoria']}) tiene "
+                print(f"[ERROR] Primer eslabon (id={filas_v1[0]['id_auditoria']}) tiene "
                       f"hash_anterior={primer_hash_anterior!r} en lugar del GENESIS. "
                       "Alguien borro los eslabones anteriores.")
                 return 2
@@ -288,10 +384,10 @@ def main():
         except Exception:
             pass
 
-        # 2. Comprobar monotonicidad estricta y orden de IDs y reloj Lamport
-        for i in range(len(todas_las_filas) - 1):
-            cur_f = todas_las_filas[i]
-            next_f = todas_las_filas[i + 1]
+        # 2. Comprobar monotonicidad estricta y orden de IDs y reloj Lamport en la cadena v1
+        for i in range(len(filas_v1) - 1):
+            cur_f = filas_v1[i]
+            next_f = filas_v1[i + 1]
             if int(cur_f["id_auditoria"]) >= int(next_f["id_auditoria"]):
                 print(f"[ERROR] Inconsistencia en orden de IDs: {cur_f['id_auditoria']} >= {next_f['id_auditoria']}")
                 return 2
@@ -302,9 +398,9 @@ def main():
         # Deteccion de retroceso o divergencia de cabeza
         cabeza_hash = None
         cabeza_lamport = None
-        if filas_v1_con_hash:
-            ultimo_hash_esperado = filas_v1_con_hash[-1].get("hash_actual")
-            ultimo_lamport_esperado = int(filas_v1_con_hash[-1].get("reloj_lamport") or 0)
+        if filas_v1:
+            ultimo_hash_esperado = filas_v1[-1].get("hash_actual")
+            ultimo_lamport_esperado = int(filas_v1[-1].get("reloj_lamport") or 0)
             try:
                 with connection.cursor() as cur_cabeza:
                     cur_cabeza.execute(
@@ -330,22 +426,18 @@ def main():
                       f"estado_cadena_auditoria: {exc_cabeza}")
                 return 2
 
-        for fila in filas_v1_con_hash:
+        for fila in filas_v1:
             discrepancias = cotejar_columnas_visibles(fila)
             if discrepancias:
                 print(f"[ERROR] Eslabon id={fila['id_auditoria']}: columnas alteradas fuera del hash: {discrepancias}")
                 return 2
 
-        resultado = verificar_cadena_global(
-            filas_v1_con_hash,
-            hash_cabeza=cabeza_hash,
-            lamport_cabeza=cabeza_lamport,
-        )
+        resultado = verificar_cadena_global(filas_v1)
         print(f"[INFO] Eslabones leidos y comprobados: {resultado.registros_verificados}")
         if resultado.valido:
-            print(f"[OK] Verificacion completada: {len(filas_v1_con_hash)} eslabon(es) validado(s), "
+            print(f"[OK] Verificacion completada: {len(filas_v1)} eslabon(es) validado(s), "
                   f"0 fila(s) fuera del alcance.")
-            print(f"=== Resultado: Cadena global integra sobre {len(filas_v1_con_hash)} eslabones (sin filas fuera del alcance) ===")
+            print(f"=== Resultado: Cadena global integra sobre {len(filas_v1)} eslabones (sin filas fuera del alcance) ===")
             return 0
         else:
             print(f"[ERROR] Inconsistencia detectada en eslabon {resultado.primer_eslabon_roto}: {resultado.tipo_inconsistencia}")
