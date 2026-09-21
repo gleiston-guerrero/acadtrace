@@ -1040,17 +1040,17 @@ En cumplimiento de la transparencia académica exigida por la cátedra, se decla
   \item \textbf{Juliana Romina Emanuel Pino:} Uso de Claude y Antigravity para generaci\'on asistida de la prueba de carga (\texttt{locustfile.py}), configuraci\'on de Prometheus/Grafana/cAdvisor, correcci\'on de secreto JWT en el generador de carga y verificaci\'on bibliogr\'afica. Todo hallazgo t\'ecnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos simulados.
 \end{itemize}
 
-\section{Gestión de Integración de Código, Compuertas de Calidad CI/CD y Trazabilidad de Issues}
+\section{Gestión de Integración de Código y Trazabilidad de Pull Requests}
 \label{sec:revision-cruzada}
-La trazabilidad de cambios en el repositorio AcadTrace (\url{https://github.com/gleiston-guerrero/acadtrace}) se documenta mediante \textbf{issues de GitHub}, compuertas de \textbf{Integración Continua (CI/CD)} y \textit{Pull Requests} (PR). Para los seis PR citados en la tabla, la API de GitHub registra el autor y la fusión, pero no registra revisiones formales en el endpoint \texttt{/reviews}.
+La integración de cambios en el repositorio AcadTrace (\url{https://github.com/gleiston-guerrero/acadtrace}) se documenta mediante ramas de trabajo, commits y \textit{Pull Requests} (PR), junto con las ejecuciones disponibles de GitHub Actions. Para los seis PR citados en la tabla, la API de GitHub registra el autor y la fusión, pero no registra revisiones formales en el endpoint \texttt{/reviews}; no se acredita una revisión obligatoria por otra persona.
 
-\subsection{Metodología de Trabajo por Issues y Solicitudes de Incorporación}
-Cada nuevo requerimiento funcional, módulo arquitectónico o corrección de defectos fue formalizado previamente mediante un \textbf{issue de seguimiento}, asignándole etiquetas de clasificación (\texttt{architecture}, \texttt{security}, \texttt{testing}, \texttt{devops}, \texttt{bugfix}), integrante responsable y criterios de aceptación técnicos. El desarrollo se ejecutó en ramas de características personales aisladas (\texttt{Ernesto-Luna}, \texttt{devBedon}, \texttt{Juliana-Emanuel}, \texttt{feat/cluster-db-fragmentacion}).
+\subsection{Trabajo en Ramas y Solicitudes de Incorporación}
+El desarrollo se ejecutó en ramas de trabajo (\texttt{Ernesto-Luna}, \texttt{devBedon}, \texttt{Juliana-Emanuel}, \texttt{feat/cluster-db-fragmentacion}) y se integró mediante PR. El historial consultado no acredita que cada requerimiento, módulo o corrección tuviera previamente un issue con etiquetas, responsable y criterios de aceptación; esa trazabilidad debe comprobarse caso por caso.
 
-Para la incorporación y fusión de cambios a la rama principal (\texttt{main}), el flujo de trabajo aplicó los siguientes controles técnicos y compuertas de aseguramiento:
+Para la incorporación y fusión de cambios a la rama principal (\texttt{main}), se distinguen los registros comprobados de las prácticas cuya aplicación general no está acreditada:
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Trazabilidad al Issue Asociado:} Toda solicitud de incorporación debió vincular explícitamente el \textbf{issue} de GitHub correspondiente mediante directivas de cierre (\texttt{Closes \#...}, \texttt{Fixes \#...}) para garantizar la justificación y auditoría de cada cambio.
-  \item \textbf{Compuertas Automatizadas de Integración Continua (CI/CD):} Como condición indispensable, los flujos automatizados de GitHub Actions (compilación de código, análisis estático, cobertura JaCoCo, y suites de pruebas unitarias e integración en contenedores) debieron certificarse en estado verde (\textit{All checks passed}) antes de autorizar la fusión definitiva.
+  \item \textbf{Vinculación con issues:} No se acredita el uso sistemático de directivas de cierre (\texttt{Closes \#...}, \texttt{Fixes \#...}) en todos los PR. Los vínculos entre issues y cambios se reconocen únicamente cuando constan en sus registros.
+  \item \textbf{Integración Continua (CI/CD):} El repositorio dispone de flujos de GitHub Actions para compilación, análisis estático y pruebas. Su existencia no demuestra que todas las fusiones estuvieran condicionadas a un estado verde (\textit{All checks passed}); el historial revisado no respalda esa condición universal. El resultado y el momento de las comprobaciones deben contrastarse para cada fusión.
   \item \textbf{Registro de incorporación:} Los seis PR comprobados figuran como fusionados en GitHub. En cada uno, la cuenta que realizó el merge coincide con la cuenta autora; este dato no acredita una revisión por otra persona.
 \end{enumerate}
 
@@ -1074,7 +1074,7 @@ Tarea D & \#55 & Interfaces de Secretaría y SGA Principal & Ernesto Luna (\text
 \hline
 Tarea E & \#60 & Consolidación de pruebas, métricas y trazabilidad & Ernesto Luna (\texttt{Ernesto835}) & Incorpora archivos de pruebas, resultados experimentales y cambios en el informe. \\
 \hline
-Tarea F & \#58 & APK de representante y evidencias & Ernesto Luna (\texttt{Ernesto835}) & Incluye el APK en \texttt{release/apk/}, capturas y la actualización de ADR-006. \\
+Tarea F & \#58 & APK de representante y evidencias & Ernesto Luna (\texttt{Ernesto835}) & El APK actual está publicado en GitHub Release \texttt{v1.0.1}; \texttt{release/apk/} contiene el índice documental, no el binario. El PR incorpora capturas y la actualización de ADR-006. \\
 \hline
 Tarea G & \#59 & Actas y datos Locust & Juliana Emanuel (\texttt{JulianaEmanuel}) & Incluye actas en \texttt{docs/actas/} y archivos de datos Locust. \\
 \hline
