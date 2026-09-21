@@ -19,6 +19,65 @@
 -- Vistas de compatibilidad en sga_principal para entidades JPA y consultas
 -- que leen estudiantes y matriculas desde sga_principal manteniendo sga_secretaria como fuente.
 -- =============================================================================
+CREATE SCHEMA IF NOT EXISTS sga_secretaria;
+
+CREATE TABLE IF NOT EXISTS sga_secretaria.estudiantes (
+    id_estudiante serial PRIMARY KEY,
+    cedula character varying(10),
+    codigo_estudiante character varying(20),
+    nombres character varying(100) NOT NULL,
+    apellidos character varying(100) NOT NULL,
+    fecha_nacimiento date,
+    genero character varying(10),
+    direccion text,
+    telefono character varying(20),
+    telefono_alt character varying(20),
+    correo character varying(150),
+    discapacidad boolean DEFAULT false NOT NULL,
+    tipo_discapacidad character varying(100),
+    porcentaje_disc smallint,
+    id_representante integer,
+    origen_listado character varying(50),
+    estado character varying(20) DEFAULT 'ACTIVO'::character varying NOT NULL,
+    foto_url character varying(255),
+    creado_por integer,
+    fecha_creacion timestamp with time zone DEFAULT now() NOT NULL,
+    fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL,
+    carnet_conadis character varying(30),
+    nacionalidad character varying(50),
+    etnia character varying(50),
+    lugar_nacimiento character varying(150),
+    vive_con character varying(50),
+    numeros_hermanos smallint,
+    beneficio_social boolean DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS sga_secretaria.matriculas (
+    id_matricula serial PRIMARY KEY,
+    id_estudiante integer NOT NULL,
+    id_grado integer NOT NULL,
+    id_paralelo integer NOT NULL,
+    id_ano_lectivo integer NOT NULL,
+    numero_orden smallint,
+    fecha_registro date DEFAULT CURRENT_DATE NOT NULL,
+    estado character varying(20) DEFAULT 'ACTIVA'::character varying NOT NULL,
+    observaciones text
+);
+
+CREATE TABLE IF NOT EXISTS sga_secretaria.fichas_estudiante (
+    id_ficha serial PRIMARY KEY,
+    id_estudiante integer NOT NULL,
+    tipo_sangre character varying(5),
+    alergias text,
+    medicacion_permanente text,
+    enfermedad_catastrofica boolean DEFAULT false NOT NULL,
+    detalle_enfermedad text,
+    contacto_emergencia character varying(100),
+    telefono_emergencia character varying(20),
+    direccion_referencia text,
+    fecha_actualizacion timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE OR REPLACE VIEW sga_principal.estudiantes AS
     SELECT * FROM sga_secretaria.estudiantes;
 
