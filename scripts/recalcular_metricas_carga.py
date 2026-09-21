@@ -270,6 +270,90 @@ def check_publication(path, text, metrics):
     return errors
 
 
+STRESS_DIR = ROOT / "microservicio-soporte/resultados_estres/20260920_164722"
+
+
+def derive_stress():
+    stats_path = STRESS_DIR / "locust_estres_200_stats.csv"
+    history_path = STRESS_DIR / "locust_estres_200_stats_history.csv"
+    if not stats_path.exists():
+        return None
+    metrics = read_aggregate(stats_path)
+    if history_path.exists():
+        with history_path.open(encoding="utf-8-sig", newline="") as stream:
+            reader = csv.DictReader(stream)
+            samples = [r for r in reader if r.get("Name", "").strip() == "Aggregated"]
+            if samples:
+                metrics["usuarios_maximos"] = max(count(r["User Count"]) for r in samples)
+    return metrics
+
+
+def check_stress_consistency(stress_metrics, text, path_name):
+    if not stress_metrics:
+        return []
+    errors = []
+    # Buscar el bloque específico de la corrida oficial de estrés vigente
+    official_marker = None
+    for marker in ["Corrida oficial de estrés:", "## Corrida oficial de estrés vigente", "La corrida oficial de estrés en"]:
+        if marker in text:
+            official_marker = marker
+            break
+    if not official_marker:
+        return []
+
+    # Extraer el párrafo o sección correspondiente a la corrida oficial de estrés
+    block = text.split(official_marker, 1)[1][:1000]
+
+    # Peticiones: debe contener 98.684 o 98684 o 98{,}684
+    m_pet = re.search(r"(\d+(?:[.,{}]*\d+)?)\s*peticiones", block)
+    if m_pet:
+        clean_num = m_pet.group(1).replace(".", "").replace(",", "").replace("{", "").replace("}", "")
+        if clean_num.isdigit() and int(clean_num) != int(stress_metrics["peticiones"]):
+            errors.append(f"{path_name}: peticiones oficiales de estrés {clean_num} != {stress_metrics['peticiones']}")
+
+    # Fallos: debe ser 0 fallos
+    m_fal = re.search(r"(\d+)\s*fallos", block)
+    if m_fal:
+        if int(m_fal.group(1)) != int(stress_metrics["fallos"]):
+            errors.append(f"{path_name}: fallos oficiales de estrés {m_fal.group(1)} != {stress_metrics['fallos']}")
+
+    # Percentiles P95 y P99
+    m_p95 = re.search(r"P_?95\s*=\s*(\d+)", block)
+    if m_p95 and int(m_p95.group(1)) != int(stress_metrics["p95_ms"]):
+        errors.append(f"{path_name}: P95 oficial de estrés {m_p95.group(1)} != {stress_metrics['p95_ms']}")
+
+    m_p99 = re.search(r"P_?99\s*=\s*(\d+)", block)
+    if m_p99 and int(m_p99.group(1)) != int(stress_metrics["p99_ms"]):
+        errors.append(f"{path_name}: P99 oficial de estrés {m_p99.group(1)} != {stress_metrics['p99_ms']}")
+
+    return errors
+
+
+def check_declared_hashes():
+    errors = []
+    hash_docs = ['docs/locust/README.md', 'docs/locust/entorno_medicion.md']
+    for rel_doc in hash_docs:
+        doc_path = ROOT / rel_doc
+        if not doc_path.exists():
+            continue
+        text = doc_path.read_text(encoding='utf-8')
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if '|' in line:
+                cells = [c.strip() for c in line.split('|')]
+                for i in range(len(cells) - 1):
+                    cell_file = cells[i].replace('`', '').replace('*', '').strip()
+                    cell_hash = cells[i+1].replace('`', '').replace('*', '').strip()
+                    if cell_file.startswith('microservicio-soporte/') and re.fullmatch(r'[A-Fa-f0-9]{64}', cell_hash):
+                        target = ROOT / cell_file
+                        if not target.exists():
+                            errors.append(f"{rel_doc}:{line_no}: archivo {cell_file} no existe")
+                        else:
+                            real_hash = hashlib.sha256(target.read_bytes()).hexdigest().upper()
+                            if real_hash != cell_hash.upper():
+                                errors.append(f"{rel_doc}:{line_no}: hash de {cell_file} mismatch (declarado={cell_hash}, real={real_hash})")
+    return errors
+
+
 def check_generated_latex(metrics):
     actual = GENERATED.read_text(encoding="utf-8")
     if actual != render(metrics):
@@ -345,6 +429,7 @@ def main():
         official = verify_official()
         metrics, auxiliary, extra, endpoints, window = official["nominal"]
         stress = official["estres"]
+        stress_metrics = stress[0]
         if args.emit_latex_block:
             print(render(metrics), end="")
             return 0
@@ -360,7 +445,6 @@ def main():
                              default=str, ensure_ascii=False, indent=2))
         else:
             print("OK: integridad y métricas nominal/estrés verificadas")
-            print("Estrés oficial:", stress[0])
             print("Conjunto A: microservicio-soporte/locust_esc1_stats.csv")
             for key, value in {**metrics, **auxiliary, **extra}.items():
                 print(f"{key}: {value}")
@@ -375,18 +459,26 @@ def main():
                 print(f"Conjunto {name}: {HISTORICAL_STATS[name].relative_to(ROOT)}")
                 for key, value in values.items():
                     print(f"  {key}: {value}")
+            if stress_metrics:
+                print("Conjunto Oficial de Estrés: microservicio-soporte/resultados_estres/20260920_164722")
+                for key, value in stress_metrics.items():
+                    print(f"  {key}: {value}")
         if args.check_latex:
+            manuscript_text = MANUSCRIPT.read_text(encoding="utf-8")
             errors = check_published_hashes()
-            errors.extend(check_latex(metrics, MANUSCRIPT.read_text(encoding="utf-8")))
+            errors.extend(check_latex(metrics, manuscript_text))
             errors.extend(check_generated_latex(metrics))
+            errors.extend(check_declared_hashes())
+            errors.extend(check_stress_consistency(stress_metrics, manuscript_text, "Informe-E4_BCEL/TA-PFC-E4_BCEL.tex"))
             for path in PUBLICATIONS:
-                errors.extend(check_publication(path, (ROOT / path).read_text(encoding='utf-8'),
-                                                {**metrics, **extra}))
+                pub_text = (ROOT / path).read_text(encoding='utf-8')
+                errors.extend(check_publication(path, pub_text, {**metrics, **extra}))
+                errors.extend(check_stress_consistency(stress_metrics, pub_text, path))
             for error in errors:
                 print("ERROR: " + error, file=sys.stderr)
             if errors:
                 return 1
-            print("OK: métricas oficiales explícitas coinciden con los CSV")
+            print("OK: métricas oficiales explícitas coinciden con los CSV y hashes verificados")
         return 0
     except (OSError, ValueError, InvalidOperation, KeyError, TypeError, AttributeError, OverflowError, csv.Error) as exc:
         print(f"ERROR de entrada: {exc}", file=sys.stderr)

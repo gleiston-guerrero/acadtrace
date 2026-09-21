@@ -217,10 +217,10 @@ class TestCotejoColumnas(unittest.TestCase):
 class TestVerificadorCadenaMain(unittest.TestCase):
     """Pruebas que ejercitan main() de verificador_cadena frente a manipulaciones reales."""
 
-    def _crear_cadena_valida(self, n=3):
+    def _crear_cadena_valida(self, n=3, inicio_hash=None, secret=None):
         filas = []
         GENESIS = "0" * 64
-        h_ant = GENESIS
+        h_ant = inicio_hash if inicio_hash is not None else GENESIS
         for i in range(1, n + 1):
             can_dict = {
                 "actor_id": f"user{i}",
@@ -241,7 +241,7 @@ class TestVerificadorCadenaMain(unittest.TestCase):
             }
             can_str = json.dumps(can_dict, sort_keys=True, separators=(",", ":"))
             h_act = _sha256(h_ant + can_str)
-            filas.append({
+            fila = {
                 "id_auditoria": i,
                 "descripcion": f"evento {i}",
                 "fecha": f"2026-09-17T10:0{i}:00Z",
@@ -257,7 +257,12 @@ class TestVerificadorCadenaMain(unittest.TestCase):
                 "accion": "CREAR",
                 "resultado": "EXITO",
                 "ip_address": None,
-            })
+                "trace_id": f"00000000-0000-0000-0000-00000000000{i}",
+                "hmac": "a" * 64,
+            }
+            if secret:
+                fila["hmac"] = verificador_cadena.calcular_hmac(secret, fila)
+            filas.append(fila)
             h_ant = h_act
         return filas, h_ant, n
 
@@ -266,7 +271,7 @@ class TestVerificadorCadenaMain(unittest.TestCase):
             "id_auditoria", "descripcion", "fecha", "username", "registro_id",
             "reloj_lamport", "contenido_canonico", "hash_anterior", "hash_actual",
             "version_canonica", "schema_origen", "tabla_afectada", "accion",
-            "resultado", "ip_address"
+            "resultado", "ip_address", "trace_id", "hmac"
         ]
         cursor_mock = MagicMock()
 
@@ -301,11 +306,42 @@ class TestVerificadorCadenaMain(unittest.TestCase):
         self.assertEqual(codigo, 0)
 
     @patch("django.db.connection.cursor")
+    def test_m1_legitimo_retorna_0(self, mock_cursor_ctx):
+        """Filas en modo m1 (sin hash ni version) son legitimas y no deben dar falso positivo."""
+        filas_m1 = [
+            {
+                "id_auditoria": 1,
+                "descripcion": "Creacion de usuario m1",
+                "fecha": "2026-09-17T10:00:00Z",
+                "username": "admin",
+                "registro_id": 1,
+                "reloj_lamport": None,
+                "contenido_canonico": None,
+                "hash_anterior": None,
+                "hash_actual": None,
+                "version_canonica": None,
+                "schema_origen": "PRINCIPAL",
+                "tabla_afectada": "usuario",
+                "accion": "CREAR",
+                "resultado": "EXITO",
+                "ip_address": "127.0.0.1",
+                "trace_id": "00000000-0000-0000-0000-000000000001",
+                "hmac": None,
+            }
+        ]
+        mock_cursor = self._simular_cursor(filas_m1, None, None, seq_val=1)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 0)
+
+    @patch("django.db.connection.cursor")
     def test_genesis_invalido_retorna_2(self, mock_cursor_ctx):
-        """Si el primer hash anterior no es el bloque genesis, falla."""
-        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
-        filas[0]["hash_anterior"] = "bad" * 21 + "b"
-        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport)
+        """Si el primer hash anterior no es el bloque genesis, falla de forma aislada."""
+        # Cadena criptograficamente valida en si misma pero anclada en un genesis corrupto
+        hash_no_genesis = "bad" * 21 + "b"
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3, inicio_hash=hash_no_genesis)
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=3)
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
@@ -313,11 +349,11 @@ class TestVerificadorCadenaMain(unittest.TestCase):
 
     @patch("django.db.connection.cursor")
     def test_retroceso_cabeza_retorna_2(self, mock_cursor_ctx):
-        """Si la cabeza en estado_cadena_auditoria difiere del ultimo eslabon, falla."""
+        """Si la cabeza en estado_cadena_auditoria difiere del ultimo eslabon, falla de forma aislada."""
         filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
         # Cabeza retrocedida al eslabon anterior
         cabeza_falsa = filas[1]["hash_actual"]
-        mock_cursor = self._simular_cursor(filas, cabeza_falsa, 2)
+        mock_cursor = self._simular_cursor(filas, cabeza_falsa, 2, seq_val=3)
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
@@ -325,10 +361,30 @@ class TestVerificadorCadenaMain(unittest.TestCase):
 
     @patch("django.db.connection.cursor")
     def test_fila_sin_hash_retorna_2(self, mock_cursor_ctx):
-        """Si existe una fila con hash_actual NULL, se detecta insercion sin firma."""
-        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
-        filas[1]["hash_actual"] = None
-        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport)
+        """Si existe una fila con hash_actual NULL, se detecta de forma aislada."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(2)
+        # Fila no sellada agregada a la lista
+        fila_incompleta = {
+            "id_auditoria": 3,
+            "descripcion": "evento no sellado",
+            "fecha": "2026-09-17T10:03:00Z",
+            "username": "user3",
+            "registro_id": 3,
+            "reloj_lamport": 3,
+            "contenido_canonico": "{}",
+            "hash_anterior": cabeza_hash,
+            "hash_actual": None,
+            "version_canonica": "v1",
+            "schema_origen": "PRINCIPAL",
+            "tabla_afectada": "estudiante",
+            "accion": "CREAR",
+            "resultado": "EXITO",
+            "ip_address": None,
+            "trace_id": "00000000-0000-0000-0000-000000000003",
+            "hmac": "a" * 64,
+        }
+        todas = filas + [fila_incompleta]
+        mock_cursor = self._simular_cursor(todas, cabeza_hash, cabeza_lamport, seq_val=2)
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
@@ -336,10 +392,29 @@ class TestVerificadorCadenaMain(unittest.TestCase):
 
     @patch("django.db.connection.cursor")
     def test_fila_sin_version_canonica_retorna_2(self, mock_cursor_ctx):
-        """Si una fila tiene version_canonica NULL, no se omite sino que falla con error 2."""
-        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
-        filas[2]["version_canonica"] = None
-        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport)
+        """Si una fila con hashes tiene version_canonica NULL, se detecta manipulacion."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(2)
+        fila_desversionada = {
+            "id_auditoria": 3,
+            "descripcion": "evento desversionado",
+            "fecha": "2026-09-17T10:03:00Z",
+            "username": "user3",
+            "registro_id": 3,
+            "reloj_lamport": 3,
+            "contenido_canonico": "{}",
+            "hash_anterior": cabeza_hash,
+            "hash_actual": "f" * 64,
+            "version_canonica": None,  # Forzada a NULL
+            "schema_origen": "PRINCIPAL",
+            "tabla_afectada": "estudiante",
+            "accion": "CREAR",
+            "resultado": "EXITO",
+            "ip_address": None,
+            "trace_id": "00000000-0000-0000-0000-000000000003",
+            "hmac": "a" * 64,
+        }
+        todas = filas + [fila_desversionada]
+        mock_cursor = self._simular_cursor(todas, cabeza_hash, cabeza_lamport, seq_val=2)
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
@@ -369,6 +444,40 @@ class TestVerificadorCadenaMain(unittest.TestCase):
 
         codigo = verificador_cadena.main()
         self.assertEqual(codigo, 2)
+
+    @patch("django.db.connection.cursor")
+    def test_hmac_ausente_en_principal_retorna_2(self, mock_cursor_ctx):
+        """Si una fila de PRINCIPAL/SECRETARIA no tiene HMAC (ej. insertada directo con sga_app), falla."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
+        filas[0]["hmac"] = None
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=3)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
+    @patch.dict("os.environ", {"JWT_SECRET": "clave-secreta-institucional-test"})
+    @patch("django.db.connection.cursor")
+    def test_hmac_alterado_con_secreto_retorna_2(self, mock_cursor_ctx):
+        """Si el HMAC almacenado no coincide con el calculado con el secreto institucional, falla."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3, secret="clave-secreta-institucional-test")
+        filas[1]["hmac"] = "b" * 64  # HMAC falso
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=3)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
+    @patch.dict("os.environ", {"JWT_SECRET": "clave-secreta-institucional-test"})
+    @patch("django.db.connection.cursor")
+    def test_hmac_valido_con_secreto_retorna_0(self, mock_cursor_ctx):
+        """Si el HMAC almacenado coincide con el secreto institucional, pasa con codigo 0."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3, secret="clave-secreta-institucional-test")
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=3)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 0)
 
     @patch("django.db.connection.cursor")
     def test_error_conexion_retorna_1(self, mock_cursor_ctx):

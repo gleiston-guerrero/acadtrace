@@ -115,6 +115,9 @@ jobs:
         with:
           name: cobertura-microservicio-docente
           path: docs/cobertura/docente/
+      - name: Pruebas unitarias del verificador de auditoría experimental (E2/E43)
+        run: |
+          python -m pytest -v experimentos/test_verificador_cadena_base.py
 
   ci-movil-representante:
     name: CI Aplicación Móvil Representante

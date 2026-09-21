@@ -55,13 +55,23 @@ Ruta: `microservicio-soporte/resultados_estres/20260920_164722/`. El `perfil.txt
 | Archivo | Hash SHA-256 |
 |---|---|
 | `microservicio-soporte/locust_esc1_stats.csv` | `900BED90BFD113B06F9FCA11EE58974ACAD632A6C599FE2C3EFC214217D26A4C` |
-| `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
 | `microservicio-soporte/locust_esc1_stats_history.csv` | `FFB37013E8A01EC99C1F1ED24400999A1B48564A67AE1EBE1DC29288B8678EA3` |
+| `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
 | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
 | Histórico, no actual: `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
 | Histórico, no actual: `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
 
-### 3.2. Hashes de conjuntos no oficiales B, C, D y F (E se identifica en el registro E5)
+### 3.2. Conjunto Oficial de Estrés Vigente (200 usuarios, corrida 20260920_164722)
+| Archivo | Hash SHA-256 |
+|---|---|
+| `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats.csv` | `C4E286ECD346C593EBFDE080F047519B45CEA00E27E5C5EC909F31E07D8AC089` |
+| `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats_history.csv` | `226729064FA77A0CCA51BE22C26C91D401869694D8D4926418DB97BB58BFB627` |
+| `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
+| `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+| `microservicio-soporte/resultados_estres/20260920_164722/perfil.txt` | `EC56FA4028F8643227570D24B63F5696042890C09ADD698DF4991770EDD0B586` |
+| `microservicio-soporte/resultados_estres/20260920_164722/resumen_validacion.txt` | `DC5CA0B77E464126EF5AA97664CFB303B3FDDB85CC84E1B6C0432E1F9B604DB8` |
+
+### 3.3. Hashes de conjuntos no oficiales B, C, D y F (E se identifica en el registro E5)
 | Archivo | Hash SHA-256 |
 |---|---|
 | `experimentos/resultados/locust_esc1_stats.csv` | `FC63845A59A397EAEA6E9EA15746BCDEBEA7A479EB09582B4691B016371903EA` |
@@ -99,8 +109,10 @@ El manifiesto `docs/locust/manifest_carga.json` fija los SHA-256 de los dos
 CSV nominales vigentes y los cuatro CSV del estrés `20260920_164722`, además
 de sus métricas declaradas. `scripts/recalcular_metricas_carga.py` verifica
 ambos conjuntos antes de emitir resultados o generar macros; `--check-latex`
-verifica también los hashes nominales publicados y las afirmaciones nominales
-seleccionadas. No valida automáticamente toda la prosa de estrés del informe.
+verifica también los hashes publicados de los archivos referenciados de Soporte,
+las afirmaciones nominales seleccionadas y las peticiones, fallos y percentiles
+de los bloques oficiales de estrés reconocidos en Markdown y LaTeX. No valida
+automáticamente toda la prosa de estrés del informe.
 Los hashes se calculan sobre bytes exactos, incluidos finales de línea;
 una normalización del archivo provoca fallo y requiere revisión explícita.
 
