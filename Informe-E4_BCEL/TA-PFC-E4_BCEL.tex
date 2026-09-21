@@ -575,6 +575,8 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
   \item \textbf{Motor de Sincronizaci\'on en Background (\texttt{WorkManager}):} Un componente \texttt{Periodic\-Work\-Request\-Builder} con restricciones de red (\texttt{NetworkType.\allowbreak CONNECTED}) se activa autom\'aticamente al recuperar la conectividad, drenando la cola transaccional hacia el API Gateway mediante peticiones idempotentes y actualizando el reloj vectorial del dispositivo.
 \end{enumerate}
 
+La Figura~\ref{fig:app_movil_representante} reúne las vistas de seguridad, calificaciones y asistencia de la aplicación para representantes descrita en esta sección.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{movil_representante_evidencia.png}
@@ -584,12 +586,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 
 \subsection{Evidencias visuales de interfaces y servicios}
 
+El panel principal organiza los accesos a los módulos académicos y administrativos, como se observa en la Figura~\ref{fig:sga-principal}.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{../release/screenshots/sga_principal.png}
     \caption{Panel principal del SGA con accesos visibles a los m\'odulos acad\'emicos y administrativos.}
     \label{fig:sga-principal}
 \end{figure}
+
+La documentación de la API de IA presenta las rutas de salud, diagnóstico de estudiante y asistente en la Figura~\ref{fig:microservicio-ia}.
 
 \begin{figure}[H]
     \centering
@@ -598,12 +604,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
     \label{fig:microservicio-ia}
 \end{figure}
 
+En el portal docente, la vista de registro semanal permite seleccionar el curso y consultar los estados de asistencia por estudiante; la Figura~\ref{fig:docente-asistencia} muestra esta interfaz.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{../release/screenshots/docente_asistencia.png}
     \caption{Portal del docente en la vista de registro semanal de asistencia, con selecci\'on de curso y estados por estudiante.}
     \label{fig:docente-asistencia}
 \end{figure}
+
+En el cliente móvil, los ajustes de seguridad agrupan la protección de acceso y la opción de desbloqueo biométrico, visibles en la Figura~\ref{fig:movil-biometria}.
 
 \begin{figure}[H]
     \centering
@@ -612,12 +622,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
     \label{fig:movil-biometria}
 \end{figure}
 
+La consulta de calificaciones del representante organiza las asignaturas y sus ponderaciones por trimestre, como muestra la Figura~\ref{fig:movil-calificaciones}.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_calificaciones.png}
     \caption{Aplicaci\'on m\'ovil del representante: vista de calificaciones detalladas por trimestre con listado de asignaturas y ponderaciones.}
     \label{fig:movil-calificaciones}
 \end{figure}
+
+El resumen de asistencia complementa la consulta académica con el desglose por estados mostrado en la Figura~\ref{fig:movil-asistencia}.
 
 \begin{figure}[H]
     \centering
@@ -645,9 +659,11 @@ La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
     \end{itemize}
 \end{enumerate}
 
+Como evidencia complementaria de observabilidad, la Figura~\ref{fig:grafana-hikari-latencias} muestra el panel de Grafana con métricas del pool HikariCP y percentiles de latencia; corresponde a una captura histórica, no a la interfaz de Locust.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{locust_resultados.png}
+\includegraphics[width=0.85\textwidth]{grafana_hikari_p95.png}
 \caption{M\'etricas de observabilidad en Grafana durante la ejecuci\'on de pruebas de carga: monitoreo del pool HikariCP y percentiles de latencia ($P_{50}$ y $P_{99}$) como evidencia complementaria.}
 \label{fig:grafana-hikari-latencias}
 \end{figure}
