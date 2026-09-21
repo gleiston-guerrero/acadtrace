@@ -27,12 +27,17 @@ OUTPUT_PNG = REPORT_DIR / "boxplot_latencia.png"
 MECHANISMS = ("M0", "M1", "M2", "M3")
 MECHANISM_LABELS = {
     "M0": "Base",
-    "M1": "SQL",
+    "M1": "Relacional simple",
     "M2": "SHA-256 + Lamport",
     "M3": "Vector Clocks",
 }
-EXPECTED_ROWS = 160
-EXPECTED_ROWS_PER_MECHANISM = 40
+LOAD_LEVELS = (1, 5, 10, 14)
+EXPECTED_REPETITIONS = 10
+EXPECTED_ROWS = (
+    len(MECHANISMS)
+    * len(LOAD_LEVELS)
+    * EXPECTED_REPETITIONS
+)
 BOOTSTRAP_REPLICATES = 10_000
 BOOTSTRAP_SEED = 20260831
 REQUIRED_COLUMNS = {
@@ -50,17 +55,20 @@ REQUIRED_COLUMNS = {
 
 
 @dataclass(frozen=True)
-class MechanismStatistics:
+class ConditionStatistics:
     mechanism: str
+    load_level: int
     count: int
     median_ms: float
     ci_low_ms: float
     ci_high_ms: float
+    ci_informative: bool
     p95_ms: float
-    effect_vs_m0_ms: float
-    effect_ci_low_ms: float
-    effect_ci_high_ms: float
-
+    effect_vs_m0_ms: float | None
+    effect_ci_low_ms: float | None
+    effect_ci_high_ms: float | None
+    effect_ci_informative: bool
+    a12_vs_m0: float | None
 
 def percentile(values: list[float], percentage: float) -> float:
     """Percentil lineal equivalente al usado por el banco experimental."""
@@ -79,65 +87,144 @@ def percentile(values: list[float], percentage: float) -> float:
     )
 
 
-def load_latency_samples() -> dict[str, list[float]]:
+def load_latency_samples() -> dict[str, dict[int, list[float]]]:
+    """Carga las 160 observaciones sin mezclar niveles de carga."""
     if not SOURCE_CSV.is_file():
-        raise FileNotFoundError(f"No existe el archivo fuente: {SOURCE_CSV}")
+        raise FileNotFoundError(
+            f"No existe el archivo fuente: {SOURCE_CSV}"
+        )
 
-    with SOURCE_CSV.open("r", encoding="utf-8-sig", newline="") as stream:
+    with SOURCE_CSV.open(
+        "r",
+        encoding="utf-8-sig",
+        newline="",
+    ) as stream:
         reader = csv.DictReader(stream)
         columns = set(reader.fieldnames or ())
         missing = sorted(REQUIRED_COLUMNS - columns)
+
         if missing:
             raise ValueError(
-                "Faltan columnas requeridas en exp1_concurrencia.csv: "
+                "Faltan columnas requeridas en "
+                "exp1_concurrencia.csv: "
                 + ", ".join(missing)
             )
+
         rows = list(reader)
 
     if len(rows) != EXPECTED_ROWS:
         raise ValueError(
-            f"Se esperaban exactamente {EXPECTED_ROWS} registros y se encontraron {len(rows)}"
+            f"Se esperaban exactamente {EXPECTED_ROWS} "
+            f"registros y se encontraron {len(rows)}"
         )
 
-    mechanisms_found = {row["mecanismo"] for row in rows}
+    mechanisms_found = {
+        row["mecanismo"]
+        for row in rows
+    }
+
     if mechanisms_found != set(MECHANISMS):
         raise ValueError(
-            "Los mecanismos deben ser exactamente M0, M1, M2 y M3; encontrados: "
+            "Los mecanismos deben ser exactamente "
+            "M0, M1, M2 y M3; encontrados: "
             + ", ".join(sorted(mechanisms_found))
         )
 
-    samples = {mechanism: [] for mechanism in MECHANISMS}
+    try:
+        levels_found = {
+            int(row["concurrencia_docentes"])
+            for row in rows
+        }
+    except ValueError as exc:
+        raise ValueError(
+            "concurrencia_docentes debe contener enteros"
+        ) from exc
+
+    if levels_found != set(LOAD_LEVELS):
+        raise ValueError(
+            "Los niveles deben ser exactamente "
+            f"{LOAD_LEVELS}; encontrados: "
+            f"{sorted(levels_found)}"
+        )
+
+    samples = {
+        mechanism: {
+            level: []
+            for level in LOAD_LEVELS
+        }
+        for mechanism in MECHANISMS
+    }
+
+    repetitions = {
+        (mechanism, level): set()
+        for mechanism in MECHANISMS
+        for level in LOAD_LEVELS
+    }
+
     for row_number, row in enumerate(rows, start=2):
         mechanism = row["mecanismo"]
-        raw_value = row["latencia_mediana_ms"]
+
         try:
-            value_ms = float(raw_value)
+            level = int(row["concurrencia_docentes"])
+            repetition = int(row["repeticion"])
+            value_ms = float(row["latencia_mediana_ms"])
         except (TypeError, ValueError) as exc:
             raise ValueError(
-                f"latencia_mediana_ms invalida en la fila {row_number}: {raw_value!r}"
+                f"Valor invalido en la fila {row_number}"
             ) from exc
+
+        if mechanism not in MECHANISMS:
+            raise ValueError(
+                f"Mecanismo invalido en fila {row_number}: "
+                f"{mechanism}"
+            )
+
+        if level not in LOAD_LEVELS:
+            raise ValueError(
+                f"Nivel invalido en fila {row_number}: {level}"
+            )
+
         if not math.isfinite(value_ms) or value_ms < 0:
             raise ValueError(
-                f"latencia_mediana_ms debe ser finita y no negativa en la fila {row_number}"
+                "latencia_mediana_ms debe ser finita "
+                f"y no negativa en fila {row_number}"
             )
-        samples[mechanism].append(value_ms)
 
-    invalid_counts = {
-        mechanism: len(values)
-        for mechanism, values in samples.items()
-        if len(values) != EXPECTED_ROWS_PER_MECHANISM
-    }
-    if invalid_counts:
-        details = ", ".join(
-            f"{mechanism}={count}" for mechanism, count in invalid_counts.items()
-        )
-        raise ValueError(
-            "Cada mecanismo debe tener exactamente "
-            f"{EXPECTED_ROWS_PER_MECHANISM} registros; encontrados: {details}"
-        )
+        key = (mechanism, level)
+
+        if repetition in repetitions[key]:
+            raise ValueError(
+                "Repeticion duplicada para "
+                f"{mechanism}, nivel {level}: {repetition}"
+            )
+
+        repetitions[key].add(repetition)
+        samples[mechanism][level].append(value_ms)
+
+    expected_repetitions = set(
+        range(1, EXPECTED_REPETITIONS + 1)
+    )
+
+    for mechanism in MECHANISMS:
+        for level in LOAD_LEVELS:
+            values = samples[mechanism][level]
+            key = (mechanism, level)
+
+            if len(values) != EXPECTED_REPETITIONS:
+                raise ValueError(
+                    f"{mechanism}, nivel {level}: "
+                    f"se esperaban {EXPECTED_REPETITIONS} "
+                    f"observaciones y hay {len(values)}"
+                )
+
+            if repetitions[key] != expected_repetitions:
+                raise ValueError(
+                    f"{mechanism}, nivel {level}: "
+                    "las repeticiones deben ser exactamente "
+                    f"1..{EXPECTED_REPETITIONS}"
+                )
 
     return samples
-
 
 def bootstrap_median_ci(
     values: list[float], rng: random.Random
@@ -180,117 +267,251 @@ def bootstrap_median_difference_ci(
     )
 
 
+def vargha_delaney_a12(
+    comparison: list[float],
+    reference: list[float],
+) -> float:
+    """Vargha-Delaney A12: P(X>Y) + 0.5*P(X=Y)."""
+    if not comparison or not reference:
+        raise ValueError(
+            "A12 requiere dos muestras no vacias"
+        )
+
+    score = 0.0
+
+    for x in comparison:
+        for y in reference:
+            if x > y:
+                score += 1.0
+            elif x == y:
+                score += 0.5
+
+    return score / (
+        len(comparison) * len(reference)
+    )
+
+
 def calculate_statistics(
-    samples: dict[str, list[float]],
-) -> list[MechanismStatistics]:
+    samples: dict[str, dict[int, list[float]]],
+) -> list[ConditionStatistics]:
+    """Calcula estadistica dentro de cada nivel de carga."""
     rng = random.Random(BOOTSTRAP_SEED)
-    results = []
-    reference = samples["M0"]
-    reference_median = statistics.median(reference)
+    results: list[ConditionStatistics] = []
 
-    for mechanism in MECHANISMS:
-        values = samples[mechanism]
-        ci_low_ms, ci_high_ms = bootstrap_median_ci(values, rng)
+    for level in LOAD_LEVELS:
+        reference = samples["M0"][level]
+        reference_median = statistics.median(reference)
 
-        if mechanism == "M0":
-            effect_vs_m0_ms = 0.0
-            effect_ci_low_ms = 0.0
-            effect_ci_high_ms = 0.0
-        else:
-            effect_vs_m0_ms = (
-                statistics.median(values) - reference_median
+        for mechanism in MECHANISMS:
+            values = samples[mechanism][level]
+
+            ci_low_ms, ci_high_ms = bootstrap_median_ci(
+                values,
+                rng,
             )
-            effect_ci_low_ms, effect_ci_high_ms = (
-                bootstrap_median_difference_ci(
+
+            ci_informative = not math.isclose(
+                ci_low_ms,
+                ci_high_ms,
+                rel_tol=0.0,
+                abs_tol=1e-15,
+            )
+
+            if mechanism == "M0":
+                effect_vs_m0_ms = None
+                effect_ci_low_ms = None
+                effect_ci_high_ms = None
+                effect_ci_informative = False
+                a12_vs_m0 = None
+
+            else:
+                effect_vs_m0_ms = (
+                    statistics.median(values)
+                    - reference_median
+                )
+
+                (
+                    effect_ci_low_ms,
+                    effect_ci_high_ms,
+                ) = bootstrap_median_difference_ci(
                     reference,
                     values,
                     rng,
                 )
-            )
 
-        results.append(
-            MechanismStatistics(
-                mechanism=mechanism,
-                count=len(values),
-                median_ms=statistics.median(values),
-                ci_low_ms=ci_low_ms,
-                ci_high_ms=ci_high_ms,
-                p95_ms=percentile(values, 95),
-                effect_vs_m0_ms=effect_vs_m0_ms,
-                effect_ci_low_ms=effect_ci_low_ms,
-                effect_ci_high_ms=effect_ci_high_ms,
+                effect_ci_informative = not math.isclose(
+                    effect_ci_low_ms,
+                    effect_ci_high_ms,
+                    rel_tol=0.0,
+                    abs_tol=1e-15,
+                )
+
+                a12_vs_m0 = vargha_delaney_a12(
+                    values,
+                    reference,
+                )
+
+            results.append(
+                ConditionStatistics(
+                    mechanism=mechanism,
+                    load_level=level,
+                    count=len(values),
+                    median_ms=statistics.median(values),
+                    ci_low_ms=ci_low_ms,
+                    ci_high_ms=ci_high_ms,
+                    ci_informative=ci_informative,
+                    p95_ms=percentile(values, 95),
+                    effect_vs_m0_ms=effect_vs_m0_ms,
+                    effect_ci_low_ms=effect_ci_low_ms,
+                    effect_ci_high_ms=effect_ci_high_ms,
+                    effect_ci_informative=effect_ci_informative,
+                    a12_vs_m0=a12_vs_m0,
+                )
             )
-        )
 
     return results
-
 
 def format_ms(value: float) -> str:
     return f"{value:.6f}"
 
 
-def build_latex_table(results: list[MechanismStatistics]) -> str:
+def format_ci(
+    low: float,
+    high: float,
+    informative: bool,
+) -> str:
+    if not informative:
+        return "\\emph{no informativo}"
+
+    return (
+        f"[{format_ms(low)}, "
+        f"{format_ms(high)}]"
+    )
+
+
+def build_latex_table(
+    results: list[ConditionStatistics],
+) -> str:
     lines = [
-        "% Archivo generado automaticamente por experimentos/generar_tabla_latencias.py.",
-        "% No editar manualmente: la fuente unica es experimentos/resultados/exp1_concurrencia.csv.",
+        "% Archivo generado automaticamente por "
+        "experimentos/generar_tabla_latencias.py.",
+        "% Fuente unica: "
+        "experimentos/resultados/exp1_concurrencia.csv.",
         "\\begin{table}[H]",
         "\\centering",
-        "\\caption{Resumen reproducible de latencia mediana por mecanismo "
-        "($B = 10{,}000$; semilla 20260831).}",
+        "\\scriptsize",
+        "\\caption{Latencia segmentada por mecanismo "
+        "y nivel de carga "
+        "($B=10{,}000$; semilla 20260831).}",
         "\\label{tab:estadistica-inferencial}",
-        "\\begin{tabular}{|l|c|c|c|c|c|}",
+        "\\begin{tabular}{|l|c|c|c|c|c|c|}",
         "\\hline",
-        "\\textbf{Mecanismo} & \\textbf{$n$} & \\textbf{Mediana (ms)} & "
-        "\\textbf{IC 95\\% bootstrap (ms)} & \\textbf{$P_{95}$ (ms)} & "
-        "\\textbf{$\\Delta$ mediana vs. $M_0$ (ms), IC 95\\%} \\\\",
+        "\\textbf{Mec.} & "
+        "\\textbf{Nivel} & "
+        "\\textbf{$n$} & "
+        "\\textbf{Mediana (ms)} & "
+        "\\textbf{IC 95\\% med.} & "
+        "\\textbf{$\\Delta$ vs. $M_0$} & "
+        "\\textbf{$A_{12}$} \\\\",
         "\\hline",
     ]
+
     for result in results:
         mechanism_number = result.mechanism[1]
         label = MECHANISM_LABELS[result.mechanism]
+
+        median_ci = format_ci(
+            result.ci_low_ms,
+            result.ci_high_ms,
+            result.ci_informative,
+        )
+
+        if result.mechanism == "M0":
+            effect_text = "--"
+            a12_text = "--"
+        else:
+            assert result.effect_vs_m0_ms is not None
+            assert result.effect_ci_low_ms is not None
+            assert result.effect_ci_high_ms is not None
+            assert result.a12_vs_m0 is not None
+
+            effect_ci = format_ci(
+                result.effect_ci_low_ms,
+                result.effect_ci_high_ms,
+                result.effect_ci_informative,
+            )
+
+            effect_text = (
+                f"{format_ms(result.effect_vs_m0_ms)} "
+                f"{effect_ci}"
+            )
+
+            a12_text = f"{result.a12_vs_m0:.4f}"
+
         lines.extend(
             [
-                f"$M_{mechanism_number}$ ({label}) & {result.count} & "
+                f"$M_{mechanism_number}$ ({label}) & "
+                f"{result.load_level} & "
+                f"{result.count} & "
                 f"{format_ms(result.median_ms)} & "
-                f"[{format_ms(result.ci_low_ms)}, {format_ms(result.ci_high_ms)}] & "
-                f"{format_ms(result.p95_ms)} & "
-                f"{format_ms(result.effect_vs_m0_ms)} "
-                f"[{format_ms(result.effect_ci_low_ms)}, "
-                f"{format_ms(result.effect_ci_high_ms)}] \\\\",
+                f"{median_ci} & "
+                f"{effect_text} & "
+                f"{a12_text} \\\\",
                 "\\hline",
             ]
         )
+
     lines.extend(
         [
             "\\end{tabular}",
             "\\vspace{0.35em}",
             "\\begin{minipage}{0.98\\columnwidth}",
-            "\\footnotesize Fuente: \\texttt{experimentos/resultados/exp1\\_concurrencia.csv}, "
-            "columna \\texttt{latencia\\_mediana\\_ms}. Entrada y salida expresadas "
-            "directamente en milisegundos (ms), sin conversi\\'on adicional. "
-            "Cada mecanismo contiene $n=40$ observaciones. El IC 95\\% de la mediana "
-            "corresponde al bootstrap no param\\'etrico con $B=10{,}000$ y semilla "
-            "fija 20260831. La magnitud $\\Delta$ mediana vs. $M_0$ se define como "
-            "la mediana del mecanismo menos la mediana de $M_0$; su IC 95\\% se "
-            "obtiene mediante bootstrap no param\\'etrico independiente con "
-            "$B=10{,}000$ y la misma semilla fija. No se reportan contrastes de "
-            "hip\\'otesis ni valores $p$.",
+            "\\footnotesize "
+            "Fuente: \\texttt{experimentos/resultados/"
+            "exp1\\_concurrencia.csv}, columna "
+            "\\texttt{latencia\\_mediana\\_ms}. "
+            "Cada fila contiene $n=10$ repeticiones "
+            "de una unica combinacion mecanismo--nivel; "
+            "no se mezclan los niveles 1, 5, 10 y 14. "
+            "Los IC 95\\% corresponden al bootstrap "
+            "no parametrico de la mediana con "
+            "$B=10{,}000$ y semilla fija 20260831. "
+            "Cuando los cuantiles bootstrap coinciden "
+            "por la resolucion de los datos, el IC se "
+            "marca como \\emph{no informativo} y no se "
+            "interpreta como precision infinita. "
+            "$A_{12}$ es el tamano de efecto "
+            "Vargha--Delaney calculado contra $M_0$ "
+            "dentro del mismo nivel: "
+            "$A_{12}=P(X>M_0)+0.5P(X=M_0)$. "
+            "No se reportan valores $p$ ni contrastes "
+            "entre niveles distintos.",
             "\\end{minipage}",
             "\\end{table}",
             "",
         ]
     )
+
     return "\n".join(lines)
 
-
 def build_boxplot(
-    samples: dict[str, list[float]], results: list[MechanismStatistics], output: Path
+    samples: dict[str, dict[int, list[float]]],
+    results: list[ConditionStatistics],
+    output: Path,
 ) -> None:
     import matplotlib
 
     matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
     from matplotlib.ticker import FormatStrFormatter
+
+    data = []
+    labels = []
+
+    for level in LOAD_LEVELS:
+        for mechanism in MECHANISMS:
+            data.append(samples[mechanism][level])
+            labels.append(f"{mechanism}\\nL{level}")
 
     with plt.rc_context(
         {
@@ -299,86 +520,111 @@ def build_boxplot(
             "axes.linewidth": 0.8,
         }
     ):
-        figure, axis = plt.subplots(figsize=(9, 5.5), dpi=300)
+        figure, axis = plt.subplots(
+            figsize=(12, 6),
+            dpi=300,
+        )
+
         boxplot = axis.boxplot(
-            [samples[mechanism] for mechanism in MECHANISMS],
+            data,
             patch_artist=True,
-            tick_labels=[f"{m}\n{MECHANISM_LABELS[m]}" for m in MECHANISMS],
+            tick_labels=labels,
             showmeans=True,
             meanline=True,
             widths=0.55,
-            medianprops={"color": "#b91c1c", "linewidth": 2.0},
-            meanprops={"color": "#1e40af", "linestyle": "--", "linewidth": 1.5},
-            whiskerprops={"color": "#475569", "linewidth": 1.2},
-            capprops={"color": "#475569", "linewidth": 1.2},
-            flierprops={
-                "marker": "o",
-                "markerfacecolor": "#64748b",
-                "markeredgecolor": "#64748b",
-                "markersize": 4,
-                "alpha": 0.6,
+            medianprops={
+                "color": "#b91c1c",
+                "linewidth": 1.8,
+            },
+            meanprops={
+                "color": "#1e40af",
+                "linestyle": "--",
+                "linewidth": 1.2,
             },
         )
-        colors = ("#f1f5f9", "#dbeafe", "#ffedd5", "#ede9fe")
-        edges = ("#64748b", "#2563eb", "#ea580c", "#7c3aed")
-        for patch, color, edge in zip(boxplot["boxes"], colors, edges):
-            patch.set_facecolor(color)
-            patch.set_edgecolor(edge)
-            patch.set_linewidth(1.3)
+
+        colors = {
+            "M0": "#f1f5f9",
+            "M1": "#dbeafe",
+            "M2": "#ffedd5",
+            "M3": "#ede9fe",
+        }
+
+        edges = {
+            "M0": "#64748b",
+            "M1": "#2563eb",
+            "M2": "#ea580c",
+            "M3": "#7c3aed",
+        }
+
+        mechanisms_by_position = [
+            mechanism
+            for _level in LOAD_LEVELS
+            for mechanism in MECHANISMS
+        ]
+
+        for patch, mechanism in zip(
+            boxplot["boxes"],
+            mechanisms_by_position,
+        ):
+            patch.set_facecolor(colors[mechanism])
+            patch.set_edgecolor(edges[mechanism])
+            patch.set_linewidth(1.2)
 
         axis.set_title(
-            "Latencia mediana por mecanismo de auditoria",
+            "Latencia mediana por mecanismo "
+            "y nivel de carga",
             fontsize=12,
             fontweight="bold",
             pad=14,
-            color="#0f172a",
         )
-        axis.set_xlabel("Mecanismo de auditoria", fontsize=11, fontweight="semibold")
-        axis.set_ylabel(
-            "latencia_mediana_ms (ms)", fontsize=11, fontweight="semibold"
-        )
-        axis.yaxis.set_major_formatter(FormatStrFormatter("%.6f"))
-        axis.grid(axis="y", linestyle=":", alpha=0.6, color="#cbd5e1")
 
-        vertical_span = max(
-            value for values in samples.values() for value in values
-        ) - min(value for values in samples.values() for value in values)
-        annotation_offset = max(vertical_span * 0.035, 0.00025)
-        for position, result in enumerate(results, start=1):
-            axis.text(
-                position,
-                result.median_ms + annotation_offset,
-                f"Mediana={format_ms(result.median_ms)} ms",
-                horizontalalignment="center",
-                fontsize=8,
-                color="#1e293b",
-                fontweight="bold",
-                bbox={
-                    "boxstyle": "round,pad=0.2",
-                    "facecolor": "white",
-                    "alpha": 0.85,
-                    "edgecolor": "#cbd5e1",
-                },
-            )
+        axis.set_xlabel(
+            "Mecanismo y nivel de carga",
+            fontsize=10,
+            fontweight="bold",
+        )
+
+        axis.set_ylabel(
+            "latencia_mediana_ms (ms)",
+            fontsize=10,
+            fontweight="bold",
+        )
+
+        axis.yaxis.set_major_formatter(
+            FormatStrFormatter("%.6f")
+        )
+
+        axis.grid(
+            axis="y",
+            linestyle=":",
+            alpha=0.6,
+        )
 
         figure.text(
             0.5,
             0.01,
-            "Fuente: experimentos/resultados/exp1_concurrencia.csv | "
-            "40 observaciones por mecanismo | Unidad: ms (sin conversion adicional)",
+            "Fuente: exp1_concurrencia.csv | "
+            "n=10 por combinacion mecanismo--nivel | "
+            "niveles no mezclados",
             ha="center",
             fontsize=8,
-            color="#475569",
         )
-        figure.tight_layout(rect=(0, 0.04, 1, 1))
+
+        figure.tight_layout(
+            rect=(0, 0.04, 1, 1)
+        )
+
         figure.savefig(
             output,
             format="png",
             dpi=300,
-            metadata={"Software": "AcadTrace punto 21"},
+            metadata={
+                "Software": "AcadTrace punto 21"
+            },
         )
-        plt.close(figure)
 
+        plt.close(figure)
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -391,36 +637,115 @@ def sha256(path: Path) -> str:
 def main() -> None:
     samples = load_latency_samples()
     results = calculate_statistics(samples)
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-    temporary_tex = OUTPUT_TEX.with_suffix(".tex.tmp")
-    temporary_png = OUTPUT_PNG.with_suffix(".png.tmp")
-    try:
-        temporary_tex.write_text(build_latex_table(results), encoding="utf-8", newline="\n")
-        build_boxplot(samples, results, temporary_png)
-        os.replace(temporary_tex, OUTPUT_TEX)
-        os.replace(temporary_png, OUTPUT_PNG)
-    finally:
-        temporary_tex.unlink(missing_ok=True)
-        temporary_png.unlink(missing_ok=True)
-
-    print(f"Fuente unica: {SOURCE_CSV.relative_to(REPO_ROOT).as_posix()}")
-    print("Unidad de entrada y salida: ms (sin conversion adicional)")
-    print(
-        f"Validacion: {EXPECTED_ROWS} registros; "
-        f"{EXPECTED_ROWS_PER_MECHANISM} por mecanismo"
+    REPORT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
     )
-    print(f"Bootstrap de la mediana: B={BOOTSTRAP_REPLICATES}; semilla={BOOTSTRAP_SEED}")
+
+    temporary_tex = OUTPUT_TEX.with_suffix(
+        ".tex.tmp"
+    )
+
+    temporary_png = OUTPUT_PNG.with_suffix(
+        ".png.tmp"
+    )
+
+    try:
+        temporary_tex.write_text(
+            build_latex_table(results),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        build_boxplot(
+            samples,
+            results,
+            temporary_png,
+        )
+
+        os.replace(
+            temporary_tex,
+            OUTPUT_TEX,
+        )
+
+        os.replace(
+            temporary_png,
+            OUTPUT_PNG,
+        )
+
+    finally:
+        temporary_tex.unlink(
+            missing_ok=True
+        )
+
+        temporary_png.unlink(
+            missing_ok=True
+        )
+
+    print(
+        "Fuente unica: "
+        f"{SOURCE_CSV.relative_to(REPO_ROOT).as_posix()}"
+    )
+
+    print(
+        "Unidad de entrada y salida: "
+        "ms (sin conversion adicional)"
+    )
+
+    print(
+        "Validacion: "
+        f"{len(MECHANISMS)} mecanismos x "
+        f"{len(LOAD_LEVELS)} niveles x "
+        f"{EXPECTED_REPETITIONS} repeticiones "
+        f"= {EXPECTED_ROWS} observaciones"
+    )
+
+    print(
+        "Bootstrap de la mediana: "
+        f"B={BOOTSTRAP_REPLICATES}; "
+        f"semilla={BOOTSTRAP_SEED}"
+    )
+
+    print(
+        "A12 Vargha-Delaney: "
+        "cada M1/M2/M3 se compara con M0 "
+        "del mismo nivel"
+    )
+
     for result in results:
-        print(
-            f"{result.mechanism}: n={result.count}; "
+        ci_text = format_ci(
+            result.ci_low_ms,
+            result.ci_high_ms,
+            result.ci_informative,
+        )
+
+        line = (
+            f"{result.mechanism}/"
+            f"nivel={result.load_level}: "
+            f"n={result.count}; "
             f"mediana={format_ms(result.median_ms)} ms; "
-            f"IC95=[{format_ms(result.ci_low_ms)}, {format_ms(result.ci_high_ms)}] ms; "
+            f"IC95={ci_text}; "
             f"P95={format_ms(result.p95_ms)} ms"
         )
-    print(f"SHA-256 {OUTPUT_TEX.name}: {sha256(OUTPUT_TEX)}")
-    print(f"SHA-256 {OUTPUT_PNG.name}: {sha256(OUTPUT_PNG)}")
 
+        if result.a12_vs_m0 is not None:
+            line += (
+                f"; A12_vs_M0="
+                f"{result.a12_vs_m0:.4f}"
+            )
+
+        print(line)
+
+    print(
+        f"SHA-256 {OUTPUT_TEX.name}: "
+        f"{sha256(OUTPUT_TEX)}"
+    )
+
+    print(
+        f"SHA-256 {OUTPUT_PNG.name}: "
+        f"{sha256(OUTPUT_PNG)}"
+    )
 
 if __name__ == "__main__":
     main()
