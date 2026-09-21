@@ -11,25 +11,86 @@ Reglas:
 - El numero de version siempre sube, nunca se reutiliza ni se edita un
   archivo ya commiteado y aplicado (si algo esta mal, se corrige con una
   migracion nueva, no editando la vieja).
-- Flyway los aplica solo, en orden, al arrancar la aplicacion
-  (`spring.flyway.baseline-version=8` en `application.properties`: todo lo
-  anterior a V9 ya estaba aplicado a mano y Flyway no lo vuelve a correr).
+- Flyway los aplica solo, en orden, al arrancar la aplicacion.
 - Con 2 replicas de sga-principal arrancando a la vez, Flyway usa un lock
   a nivel de Postgres para que solo una aplique las migraciones pendientes.
 
-## V20: reparacion de checksum de V18
+## Arranque desde base nueva
 
-V18 fue editada despues de aplicarse (se cambio la contrasena literal por
-el marcador `${sga_app_password}`). Esa edicion contradice la regla de
-"nunca editar una migracion aplicada" pero era necesaria para sacar la
-contrasena del arbol versionado.
+Para levantar la base desde un clon limpio y llegar al esquema completo:
 
-Como reparacion versionada, V20 pone `checksum = NULL` en la fila
-correspondiente del `flyway_schema_history`. Flyway 9.x acepta un checksum
-NULL y lo recalcula en la siguiente validacion sin lanzar `checksum
-mismatch`. La operacion es idempotente: si V18 no existe en el historial
-(base nueva), V20 no tiene efecto.
+1. `createdb sga_principal`
+2. `cd sga-principal && ./mvnw spring-boot:run`
+3. Verificar que Flyway aplica la línea base `V8__baseline_completo.sql` y
+   luego V9 hasta V26 automáticamente. La aplicación debe arrancar sin
+   errores escuchando en su puerto.
+
+Flyway lee las migraciones desde `spring.flyway.locations=classpath:db/migration`.
+La versión V8 carga el esquema inicial completo, y las siguientes versiones aplican
+las modificaciones progresivas.
+
+## Arranque sobre base ya migrada
+
+Para una base migrada hasta V24 (o cualquier estado intermedio con checksums
+correctos), el proceso de arranque es idéntico:
+
+1. `cd sga-principal && ./mvnw spring-boot:run`
+
+La validación por omisión de Flyway (`spring.flyway.validate-on-migrate=true`)
+se ejecutará correctamente sin necesidad de mecanismos de bypass ni `repair()`.
+Flyway validará las migraciones existentes y aplicará automáticamente solo las
+nuevas (V25 y V26). Bases anteriores al 13/09/2026 no tienen camino automático
+porque V18 fue reparada con V20/V22; requieren restauración desde el dump
+post-V24 de `92f2ec91`.
+
+### Corrección de V19 y creación de V23
+
+Anteriormente se editó la migración V19 retroactivamente, lo que alteraba su
+suma de comprobación e impedía la validación en bases ya migradas. Para solucionar
+esto sin recurrir a `repair()`, se restauró V19 a su estado original (commit `186593cb`)
+y las adiciones se colocaron en una nueva migración `V23__grants_sga_secretaria_y_auditoria_diferidos.sql`.
 
 Constancia de arranque validado en base nueva y base migrada:
 `evidencias/Pedro_Castro/Punto_05_Esquema_y_Migraciones/arranque_base_nueva.log`
 `evidencias/Pedro_Castro/Punto_05_Esquema_y_Migraciones/arranque_base_migrada.log`
+
+## V20 y V22 — marca histórica de reparación de V18
+
+V20 y V22 mencionan un `FlywayConfig.repairAntesDeMigrar()` que ejecutaba
+`flyway.repair()` antes de `flyway.migrate()`. Ese componente ya no existe en
+`src/main` desde el commit `13db4bbe`. La ausencia es intencional: la guía del
+punto 5 exige validación activa sin bypass ni `repair()`; no restaurar ese
+archivo. V20/V22 se conservan sin editar como marcas versionadas de auditoría.
+
+## V25 y V26 — cierre del punto 5
+
+V8 y V19 volvieron a editarse después de aplicadas (V8 con 165 líneas nuevas,
+V19 con un comentario), lo que rompía el checksum en bases ya migradas. Se
+restauraron ambas al estado oficial de `92f2ec91` y los cambios se trasladaron
+hacia adelante:
+
+- `V25__delta_v8_tablas_vistas.sql`: vistas `sga_principal.estudiantes`,
+  `matriculas` y `fichas_estudiante` sobre `sga_secretaria`, tablas
+  `tipos_aporte`, `periodos_horario`, `notificaciones`, `malla_curricular`,
+  `esquema_calificacion`, `periodos_evaluacion`, `escala_calificaciones`,
+  `dispositivos_representante`, `eventos_notificacion_push`,
+  `estado_cadena_auditoria` y columnas sobre tablas existentes.
+- `V26__objetos_faltantes_codigo.sql`: `sga_principal.historial_promocion`
+  (con `lamport_ts`), `eventos_academicos`, vistas `sga_secretaria.grados` y
+  `paralelos`, `sga_soporte.historial_ticket` y la función
+  `sga_principal.fn_horario_no_choque` con su trigger.
+
+Regeneración de constancias pendiente: se hará en una segunda pasada cuando
+PostgreSQL 15/16 esté disponible localmente. Cuando se ejecute, base nueva
+debe aplicar 18 migraciones (V8..V26) y base ya migrada desde V24 (dump
+`92f2ec91`) debe validar sin mismatch y aplicar solo V25/V26. Los logs
+actuales en la carpeta de evidencias son del 18/09/2026 y corresponden al
+conjunto anterior; se sustituirán con la corrida nueva.
+
+## Nota sobre la NOTA de V19
+
+La revocación por omisión amplia sobre `sga_principal` introducida en V19
+quedó acotada en `V24__acotar_revocacion_bitacora.sql`, que restablece los
+privilegios por omisión y deja el REVOKE únicamente sobre `auditoria`. Esta
+relación queda documentada aquí y NO dentro de `V19.sql`, para preservar su
+checksum original de `92f2ec91`.
