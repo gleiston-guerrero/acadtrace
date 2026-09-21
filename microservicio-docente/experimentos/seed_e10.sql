@@ -33,8 +33,8 @@ INSERT INTO sga_principal.personas (
     900001,
     900001,
     '9999000001',
-    'Docente',
-    'Sintetico E10',
+    'Andrea',
+    'Prueba E10',
     'docente.e10@acadtrace.test',
     'DOCENTE'
 );
@@ -68,9 +68,9 @@ INSERT INTO sga_principal.anos_lectivos (
     es_actual
 ) VALUES (
     900001,
-    'E10-2026',
-    DATE '2026-01-01',
-    DATE '2026-12-31',
+    '2026 - 2027',
+    DATE '2026-05-01',
+    DATE '2027-02-28',
     true
 );
 
@@ -83,7 +83,7 @@ INSERT INTO sga_principal.niveles_educativos (
     grado_fin
 ) VALUES (
     900001,
-    'Nivel Sintetico E10',
+    'Educacion General Basica E10',
     'CUANTITATIVA',
     1,
     10
@@ -99,8 +99,8 @@ INSERT INTO sga_principal.grados (
 ) VALUES (
     900001,
     900001,
-    'Grado E10',
-    1,
+    'Decimo ano EGB E10',
+    10,
     30,
     true
 );
@@ -286,8 +286,8 @@ INSERT INTO sga_secretaria.estudiantes (
     900001,
     '9999000002',
     'E10-EST-001',
-    'Estudiante',
-    'Sintetico E10',
+    'Mateo',
+    'Prueba E10',
     'ACTIVO'
 ) ON CONFLICT (id_estudiante) DO UPDATE SET
     cedula = EXCLUDED.cedula,

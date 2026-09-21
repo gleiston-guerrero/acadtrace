@@ -653,9 +653,9 @@ jobs:
           echo "E2E_DOCENTE_USER=docente.e10@acadtrace.test" >> "$GITHUB_ENV"
           echo "E2E_DOCENTE_PASSWORD=$E2E_DOCENTE_PASSWORD" >> "$GITHUB_ENV"
           echo "E2E_DOCENTE_HASH=$E2E_DOCENTE_HASH" >> "$GITHUB_ENV"
-          echo "E2E_GRADO=Grado E10" >> "$GITHUB_ENV"
+          echo "E2E_GRADO=Decimo ano EGB E10" >> "$GITHUB_ENV"
           echo "E2E_CURSO=Matematica E10" >> "$GITHUB_ENV"
-          echo "E2E_ACTIVIDAD=Actividad E10" >> "$GITHUB_ENV"
+          echo "E2E_ACTIVIDAD=Tarea de ecuaciones lineales E10" >> "$GITHUB_ENV"
 
       - name: Construir servicios de E10
         shell: bash
@@ -893,9 +893,9 @@ jobs:
           periodo = PeriodoEvaluacion.objects.create(
               id_ano_lectivo=900001,
               tipo='PRIMER_TRIMESTRE',
-              nombre='Primer trimestre E10',
-              fecha_inicio='2026-01-01',
-              fecha_fin='2026-04-30',
+              nombre='Primer trimestre 2026-2027',
+              fecha_inicio='2026-05-01',
+              fecha_fin='2026-08-31',
               activo=True
           )
 
@@ -903,9 +903,9 @@ jobs:
               id_asignacion=900001,
               id_periodo=periodo,
               tipo='TAREA',
-              nombre='Actividad E10',
-              descripcion='Actividad sintetica exclusiva de Playwright E10',
-              fecha_entrega='2026-01-05',
+              nombre='Tarea de ecuaciones lineales E10',
+              descripcion='Tarea sintetica de ecuaciones lineales para Playwright E10',
+              fecha_entrega='2026-06-15',
               ponderacion=10,
               nota_maxima=10,
               es_sumativa=False
