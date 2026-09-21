@@ -4,7 +4,9 @@ Requiere PyYAML. No inicia servicios ni normaliza rutas o trailing slashes.
 Salida: 0 coincidencia, 1 diferencias, 2 verificacion no realizable.
 """
 
+import argparse
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -13,17 +15,37 @@ from urllib.request import Request, urlopen
 
 
 CONTRACT = Path(__file__).resolve().parents[1] / "docs/api/openapi.yaml"
-RUNTIME_URL = "http://localhost:5176/v3/api-docs"
 TIMEOUT_SECONDS = 10
 METHODS = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
+
+SERVICES_CONFIG = {
+    "secretaria": {
+        "tag": "secretaria",
+        "runtime_url": os.environ.get("OPENAPI_SECRETARIA_URL", "http://localhost:5176/v3/api-docs"),
+        "namespace": "/api/secretario",
+        "name": "Secretaria",
+    },
+    "soporte": {
+        "tag": "soporte",
+        "runtime_url": os.environ.get("OPENAPI_SOPORTE_URL", "http://localhost:8083/v3/api-docs"),
+        "namespace": "/api/soporte",
+        "name": "Soporte",
+    },
+    "principal": {
+        "tag": "principal",
+        "runtime_url": os.environ.get("OPENAPI_PRINCIPAL_URL", "http://localhost:8080/v3/api-docs"),
+        "namespace": "/api",
+        "name": "Principal",
+    },
+}
 
 
 class VerificationError(Exception):
     """Documento o seleccion que no permite una comparacion fiable."""
 
 
-def in_namespace(path):
-    return path == "/api/secretario" or path.startswith("/api/secretario/")
+def in_namespace(path, namespace="/api/secretario"):
+    return path == namespace or path.startswith(namespace + "/")
 
 
 def unique_json(pairs):
@@ -61,25 +83,25 @@ def load_contract():
         raise VerificationError("YAML invalido.") from exc
 
 
-def fetch_runtime():
-    request = Request(RUNTIME_URL, headers={"Accept": "application/json"})
+def fetch_runtime(runtime_url, service_name="Secretaria"):
+    request = Request(runtime_url, headers={"Accept": "application/json"})
     try:
         with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            if response.geturl() != RUNTIME_URL:
-                raise VerificationError("El endpoint runtime redirigio a otra URL.")
+            if response.geturl() != runtime_url:
+                raise VerificationError(f"El endpoint runtime de {service_name} redirigio a otra URL.")
             if not 200 <= response.status < 300:
-                raise VerificationError("HTTP runtime no exitoso.")
+                raise VerificationError(f"HTTP runtime no exitoso ({response.status}) para {service_name}.")
             raw = response.read()
     except (URLError, TimeoutError, OSError) as exc:
         raise VerificationError(
-            "No se pudo obtener el contrato HTTP de Secretaria "
+            f"No se pudo obtener el contrato HTTP de {service_name} en {runtime_url} "
             "(conexion, timeout o estado HTTP no exitoso)."
         ) from exc
     try:
         return json.loads(raw, object_pairs_hook=unique_json,
                           parse_constant=reject_constant)
     except (ValueError, UnicodeError) as exc:
-        raise VerificationError("La respuesta runtime no es JSON valido.") from exc
+        raise VerificationError(f"La respuesta runtime de {service_name} no es JSON valido.") from exc
 
 
 def reject_constant(value):
@@ -161,25 +183,23 @@ def operations(document):
     return result
 
 
-def select_versioned(all_operations):
+def select_versioned(all_operations, tag="secretaria", namespace="/api/secretario", name="Secretaria"):
     selected = set()
     primary_servers = set()
     for pair, (tags, servers) in all_operations.items():
-        if in_namespace(pair[1]):
-            if tags != ["secretaria"]:
+        if in_namespace(pair[1], namespace):
+            if tag == "secretaria" and tags != ["secretaria"]:
                 raise VerificationError("Metadata contradictoria bajo /api/secretario.")
             primary_servers.update(servers)
-        if "secretaria" in tags:
+        if tag in tags:
             selected.add(pair)
-    if not selected or not primary_servers:
-        raise VerificationError("Seleccion de Secretaria vacia o sin servidores identificables.")
+    if not selected:
+        raise VerificationError(f"Seleccion de {name} vacia.")
     shared_paths = set()
     for pair in selected:
         tags, servers = all_operations[pair]
-        if not in_namespace(pair[1]):
-            # Rutas compartidas: tag de Secretaria mas otro servicio y servidor
-            # compartido con las operaciones de su namespace, no solo un puerto.
-            if len(set(tags)) < 2 or not servers.intersection(primary_servers):
+        if not in_namespace(pair[1], namespace):
+            if tag == "secretaria" and (len(set(tags)) < 2 or not servers.intersection(primary_servers)):
                 raise VerificationError("Metadata contradictoria en ruta compartida.")
             shared_paths.add(pair[1])
     return selected, shared_paths
@@ -193,25 +213,60 @@ def show_difference(label, operations_set):
         print(f"  {method} {path}")
 
 
+def verificar_un_servicio(contract_doc, service_key, custom_url=None):
+    cfg = SERVICES_CONFIG[service_key]
+    name = cfg["name"]
+    tag = cfg["tag"]
+    namespace = cfg["namespace"]
+    runtime_url = custom_url or cfg["runtime_url"]
+
+    versioned, shared = select_versioned(contract_doc, tag=tag, namespace=namespace, name=name)
+    print(f"Contrato versionado {name}: {len(versioned)} operaciones")
+    runtime_all = operations(fetch_runtime(runtime_url, service_name=name))
+    runtime = {pair for pair in runtime_all
+               if in_namespace(pair[1], namespace) or pair[1] in shared or pair in versioned}
+    if not runtime:
+        raise VerificationError(f"Seleccion runtime de {name} vacia.")
+    print(f"Contrato runtime {name}: {len(runtime)} operaciones")
+    show_difference(f"Runtime fuera del alcance de {name}:", set(runtime_all) - runtime)
+    show_difference("Solo en versionado:", versioned - runtime)
+    show_difference("Solo en runtime:", runtime - versioned)
+    if versioned != runtime:
+        return 1
+    print(f"Coinciden las operaciones HTTP de {name}.")
+    return 0
+
+
 def main():
+    parser = argparse.ArgumentParser(description="Verificador de contratos OpenAPI runtime vs versionado.")
+    parser.add_argument(
+        "--service",
+        choices=["secretaria", "soporte", "principal", "all"],
+        default="secretaria",
+        help="Microservicio a verificar (por defecto: secretaria).",
+    )
+    parser.add_argument(
+        "--url",
+        default=None,
+        help="URL alternativa del endpoint runtime /v3/api-docs.",
+    )
+    args = parser.parse_args()
+
     try:
-        versioned, shared = select_versioned(operations(load_contract()))
-        print(f"Contrato versionado Secretaria: {len(versioned)} operaciones")
-        runtime_all = operations(fetch_runtime())
-        runtime = {pair for pair in runtime_all
-                   if in_namespace(pair[1]) or pair[1] in shared}
-        if not runtime:
-            raise VerificationError("Seleccion runtime de Secretaria vacia.")
-        print(f"Contrato runtime Secretaria: {len(runtime)} operaciones")
-        show_difference("Runtime fuera del alcance de Secretaria:", set(runtime_all) - runtime)
-        show_difference("Solo en versionado:", versioned - runtime)
-        show_difference("Solo en runtime:", runtime - versioned)
-        if versioned != runtime:
-            return 1
-        print("Coinciden las operaciones HTTP de Secretaria.")
-        return 0
+        contract_ops = operations(load_contract())
+        if args.service == "all":
+            exit_codes = []
+            for s_key in ["secretaria", "soporte", "principal"]:
+                print(f"\n=== Verificando {SERVICES_CONFIG[s_key]['name']} ===")
+                try:
+                    rc = verificar_un_servicio(contract_ops, s_key, custom_url=args.url)
+                    exit_codes.append(rc)
+                except Exception as exc:
+                    print(f"AVISO: {SERVICES_CONFIG[s_key]['name']} no verificable: {exc}")
+            return 1 if any(c == 1 for c in exit_codes) else 0
+        else:
+            return verificar_un_servicio(contract_ops, args.service, custom_url=args.url)
     except Exception as exc:
-        # No volcar documentos, respuestas HTTP ni posibles datos sensibles.
         message = str(exc) if isinstance(exc, VerificationError) else (
             "Error de infraestructura/verificacion: " + type(exc).__name__
             + ". Compruebe el archivo y la disponibilidad de PyYAML."
