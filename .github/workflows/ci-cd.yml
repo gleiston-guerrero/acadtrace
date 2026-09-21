@@ -1202,22 +1202,90 @@ jobs:
           chmod +x gradlew
           ./gradlew clean assembleRelease bundleRelease --no-daemon
 
-      - name: Verificar firma y calcular SHA-256
+      - name: Verificar firma, certificado y sumas SHA-256
+        env:
+          SGA_RELEASE_STORE_PASSWORD: ${{ secrets.SGA_RELEASE_STORE_PASSWORD }}
+          SGA_RELEASE_KEY_ALIAS: ${{ secrets.SGA_RELEASE_KEY_ALIAS }}
         run: |
           set -euo pipefail
+
           APK="app-movil-docente/app/build/outputs/apk/release/app-release.apk"
           AAB="app-movil-docente/app/build/outputs/bundle/release/app-release.aab"
+          KEYSTORE="$RUNNER_TEMP/acadtrace-release.jks"
+          KEYSTORE_CERT="$RUNNER_TEMP/acadtrace-release-cert.pem"
+          AAB_CERT="$RUNNER_TEMP/acadtrace-aab-cert.pem"
 
           test -s "$APK"
           test -s "$AAB"
+          test -s "$KEYSTORE"
 
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)"
           test -n "$APKSIGNER"
 
-          "$APKSIGNER" verify --verbose "$APK"
-          jarsigner -verify "$AAB"
+          echo "=== VERIFICAR APK ==="
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/apksigner-cert.txt"
 
-          sha256sum "$APK" "$AAB" > SHA256SUMS.txt
+          echo "=== VERIFICAR AAB ==="
+          jarsigner -verify -verbose -certs "$AAB" | tee "$RUNNER_TEMP/jarsigner-aab.txt"
+
+          echo "=== CERTIFICADO DEL KEYSTORE ==="
+          keytool -exportcert -rfc -keystore "$KEYSTORE" -storepass "$SGA_RELEASE_STORE_PASSWORD" -alias "$SGA_RELEASE_KEY_ALIAS" -file "$KEYSTORE_CERT"
+
+          echo "=== CERTIFICADO DEL AAB ==="
+          keytool -printcert -rfc -jarfile "$AAB" | awk '/-----BEGIN CERTIFICATE-----/{copy=1} copy{print} /-----END CERTIFICATE-----/{exit}' > "$AAB_CERT"
+
+          test -s "$KEYSTORE_CERT"
+          test -s "$AAB_CERT"
+
+          KEYSTORE_CERT_SHA256="$(openssl x509 -in "$KEYSTORE_CERT" -noout -fingerprint -sha256 | sed 's/^.*=//' | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+
+          APK_CERT_SHA256="$(sed -n 's/^.*certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner-cert.txt" | head -n1 | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+
+          AAB_CERT_SHA256="$(openssl x509 -in "$AAB_CERT" -noout -fingerprint -sha256 | sed 's/^.*=//' | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+
+          echo "Keystore certificate SHA-256: $KEYSTORE_CERT_SHA256"
+          echo "APK certificate SHA-256:      $APK_CERT_SHA256"
+          echo "AAB certificate SHA-256:      $AAB_CERT_SHA256"
+
+          for digest in "$KEYSTORE_CERT_SHA256" "$APK_CERT_SHA256" "$AAB_CERT_SHA256"; do
+            if ! [[ "$digest" =~ ^[0-9A-F]{64}$ ]]; then
+              echo "::error::Huella SHA-256 invalida o incompleta: '$digest'"
+              exit 1
+            fi
+          done
+
+          if [[ "$KEYSTORE_CERT_SHA256" != "$APK_CERT_SHA256" ]]; then
+            echo "::error::El certificado del APK no coincide con el certificado del keystore de Release."
+            exit 1
+          fi
+
+          if [[ "$KEYSTORE_CERT_SHA256" != "$AAB_CERT_SHA256" ]]; then
+            echo "::error::El certificado del AAB no coincide con el certificado del keystore de Release."
+            exit 1
+          fi
+
+          CERTIFICATE_SHA256="$(printf '%s' "$KEYSTORE_CERT_SHA256" | sed 's/../&:/g; s/:$//')"
+          printf '%s\n' "$CERTIFICATE_SHA256" > CERTIFICATE_SHA256.txt
+
+          echo "=== HUELLA SHA-256 COMPLETA DEL CERTIFICADO ==="
+          cat CERTIFICATE_SHA256.txt
+
+          CHECK_DIR="$RUNNER_TEMP/mobile-release-check"
+          rm -rf "$CHECK_DIR"
+          mkdir -p "$CHECK_DIR"
+
+          cp "$APK" "$CHECK_DIR/app-release.apk"
+          cp "$AAB" "$CHECK_DIR/app-release.aab"
+
+          cd "$CHECK_DIR"
+          sha256sum app-release.apk app-release.aab > "$GITHUB_WORKSPACE/SHA256SUMS.txt"
+
+          echo "=== VERIFICACION DEL MISMO COMANDO DOCUMENTADO ==="
+          sha256sum -c "$GITHUB_WORKSPACE/SHA256SUMS.txt"
+
+          cd "$GITHUB_WORKSPACE"
+
+          echo "=== SHA256SUMS FINAL ==="
           cat SHA256SUMS.txt
 
       - name: Subir paquete móvil Release firmado
@@ -1228,6 +1296,7 @@ jobs:
             app-movil-docente/app/build/outputs/apk/release/app-release.apk
             app-movil-docente/app/build/outputs/bundle/release/app-release.aab
             SHA256SUMS.txt
+            CERTIFICATE_SHA256.txt
           if-no-files-found: error
           retention-days: 14
 
@@ -1268,18 +1337,21 @@ jobs:
           test -s "$APK"
           test -s "$AAB"
           test -s SHA256SUMS.txt
+          test -s CERTIFICATE_SHA256.txt
 
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" \
               "$APK#app-release.apk" \
               "$AAB#app-release.aab" \
               "SHA256SUMS.txt#SHA256SUMS.txt" \
+              "CERTIFICATE_SHA256.txt#CERTIFICATE_SHA256.txt" \
               --clobber
           else
             gh release create "$GITHUB_REF_NAME" \
               "$APK#app-release.apk" \
               "$AAB#app-release.aab" \
               "SHA256SUMS.txt#SHA256SUMS.txt" \
+              "CERTIFICATE_SHA256.txt#CERTIFICATE_SHA256.txt" \
               --target "$GITHUB_SHA" \
               --title "AcadTrace $GITHUB_REF_NAME" \
               --notes "Release móvil generado, firmado, verificado y publicado automáticamente por CI desde el commit $GITHUB_SHA."
