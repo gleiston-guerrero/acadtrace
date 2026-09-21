@@ -13,6 +13,7 @@ Este directorio funciona como índice técnico y guía de verificación independ
   - `app-release.apk` (Paquete instalable para dispositivos Android)
   - `app-release.aab` (Android App Bundle para distribución optimizada)
   - `SHA256SUMS.txt` (Manifiesto de sumas de comprobación criptográfica SHA-256)
+  - `CERTIFICATE_SHA256.txt` (Huella SHA-256 completa del certificado utilizado para firmar APK y AAB)
 
 El tag de publicación en el repositorio coincide exactamente con el valor `versionName = "1.0.1"` configurado en `app-movil-docente/app/build.gradle.kts`.
 
@@ -28,7 +29,7 @@ La firma del paquete de entrega utiliza una clave privada de producción propia,
 - **Vigencia:** Desde el 2026-09-16 hasta el año 2054
 - **Algoritmo de clave:** RSA de 2048 bits
 - **Algoritmo de firma:** SHA256withRSA
-- **Huella digital SHA-256 del certificado:** Inicia en `F7:7C:A1:2B` y finaliza en `A1:79` (huella completa: `F7:7C:A1:2B:...:A1:79`)
+- **Huella digital SHA-256 del certificado:** `F7:7C:A1:2B:4E:DA:1A:EA:C2:7C:55:47:88:4A:19:AF:42:6F:45:A7:45:41:CE:B2:6B:18:C6:8E:E7:8C:A1:79`. CI obtiene esta huella del keystore de Release y comprueba que coincida exactamente con los certificados del APK y del AAB. El mismo valor se publica en `CERTIFICATE_SHA256.txt`.
 - **Tipo de keystore:** PKCS12 (`acadtrace-release.jks`)
 - **Validación del keystore en CI:** Tamaño exacto de 2782 bytes y SHA-256 `C076C5BDB2B017E8F2FC8F3AE5D1228B7B01331B032397EBBC2058DAC4DF9E9A`.
 
@@ -58,10 +59,11 @@ apksigner verify --verbose --print-certs app-release.apk
 
 Salida esperada:
 - `Verifies: true`
-- `Verified using v1 scheme (JAR signing): true`
+- `Verified using v1 scheme (JAR signing): false`
 - `Verified using v2 scheme (APK Signature Scheme v2): true`
 - `Signer #1 certificate DN: CN=Keyla Bedón, OU=BCEL, O=UTEQ`
-- `Signer #1 certificate SHA-256 digest: F7:7C:A1:2B:...:A1:79`
+- `V2 Signer: certificate SHA-256 digest: f77ca12b4eda1aeac27c5547884a19af426f45a74541ceb26b18c68ee78ca179`
+- La huella obtenida debe coincidir exactamente con el valor publicado en `CERTIFICATE_SHA256.txt`.
 
 Esto demuestra fehacientemente que el APK está firmado válidamente, no ha sido alterado y fue emitido por el titular institucional correspondiente.
 
@@ -82,5 +84,5 @@ El proceso de construcción y entrega está completamente automatizado en el job
 1. Restaura y valida el keystore PKCS12 mediante suma SHA-256 y comando `keytool -list`.
 2. Restaura la configuración de Firebase `google-services.json`.
 3. Ejecuta `./gradlew clean assembleRelease bundleRelease --no-daemon`.
-4. Ejecuta `apksigner verify --verbose` y `jarsigner -verify` inmediatamente después de la compilación.
-5. Genera el manifiesto `SHA256SUMS.txt` y publica los artefactos en el GitHub Release mediante `gh release upload --clobber` para garantizar idempotencia.
+4. Verifica criptogr?ficamente APK y AAB, obtiene la huella SHA-256 completa del certificado del keystore, APK y AAB, valida que los tres valores tengan 64 caracteres hexadecimales y hace fallar el flujo si no coinciden.
+5. Genera `SHA256SUMS.txt` con los nombres `app-release.apk` y `app-release.aab`, ejecuta `sha256sum -c SHA256SUMS.txt` como compuerta y publica tambi?n `CERTIFICATE_SHA256.txt`.
