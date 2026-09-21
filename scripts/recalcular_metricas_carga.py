@@ -1,4 +1,4 @@
-"""Deriva el conjunto A y consulta los agregados historicos B y E.
+"""Verifica SHA-256 y métricas de nominal/estrés; consulta históricos B y E.
 
 Solo --generate-latex escribe un archivo; --emit-latex-block imprime macros.
 
@@ -9,6 +9,7 @@ Salidas: 0 correcto, 1 discrepancias, 2 entrada inválida.
 """
 import argparse
 import csv
+import hashlib
 import json
 import re
 import sys
@@ -35,8 +36,8 @@ MACROS = dict(zip((*FIELDS, "usuarios_maximos"), (
     "CargaUsuariosMaximos")))
 
 
-def read_csv(suffix, required):
-    path = Path(str(PREFIX) + suffix)
+def read_csv(suffix, required, prefix=None):
+    path = Path(str(PREFIX if prefix is None else prefix) + suffix)
     with path.open(encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream)
         missing = set(required) - set(reader.fieldnames or [])
@@ -86,8 +87,8 @@ def statistics(row):
     return result, extra
 
 
-def derive():
-    rows = read_csv("_stats.csv", ["Type", "Name", *FIELDS.values()])
+def derive(prefix=None):
+    rows = read_csv("_stats.csv", ["Type", "Name", *FIELDS.values()], prefix)
     aggregate = [r for r in rows if r["Name"].strip() == "Aggregated"]
     if len(aggregate) != 1:
         raise ValueError("Se requiere exactamente una fila Aggregated en stats")
@@ -101,7 +102,7 @@ def derive():
         values, optional = statistics(row)
         endpoints.append({"metodo": row["Type"], "endpoint": row["Name"],
                           "metrics": values, "additional": optional})
-    history = read_csv("_stats_history.csv", ["Name", "User Count", "Timestamp"])
+    history = read_csv("_stats_history.csv", ["Name", "User Count", "Timestamp"], prefix)
     samples = [r for r in history if r["Name"].strip() == "Aggregated"]
     if not samples:
         raise ValueError("History no contiene muestras Aggregated")
@@ -111,8 +112,8 @@ def derive():
     window = {"inicio_utc": datetime.fromtimestamp(first, timezone.utc).isoformat(),
               "fin_utc": datetime.fromtimestamp(last, timezone.utc).isoformat(),
               "duracion_observada_s": last - first, "muestras": len(samples)}
-    failures = read_csv("_failures.csv", ["Occurrences"])
-    exceptions = read_csv("_exceptions.csv", ["Count"])
+    failures = read_csv("_failures.csv", ["Occurrences"], prefix)
+    exceptions = read_csv("_exceptions.csv", ["Count"], prefix)
     auxiliary = {"ocurrencias_fallos": sum((count(r["Occurrences"]) for r in failures), Decimal(0)),
                  "excepciones": sum((count(r["Count"]) for r in exceptions), Decimal(0))}
     return metrics, auxiliary, extra, endpoints, window
@@ -299,37 +300,36 @@ def check_stress_consistency(stress_metrics, text, path_name):
             break
     if not official_marker:
         return []
-    
+
     # Extraer el párrafo o sección correspondiente a la corrida oficial de estrés
     block = text.split(official_marker, 1)[1][:1000]
-    
+
     # Peticiones: debe contener 98.684 o 98684 o 98{,}684
     m_pet = re.search(r"(\d+(?:[.,{}]*\d+)?)\s*peticiones", block)
     if m_pet:
         clean_num = m_pet.group(1).replace(".", "").replace(",", "").replace("{", "").replace("}", "")
         if clean_num.isdigit() and int(clean_num) != int(stress_metrics["peticiones"]):
             errors.append(f"{path_name}: peticiones oficiales de estrés {clean_num} != {stress_metrics['peticiones']}")
-    
+
     # Fallos: debe ser 0 fallos
     m_fal = re.search(r"(\d+)\s*fallos", block)
     if m_fal:
         if int(m_fal.group(1)) != int(stress_metrics["fallos"]):
             errors.append(f"{path_name}: fallos oficiales de estrés {m_fal.group(1)} != {stress_metrics['fallos']}")
-            
+
     # Percentiles P95 y P99
     m_p95 = re.search(r"P_?95\s*=\s*(\d+)", block)
     if m_p95 and int(m_p95.group(1)) != int(stress_metrics["p95_ms"]):
         errors.append(f"{path_name}: P95 oficial de estrés {m_p95.group(1)} != {stress_metrics['p95_ms']}")
-        
+
     m_p99 = re.search(r"P_?99\s*=\s*(\d+)", block)
     if m_p99 and int(m_p99.group(1)) != int(stress_metrics["p99_ms"]):
         errors.append(f"{path_name}: P99 oficial de estrés {m_p99.group(1)} != {stress_metrics['p99_ms']}")
-        
+
     return errors
 
 
 def check_declared_hashes():
-    import hashlib
     errors = []
     hash_docs = ['docs/locust/README.md', 'docs/locust/entorno_medicion.md']
     for rel_doc in hash_docs:
@@ -361,6 +361,63 @@ def check_generated_latex(metrics):
     return []
 
 
+
+OFFICIAL_PREFIXES = {
+    "nominal": "microservicio-soporte/locust_esc1",
+    "estres": "microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200",
+}
+MANIFEST = "docs/locust/manifest_carga.json"
+
+
+def verify_official():
+    """Verifica bytes y mediciones contra una referencia declarada, nunca la reescribe."""
+    manifest = json.loads((ROOT / MANIFEST).read_text(encoding="utf-8"))
+    if manifest.get("schema_version") != 1 or set(manifest["runs"]) != set(OFFICIAL_PREFIXES):
+        raise ValueError("Manifiesto oficial incompleto o incompatible")
+    results = {}
+    for name, relative in OFFICIAL_PREFIXES.items():
+        entry = manifest["runs"][name]
+        suffixes = ("_stats.csv", "_stats_history.csv")
+        if name == "estres":
+            suffixes += ("_failures.csv", "_exceptions.csv")
+        expected_paths = {relative + suffix for suffix in suffixes}
+        if set(entry["sha256"]) != expected_paths:
+            raise ValueError(f"{name}: archivos oficiales incorrectos en manifiesto")
+        for path, expected in entry["sha256"].items():
+            actual = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            if actual != expected.lower():
+                raise ValueError(f"{name}: SHA-256 no coincide: {path}")
+        result = derive(ROOT / relative)
+        metrics, auxiliary, extra, _, window = result
+        observed = {**metrics, "maximo_ms": extra["maximo_ms"],
+                    "duracion_observada_s": window["duracion_observada_s"]}
+        if set(entry["expected"]) != set(observed):
+            raise ValueError(f"{name}: métricas requeridas ausentes o sobrantes")
+        for key, value in observed.items():
+            if number(str(entry["expected"][key])) != value:
+                raise ValueError(f"{name}: {key} difiere de la referencia declarada")
+        if name == "estres":
+            if metrics["p95_ms"] >= 500 or metrics["fallos"] != 0:
+                raise ValueError("Estrés no cumple P95 < 500 ms y cero fallos")
+            if auxiliary["ocurrencias_fallos"] != 0 or auxiliary["excepciones"] != 0:
+                raise ValueError("Estrés contiene fallos o excepciones auxiliares")
+        results[name] = result
+    return results
+
+
+def check_published_hashes():
+    errors = []
+    for doc in ("docs/locust/README.md", "docs/locust/entorno_medicion.md"):
+        text = (ROOT / doc).read_text(encoding="utf-8")
+        for suffix in ("_stats.csv", "_stats_history.csv"):
+            path = OFFICIAL_PREFIXES["nominal"] + suffix
+            hashes = re.findall(r"`" + re.escape(path) + r"` \| `([A-Fa-f0-9]{64})`", text)
+            actual = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            if len(hashes) != 1 or hashes[0].lower() != actual:
+                errors.append(f"{doc}: SHA-256 nominal incorrecto: {path}")
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
@@ -369,8 +426,10 @@ def main():
     parser.add_argument("--emit-latex-block", action="store_true")
     args = parser.parse_args()
     try:
-        metrics, auxiliary, extra, endpoints, window = derive()
-        stress_metrics = derive_stress()
+        official = verify_official()
+        metrics, auxiliary, extra, endpoints, window = official["nominal"]
+        stress = official["estres"]
+        stress_metrics = stress[0]
         if args.emit_latex_block:
             print(render(metrics), end="")
             return 0
@@ -381,9 +440,11 @@ def main():
             print(json.dumps({"metrics": metrics, "auxiliary": auxiliary,
                               "additional": extra, "endpoints": endpoints,
                               "history": window, "historical": historical,
-                              "stress": stress_metrics},
+                              "stress": {"metrics": stress[0], "auxiliary": stress[1],
+                                         "additional": stress[2], "history": stress[4]}},
                              default=str, ensure_ascii=False, indent=2))
         else:
+            print("OK: integridad y métricas nominal/estrés verificadas")
             print("Conjunto A: microservicio-soporte/locust_esc1_stats.csv")
             for key, value in {**metrics, **auxiliary, **extra}.items():
                 print(f"{key}: {value}")
@@ -404,7 +465,8 @@ def main():
                     print(f"  {key}: {value}")
         if args.check_latex:
             manuscript_text = MANUSCRIPT.read_text(encoding="utf-8")
-            errors = check_latex(metrics, manuscript_text)
+            errors = check_published_hashes()
+            errors.extend(check_latex(metrics, manuscript_text))
             errors.extend(check_generated_latex(metrics))
             errors.extend(check_declared_hashes())
             errors.extend(check_stress_consistency(stress_metrics, manuscript_text, "Informe-E4_BCEL/TA-PFC-E4_BCEL.tex"))

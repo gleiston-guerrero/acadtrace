@@ -575,6 +575,8 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
   \item \textbf{Motor de Sincronizaci\'on en Background (\texttt{WorkManager}):} Un componente \texttt{Periodic\-Work\-Request\-Builder} con restricciones de red (\texttt{NetworkType.\allowbreak CONNECTED}) se activa autom\'aticamente al recuperar la conectividad, drenando la cola transaccional hacia el API Gateway mediante peticiones idempotentes y actualizando el reloj vectorial del dispositivo.
 \end{enumerate}
 
+La Figura~\ref{fig:app_movil_representante} reúne las vistas de seguridad, calificaciones y asistencia de la aplicación para representantes descrita en esta sección.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{movil_representante_evidencia.png}
@@ -584,12 +586,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 
 \subsection{Evidencias visuales de interfaces y servicios}
 
+El panel principal organiza los accesos a los módulos académicos y administrativos, como se observa en la Figura~\ref{fig:sga-principal}.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{../release/screenshots/sga_principal.png}
     \caption{Panel principal del SGA con accesos visibles a los m\'odulos acad\'emicos y administrativos.}
     \label{fig:sga-principal}
 \end{figure}
+
+La documentación de la API de IA presenta las rutas de salud, diagnóstico de estudiante y asistente en la Figura~\ref{fig:microservicio-ia}.
 
 \begin{figure}[H]
     \centering
@@ -598,12 +604,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
     \label{fig:microservicio-ia}
 \end{figure}
 
+En el portal docente, la vista de registro semanal permite seleccionar el curso y consultar los estados de asistencia por estudiante; la Figura~\ref{fig:docente-asistencia} muestra esta interfaz.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{../release/screenshots/docente_asistencia.png}
     \caption{Portal del docente en la vista de registro semanal de asistencia, con selecci\'on de curso y estados por estudiante.}
     \label{fig:docente-asistencia}
 \end{figure}
+
+En el cliente móvil, los ajustes de seguridad agrupan la protección de acceso y la opción de desbloqueo biométrico, visibles en la Figura~\ref{fig:movil-biometria}.
 
 \begin{figure}[H]
     \centering
@@ -612,12 +622,16 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
     \label{fig:movil-biometria}
 \end{figure}
 
+La consulta de calificaciones del representante organiza las asignaturas y sus ponderaciones por trimestre, como muestra la Figura~\ref{fig:movil-calificaciones}.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_calificaciones.png}
     \caption{Aplicaci\'on m\'ovil del representante: vista de calificaciones detalladas por trimestre con listado de asignaturas y ponderaciones.}
     \label{fig:movil-calificaciones}
 \end{figure}
+
+El resumen de asistencia complementa la consulta académica con el desglose por estados mostrado en la Figura~\ref{fig:movil-asistencia}.
 
 \begin{figure}[H]
     \centering
@@ -645,9 +659,11 @@ La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
     \end{itemize}
 \end{enumerate}
 
+Como evidencia complementaria de observabilidad, la Figura~\ref{fig:grafana-hikari-latencias} muestra el panel de Grafana con métricas del pool HikariCP y percentiles de latencia; corresponde a una captura histórica, no a la interfaz de Locust.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{locust_resultados.png}
+\includegraphics[width=0.85\textwidth]{grafana_hikari_p95.png}
 \caption{M\'etricas de observabilidad en Grafana durante la ejecuci\'on de pruebas de carga: monitoreo del pool HikariCP y percentiles de latencia ($P_{50}$ y $P_{99}$) como evidencia complementaria.}
 \label{fig:grafana-hikari-latencias}
 \end{figure}
@@ -771,6 +787,8 @@ Se conserva la descripción histórica de \path{evidencias/Juliana_Emanuel/backe
 
 
 La corrida oficial de estrés en \path{microservicio-soporte/resultados_estres/20260920_164722/} ejecutó el código \texttt{88649f3f} contra \url{http://localhost:8085}, con incorporación de 1 usuario/s, 200 usuarios máximos y 10 minutos configurados. El historial abarca los timestamps 1789940845--1789941444 (599 segundos). Su agregado registra 98{,}684 peticiones, 0 fallos, 164.86740285525565\,req/s, promedio 7.86715629893033\,ms, $P_{50}=7$\,ms, $P_{95}=15$\,ms, $P_{99}=23$\,ms y máximo 324.8848000075668\,ms, con \texttt{EXIT\_CODE=0}. Cumple el criterio de aceptación de estrés: $P_{95}<500$\,ms y 0 fallos. El perfil, resumen, cuatro CSV y la captura \path{evidencias/Juliana_Emanuel/E48_estres_200_resumen.png} se conservan en \texttt{b43008e5}. Es una ejecución distinta del nominal y del histórico D de 106{,}735 peticiones y 26 fallos, que permanece FALLIDO/HISTÓRICO. Los percentiles agregan la rampa completa; no certifican disponibilidad de producción ni el estado de HikariCP. La corrida incompleta \texttt{20260920\_163041} no es oficial. La evidencia original del perfil nominal sigue sin estar disponible.
+
+Para ambos escenarios se conserva una sola corrida oficial ($n=1$ nominal y $n=1$ estrés); no hay repeticiones independientes y el intervalo de confianza entre corridas no es estimable. Los percentiles describen peticiones de cada ejecución. El manifiesto \path{docs/locust/manifest_carga.json} y el verificador comprueban integridad y métricas de ambos conjuntos. En estrés, \texttt{perfil.txt} y \texttt{resumen\_validacion.txt} son derivados y la captura relee los CSV: no se conserva consola original de Locust ni evidencia primaria adicional. El código ejecutado, host, tasa de incorporación, duración configurada y código de salida citados son metadatos declarados, sin acreditación independiente mediante esa captura. La comprobación no fabrica una validación retrospectiva.
 
 \subsection{Preguntas de Investigaci\'on Emp\'iricas (PI)}
 Para guiar la evaluaci\'on cuantitativa de rendimiento, resiliencia y comportamiento del sistema bajo cargas extremas, se formularon dos Preguntas de Investigaci\'on (PI) emp\'iricas dise\~nadas formalmente para admitir refutaci\'on (respuesta negativa):
@@ -1022,17 +1040,17 @@ En cumplimiento de la transparencia académica exigida por la cátedra, se decla
   \item \textbf{Juliana Romina Emanuel Pino:} Uso de Claude y Antigravity para generaci\'on asistida de la prueba de carga (\texttt{locustfile.py}), configuraci\'on de Prometheus/Grafana/cAdvisor, correcci\'on de secreto JWT en el generador de carga y verificaci\'on bibliogr\'afica. Todo hallazgo t\'ecnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos simulados.
 \end{itemize}
 
-\section{Gestión de Integración de Código, Compuertas de Calidad CI/CD y Trazabilidad de Issues}
+\section{Gestión de Integración de Código y Trazabilidad de Pull Requests}
 \label{sec:revision-cruzada}
-La trazabilidad de cambios en el repositorio AcadTrace (\url{https://github.com/gleiston-guerrero/acadtrace}) se documenta mediante \textbf{issues de GitHub}, compuertas de \textbf{Integración Continua (CI/CD)} y \textit{Pull Requests} (PR). Para los seis PR citados en la tabla, la API de GitHub registra el autor y la fusión, pero no registra revisiones formales en el endpoint \texttt{/reviews}.
+La integración de cambios en el repositorio AcadTrace (\url{https://github.com/gleiston-guerrero/acadtrace}) se documenta mediante ramas de trabajo, commits y \textit{Pull Requests} (PR), junto con las ejecuciones disponibles de GitHub Actions. Para los seis PR citados en la tabla, la API de GitHub registra el autor y la fusión, pero no registra revisiones formales en el endpoint \texttt{/reviews}; no se acredita una revisión obligatoria por otra persona.
 
-\subsection{Metodología de Trabajo por Issues y Solicitudes de Incorporación}
-Cada nuevo requerimiento funcional, módulo arquitectónico o corrección de defectos fue formalizado previamente mediante un \textbf{issue de seguimiento}, asignándole etiquetas de clasificación (\texttt{architecture}, \texttt{security}, \texttt{testing}, \texttt{devops}, \texttt{bugfix}), integrante responsable y criterios de aceptación técnicos. El desarrollo se ejecutó en ramas de características personales aisladas (\texttt{Ernesto-Luna}, \texttt{devBedon}, \texttt{Juliana-Emanuel}, \texttt{feat/cluster-db-fragmentacion}).
+\subsection{Trabajo en Ramas y Solicitudes de Incorporación}
+El desarrollo se ejecutó en ramas de trabajo (\texttt{Ernesto-Luna}, \texttt{devBedon}, \texttt{Juliana-Emanuel}, \texttt{feat/cluster-db-fragmentacion}) y se integró mediante PR. El historial consultado no acredita que cada requerimiento, módulo o corrección tuviera previamente un issue con etiquetas, responsable y criterios de aceptación; esa trazabilidad debe comprobarse caso por caso.
 
-Para la incorporación y fusión de cambios a la rama principal (\texttt{main}), el flujo de trabajo aplicó los siguientes controles técnicos y compuertas de aseguramiento:
+Para la incorporación y fusión de cambios a la rama principal (\texttt{main}), se distinguen los registros comprobados de las prácticas cuya aplicación general no está acreditada:
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Trazabilidad al Issue Asociado:} Toda solicitud de incorporación debió vincular explícitamente el \textbf{issue} de GitHub correspondiente mediante directivas de cierre (\texttt{Closes \#...}, \texttt{Fixes \#...}) para garantizar la justificación y auditoría de cada cambio.
-  \item \textbf{Compuertas Automatizadas de Integración Continua (CI/CD):} Como condición indispensable, los flujos automatizados de GitHub Actions (compilación de código, análisis estático, cobertura JaCoCo, y suites de pruebas unitarias e integración en contenedores) debieron certificarse en estado verde (\textit{All checks passed}) antes de autorizar la fusión definitiva.
+  \item \textbf{Vinculación con issues:} No se acredita el uso sistemático de directivas de cierre (\texttt{Closes \#...}, \texttt{Fixes \#...}) en todos los PR. Los vínculos entre issues y cambios se reconocen únicamente cuando constan en sus registros.
+  \item \textbf{Integración Continua (CI/CD):} El repositorio dispone de flujos de GitHub Actions para compilación, análisis estático y pruebas. Su existencia no demuestra que todas las fusiones estuvieran condicionadas a un estado verde (\textit{All checks passed}); el historial revisado no respalda esa condición universal. El resultado y el momento de las comprobaciones deben contrastarse para cada fusión.
   \item \textbf{Registro de incorporación:} Los seis PR comprobados figuran como fusionados en GitHub. En cada uno, la cuenta que realizó el merge coincide con la cuenta autora; este dato no acredita una revisión por otra persona.
 \end{enumerate}
 
@@ -1056,7 +1074,7 @@ Tarea D & \#55 & Interfaces de Secretaría y SGA Principal & Ernesto Luna (\text
 \hline
 Tarea E & \#60 & Consolidación de pruebas, métricas y trazabilidad & Ernesto Luna (\texttt{Ernesto835}) & Incorpora archivos de pruebas, resultados experimentales y cambios en el informe. \\
 \hline
-Tarea F & \#58 & APK de representante y evidencias & Ernesto Luna (\texttt{Ernesto835}) & Incluye el APK en \texttt{release/apk/}, capturas y la actualización de ADR-006. \\
+Tarea F & \#58 & APK de representante y evidencias & Ernesto Luna (\texttt{Ernesto835}) & El APK actual está publicado en GitHub Release \texttt{v1.0.1}; \texttt{release/apk/} contiene el índice documental, no el binario. El PR incorpora capturas y la actualización de ADR-006. \\
 \hline
 Tarea G & \#59 & Actas y datos Locust & Juliana Emanuel (\texttt{JulianaEmanuel}) & Incluye actas en \texttt{docs/actas/} y archivos de datos Locust. \\
 \hline

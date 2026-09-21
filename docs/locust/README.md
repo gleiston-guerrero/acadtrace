@@ -89,3 +89,32 @@ python scripts/recalcular_metricas_carga.py --emit-latex-block
 ```
 
 `--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
+
+## Integridad y límites de evidencia (#48)
+
+El manifiesto `docs/locust/manifest_carga.json` fija los SHA-256 de los dos
+CSV nominales vigentes y los cuatro CSV del estrés `20260920_164722`, además
+de sus métricas declaradas. `scripts/recalcular_metricas_carga.py` verifica
+ambos conjuntos antes de emitir resultados o generar macros; `--check-latex`
+verifica también los hashes publicados de los archivos referenciados de Soporte,
+las afirmaciones nominales seleccionadas y las peticiones, fallos y percentiles
+de los bloques oficiales de estrés reconocidos en Markdown y LaTeX. No valida
+automáticamente toda la prosa de estrés del informe.
+Los hashes se calculan sobre bytes exactos, incluidos finales de línea;
+una normalización del archivo provoca fallo y requiere revisión explícita.
+
+Hay **n=1 corrida nominal y n=1 corrida de estrés**. No existen repeticiones
+independientes oficiales para estimar variabilidad entre ejecuciones: el
+intervalo de confianza entre corridas **no es estimable**. Los percentiles
+son descriptivos de peticiones dentro de cada corrida, no repeticiones.
+
+La carpeta oficial de estrés conserva cuatro CSV y dos TXT. `perfil.txt` y
+`resumen_validacion.txt` son documentación derivada; la captura relee los CSV.
+No se conserva consola original de Locust ni otra evidencia primaria adicional
+que acredite independientemente la ejecución. El commit ejecutado, host,
+spawn rate, duración configurada y EXIT_CODE son metadatos declarados en esos
+TXT, no comprobados por el hash ni por la captura. El nominal tampoco conserva
+la evidencia original de configuración. La compuerta acredita integridad y
+coherencia de los artefactos declarados, no una validación retrospectiva.
+No se usa la corrida incompleta `20260920_163041/` ni los candidatos.
+No se ejecutaron nuevas cargas ni se fabricaron repeticiones o logs.

@@ -29,7 +29,7 @@ Para garantizar la reproducibilidad científica estricta de las mediciones, se d
 | **Instancia Cloud** | AWS EC2 `t3.medium` (Región `us-east-1`) |
 | **vCPUs y Memoria** | 2 vCPUs Intel Xeon Platinum / 4.0 GB RAM |
 | **Sistema Operativo** | Ubuntu 22.04 LTS (Kernel Linux 5.15 x86_64) |
-| **IP Pública / Host** | `192.0.2.1` |
+| **IP Pública / Host** | `configurado externamente (DB_HOST)` |
 
 ### 1.3 Versiones de Software, Motores y Librerías
 | Software / Herramienta | Versión Exacta | Propósito en el Sistema |

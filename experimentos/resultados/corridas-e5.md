@@ -117,3 +117,30 @@ El histórico D (106.735 peticiones, 26 fallos) permanece FALLIDO/HISTÓRICO.
 - [reproducibilidad.sh](../reproducibilidad.sh) ejecuta el banco experimental; no certifica por sí solo A. Los scripts existentes pueden escribir sobre resultados: no se ejecutaron al documentar E5.
 
 Existe la corrida oficial de estrés documentada arriba; no hay un resultado adicional declarado OFICIAL para calificaciones. Los estados PRELIMINAR, FALLIDA y CALIBRACIÓN describen evidencia histórica; DESCARTADA significa excluida de las conclusiones oficiales, nunca eliminada del repositorio.
+
+## Integridad y límites de evidencia (#48)
+
+El manifiesto `docs/locust/manifest_carga.json` fija los SHA-256 de los dos
+CSV nominales vigentes y los cuatro CSV del estrés `20260920_164722`, además
+de sus métricas declaradas. `scripts/recalcular_metricas_carga.py` verifica
+ambos conjuntos antes de emitir resultados o generar macros; `--check-latex`
+verifica también los hashes nominales publicados y las afirmaciones nominales
+seleccionadas. No valida automáticamente toda la prosa de estrés del informe.
+Los hashes se calculan sobre bytes exactos, incluidos finales de línea;
+una normalización del archivo provoca fallo y requiere revisión explícita.
+
+Hay **n=1 corrida nominal y n=1 corrida de estrés**. No existen repeticiones
+independientes oficiales para estimar variabilidad entre ejecuciones: el
+intervalo de confianza entre corridas **no es estimable**. Los percentiles
+son descriptivos de peticiones dentro de cada corrida, no repeticiones.
+
+La carpeta oficial de estrés conserva cuatro CSV y dos TXT. `perfil.txt` y
+`resumen_validacion.txt` son documentación derivada; la captura relee los CSV.
+No se conserva consola original de Locust ni otra evidencia primaria adicional
+que acredite independientemente la ejecución. El commit ejecutado, host,
+spawn rate, duración configurada y EXIT_CODE son metadatos declarados en esos
+TXT, no comprobados por el hash ni por la captura. El nominal tampoco conserva
+la evidencia original de configuración. La compuerta acredita integridad y
+coherencia de los artefactos declarados, no una validación retrospectiva.
+No se usa la corrida incompleta `20260920_163041/` ni los candidatos.
+No se ejecutaron nuevas cargas ni se fabricaron repeticiones o logs.
