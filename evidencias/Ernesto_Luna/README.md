@@ -20,16 +20,20 @@ Este directorio contiene la consolidación estructurada de evidencias técnicas,
 1. **Microservicio de Secretaría (Spring Boot 3.2.5 + Java 21):**
    - Interfaz web del portal administrativo (Dashboard de estudiantes, matrículas, cursos y reportes).
    - Cobertura de pruebas con JaCoCo certificada en **74.42 % de líneas (LINE)** y **72.74 % de instrucciones** a nivel de `BUNDLE` (superando la compuerta mínima estricta del 70 %).
-   - Integración con base de datos real en contenedores efímeros vía **Testcontainers (PostgreSQL 16)** y migraciones deterministas con **Flyway** (Criterios E13, E6 y E37).
-2. **Criptografía, Seguridad e Inmutabilidad (Criterios C9, C10, P5):**
+   - Integración con base de datos real en contenedores efímeros vía **Testcontainers (PostgreSQL 16)** y migraciones deterministas con **Flyway** sincronizadas 100% con producción (`V8`, `V19`, `V24`) (Entregable #37 / Criterio E13).
+2. **Criptografía, Seguridad e Inmutabilidad (Entregable #43 / Criterios E2, E3):**
    - Disparador de base de datos **Append-Only** (`tg_auditoria_append_only`) en PostgreSQL que rechaza cualquier intento de `UPDATE` o `DELETE` con excepción fatal.
-   - Sellado criptográfico con **HMAC-SHA256 en tiempo constante** (`HmacService.java`) y suite unitaria de detección de manipulaciones directas en BD (Ataque T1) y borrado en cadena (Ataque T2).
-   - Cifrado simétrico autenticado **AES-256-GCM** (`CryptoService.java`) con vector de inicialización (IV) de 12 bytes aleatorio para resguardar la privacidad de datos de menores (LOPDP).
-   - Protección perimetral de endpoints con token JWT HMAC-SHA256 y rechazo estricto `HTTP 401 Unauthorized` ante solicitudes sin credencial (Criterio E46).
-3. **Calidad, Pruebas Automatizadas y API Gateway (Criterios C7 - Listado 3, C10):**
-   - Batería de pruebas automatizadas en Python (`tests/contract/` e `tests/integration/`) para verificación de contratos binarios Protobuf v3 y OpenAPI 3.0.
-   - Enrutamiento perimetral y balanceo de carga en capa 7 mediante **HAProxy 2.9** con algoritmos `roundrobin` y `leastconn`.
-   - Propagación de trazas distribuidas e inyección de encabezados de correlación `X-Trace-Id` utilizando el filtro `TraceIdFilter` con el patrón MDC de SLF4J.
+   - Sellado criptográfico con **HMAC-SHA256 en tiempo constante** (`HmacService.java`) y verificación en `experimentos/verificador_cadena.py` para detectar inserciones no autorizadas por usuarios de BD (`sga_app`).
+   - Reconocimiento de bitácora relacional convencional modo `m1` sin falsos positivos de manipulación.
+   - Suite completa de 26 pruebas unitarias aisladas (`experimentos/test_verificador_cadena_base.py`) que detectan mutaciones de código e integrada en el flujo de CI.
+   - Cifrado simétrico autenticado **AES-256-GCM** (`CryptoService.java`) con IV aleatorio para datos de menores (LOPDP).
+   - Protección perimetral de endpoints con token JWT HMAC-SHA256 (`HTTP 401 Unauthorized`).
+3. **Calidad, Contratos OpenAPI y Matriz ISO/IEC 25010 (Entregables #4, #22, #48):**
+   - Contrato OpenAPI 3.0 verificado con comparador multi-servicio (`scripts/verificar_openapi.py`) y validación estricta de rutas.
+   - Matriz ISO/IEC 25010 generada automáticamente (`generar_matriz.py`) con intervalos de confianza de Wilson al 95 % y métricas de carga nominal y estrés oficial (200 usuarios, 98,684 peticiones, 0 fallos).
+   - Firmas criptográficas SHA-256 reales de los artefactos de carga en disco validadas con `scripts/recalcular_metricas_carga.py --check-latex`.
+   - Recompilación exacta del informe acumulativo LaTeX `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf` (38 páginas exactas, resolviendo Criterio de Piso 2).
+   - Saneamiento formal de ramas y cierre del PR huérfano #176 en GitHub (Criterio de Piso 3).
 4. **Trazabilidad y Revisión de Pares (Criterio C8):**
    - Mapeo directo de issues resueltos, pull requests asignados y revisiones cruzadas del equipo BCEL.
 
@@ -144,15 +148,66 @@ evidencias/
   - Tag de autenticación: 128 bits (`GCM_TAG_LENGTH_BITS = 128`).
   - Formato de almacenamiento: `Base64(IV + Ciphertext + Tag)`.
 
-### D. Protección de Endpoints JWT (`Tarea E46 / Criterio E46`)
+### D. Verificador Criptográfico de Cadena e Inmutabilidad (`Entregable #43 / Criterio E3`)
+* **Archivos fuente:**
+  - `experimentos/verificador_cadena.py`: Verificador forense de integridad de cadena de bloques y bitácora.
+  - `experimentos/test_verificador_cadena_base.py`: Suite de 26 pruebas unitarias automatizadas con pytest.
+* **Mejoras implementadas:**
+  1. **Soporte de bitácora relacional `m1` legítima:** Detección de filas sin hash previo ni bloque de bloque cuando la auditoría se opera en modo relacional estándar, evitando falsos positivos de manipulación ("alteración detectada").
+  2. **Verificación criptográfica HMAC-SHA256 de base de datos:** Verificación de la firma HMAC contra la clave simétrica compartida para detectar inserciones directas o modificaciones no autorizadas por usuarios con acceso directo a PostgreSQL (`sga_app`).
+  3. **Aislamiento estricto de pruebas unitarias:** Pruebas independientes para cada código de salida forense (`test_genesis_invalido_retorna_2`, `test_retroceso_cabeza_retorna_2`, `test_fila_sin_hash_retorna_2`, `test_m1_legitimo_retorna_0`, `test_hmac_ausente_en_principal_retorna_2`, `test_hmac_alterado_con_secreto_retorna_2`, `test_hmac_valido_con_secreto_retorna_0`).
+  4. **Resistencia a pruebas de mutación:** La alteración intencional de cualquier comprobación interna en el verificador produce fallos inmediatos de aserción (`AssertionError: 0 != 2`), demostrando cobertura real y no trivial.
+  5. **Integración en CI/CD:** Incorporado en `.github/workflows/ci-cd.yml` dentro del paso `ci-docente`.
+* **Resultado:** **26 passed in 0.08s (100 % de éxito)**.
+* **Comando reproducible:**
+  ```powershell
+  python -m pytest experimentos/test_verificador_cadena_base.py -v
+  ```
+
+### E. Protección de Endpoints JWT (`Tarea E46 / Criterio E46`)
 * **Archivo fuente:** `microservicio-secretaria/backend/src/main/java/ec/uteq/sga/secretaria/infrastructure/security/JwtAuthFilter.java`
 * **Descripción:** Eliminación de cualquier mecanismo de bypass de credenciales o secretos en texto plano. Las solicitudes a `/api/secretaria/**` sin encabezado `Authorization: Bearer <token_valido>` son interceptadas por `JwtAuthFilter` y rechazadas deterministamente con estado `HTTP 401 Unauthorized`.
 
 ---
 
-## 3.3 Calidad, Pruebas Automatizadas y API Gateway
+## 3.3 Calidad, Pruebas Automatizadas, OpenAPI y API Gateway
 
-### A. Suite Automatizada en Python (`Criterio C7 / Listado 3`)
+### A. Verificación del Contrato OpenAPI 3.0 (`Entregable #4`)
+* **Archivo fuente:** `scripts/verificar_openapi.py`
+* **Especificación analizada:** `microservicio-secretaria/backend/src/main/resources/openapi.yaml` (y `sga-principal`, `microservicio-soporte`).
+* **Mejoras implementadas:**
+  - Soporte de verificación selectiva y multi-servicio vía argumentos de línea de comandos (`--service {secretaria,soporte,principal,all}` y `--url`).
+  - Mantiene ejecución predeterminada autónoma e idempotente sobre el microservicio de Secretaría.
+  - Validación de 88 operaciones de endpoints con 0 discrepancias frente a la especificación viva.
+* **Comando reproducible:**
+  ```powershell
+  python scripts/verificar_openapi.py --service secretaria
+  ```
+
+### B. Matriz de Calidad ISO/IEC 25010 y Cifras de Carga (`Entregables #22 y #48`)
+* **Generador automático:** `generar_matriz.py`
+* **Verificador de consistencia LaTeX/CSV:** `scripts/recalcular_metricas_carga.py`
+* **Artefactos certificados:**
+  - `docs/experimentos/resultados/matriz_iso25010.csv`
+  - `Informe-E4_BCEL/matriz_iso25010_generada.tex`
+  - `Informe-E4_BCEL/cifras_carga_generadas.tex`
+* **Garantías técnicas:**
+  - Intervalos de confianza de Wilson al 95 % para tasa de éxito (`[99.97 %, 100.00 %]` en carga nominal de 50 usuarios; `[99.99 %, 100.00 %]` en estrés oficial de 200 usuarios con 98,684 peticiones).
+  - Unificación de ruta de cobertura JaCoCo de soporte a `docs/cobertura/soporte/jacoco.xml` (71.56 % LINE).
+  - Verificación estricta de hashes SHA-256 de los logs de Locust en `docs/locust/README.md` y `docs/locust/entorno_medicion.md`.
+* **Comandos reproducibles:**
+  ```powershell
+  python generar_matriz.py
+  python scripts/recalcular_metricas_carga.py --check-latex
+  ```
+
+### C. Recompilación Oficial del Informe Académico (`Criterio de Piso 2`)
+* **Documento fuente:** `Informe-E4_BCEL/TA-PFC-E4_BCEL.tex`
+* **Documento compilado:** `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf` (38 páginas exactas, 3.23 MB).
+* **Entorno de compilación:** MiKTeX (`pdflatex` + `bibtex`).
+* **Validación:** Se ejecutaron 3 pasadas de `pdflatex` y 1 de `bibtex` asegurando la resolución completa de todas las citas bibliográficas, referencias cruzadas y tablas generadas (`matriz_iso25010_generada.tex` y `cifras_carga_generadas.tex`), erradicando cualquier desincronización entre el PDF entregado y los fuentes del repositorio.
+
+### D. Suite Automatizada de Integración y Contratos en Python (`Criterio C7 / Listado 3`)
 * **Ubicación de log generado:** `evidencias/Ernesto_Luna/03-calidad-contratos-y-gateway/pytest_contracts_and_integration.log`
 * **Archivos ejecutados:**
   1. `tests/contract/test_contracts.py` (7 tests: sintaxis `proto3`, signaturas RPC y paridad con OpenAPI).
@@ -163,7 +218,7 @@ evidencias/
   python -m pytest tests/contract tests/integration -v
   ```
 
-### B. Gateway HAProxy 2.9 y Balanceo de Carga
+### E. Gateway HAProxy 2.9 y Balanceo de Carga
 * **Archivo de configuración:** `docker/haproxy/haproxy.cfg`
 * **Funcionalidad:**
   - Punto único de entrada seguro (API Gateway) en el puerto `8080`.
@@ -171,16 +226,19 @@ evidencias/
   - Algoritmos de balanceo verificados: `roundrobin` para peticiones sin estado y `leastconn` para transacciones de persistencia.
   - Verificación activa de salud (`health checks`) contra `/actuator/health`.
 
-### C. Observabilidad y Correlación Distribuida con MDC
+### F. Observabilidad y Correlación Distribuida con MDC
 * **Archivo fuente:** `microservicio-secretaria/backend/src/main/java/ec/uteq/sga/secretaria/infrastructure/common/TraceIdFilter.java`
 * **Archivo de prueba:** `microservicio-secretaria/backend/src/test/java/ec/uteq/sga/secretaria/infrastructure/common/TraceIdFilterTest.java`
 * **Descripción:** Intercepta cada petición HTTP, extrae o genera un identificador único UUID `X-Trace-Id`, y lo inyecta en el contexto `MDC` (Mapped Diagnostic Context) de SLF4J. Esto garantiza que todos los logs estructurados en JSON incluyan el `trace_id` para correlación distribuida de extremo a extremo.
 
 ---
 
-## 3.4 Trazabilidad y Gestión de Issues en GitHub (`Criterio C8`)
+## 3.4 Trazabilidad y Saneamiento de Repositorio (`Criterio C8 / Criterio de Piso 3`)
 
-En cumplimiento del Criterio C8 (Revisión de Pares y Trazabilidad en GitHub), se registran los siguientes hitos de desarrollo e integración liderados por Ernesto Luna:
+En cumplimiento del Criterio C8 (Revisión de Pares y Trazabilidad en GitHub) y el Criterio de Piso 3 (Saneamiento de ramas y PRs huérfanos):
+
+1. **Cierre de PRs huérfanos:** Se identificó y cerró formalmente en GitHub el PR #176 huérfano (`gh pr close 176`), dejando el repositorio con 0 pull requests sueltos o conflictivos pendientes de resolución.
+2. **Registro de Trazabilidad:**
 
 | Tarea / Hito | Issue GitHub | Rama de Origen | Revisor de Pares | Descripción del Aporte | Estado |
 |---|---|---|---|---|---|
@@ -190,22 +248,33 @@ En cumplimiento del Criterio C8 (Revisión de Pares y Trazabilidad en GitHub), s
 | **PR #132** | PR #132 | `Ernesto-Luna` | Equipo BCEL | Implementación de rol restringido `sga_app`, variables de entorno y validador de arranque. | **FUSIONADO** |
 | **PR #140** | PR #140 | `Ernesto-Luna` | Pedro Castro | Eliminación de bypass de tokens y eliminación de secretos por defecto en Secretaría. | **FUSIONADO** |
 | **PR #142** | PR #142 | `Ernesto-Luna` | Equipo BCEL | Cierre definitivo de tareas #4 (OpenAPI), #37 (Testcontainers con Flyway) y #38 (exclusiones JaCoCo). | **FUSIONADO** |
+| **PR #176** | PR #176 | `fix/correcciones-retroalimentacion-docente` | Ernesto Luna | Saneamiento de PR huérfano para cumplir Criterio de Piso 3 de evaluación. | **CERRADO** |
 
 ---
 
 # 4. Comandos de Reproducción Rápida
 
-Para verificar y reproducir en cualquier máquina los resultados documentados en esta carpeta:
+Para verificar y reproducir en cualquier máquina los resultados certificados de Ernesto Luna:
 
 ```powershell
 # 1. Pruebas automatizadas de contratos e integración (Python)
 python -m pytest tests/contract tests/integration -v
 
-# 2. Pruebas unitarias de seguridad y criptografía (Java / Spring Boot)
+# 2. Verificador de cadena forense y pruebas de mutación (26 passed)
+python -m pytest experimentos/test_verificador_cadena_base.py -v
+
+# 3. Validación de contrato OpenAPI de Secretaría
+python scripts/verificar_openapi.py --service secretaria
+
+# 4. Regeneración y verificación de consistencia de Matriz ISO/IEC 25010 y Carga
+python generar_matriz.py
+python scripts/recalcular_metricas_carga.py --check-latex
+
+# 5. Pruebas unitarias de seguridad y criptografía (Java / Spring Boot)
 cd microservicio-secretaria\backend
 .\mvnw.cmd test "-Dtest=AuditoriaIntegridadTest,CryptoServiceTest,JwtServiceTest"
 
-# 3. Suite completa de Secretaría con verificación de compuerta JaCoCo (70 % LINE)
+# 6. Suite completa de Secretaría con verificación de compuerta JaCoCo (70 % LINE)
 .\mvnw.cmd test
 ```
 
