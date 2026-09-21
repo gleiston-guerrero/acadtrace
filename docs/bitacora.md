@@ -41,7 +41,7 @@ Nota de correccion documental (16 de septiembre de 2026, punto 6): se rectifican
 | Tema | Estado en pre-e4 | Mecanismo Tecnico Implementado y Evidencia en Repositorio | Pendiente / Por Mejorar en E4 |
 | :--- | :---: | :--- | :--- |
 | Fragmentacion de Datos | Parcial | Separacion logica por esquemas sga_principal, sga_docente, sga_secretaria y sga_soporte segun configuracion, modelos y SQL; no se demuestra particionado fisico por rango/lista. | Documentar la diferencia con los nombres de docs/db/schema.sql en ADR-003. |
-| Replicacion y Consistencia | No demostrada | Compose principal: endpoint PostgreSQL externo unico (predeterminado 192.0.2.1:5433, base sga). Compose de Principal: una instancia postgres:17. No hay configuracion versionada de replicacion ni standby. | Describir la instancia configurada; no certificar la topologia interna del servidor externo. |
+| Replicacion y Consistencia | No demostrada | Compose principal: endpoint PostgreSQL configurado mediante variables de entorno (puerto 5433, base sga). Compose de Principal: una instancia postgres:17. No hay configuracion versionada de replicacion ni standby. | Describir la instancia configurada; no certificar la topologia interna del servidor externo. |
 | Tolerancia a Fallos en Datos | No demostrada | Persistencia con punto unico de fallo en la topologia versionada; no se demuestra failover de PostgreSQL. | Registrar la limitacion; la eleccion de lider etcd de Soporte no replica ni recupera PostgreSQL. |
 
 ---
