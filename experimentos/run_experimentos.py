@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Modulo Banco Experimental y Evaluación Cuantitativa de Carga y Cripto-Auditoría
 Proyecto AcadTrace / SGA Escuela - Entrega 4
@@ -887,37 +887,10 @@ def verificar_falsos_positivos() -> Tuple[float, List[Dict[str, Any]]]:
         f"({len(fpr_rows)} corridas limpias)"
     )
 
-    repo_root = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-        )
-    )
-
-    docs_out = os.path.join(
-        repo_root,
-        "docs",
-        "experimentos",
-        "resultados",
-    )
-
-    if os.path.exists(docs_out):
-        with open(
-            os.path.join(
-                docs_out,
-                "falsos_positivos.csv",
-            ),
-            "w",
-            newline="",
-            encoding="utf-8",
-        ) as f:
-            writer = csv.DictWriter(
-                f,
-                fieldnames=list(fpr_rows[0].keys()),
-            )
-            writer.writeheader()
-            writer.writerows(fpr_rows)
-
+    # Artefacto auxiliar de esta ejecucion.
+    # Se escribe exclusivamente en OUTPUT_DIR.
+    # main() decide cuando publicarlo en el destino canonico.
+    # E7 no modifica docs/experimentos/resultados.
     return fpr, fpr_rows
 
 
@@ -1035,16 +1008,54 @@ def main():
             write_certificate(staged)  # Exige 6/6, no vacíos y CSV con LF.
             if verify(staged) != 0:
                 raise RuntimeError("La verificación previa a publicación falló")
-            # Conservar originales antes de reemplazar solo los siete archivos E7.
-            existing = [name for name in (*ARTIFACTS, CERTIFICATE) if (destination / name).exists()]
+            # Preparar la publicacion de los seis artefactos E7, el certificado y el auxiliar de falsos positivos.
+            publish_artifacts = (
+                *ARTIFACTS,
+                "falsos_positivos.csv",
+            )
+
+            # Conservar los archivos anteriores antes de publicar
+            # la nueva corrida.
+            existing = [
+                name
+                for name in (*publish_artifacts, CERTIFICATE)
+                if (destination / name).exists()
+            ]
+
             if existing:
-                archive = Path(tempfile.mkdtemp(prefix="e7-anterior-", dir=destination))
+                archive = Path(
+                    tempfile.mkdtemp(
+                        prefix="e7-anterior-",
+                        dir=destination,
+                    )
+                )
+
                 for name in existing:
-                    shutil.copy2(destination / name, archive / name)
-                print(f"Evidencia anterior conservada en: {archive}")
-            # Certificado al final: una interrupción no valida un conjunto parcial.
-            for name in (*ARTIFACTS, CERTIFICATE):
-                os.replace(staged / name, destination / name)
+                    shutil.copy2(
+                        destination / name,
+                        archive / name,
+                    )
+
+                print(
+                    "Evidencia anterior conservada en: "
+                    f"{archive}"
+                )
+
+            # Publicar primero los seis artefactos certificados
+            # y el auxiliar falsos_positivos.csv de esta corrida.
+            for name in publish_artifacts:
+                os.replace(
+                    staged / name,
+                    destination / name,
+                )
+
+            # REPRODUCIBILIDAD.txt sigue certificando exclusivamente
+            # los seis artefactos definidos por ARTIFACTS y se publica
+            # al final para no validar un conjunto parcial.
+            os.replace(
+                staged / CERTIFICATE,
+                destination / CERTIFICATE,
+            )
         finally:
             OUTPUT_DIR = original_output
     if verify(destination) != 0:
