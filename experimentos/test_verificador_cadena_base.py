@@ -214,10 +214,23 @@ class TestCotejoColumnas(unittest.TestCase):
         self.assertIn("ip_address", verificador_cadena.cotejar_columnas_visibles(fila))
 
 
+SECRET_TEST_DEFAULT = "clave-secreta-institucional-test"
+
+
+@patch.dict("os.environ", {"JWT_SECRET": SECRET_TEST_DEFAULT})
 class TestVerificadorCadenaMain(unittest.TestCase):
-    """Pruebas que ejercitan main() de verificador_cadena frente a manipulaciones reales."""
+    """Pruebas que ejercitan main() de verificador_cadena frente a manipulaciones reales.
+
+    JWT_SECRET esta disponible por defecto (como en un entorno real bien
+    configurado) para que las cadenas validas tengan HMAC verificable de
+    verdad, en vez de un placeholder no criptografico ("a"*64) que antes
+    dejaba pasar cualquier fila por falta de secreto, no porque fuera
+    autentica. Las pruebas que necesitan probar la ausencia de secreto lo
+    quitan explicitamente.
+    """
 
     def _crear_cadena_valida(self, n=3, inicio_hash=None, secret=None):
+        secret = secret or SECRET_TEST_DEFAULT
         filas = []
         GENESIS = "0" * 64
         h_ant = inicio_hash if inicio_hash is not None else GENESIS
@@ -477,6 +490,22 @@ class TestVerificadorCadenaMain(unittest.TestCase):
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 0)
+
+    @patch("django.db.connection.cursor")
+    def test_cadena_rota_hash_actual_invalido_retorna_2(self, mock_cursor_ctx):
+        """Si hash_actual no corresponde a sha256(hash_anterior + contenido_canonico),
+        verificar_cadena_global declara la cadena rota y main() debe propagar codigo 2
+        (antes nada probaba este camino extremo a extremo)."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(2, secret="clave-secreta-institucional-test")
+        filas[1]["hash_actual"] = "f" * 64  # no es sha256(hash_anterior + contenido_canonico)
+        filas[1]["hmac"] = verificador_cadena.calcular_hmac("clave-secreta-institucional-test", filas[1])
+        mock_cursor = self._simular_cursor(filas, "f" * 64, cabeza_lamport, seq_val=2)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
     @patch("django.db.connection.cursor")
     def test_lamport_no_monotonico_retorna_2(self, mock_cursor_ctx):
         """Si el reloj de Lamport no es estrictamente creciente, retorna 2."""
@@ -558,6 +587,51 @@ class TestVerificadorCadenaMain(unittest.TestCase):
         codigo = verificador_cadena.main()
         self.assertEqual(codigo, 2)
 
+    @patch("django.db.connection.cursor")
+    def test_m1_historico_antes_de_v1_retorna_0(self, mock_cursor_ctx):
+        """Filas m1 cuyo id_auditoria es anterior a toda la cadena v1 son una
+        transicion historica legitima de modo (el sistema empezo sin
+        encadenamiento y luego lo activo), no una manipulacion."""
+        filas_v1, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(2)
+        fila_m1_historica = {
+            "id_auditoria": 0,
+            "descripcion": "evento previo a la cadena v1",
+            "fecha": "2026-09-16T09:00:00Z",
+            "username": "admin",
+            "registro_id": 0,
+            "reloj_lamport": None,
+            "contenido_canonico": None,
+            "hash_anterior": None,
+            "hash_actual": None,
+            "version_canonica": None,
+            "schema_origen": "PRINCIPAL",
+            "tabla_afectada": "usuario",
+            "accion": "CREAR",
+            "resultado": "EXITO",
+            "ip_address": "127.0.0.1",
+            "trace_id": "trace-historico",
+            "hmac": None,
+        }
+        filas_mixtas = [fila_m1_historica] + filas_v1
+        mock_cursor = self._simular_cursor(filas_mixtas, cabeza_hash, cabeza_lamport, seq_val=2)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 0)
+
+    @patch.dict("os.environ", {"JWT_SECRET": ""})
+    @patch("django.db.connection.cursor")
+    def test_v1_sin_secreto_disponible_retorna_2(self, mock_cursor_ctx):
+        """Sin JWT_SECRET no se puede distinguir un HMAC real de uno inventado
+        con forma valida: para PRINCIPAL/SECRETARIA eso falla cerrado, no pasa
+        en silencio como si estuviera verificado."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(2, secret="clave-secreta-institucional-test")
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=2)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
     @patch.dict("os.environ", {"JWT_SECRET": "clave-secreta-institucional-test"})
     @patch("django.db.connection.cursor")
     def test_hmac_registro_id_null_valido_retorna_0(self, mock_cursor_ctx):
@@ -574,22 +648,115 @@ class TestVerificadorCadenaMain(unittest.TestCase):
 
     @patch("django.db.connection.cursor")
     def test_docente_eslabon_falso_no_en_bitacora_local_retorna_2(self, mock_cursor_ctx):
-        """Eslabon con schema DOCENTE cuyo registro_id no existe en sga_docente.eventos_auditoria retorna 2."""
-        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(1)
-        filas[0]["schema_origen"] = "DOCENTE"
-        filas[0]["registro_id"] = 99999
+        """Eslabon DOCENTE sin fila correspondiente (hash_actual+entidad_id) en la
+        bitacora local sga_docente.eventos_auditoria retorna 2.
 
-        # Configurar mock para devolver None al buscar en sga_docente.eventos_auditoria
-        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=1)
-        # Hacemos que la query para sga_docente devuelva None
-        orig_fetchone = mock_cursor.fetchone
-        def custom_fetchone():
-            return None if mock_cursor.last_query and "sga_docente.eventos_auditoria" in mock_cursor.last_query else orig_fetchone()
-        mock_cursor.fetchone = custom_fetchone
+        El hack anterior de este test (un fetchone personalizado que dependia de
+        un atributo mock_cursor.last_query que _simular_cursor nunca establece)
+        hacia que "x" in MagicMock() devolviera False siempre, cayendo a un
+        fetchone original nunca configurado (un MagicMock generico, veraz por
+        defecto) en vez de None: el test pasaba, pero por el cotejo de HMAC que
+        rompia la mutacion de schema_origen, no por el cotejo Docente que decia
+        probar. _simular_cursor ya devuelve None por defecto para cualquier
+        query no reconocida (como la de sga_docente.eventos_auditoria), asi que
+        no hace falta ningun hack.
+        """
+        fila_docente = {
+            "id_auditoria": 1,
+            "descripcion": "evento docente",
+            "fecha": "2026-09-17T10:00:00Z",
+            "username": "1",
+            "registro_id": 99999,
+            "reloj_lamport": 1,
+            "contenido_canonico": json.dumps({
+                "actor_id": 1, "entidad": "calificacion", "entidad_id": "99999",
+                "estado_reconciliacion": "APLICADO", "modo": "m2", "operacion": "CREAR",
+                "payload": {"descripcion": "evento docente", "resultado": "EXITO",
+                            "schema_origen": "DOCENTE"},
+                "reloj_lamport": 1, "reloj_vectorial": {},
+                "timestamp": "2026-09-17T10:00:00Z", "tipo_evento": "AUDITORIA",
+            }, sort_keys=True, separators=(",", ":")),
+            "hash_anterior": "0" * 64,
+            "hash_actual": "d" * 64,
+            "version_canonica": "v1",
+            "schema_origen": "DOCENTE",
+            "tabla_afectada": "calificacion",
+            "accion": "AUDITAR",
+            "resultado": "EXITO",
+            "ip_address": None,
+            "trace_id": "trace-docente-falso",
+            "hmac": None,
+        }
+        mock_cursor = self._simular_cursor([fila_docente], "d" * 64, 1, seq_val=1)
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
         self.assertEqual(codigo, 2)
+
+    @patch("django.db.connection.cursor")
+    def test_docente_eslabon_legitimo_en_bitacora_local_retorna_0(self, mock_cursor_ctx):
+        """Eslabon DOCENTE con fila correspondiente (mismo hash_actual y entidad_id)
+        en sga_docente.eventos_auditoria pasa con codigo 0."""
+        can_dict = {
+            "actor_id": 1, "entidad": "calificacion", "entidad_id": "42",
+            "estado_reconciliacion": "APLICADO", "modo": "m2", "operacion": "CREAR",
+            "payload": {"descripcion": "evento docente", "resultado": "EXITO",
+                        "schema_origen": "DOCENTE"},
+            "reloj_lamport": 1, "reloj_vectorial": {},
+            "timestamp": "2026-09-17T10:00:00Z", "tipo_evento": "AUDITORIA",
+        }
+        can_str = json.dumps(can_dict, sort_keys=True, separators=(",", ":"))
+        hash_anterior = "0" * 64
+        hash_actual = _sha256(hash_anterior + can_str)
+        fila_docente = {
+            "id_auditoria": 1,
+            "descripcion": "evento docente",
+            "fecha": "2026-09-17T10:00:00Z",
+            "username": "1",
+            "registro_id": 42,
+            "reloj_lamport": 1,
+            "contenido_canonico": can_str,
+            "hash_anterior": hash_anterior,
+            "hash_actual": hash_actual,
+            "version_canonica": "v1",
+            "schema_origen": "DOCENTE",
+            "tabla_afectada": "calificacion",
+            "accion": "AUDITAR",
+            "resultado": "EXITO",
+            "ip_address": None,
+            "trace_id": "trace-docente-legitimo",
+            "hmac": None,
+        }
+        mock_cursor = self._simular_cursor([fila_docente], hash_actual, 1, seq_val=1)
+
+        def execute_side_effect(sql, *args, **kwargs):
+            sql_clean = " ".join(sql.split()).lower()
+            if "sga_docente.eventos_auditoria" in sql_clean:
+                mock_cursor.fetchone.return_value = [1]
+            elif "count(*)" in sql_clean:
+                mock_cursor.fetchone.return_value = [1]
+            elif "select last_value" in sql_clean:
+                mock_cursor.fetchone.return_value = [1, True]
+            elif "estado_cadena_auditoria" in sql_clean:
+                mock_cursor.fetchone.return_value = [hash_actual, 1]
+            elif "select id_auditoria" in sql_clean:
+                columnas = [
+                    "id_auditoria", "descripcion", "fecha", "username", "registro_id",
+                    "reloj_lamport", "contenido_canonico", "hash_anterior", "hash_actual",
+                    "version_canonica", "schema_origen", "tabla_afectada", "accion",
+                    "resultado", "ip_address", "trace_id", "hmac",
+                ]
+                mock_cursor.description = [(c,) for c in columnas]
+                mock_cursor.fetchall.return_value = [[fila_docente.get(c) for c in columnas]]
+            else:
+                mock_cursor.fetchall.return_value = []
+                mock_cursor.fetchone.return_value = None
+
+        mock_cursor.execute.side_effect = execute_side_effect
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 0)
 
 
     @patch("django.db.connection.cursor")
