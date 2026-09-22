@@ -348,7 +348,15 @@ def check_declared_hashes():
                         if not target.exists():
                             errors.append(f"{rel_doc}:{line_no}: archivo {cell_file} no existe")
                         else:
-                            real_hash = hashlib.sha256(target.read_bytes()).hexdigest().upper()
+                            data = target.read_bytes()
+                            # Estos dos TXT historicos son documentos derivados versionados
+                            # con LF, no evidencia CSV. Windows puede materializar CRLF.
+                            if cell_file in {
+                                'microservicio-soporte/resultados_estres/20260920_164722/perfil.txt',
+                                'microservicio-soporte/resultados_estres/20260920_164722/resumen_validacion.txt',
+                            }:
+                                data = data.replace(b'\r\n', b'\n')
+                            real_hash = hashlib.sha256(data).hexdigest().upper()
                             if real_hash != cell_hash.upper():
                                 errors.append(f"{rel_doc}:{line_no}: hash de {cell_file} mismatch (declarado={cell_hash}, real={real_hash})")
     return errors
@@ -424,8 +432,14 @@ def main():
     parser.add_argument("--generate-latex", action="store_true")
     parser.add_argument("--check-latex", action="store_true")
     parser.add_argument("--emit-latex-block", action="store_true")
+    parser.add_argument("--check-repeticiones", action="store_true",
+                        help="Recalcular y verificar 3+3, bootstrap y SHA256SUMS sin escribir")
     args = parser.parse_args()
     try:
+        repetitions = None
+        if args.check_repeticiones:
+            from resumir_repeticiones_carga import DEFAULT, generate
+            repetitions = generate(DEFAULT, check=True)
         official = verify_official()
         metrics, auxiliary, extra, endpoints, window = official["nominal"]
         stress = official["estres"]
@@ -440,11 +454,14 @@ def main():
             print(json.dumps({"metrics": metrics, "auxiliary": auxiliary,
                               "additional": extra, "endpoints": endpoints,
                               "history": window, "historical": historical,
+                              **({"repeticiones": repetitions} if repetitions is not None else {}),
                               "stress": {"metrics": stress[0], "auxiliary": stress[1],
                                          "additional": stress[2], "history": stress[4]}},
                              default=str, ensure_ascii=False, indent=2))
         else:
             print("OK: integridad y métricas nominal/estrés verificadas")
+            if repetitions is not None:
+                print("OK: repeticiones 3+3, bootstrap semilla 12345/10000 y SHA256SUMS verificados")
             print("Conjunto A: microservicio-soporte/locust_esc1_stats.csv")
             for key, value in {**metrics, **auxiliary, **extra}.items():
                 print(f"{key}: {value}")
