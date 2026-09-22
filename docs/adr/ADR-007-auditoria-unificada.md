@@ -55,9 +55,33 @@ Las implementaciones Java de Principal y Secretaría mantienen su propia impleme
 
 El vector patrón constituye la referencia compartida utilizada por las pruebas de conformidad de las implementaciones. Su finalidad es detectar cambios incompatibles en el contrato representado por ese conjunto de datos.
 
-El vector patrón no demuestra equivalencia general de las serializaciones Java y Python. En particular, existen diferencias fuera de su dominio de cobertura relacionadas con representaciones numéricas, marcas temporales, fechas dentro del `payload`, normalización de determinadas claves excluidas, orden de claves con caracteres suplementarios y valores especiales de punto flotante.
+El vector patrón no demuestra equivalencia general de las serializaciones Java y Python. El arnés ejecutable `experimentos/arnes_12_vectores.py` mide el alcance real sobre doce vectores: Java Principal y Java Secretaría coinciden en 12/12 (100.0%), y Python coincide con Java en 8/12 (66.7%). Las cuatro divergencias reales fuera del dominio de cobertura son: flotantes de rango extremo (`1.0E-7` frente a `1e-07`, `1.0E21` frente a `1e+21`), orden de claves con caracteres suplementarios (UTF-16 frente a puntos de código) y el valor especial `NaN` (cadena `"NaN"` en Java frente a literal `NaN` en Python).
 
 Por ello, la garantía documentada es deliberadamente limitada: las pruebas protegen la compatibilidad del vector patrón y permiten detectar regresiones sobre ese contrato, pero no justifican afirmar una representación idéntica carácter por carácter para cualquier entrada.
+
+### Divergencias reales fuera del vector patrón
+
+Medidas por `experimentos/arnes_12_vectores.py` sobre doce vectores
+(Java Principal == Java Secretaría: 12/12; Java == Python: 8/12):
+
+| Tipo de valor | Representación Java | Representación Python |
+|---|---|---|
+| Flotante de rango extremo pequeño | `1.0E-7` | `1e-07` |
+| Flotante de rango extremo grande | `1.0E21` | `1e+21` |
+| Orden de claves suplementarias | U+1F600 antes de U+FF01 (UTF-16) | orden por punto de código |
+| `NaN` | cadena `"NaN"` | literal JSON no estándar `NaN` |
+
+### Evidencia reproducible
+
+`experimentos/arnes_12_vectores.py` compila e invoca las tres
+implementaciones reales (`AuditHashService` de sga-principal y de
+secretaría vía `experimentos/java_harness/CanonicoRunner.java`, y
+`docentes/auditoria/hashing.py`) sobre
+`experimentos/vectores_canonicos_v1.json`, calcula los porcentajes y
+falla con código 1 si Java Principal deja de coincidir con Java
+Secretaría o si el conteo Java == Python cambia respecto a 8/12.
+Procedimiento en `experimentos/README_arnes.md`; reproducible desde un
+clon limpio.
 
 ### 4. Persistencia e interoperabilidad de la cadena
 
