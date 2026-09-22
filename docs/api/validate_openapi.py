@@ -7,10 +7,11 @@ import yaml
 ROOT = Path(__file__).parent
 CONTRACT = ROOT / "openapi.yaml"
 REQUIRED_PATHS = {
-    "principal": {"/api/estudiantes", "/api/matriculas", "/api/auditoria"},
+    "principal": {"/api/estudiantes", "/api/matriculas", "/api/auditoria", "/actuator/health"},
     "secretaria": {"/api/secretario/estudiantes", "/api/secretario/matriculas", "/api/secretario/calendario/eventos"},
     "docente": {"/api/docente/actividades/", "/api/docente/asistencias/masivo", "/metrics"},
     "soporte": {
+        "/health",
         "/api/soporte/election/status",
         "/api/soporte/logs",
         "/api/soporte/tecnicos-list",

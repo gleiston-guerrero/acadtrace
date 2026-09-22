@@ -24,18 +24,25 @@ SERVICES_CONFIG = {
         "runtime_url": os.environ.get("OPENAPI_SECRETARIA_URL", "http://localhost:5176/v3/api-docs"),
         "namespace": "/api/secretario",
         "name": "Secretaria",
+        # Rutas que el servicio sirve de verdad pero que springdoc nunca
+        # documenta en /v3/api-docs (Actuator y health-checks simples).
+        # Se verifican con una peticion HTTP directa, no por comparacion
+        # de esquema.
+        "out_of_scope": set(),
     },
     "soporte": {
         "tag": "soporte",
         "runtime_url": os.environ.get("OPENAPI_SOPORTE_URL", "http://localhost:8083/v3/api-docs"),
         "namespace": "/api/soporte",
         "name": "Soporte",
+        "out_of_scope": {("GET", "/health")},
     },
     "principal": {
         "tag": "principal",
         "runtime_url": os.environ.get("OPENAPI_PRINCIPAL_URL", "http://localhost:8080/v3/api-docs"),
         "namespace": "/api",
         "name": "Principal",
+        "out_of_scope": {("GET", "/actuator/health")},
     },
 }
 
@@ -213,25 +220,47 @@ def show_difference(label, operations_set):
         print(f"  {method} {path}")
 
 
+def verify_out_of_scope(method, path, runtime_url):
+    base = re.sub(r"/v3/api-docs$", "", runtime_url)
+    url = base + path
+    request = Request(url, method=method)
+    try:
+        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            return 200 <= response.status < 300
+    except (URLError, TimeoutError, OSError):
+        return False
+
+
 def verificar_un_servicio(contract_doc, service_key, custom_url=None):
     cfg = SERVICES_CONFIG[service_key]
     name = cfg["name"]
     tag = cfg["tag"]
     namespace = cfg["namespace"]
     runtime_url = custom_url or cfg["runtime_url"]
+    out_of_scope = cfg.get("out_of_scope", set())
 
     versioned, shared = select_versioned(contract_doc, tag=tag, namespace=namespace, name=name)
-    print(f"Contrato versionado {name}: {len(versioned)} operaciones")
+    versioned_in_scope = versioned - out_of_scope
+    print(f"Contrato versionado {name}: {len(versioned)} operaciones "
+          f"({len(out_of_scope & versioned)} fuera del alcance de /v3/api-docs)")
     runtime_all = operations(fetch_runtime(runtime_url, service_name=name))
     runtime = {pair for pair in runtime_all
-               if in_namespace(pair[1], namespace) or pair[1] in shared or pair in versioned}
+               if in_namespace(pair[1], namespace) or pair[1] in shared or pair in versioned_in_scope}
     if not runtime:
         raise VerificationError(f"Seleccion runtime de {name} vacia.")
     print(f"Contrato runtime {name}: {len(runtime)} operaciones")
     show_difference(f"Runtime fuera del alcance de {name}:", set(runtime_all) - runtime)
-    show_difference("Solo en versionado:", versioned - runtime)
-    show_difference("Solo en runtime:", runtime - versioned)
-    if versioned != runtime:
+    show_difference("Solo en versionado:", versioned_in_scope - runtime)
+    show_difference("Solo en runtime:", runtime - versioned_in_scope)
+    ok = versioned_in_scope == runtime
+
+    for method, path in sorted(out_of_scope & versioned):
+        healthy = verify_out_of_scope(method, path, runtime_url)
+        estado = "OK" if healthy else "FALLA"
+        print(f"Verificacion directa (fuera de /v3/api-docs) {method} {path}: {estado}")
+        ok = ok and healthy
+
+    if not ok:
         return 1
     print(f"Coinciden las operaciones HTTP de {name}.")
     return 0
@@ -262,7 +291,13 @@ def main():
                     rc = verificar_un_servicio(contract_ops, s_key, custom_url=args.url)
                     exit_codes.append(rc)
                 except Exception as exc:
-                    print(f"AVISO: {SERVICES_CONFIG[s_key]['name']} no verificable: {exc}")
+                    # Un servicio inalcanzable es una verificacion fallida,
+                    # no una advertencia: antes se perdia silenciosamente y
+                    # --service all podia devolver 0 con un servicio caido.
+                    print(f"ERROR: {SERVICES_CONFIG[s_key]['name']} no verificable: {exc}", file=sys.stderr)
+                    exit_codes.append(2)
+            if any(c == 2 for c in exit_codes):
+                return 2
             return 1 if any(c == 1 for c in exit_codes) else 0
         else:
             return verificar_un_servicio(contract_ops, args.service, custom_url=args.url)
