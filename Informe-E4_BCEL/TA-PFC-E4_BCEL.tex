@@ -837,47 +837,49 @@ lenguaje produce el mismo hash conocido.
 
 \paragraph{Alcance real de la equivalencia entre lenguajes.}
 El vector patr\'on solo emplea cadenas, enteros de tama\~no acotado y
-un \texttt{timestamp} preformateado como texto. Un cotejo m\'as amplio
-sobre doce vectores independientes muestra que las dos implementaciones
-Java coinciden en los doce casos, mientras que la implementaci\'on
-Python coincide con Java en cinco de los doce. Los siete casos en que
-las representaciones difieren son:
+un \texttt{timestamp} preformateado como texto. Un arn\'es ejecutable
+(\path{experimentos/arnes_12_vectores.py}, ver
+\path{experimentos/README_arnes.md}) compila e invoca las tres
+implementaciones reales sobre doce vectores independientes: las dos
+implementaciones Java coinciden en los doce casos (12/12, 100.0\%),
+mientras que la implementaci\'on Python coincide con Java en ocho de
+los doce (8/12, 66.7\%). Los cuatro casos en que las representaciones
+difieren son:
 
-\begin{itemize}
-  \item Decimales: Java emite \texttt{\{"nota":8.50\}}; Python emite
-        \texttt{\{"nota":"8.50"\}}.
-  \item Flotantes de rango extremo: Java emite \texttt{1.0E-7} /
-        \texttt{1.0E21}; Python emite \texttt{1e-07} / \texttt{1e+21}.
-  \item Marca de tiempo del mismo instante: Java emite
-        \texttt{...00.120Z}; Python emite \texttt{...00.120000+00:00}.
-  \item Fechas dentro del payload: Python las serializa como
-        \texttt{"2012-03-05"}; Java lanza \texttt{IllegalStateException}
-        y, dado que \texttt{AuditoriaService.guardar} es \textit{fail-open},
-        el evento se pierde en Java.
-  \item Claves excluidas del canon: la lista literal en Java contiene
-        \texttt{contrase?a} con el byte \texttt{0x3F} por defecto de
-        codificaci\'on, por lo que \texttt{contrase\~na} y
-        \texttt{CONTRASE\~NA} entran al canon en Java y no en Python;
-        Python tampoco excluye \texttt{contrasena}.
-  \item Orden de claves con caracteres suplementarios: Java ordena por
-        UTF-16 (por ejemplo U+1F600 antes de U+FF01); Python ordena por
-        punto de c\'odigo.
-  \item \texttt{NaN}: Java emite la cadena \texttt{"NaN"}; Python emite
-        el literal JSON no est\'andar \texttt{NaN}.
-\end{itemize}
+\begin{tabular}{l|l|l}
+\hline
+Tipo de valor & Representaci\'on Java & Representaci\'on Python \\
+\hline
+Flotante de rango extremo peque\~no & \texttt{1.0E-7} & \texttt{1e-07} \\
+Flotante de rango extremo grande & \texttt{1.0E21} & \texttt{1e+21} \\
+Orden de claves suplementarias & U+1F600 antes de U+FF01 (UTF-16) & orden por punto de c\'odigo \\
+\texttt{NaN} & cadena \texttt{"NaN"} & literal JSON no est\'andar \texttt{NaN} \\
+\hline
+\end{tabular}
+
+\paragraph{Qu\'e protege el vector patr\'on, qu\'e no protege.}
+Protege: cadenas ASCII, enteros dentro del rango que las pruebas cubren,
+\texttt{timestamp} preformateado como cadena, claves ordenadas por punto
+de c\'odigo Unicode dentro del plano b\'asico y exclusi\'on de las claves
+sensibles enumeradas (\texttt{authorization}, \texttt{jwt},
+\texttt{password}, \texttt{contrasena}, \texttt{contrase\~na},
+\texttt{contrase?a}, \texttt{internal\_token}, \texttt{token},
+\texttt{secret}). No protege: representaci\'on de flotantes de rango
+extremo, marcas de tiempo como \texttt{Instant} sin preformatear, orden
+de claves con caracteres suplementarios (U+10000 y siguientes), el valor
+especial \texttt{NaN} ni ning\'un tipo fuera del vector patr\'on.
 
 \paragraph{Interoperabilidad real entre lenguajes.}
-Una cadena de cuatro eslabones escrita por Java se valida en Python con
-\texttt{verificar\_cadena\_global} y una cadena de tres eslabones escrita
-por Python se valida con \texttt{AuditHashService.sha256Hex} en Java.
-Esta interoperabilidad ocurre porque el verificador rehashea el texto
-almacenado en la columna \texttt{contenido\_canonico}, no porque cada
-implementaci\'on produzca el mismo texto para el mismo evento. En
-consecuencia, la propiedad verificada es \textit{la integridad de la
-cadena tal como fue almacenada}, no la equivalencia de las
-representaciones can\'onicas entre lenguajes. El cotejo independiente de los doce
-vectores y la interoperabilidad descrita est\'an implementados de forma ejecutable
-en el script de reproducibilidad \path{experimentos/arnes_12_vectores.py}.
+Los verificadores rehashean el texto almacenado en la columna
+\texttt{contenido\_canonico}, no exigen que cada implementaci\'on
+produzca el mismo texto para el mismo evento. En consecuencia, la
+propiedad verificada es \textit{la integridad de la cadena tal como fue
+almacenada}, no la equivalencia de las representaciones can\'onicas
+entre lenguajes. El cotejo independiente de los doce vectores vive de
+forma ejecutable en \path{experimentos/arnes_12_vectores.py}: si Java
+Principal deja de coincidir con Java Secretaria en alg\'un vector, o si
+el conteo Java == Python cambia respecto a la evidencia congelada
+(8/12), el arn\'es falla con c\'odigo de salida 1.
 
 \paragraph{Bit\'acoras paralelas an activas.}
 Adem\'as de \texttt{sga\_principal.auditoria}, coexisten dos bit\'acoras
