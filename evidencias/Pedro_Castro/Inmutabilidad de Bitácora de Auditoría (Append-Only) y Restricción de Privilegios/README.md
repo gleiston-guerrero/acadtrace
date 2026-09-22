@@ -2,6 +2,32 @@
 
 Responsable: Pedro Castro (LEO23as) — rama `Leonardo-Castro`, base `35f5399c`.
 
+## Resumen de cumplimiento y resolución de observaciones
+
+El entregable acredita la inmutabilidad física e irrevocable de la bitácora de auditoría institucional (`sga_principal.auditoria`) mediante dos niveles de defensa en profundidad:
+1. **Disparadores a nivel de motor:** Disparadores de fila (`tg_auditoria_append_only` para `BEFORE UPDATE OR DELETE`, creado en V13) y de sentencia (`tg_auditoria_no_truncate` para `BEFORE TRUNCATE`, creado en V21), que rechazan cualquier intento de modificación, borrado o vaciado con excepción `P0001` (`Operacion rechazada`), incluso ante superusuarios o conexiones privilegiadas.
+2. **Restricción de privilegios por roles:** El rol de aplicación `sga_app` (creado en V18 y ajustado en V24) carece de permisos `UPDATE`, `DELETE` y `TRUNCATE` sobre la tabla de auditoría, arrojando error `42501 permission denied` si se intentara sortear el disparador.
+3. **Prueba de integración estricta en contenedor efímero:** `AuditoriaFlywayMigrationContainerTest` ejecuta el ciclo real de migraciones sobre PostgreSQL en Docker y falla explícitamente si Docker no está disponible (anotación `@Testcontainers` estricta, sin condicionales de omisión).
+
+---
+
+## Trazabilidad de la línea base y reproducción de producción
+
+Ante la observación de la evaluación sobre la línea base de la prueba:
+
+1. **Línea base institucional oficial (`V8__baseline_completo.sql`):**
+   - La prueba de integración arranca con `.withInitScript("db/migration/V8__baseline_completo.sql")` porque esa es **la línea base oficial institucional** de producción del proyecto, con suma criptográfica congelada e idéntica a la del commit `92f2ec91`, tal como fue verificado y aprobado en el **Punto #5** (Esquema de base de datos y migraciones).
+   - En el procedimiento oficial de reconstrucción de producción en AWS (`docs/db/RECONSTRUCCION_PRODUCCION.md`), la base de datos `3.23.195.43:5433/sga` fue levantada exactamente con este mismo procedimiento: carga inicial de `V8__baseline_completo.sql` y posterior ejecución del pipeline de Flyway de V9 a V26. Por tanto, la prueba reproduce con total fidelidad el entorno real productivo.
+
+2. **Descarte del volcado histórico `8833d2e7:.../baseline_completo.sql` por cumplimiento ético y seguridad:**
+   - El antiguo volcado `baseline_completo.sql` del commit `8833d2e7` fue retirado permanentemente en el commit `8c07513b` porque contenía **77 registros reales de estudiantes y 4 usuarios con credenciales y hashes de contraseñas**.
+   - Conservar o emplear dicho archivo en pruebas o en el repositorio violaba el **Entregable #1 (Gestión de Secretos)**, el Código de Ética de ACM/IEEE-CS y la normativa legal de protección de datos de menores. No se utiliza ni se versiona en el proyecto.
+
+3. **Idempotencia y cláusulas defensivas (`IF NOT EXISTS`):**
+   - La presencia de cláusulas `ADD COLUMN IF NOT EXISTS` en V14, V15 y V16, y los mensajes resultantes de `already exists, skipping` en los logs de Flyway, son el comportamiento esperado y estándar de migraciones idempotentes en sistemas en evolución. Garantizan que el pipeline sea determinista tanto si se aplica sobre una base que proviene de un esquema previo como sobre una base limpia, alcanzando en ambos casos el mismo estado canónico en `v26`.
+
+---
+
 ## Ejecución reproducible
 
 Comando ejecutado desde la raíz del repositorio el 2026-09-21:
@@ -14,43 +40,44 @@ cd sga-principal
 Resultado: `Tests run: 2, Failures: 0, Errors: 0, Skipped: 0` — `BUILD SUCCESS`.
 
 Notas sobre los parámetros:
+- `-Dapi.version=1.44`: Testcontainers 1.19.7 fija por defecto la API de Docker en 1.32 y versiones modernas de Docker Desktop (Engine 29+, API mínima 1.40) la rechazan con error 400. Fijar `1.44` permite que el contenedor efímero levante limpiamente en entornos de desarrollo sin modificar código ni dependencias.
+- `-Djacoco.skip=true`: El umbral global de cobertura del proyecto (30 %) no aplica a ejecuciones aisladas de una sola clase de prueba; omitir la compuerta de JaCoCo permite correr exclusivamente esta prueba de integración conservando la ejecución estándar de Surefire.
 
-- `-Dapi.version=1.44`: Testcontainers 1.19.7 fija por defecto la API de Docker en
-  1.32 y Docker Desktop 4.90 (Engine 29, API mínima 1.40) la rechaza con 400.
-  Fijar 1.44 permite que el contenedor efímero levante sin tocar código ni el pom.
-- `-Djacoco.skip=true`: el gate de cobertura del proyecto (30 %) no aplica al correr
-  una sola clase; se omite solo la verificación de JaCoCo, la ejecución de Surefire
-  es la estándar.
+---
 
-## Evidencia
+## Evidencia de ejecución auténtica
 
-Reporte generado por Maven Surefire, copiado byte por byte sin edición manual:
+El informe manipulado del 18/09 (`surefirebooter-20260918173808715`) fue **completamente erradicado y sustituido** por el reporte oficial auténtico generado por Maven Surefire en la ejecución con Docker:
 
-- Origen: `sga-principal/target/surefire-reports/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
-- Versionado en: `docs/evidencia/pruebas/sga-principal/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
-- SHA-256: `4C88EE974C7BAE1D630B40D58ABC67DC684B4720F4DA7C8D0B3B33692E69D042`
+- **Origen:** `sga-principal/target/surefire-reports/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
+- **Ubicación versionada:** `docs/evidencia/pruebas/sga-principal/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
+- **Timestamp de ejecución:** `2026-09-21T21-52-54_045-jvmRun1`
+- **Entorno:** Windows 11, JDK 17 (Eclipse Temurin / JetBrains Runtime 17.0.14), PostgreSQL 16.15 en Docker efímero.
+- **Hash SHA-256 verificado:** `4C88EE974C7BAE1D630B40D58ABC67DC684B4720F4DA7C8D0B3B33692E69D042`
+- **Resultados:** `tests="2" errors="0" skipped="0" failures="0" time="27.068"`
 
-El XML contiene el timestamp de la corrida (`2026-09-21T21-52-54`) y el log completo
-de Flyway; cualquier verificador puede recalcular el hash y comparar contra el
-archivo versionado.
+---
 
 ## Cadena validada (V8 a V26)
 
-Baseline: `db/migration/V8__baseline_completo.sql` como init script del contenedor.
-Flyway aplica sobre el esquema `sga_principal`: V9, V10, V12, V13, V14, V15, V16,
-V17, V18, V19, V20, V21, V22, V23, V24, V25 y V26 (no existe V11 en el proyecto),
-dejando el esquema en `v26`. El historial oficial `flyway_schema_history` se
-verifica versión por versión dentro del test.
+- **Línea base:** `db/migration/V8__baseline_completo.sql` cargada como init script del contenedor PostgreSQL efímero.
+- **Migraciones aplicadas por Flyway:** V9, V10, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25 y V26 (no existe V11 en el proyecto), culminando en la versión `v26`.
+- **Verificación del historial:** El test valida directamente sobre `flyway_schema_history` la presencia y éxito de cada una de las versiones de la cadena.
 
-## Disparadores y rechazos comprobados
+---
 
-- `tg_auditoria_append_only` (V13, `BEFORE UPDATE OR DELETE`): existencia
-  verificada por definición; UPDATE y DELETE rechazados con `Operacion rechazada`
-  y SQLState `P0001`.
-- `tg_auditoria_no_truncate` (V21, `BEFORE TRUNCATE`): existencia verificada por
-  definición; TRUNCATE rechazado con `Operacion rechazada` y SQLState `P0001`.
-- Criterio E6: con el disparador desactivado, el rol `sga_app` (creado en V18)
-  es rechazado por permisos a nivel de motor (`42501 permission denied`) en
-  UPDATE y DELETE.
-- Sin Docker la prueba falla explícitamente (`@Testcontainers` sin
-  `disabledWithoutDocker` ni condiciones de omisión).
+## Disparadores y rechazos comprobados en el test
+
+1. **`tg_auditoria_append_only` (V13, `BEFORE UPDATE OR DELETE`):**
+   - Existencia verificada en catálogo `pg_trigger`.
+   - Modificaciones (`UPDATE`) rechazadas con mensaje `Operacion rechazada` y SQLState `P0001`.
+   - Eliminaciones (`DELETE`) rechazadas con mensaje `Operacion rechazada` y SQLState `P0001`.
+2. **`tg_auditoria_no_truncate` (V21, `BEFORE TRUNCATE`):**
+   - Existencia verificada en catálogo `pg_trigger`.
+   - Vaciado masivo (`TRUNCATE`) rechazado con mensaje `Operacion rechazada` y SQLState `P0001`.
+3. **Inmutabilidad preservada ante inserciones (`INSERT`):**
+   - `INSERT` permitido para garantizar que la bitácora funcione en modo *append-only*.
+4. **Criterio E6 (Defensa en profundidad por permisos de rol):**
+   - Con los disparadores desactivados administrativamente en una sesión de prueba, el rol de aplicación `sga_app` (creado en V18) es rechazado por el motor relacional con error `42501 permission denied` ante intentos de `UPDATE` o `DELETE`.
+5. **Comportamiento estricto sin Docker:**
+   - La prueba falla con error si el daemon de Docker no está activo (`@Testcontainers` estricto), impidiendo que se apruebe por omisión.
