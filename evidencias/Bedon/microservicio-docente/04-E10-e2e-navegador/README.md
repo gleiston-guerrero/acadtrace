@@ -1,9 +1,9 @@
-# E10 ? Pruebas E2E de navegador del Frontend Docente
+# E10 — Pruebas E2E de navegador del Frontend Docente
 
-## Resultado de la ejecuci?n
+## Resultado de la ejecución
 
-Esta evidencia corresponde a la ejecuci?n de E10 realizada sobre `main`
-despu?s del merge del PR #187.
+Esta evidencia corresponde a la ejecución de E10 realizada sobre `main`
+después del merge del PR #187.
 
 | Dato | Valor |
 | --- | --- |
@@ -29,57 +29,57 @@ Job E10:
 
 https://github.com/gleiston-guerrero/acadtrace/actions/runs/35674548611/job/106578153060
 
-## Aclaraci?n sobre el estado global del workflow
+## Aclaración sobre el estado global del workflow
 
-El workflow #856 termin? globalmente con estado `failure`.
+El workflow #856 terminó globalmente con estado `failure`.
 
-El fallo ocurri? posteriormente en:
+El fallo ocurrió posteriormente en:
 
-`7. Integraci?n y Despliegue en AWS EC2`
+`7. Integración y Despliegue en AWS EC2`
 
-espec?ficamente durante el despliegue por SSH.
+específicamente durante el despliegue por SSH.
 
-El job evaluado para E10 no fall?. El job
-`E10 - Playwright Frontend Docente` termin? con resultado `success`.
+El job evaluado para E10 no falló. El job
+`E10 - Playwright Frontend Docente` terminó con resultado `success`.
 
 Por tanto, esta evidencia no presenta el workflow completo como exitoso:
-documenta espec?ficamente el resultado verificable del job E10 asociado a la
+documenta específicamente el resultado verificable del job E10 asociado a la
 entrega #36.
 
 ## Entorno E10
 
-Las pruebas utilizan un entorno ef?mero creado por GitHub Actions.
+Las pruebas utilizan un entorno efímero creado por GitHub Actions.
 
-La preparaci?n incluye:
+La preparación incluye:
 
-1. PostgreSQL ef?mero.
-2. Aplicaci?n de las migraciones oficiales requeridas.
-3. Configuraci?n del rol de aplicaci?n y permisos.
-4. Carga de datos sint?ticos de E10.
-5. Inicializaci?n del esquema del microservicio Docente.
+1. PostgreSQL efímero.
+2. Aplicación de las migraciones oficiales requeridas.
+3. Configuración del rol de aplicación y permisos.
+4. Carga de datos sintéticos de E10.
+5. Inicialización del esquema del microservicio Docente.
 6. Levantamiento de los servicios requeridos.
-7. Ejecuci?n de Playwright contra las interfaces reales.
+7. Ejecución de Playwright contra las interfaces reales.
 
-Entre los datos sint?ticos utilizados se encuentran:
+Entre los datos sintéticos utilizados se encuentran:
 
 - usuario: `docente.e10@acadtrace.test`
 - grado: `Decimo ano EGB E10`
 - curso: `Matematica E10`
 - actividad: `Tarea de ecuaciones lineales E10`
 
-La asignaci?n acad?mica requerida por las pruebas se valida antes de iniciar
+La asignación académica requerida por las pruebas se valida antes de iniciar
 Playwright.
 
 ## Casos ejecutados
 
 El archivo `e10-junit.xml` registra seis pruebas:
 
-1. Login del docente y visualizaci?n del dashboard.
+1. Login del docente y visualización del dashboard.
 2. Consulta de cursos mediante la interfaz.
 3. Consulta de asistencia.
-4. Registro de calificaci?n y restauraci?n del estado original.
-5. Cierre de sesi?n y retorno al login.
-6. Rechazo o redirecci?n de acceso no autenticado a Asistencia.
+4. Registro de calificación y restauración del estado original.
+5. Cierre de sesión y retorno al login.
+6. Rechazo o redirección de acceso no autenticado a Asistencia.
 
 Resultado certificado por JUnit:
 
@@ -105,7 +105,7 @@ El contenido de `playwright-report/` procede del artefacto
 `playwright-report-docente` del mismo run.
 
 Las capturas fueron renombradas al incorporarlas al repositorio para identificar
-el caso representado. No se modific? su contenido gr?fico.
+el caso representado. No se modificó su contenido gráfico.
 
 `01-acceso-sin-autenticacion.png` y `03-cierre-sesion-login.png` tienen el mismo
 SHA-256 porque ambos escenarios finalizan mostrando la misma pantalla de login.
@@ -134,15 +134,15 @@ La cadena de trazabilidad de esta evidencia es:
 
 `main 7e7408bd2dd3ccdde41a97660023c62926857f56`
 
-? workflow `#856` / run `35674548611`
+→ workflow `#856` / run `35674548611`
 
-? job E10 `106578153060` / resultado `success`
+→ job E10 `106578153060` / resultado `success`
 
-? JUnit `6/6`
+→ JUnit `6/6`
 
-? artefactos Playwright descargados de ese mismo run
+→ artefactos Playwright descargados de ese mismo run
 
-? commit `0489155b906c2f3c454f0c6ebd6a744775e5b303`.
+→ commit `0489155b906c2f3c454f0c6ebd6a744775e5b303`.
 
-Esta evidencia sustituye la ejecuci?n anterior de E10 y vincula la entrega #36
-con una ejecuci?n posterior al merge del PR #187.
+Esta evidencia sustituye la ejecución anterior de E10 y vincula la entrega #36
+con una ejecución posterior al merge del PR #187.
