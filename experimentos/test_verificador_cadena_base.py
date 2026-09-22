@@ -477,7 +477,120 @@ class TestVerificadorCadenaMain(unittest.TestCase):
         mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
 
         codigo = verificador_cadena.main()
+    @patch("django.db.connection.cursor")
+    def test_lamport_no_monotonico_retorna_2(self, mock_cursor_ctx):
+        """Si el reloj de Lamport no es estrictamente creciente, retorna 2."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
+        filas[1]["reloj_lamport"] = filas[0]["reloj_lamport"]  # no creciente
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=3)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
+    @patch("django.db.connection.cursor")
+    def test_orden_ids_inconsistente_retorna_2(self, mock_cursor_ctx):
+        """Si el orden de IDs es inconsistente (ej. id decreciente), retorna 2."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(3)
+        filas[1]["id_auditoria"] = filas[0]["id_auditoria"]  # no estrictamente creciente
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=3)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
+    @patch("django.db.connection.cursor")
+    def test_m1_mezclado_con_v1_retorna_2(self, mock_cursor_ctx):
+        """Si se insertan filas no selladas (m1) mezcladas en una cadena v1, retorna 2."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(2)
+        fila_m1_falsa = {
+            "id_auditoria": 99,
+            "descripcion": "insercion directa sin hash",
+            "fecha": "2026-09-17T10:05:00Z",
+            "username": "sga_app",
+            "registro_id": 99,
+            "reloj_lamport": None,
+            "contenido_canonico": None,
+            "hash_anterior": None,
+            "hash_actual": None,
+            "version_canonica": None,
+            "schema_origen": "PRINCIPAL",
+            "tabla_afectada": "estudiante",
+            "accion": "CREAR",
+            "resultado": "EXITO",
+            "ip_address": "127.0.0.1",
+            "trace_id": "trace-m1",
+            "hmac": None,
+        }
+        filas_mixtas = [filas[0], fila_m1_falsa, filas[1]]
+        mock_cursor = self._simular_cursor(filas_mixtas, cabeza_hash, cabeza_lamport, seq_val=99)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
+    @patch("django.db.connection.cursor")
+    def test_m1_con_cabeza_activa_retorna_2(self, mock_cursor_ctx):
+        """Si solo hay filas m1 pero estado_cadena_auditoria registra una cadena activa, retorna 2."""
+        fila_m1 = {
+            "id_auditoria": 1,
+            "descripcion": "evento m1",
+            "fecha": "2026-09-17T10:00:00Z",
+            "username": "admin",
+            "registro_id": 1,
+            "reloj_lamport": None,
+            "contenido_canonico": None,
+            "hash_anterior": None,
+            "hash_actual": None,
+            "version_canonica": None,
+            "schema_origen": "PRINCIPAL",
+            "tabla_afectada": "usuario",
+            "accion": "CREAR",
+            "resultado": "EXITO",
+            "ip_address": "127.0.0.1",
+            "trace_id": "trace-1",
+            "hmac": None,
+        }
+        # Cabeza activa con hash no génesis y lamport > 0
+        mock_cursor = self._simular_cursor([fila_m1], "a" * 64, 5, seq_val=1)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
+    @patch.dict("os.environ", {"JWT_SECRET": "clave-secreta-institucional-test"})
+    @patch("django.db.connection.cursor")
+    def test_hmac_registro_id_null_valido_retorna_0(self, mock_cursor_ctx):
+        """Evento legitimo con registro_id null y HMAC calculado con String.valueOf(null) pasa con codigo 0."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(1, secret="clave-secreta-institucional-test")
+        filas[0]["registro_id"] = None
+        # Recalcular HMAC con registro_id = None
+        filas[0]["hmac"] = verificador_cadena.calcular_hmac("clave-secreta-institucional-test", filas[0])
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=1)
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
         self.assertEqual(codigo, 0)
+
+    @patch("django.db.connection.cursor")
+    def test_docente_eslabon_falso_no_en_bitacora_local_retorna_2(self, mock_cursor_ctx):
+        """Eslabon con schema DOCENTE cuyo registro_id no existe en sga_docente.eventos_auditoria retorna 2."""
+        filas, cabeza_hash, cabeza_lamport = self._crear_cadena_valida(1)
+        filas[0]["schema_origen"] = "DOCENTE"
+        filas[0]["registro_id"] = 99999
+
+        # Configurar mock para devolver None al buscar en sga_docente.eventos_auditoria
+        mock_cursor = self._simular_cursor(filas, cabeza_hash, cabeza_lamport, seq_val=1)
+        # Hacemos que la query para sga_docente devuelva None
+        orig_fetchone = mock_cursor.fetchone
+        def custom_fetchone():
+            return None if mock_cursor.last_query and "sga_docente.eventos_auditoria" in mock_cursor.last_query else orig_fetchone()
+        mock_cursor.fetchone = custom_fetchone
+        mock_cursor_ctx.return_value.__enter__.return_value = mock_cursor
+
+        codigo = verificador_cadena.main()
+        self.assertEqual(codigo, 2)
+
 
     @patch("django.db.connection.cursor")
     def test_error_conexion_retorna_1(self, mock_cursor_ctx):
