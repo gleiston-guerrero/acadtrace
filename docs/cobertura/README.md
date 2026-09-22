@@ -1,4 +1,4 @@
-# Cobertura de código
+﻿# Cobertura de código
 
 Esta tabla es la fuente central de cobertura documentada para E8.
 
@@ -6,8 +6,8 @@ Esta tabla es la fuente central de cobertura documentada para E8.
 
 Las cifras oficiales de cobertura de Principal, Secretaría, Soporte y la
 aplicación móvil proceden de una misma ejecución de integración continua:
-**CI #859**, run `35677338149`, sobre el commit
-`71e6a479183efced7c304d4e70ff912cf1017136`.
+**CI #876**, run `35693153935`, sobre el commit
+`6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`.
 
 Los archivos `jacoco.xml` descargados de esa ejecución están versionados en
 `docs/cobertura/`. Cada módulo publica **una sola cifra oficial**, correspondiente
@@ -17,10 +17,10 @@ cifra oficial de cobertura.
 
 | Módulo | Herramienta | Alcance | Métrica oficial | Cobertura oficial | Compuerta | Evidencia | Estado | Comando reproducible |
 |---|---|---|---|---:|---|---|---|---|
-| `sga-principal` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `INSTRUCTION` | **32,79 % (4668/14237)** | mínimo 30 % `INSTRUCTION` | `docs/cobertura/sga-principal/jacoco.xml`, CI #859 | Cumple | Desde `sga-principal`: `./mvnw clean test -q` |
-| `microservicio-secretaria/backend` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `LINE` | **73,39 % (2115/2882)** | mínimo 70 % `LINE` | `docs/cobertura/secretaria/jacoco.xml`, CI #859 | Cumple | Desde `microservicio-secretaria/backend`: `./mvnw clean test -Dsurefire.useFile=false` |
-| `microservicio-soporte/backend` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `LINE` | **71,56 % (458/640)** | mínimo 70 % `LINE` | `docs/cobertura/soporte/jacoco.xml`, CI #859 | Cumple | Desde `microservicio-soporte/backend`: `./mvnw clean verify` |
-| `app-movil-docente` | JaCoCo 0.8.13 | Módulo completo (`BUNDLE`) con exclusiones estándar de código generado | `INSTRUCTION` | **2,45 % (1828/74556)** | mínimo 2 % `INSTRUCTION` | `docs/cobertura/movil/jacoco.xml`, CI #859 | La medición supera la línea base; la compuerta se ejecuta en CI a partir del cambio E38 | Desde `app-movil-docente`: `./gradlew testDebugUnitTest jacocoTestReport jacocoCoverageVerification lintDebug --no-daemon` |
+| `sga-principal` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `INSTRUCTION` | **32,79 % (4668/14237)** | mínimo 30 % `INSTRUCTION` | `docs/cobertura/sga-principal/jacoco.xml`, CI #876 | Cumple | Desde `sga-principal`: `./mvnw clean test -q` |
+| `microservicio-secretaria/backend` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `LINE` | **73,39 % (2115/2882)** | mínimo 70 % `LINE` | `docs/cobertura/secretaria/jacoco.xml`, CI #876 | Cumple | Desde `microservicio-secretaria/backend`: `./mvnw clean test -Dsurefire.useFile=false` |
+| `microservicio-soporte/backend` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `LINE` | **71,56 % (458/640)** | mínimo 70 % `LINE` | `docs/cobertura/soporte/jacoco.xml`, CI #876 | Cumple | Desde `microservicio-soporte/backend`: `./mvnw clean verify` |
+| `app-movil-docente` | JaCoCo 0.8.13 | Módulo completo (`BUNDLE`) con exclusiones estándar de código generado | `INSTRUCTION` | **10,21 % (7611/74556)** | mínimo 10 % `INSTRUCTION` | `docs/cobertura/movil/jacoco.xml`, CI #876 | Cumple | Desde `app-movil-docente`: `./gradlew testDebugUnitTest jacocoTestReport jacocoCoverageVerification lintDebug --no-daemon` |
 | `microservicio-docente` | coverage.py | Paquete `docentes` con exclusiones declaradas en `.coveragerc` | `LINE` | **72,56 %** | mínimo 70 % `LINE` | Reporte `docs/cobertura/docente/` | Cumple | Desde `microservicio-docente`: `python -m pytest --cov=docentes --cov-fail-under=70` |
 
 ## Alcance oficial de Docente
@@ -42,8 +42,8 @@ Estas exclusiones no significan que todo el código excluido sea generado ni que
 
 La cifra oficial de Secretaría es **73,39 % de cobertura de líneas**
 (2115 de 2882 líneas). Se obtiene directamente del contador global `LINE`
-del `jacoco.xml` generado por el CI #859, run `35677338149`, sobre el commit
-`71e6a479183efced7c304d4e70ff912cf1017136`. La regla de calidad se aplica al módulo completo (`BUNDLE`) y exige
+del `jacoco.xml` generado por el CI #876, run `35693153935`, sobre el commit
+`6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`. La regla de calidad se aplica al módulo completo (`BUNDLE`) y exige
 un mínimo de 70 % de cobertura de líneas.
 
 El reporte de Secretaría usa JaCoCo 0.8.11 con alcance `BUNDLE` y las siguientes exclusiones estándar de infraestructura y transporte en `microservicio-secretaria/backend/pom.xml`:
@@ -70,8 +70,8 @@ El reporte HTML, XML y CSV generado reside de forma unificada en `docs/cobertura
 
 La cifra oficial de Soporte es **71,56 % de cobertura de líneas**
 (458 de 640 líneas). Se obtiene directamente del contador global `LINE`
-del único `jacoco.xml` canónico, generado por el CI #859, run `35677338149`,
-sobre el commit `71e6a479183efced7c304d4e70ff912cf1017136`. La compuerta exige un mínimo de 70 % de cobertura
+del único `jacoco.xml` canónico, generado por el CI #876, run `35693153935`,
+sobre el commit `6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`. La compuerta exige un mínimo de 70 % de cobertura
 de líneas a nivel de módulo completo (`BUNDLE`).
 
 Evidencia versionada: [reporte HTML](soporte/index.html), [CSV](soporte/jacoco.csv) y [XML con contadores globales](soporte/jacoco.xml).
