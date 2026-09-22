@@ -66,12 +66,12 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterChip(
-                    selected = gatewayUrl.contains("16.59.242.157"),
+                    selected = gatewayUrl == Constants.DEFAULT_BASE_GATEWAY_URL,
                     onClick = {
-                        gatewayUrl = "http://16.59.242.157:8080/api/"
-                        docenteUrl = "http://16.59.242.157:8081/api/docente/"
+                        gatewayUrl = Constants.DEFAULT_BASE_GATEWAY_URL
+                        docenteUrl = Constants.DEFAULT_BASE_DOCENTE_URL
                     },
-                    label = { Text("Servidor (AWS)") }
+                    label = { Text("Predeterminado") }
                 )
                 FilterChip(
                     selected = gatewayUrl.contains("10.0.2.2"),

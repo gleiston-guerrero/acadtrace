@@ -37,3 +37,6 @@ export const api = axios.create({
 });
 
 export default api;
+
+// Endpoint IA configurable con el mismo mecanismo Vite del cliente.
+export const IA_API_BASE_URL = (import.meta.env.VITE_IA_API_URL || `http://${host}:8084`).replace(/\/$/, "");

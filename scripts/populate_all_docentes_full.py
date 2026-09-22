@@ -1,14 +1,20 @@
 import urllib.request
 import json
 import os
+from urllib.parse import urlsplit
+
+base_url = os.environ.get('SGA_API_BASE_URL', 'http://localhost:8080').rstrip('/')
+parsed_url = urlsplit(base_url)
+if parsed_url.scheme not in ('http', 'https') or not parsed_url.hostname or parsed_url.username or parsed_url.password or parsed_url.query or parsed_url.fragment:
+    raise SystemExit('SGA_API_BASE_URL debe ser una URL HTTP(S) sin credenciales, query ni fragmento.')
 
 username = os.environ.get('SGA_ADMIN_USERNAME')
 password = os.environ.get('SGA_ADMIN_PASSWORD')
 if not username or not username.strip() or not password or not password.strip():
     raise SystemExit('Debe definir SGA_ADMIN_USERNAME y SGA_ADMIN_PASSWORD con valores no vacíos.')
 
-# Script para actualizar todos los docentes en la base de datos de producción AWS
-url_login = 'http://16.59.242.157:8080/api/auth/login'
+# Actualiza docentes mediante la API configurada externamente.
+url_login = f'{base_url}/api/auth/login'
 req = urllib.request.Request(
     url_login, 
     data=json.dumps({'username': username, 'password': password}).encode(),
@@ -24,11 +30,11 @@ except Exception:
     print("Error al autenticar; no se muestran detalles para proteger las credenciales.")
 
 if token:
-    print("Autenticado con éxito en AWS!")
+    print("Autenticado con éxito en la API configurada!")
     headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
     
     # Obtener usuarios
-    req_u = urllib.request.Request('http://16.59.242.157:8080/api/usuarios', headers={'Authorization': f'Bearer {token}'})
+    req_u = urllib.request.Request(f'{base_url}/api/usuarios', headers={'Authorization': f'Bearer {token}'})
     with urllib.request.urlopen(req_u) as resp:
         usuarios = json.loads(resp.read().decode())
     
@@ -55,7 +61,7 @@ if token:
             # Consultar si ya tiene persona
             id_persona = None
             try:
-                req_p = urllib.request.Request(f'http://16.59.242.157:8080/api/personas/usuario/{uid}', headers={'Authorization': f'Bearer {token}'})
+                req_p = urllib.request.Request(f'{base_url}/api/personas/usuario/{uid}', headers={'Authorization': f'Bearer {token}'})
                 with urllib.request.urlopen(req_p) as resp_p:
                     pdata = json.loads(resp_p.read().decode())
                     id_persona = pdata.get('idPersona')
@@ -74,9 +80,9 @@ if token:
             
             try:
                 if id_persona:
-                    req_up = urllib.request.Request(f'http://16.59.242.157:8080/api/personas/{id_persona}', data=json.dumps(payload).encode(), headers=headers, method='PUT')
+                    req_up = urllib.request.Request(f'{base_url}/api/personas/{id_persona}', data=json.dumps(payload).encode(), headers=headers, method='PUT')
                 else:
-                    req_up = urllib.request.Request('http://16.59.242.157:8080/api/personas', data=json.dumps(payload).encode(), headers=headers, method='POST')
+                    req_up = urllib.request.Request(f'{base_url}/api/personas', data=json.dumps(payload).encode(), headers=headers, method='POST')
                 
                 with urllib.request.urlopen(req_up) as resp_res:
                     print(f'✅ ACTUALIZADO COMPLETO: {uname} -> {d["nombres"]} {d["apellidos"]} ({d["tituloAcademico"]})')
