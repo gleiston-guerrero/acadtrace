@@ -208,9 +208,10 @@ LIMIT 20;
 
 El job `build-images` de `.github/workflows/ci-cd.yml` publica imágenes propias
 en `ghcr.io/<repository_owner-en-minúsculas>/<imagen>`, mediante `GITHUB_TOKEN`.
-Depende de los 10 trabajos bloqueantes de prueba, validación y contrato del pipeline:
+Depende de los 11 trabajos bloqueantes de prueba, validación y contrato del pipeline:
 `test-backend`, `test-soporte-backend`, `test-secretaria-backend`, `test-web`, `lint`,
-`ci-docente`, `ci-movil-representante`, `test-mobile`, `e2e-docente` y `contract-openapi`.
+`ci-docente`, `ci-movil-representante`, `arnes-canonico`, `test-mobile`, `e2e-docente`
+y `contract-openapi`.
 
 | Imagen | Contexto de construcción | Dockerfile desde la raíz |
 |---|---|---|
