@@ -60,7 +60,7 @@ class AuditoriaFlywayMigrationContainerTest {
             ).isFalse();
 
             assertThat(
-                    obtenerDefinicionTrigger(connection)
+                    obtenerDefinicionTrigger(connection, "tg_auditoria_append_only")
             ).isNull();
         }
 
@@ -135,10 +135,10 @@ class AuditoriaFlywayMigrationContainerTest {
 
             /*
              * E4:
-             * demostrar que V13 creo realmente el trigger.
+             * demostrar que V13 creo realmente el trigger de fila.
              */
             String definicionTrigger =
-                    obtenerDefinicionTrigger(connection);
+                    obtenerDefinicionTrigger(connection, "tg_auditoria_append_only");
 
             assertThat(definicionTrigger)
                     .as(
@@ -148,6 +148,24 @@ class AuditoriaFlywayMigrationContainerTest {
                     .containsIgnoringCase("BEFORE")
                     .containsIgnoringCase("UPDATE")
                     .containsIgnoringCase("DELETE")
+                    .containsIgnoringCase("ON sga_principal.auditoria");
+
+            /*
+             * E44:
+             * demostrar que V21 creo realmente el trigger de sentencia
+             * que cubre TRUNCATE (los triggers de fila de V13 no se
+             * ejecutan ante TRUNCATE).
+             */
+            String definicionTriggerTruncate =
+                    obtenerDefinicionTrigger(connection, "tg_auditoria_no_truncate");
+
+            assertThat(definicionTriggerTruncate)
+                    .as(
+                            "V21 debe crear tg_auditoria_no_truncate"
+                    )
+                    .isNotNull()
+                    .containsIgnoringCase("BEFORE")
+                    .containsIgnoringCase("TRUNCATE")
                     .containsIgnoringCase("ON sga_principal.auditoria");
 
             /*
@@ -377,7 +395,8 @@ class AuditoriaFlywayMigrationContainerTest {
     }
 
     private static String obtenerDefinicionTrigger(
-            Connection connection
+            Connection connection,
+            String nombreTrigger
     ) throws SQLException {
 
         try (
@@ -392,21 +411,26 @@ class AuditoriaFlywayMigrationContainerTest {
                                   ON n.oid = c.relnamespace
                                 WHERE n.nspname = 'sga_principal'
                                   AND c.relname = 'auditoria'
-                                  AND t.tgname =
-                                      'tg_auditoria_append_only'
+                                  AND t.tgname = ?
                                   AND NOT t.tgisinternal
                                 """
-                        );
+                        )
 
-                ResultSet resultSet =
-                        statement.executeQuery()
         ) {
 
-            if (!resultSet.next()) {
-                return null;
-            }
+            statement.setString(1, nombreTrigger);
 
-            return resultSet.getString(1);
+            try (
+                    ResultSet resultSet =
+                            statement.executeQuery()
+            ) {
+
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                return resultSet.getString(1);
+            }
         }
     }
 
@@ -474,7 +498,10 @@ class AuditoriaFlywayMigrationContainerTest {
                 .isInstanceOf(SQLException.class)
                 .hasMessageContaining(
                         "Operacion rechazada"
-                );
+                )
+                .satisfies(ex -> assertThat(((SQLException) ex).getSQLState())
+                        .as("El rechazo del disparador debe usar SQLState P0001 (raise_exception)")
+                        .isEqualTo("P0001"));
     }
 
     private static String obtenerDescripcion(
