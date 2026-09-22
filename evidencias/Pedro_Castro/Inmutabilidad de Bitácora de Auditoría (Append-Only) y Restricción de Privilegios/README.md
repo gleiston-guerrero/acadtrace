@@ -51,10 +51,10 @@ El informe manipulado del 18/09 (`surefirebooter-20260918173808715`) fue **compl
 
 - **Origen:** `sga-principal/target/surefire-reports/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
 - **Ubicación versionada:** `docs/evidencia/pruebas/sga-principal/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
-- **Timestamp de ejecución:** `2026-09-21T21-52-54_045-jvmRun1`
-- **Entorno:** Windows 11, JDK 17 (Eclipse Temurin / JetBrains Runtime 17.0.14), PostgreSQL 16.15 en Docker efímero.
-- **Hash SHA-256 verificado:** `4C88EE974C7BAE1D630B40D58ABC67DC684B4720F4DA7C8D0B3B33692E69D042`
-- **Resultados:** `tests="2" errors="0" skipped="0" failures="0" time="27.068"`
+- **Fecha de ejecución:** `2026-09-22` (recompilado y reejecutado íntegramente contra el commit `1f31961e`).
+- **Entorno:** Windows 11, JDK 21.0.11 (Eclipse Temurin), PostgreSQL 16.15 en Docker efímero.
+- **Hash SHA-256 verificado:** `2015DB00A3BCA5876D6F950F1A193B846920BF5F2C2E1BA9F56265519EB9FA4F`
+- **Resultados:** `tests="2" errors="0" skipped="0" failures="0" time="9.673"`
 
 ---
 
