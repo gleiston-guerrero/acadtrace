@@ -1,0 +1,29 @@
+FECHA_UTC=2026-09-22T13:28:30.2460056+00:00
+DOCKER_INFO
+ServerVersion=29.6.2 OperatingSystem=Docker Desktop OSType=linux Architecture=x86_64 CPUs=16 MemoryBytes=7975108608 ContainersRunning=10
+DOCKER_STATS
+Name=soporte-e48-prueba CPU=0.34% Memory=359.5MiB / 7.427GiB MemoryPercent=4.73% PIDs=56
+Name=sga-postgres CPU=0.00% Memory=34.41MiB / 7.427GiB MemoryPercent=0.45% PIDs=8
+Name=sga-sistema-distribuido-microservicio-docente-2 CPU=3.12% Memory=141.6MiB / 7.427GiB MemoryPercent=1.86% PIDs=25
+Name=sga-sistema-distribuido-microservicio-docente-1 CPU=2.26% Memory=141.5MiB / 7.427GiB MemoryPercent=1.86% PIDs=25
+Name=sga-sistema-distribuido-sga-principal-1 CPU=0.29% Memory=478.3MiB / 7.427GiB MemoryPercent=6.29% PIDs=50
+Name=sga-sistema-distribuido-sga-principal-2 CPU=0.32% Memory=487.3MiB / 7.427GiB MemoryPercent=6.41% PIDs=50
+Name=sga-postgres-exporter CPU=0.00% Memory=2.227MiB / 7.427GiB MemoryPercent=0.03% PIDs=6
+Name=microservicio-ia CPU=0.22% Memory=72.37MiB / 7.427GiB MemoryPercent=0.95% PIDs=5
+Name=etcd CPU=0.68% Memory=27.11MiB / 7.427GiB MemoryPercent=0.36% PIDs=13
+CONTENEDORES
+Name=/sga-postgres Status=running Running=true RestartCount=0 StartedAt=2026-09-22T00:51:30.304127794Z
+Name=/etcd Status=running Running=true RestartCount=0 StartedAt=2026-09-22T00:51:30.82034539Z
+Name=/soporte-e48-prueba Status=running Running=true RestartCount=0 StartedAt=2026-09-22T00:54:10.893336487Z
+RECURSOS_HOST
+{"TotalVisibleMemorySize":16088560,"FreePhysicalMemory":2664396,"LastBootUpTime":"\/Date(1789984244500)\/"}
+{"NumberOfCores":8,"NumberOfLogicalProcessors":16,"LoadPercentage":25}
+PROCESOS_LOCUST
+PID=ninguno; estado=sin procesos Locust coincidentes
+PUERTOS
+localhost:5433=accesible
+localhost:2379=accesible
+localhost:8085=accesible
+HEALTH=UP
+EVENTOS_ENERGIA
+[{"TimeCreated":"\/Date(1790083641846)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790081863906)\/","Id":506,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790081863904)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790081431379)\/","Id":506,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790081185734)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790081031509)\/","Id":506,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790080843908)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790080180293)\/","Id":506,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790080180291)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790079538567)\/","Id":506,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790079276489)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790079045100)\/","Id":506,"ProviderName":"Microsoft-Windows-Kernel-Power"},{"TimeCreated":"\/Date(1790078467655)\/","Id":507,"ProviderName":"Microsoft-Windows-Kernel-Power"}]
