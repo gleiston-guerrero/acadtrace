@@ -1,112 +1,148 @@
-# E10 — Pruebas de extremo a extremo sobre navegador
+# E10 ? Pruebas E2E de navegador del Frontend Docente
 
-## Evidencia de ejecución y trazabilidad
+## Resultado de la ejecuci?n
 
-El directorio `ejecucion-verde/` conserva los artefactos generados automáticamente por la suite E2E de Playwright durante una ejecución en verde de GitHub Actions.
+Esta evidencia corresponde a la ejecuci?n de E10 realizada sobre `main`
+despu?s del merge del PR #187.
 
-Los archivos fueron descargados directamente de la corrida documentada y posteriormente versionados en el repositorio. Las capturas no fueron elaboradas ni modificadas manualmente.
+| Dato | Valor |
+| --- | --- |
+| Workflow | CI/CD Pipeline - AcadTrace (Entrega 4) |
+| Workflow run | #856 |
+| Run ID | `35674548611` |
+| SHA ejecutado en `main` | `7e7408bd2dd3ccdde41a97660023c62926857f56` |
+| Job | E10 - Playwright Frontend Docente |
+| Job ID | `106578153060` |
+| Resultado E10 | **success** |
+| Pruebas | **6** |
+| Fallos | **0** |
+| Errores | **0** |
+| Omitidas | **0** |
+| Tiempo JUnit | **15.361 s** |
+| Commit de artefactos | `0489155b906c2f3c454f0c6ebd6a744775e5b303` |
 
-### Ejecución de CI documentada
+Run de GitHub Actions:
 
-- **Workflow:** `CI/CD Pipeline - AcadTrace (Entrega 4)`
-- **Workflow Run ID:** `35665200470`
-- **Job:** `E10 - Playwright Frontend Docente`
-- **Job ID:** `106549280440`
-- **Rama:** `devBedon`
-- **Commit ejecutado:** `693949c317dfd9c320b04f404a4d874740422664`
-- **Inicio del job:** `2026-09-21T22:56:42Z`
-- **Fin del job:** `2026-09-21T22:59:43Z`
-- **Conclusión:** `success`
-- **Commit que versionó los artefactos:** `648f9bda`
+https://github.com/gleiston-guerrero/acadtrace/actions/runs/35674548611
 
-El commit `648f9bda` conserva en el árbol los artefactos producidos por la corrida anterior y no modifica el escenario que fue sometido a prueba.
+Job E10:
 
-## Arquitectura de ejecución aislada y efímera
+https://github.com/gleiston-guerrero/acadtrace/actions/runs/35674548611/job/106578153060
 
-La suite E10 se ejecuta contra un sistema levantado dentro del propio flujo de CI y no depende de la antigua base PostgreSQL compartida.
+## Aclaraci?n sobre el estado global del workflow
 
-El entorno se compone de:
+El workflow #856 termin? globalmente con estado `failure`.
 
-1. PostgreSQL efímero en el contenedor `postgres-e10`;
-2. red Docker privada `e10-docente`;
-3. esquema y migraciones requeridas por el sistema;
-4. datos sintéticos cargados mediante `microservicio-docente/experimentos/seed_e10.sql`;
-5. backend `sga-principal`;
-6. backend `microservicio-docente`;
-7. frontend principal;
-8. frontend Docente;
-9. Playwright, ejecutado después de las sondas de disponibilidad.
+El fallo ocurri? posteriormente en:
 
-Las contraseñas de base de datos, la credencial del docente y los secretos internos se generan exclusivamente para la ejecución y no corresponden a credenciales de producción.
+`7. Integraci?n y Despliegue en AWS EC2`
 
-## Escenario académico sintético
+espec?ficamente durante el despliegue por SSH.
 
-Los registros utilizados en la prueba son controlados y exclusivos de E10:
+El job evaluado para E10 no fall?. El job
+`E10 - Playwright Frontend Docente` termin? con resultado `success`.
 
-- **Docente:** `Andrea Prueba E10`
-- **Usuario:** `docente.e10@acadtrace.test`
-- **ID docente:** `900001`
-- **Cédula sintética docente:** `9999000001`
-- **Estudiante:** `Mateo Prueba E10`
-- **ID estudiante:** `900001`
-- **ID matrícula:** `900001`
-- **Cédula sintética estudiante:** `9999000002`
-- **Año lectivo:** `2026 - 2027`
-- **Nivel:** `Educacion General Basica E10`
-- **Grado:** `Decimo ano EGB E10`
-- **Paralelo:** `A`
-- **Asignatura:** `Matematica E10`
-- **Actividad:** `Tarea de ecuaciones lineales E10`
-- **Calificación inicial:** `8.50 / 10`
+Por tanto, esta evidencia no presenta el workflow completo como exitoso:
+documenta espec?ficamente el resultado verificable del job E10 asociado a la
+entrega #36.
 
-Los identificadores `900001`, las cédulas de prueba `9999000001` y `9999000002`, los nombres y el dominio `.test` forman parte de un escenario deliberadamente sintético.
+## Entorno E10
 
-La corrida no utiliza nombres, cédulas, asignaciones ni calificaciones procedentes de la antigua base compartida.
+Las pruebas utilizan un entorno ef?mero creado por GitHub Actions.
 
-## Resultado certificado por JUnit
+La preparaci?n incluye:
 
-El archivo `ejecucion-verde/e10-junit.xml` fue producido por el reporter JUnit de Playwright durante la corrida documentada.
+1. PostgreSQL ef?mero.
+2. Aplicaci?n de las migraciones oficiales requeridas.
+3. Configuraci?n del rol de aplicaci?n y permisos.
+4. Carga de datos sint?ticos de E10.
+5. Inicializaci?n del esquema del microservicio Docente.
+6. Levantamiento de los servicios requeridos.
+7. Ejecuci?n de Playwright contra las interfaces reales.
 
-- **Total:** 6
-- **Aprobadas:** 6
-- **Fallos:** 0
-- **Errores:** 0
-- **Omitidas:** 0
-- **Tiempo acumulado:** `13.098575` segundos
+Entre los datos sint?ticos utilizados se encuentran:
 
-Los seis casos cubren:
+- usuario: `docente.e10@acadtrace.test`
+- grado: `Decimo ano EGB E10`
+- curso: `Matematica E10`
+- actividad: `Tarea de ecuaciones lineales E10`
 
-1. acceso sin autenticación;
-2. autenticación del docente y carga del dashboard;
-3. cierre de sesión;
-4. consulta de cursos;
-5. consulta de asistencia;
-6. registro de calificación y restauración del estado original.
+La asignaci?n acad?mica requerida por las pruebas se valida antes de iniciar
+Playwright.
 
-## Artefactos conservados
+## Casos ejecutados
 
-- `ejecucion-verde/e10-junit.xml`
-- `ejecucion-verde/playwright-report/index.html`
-- `ejecucion-verde/01-acceso-sin-autenticacion.png`
-- `ejecucion-verde/02-login-dashboard.png`
-- `ejecucion-verde/03-cierre-sesion-login.png`
-- `ejecucion-verde/04-consulta-cursos.png`
-- `ejecucion-verde/05-consulta-asistencia.png`
-- `ejecucion-verde/06-registro-calificacion-restaurado.png`
+El archivo `e10-junit.xml` registra seis pruebas:
 
-Las capturas `01` y `03` representan la misma pantalla de login y por ello pueden ser idénticas byte a byte. Playwright conserva cinco adjuntos PNG únicos para las seis capturas finales.
+1. Login del docente y visualizaci?n del dashboard.
+2. Consulta de cursos mediante la interfaz.
+3. Consulta de asistencia.
+4. Registro de calificaci?n y restauraci?n del estado original.
+5. Cierre de sesi?n y retorno al login.
+6. Rechazo o redirecci?n de acceso no autenticado a Asistencia.
+
+Resultado certificado por JUnit:
+
+**6 pruebas / 0 fallos / 0 errores / 0 omitidas.**
+
+## Evidencia almacenada
+
+La carpeta `ejecucion-verde/` contiene:
+
+- `01-acceso-sin-autenticacion.png`
+- `02-login-dashboard.png`
+- `03-cierre-sesion-login.png`
+- `04-consulta-cursos.png`
+- `05-consulta-asistencia.png`
+- `06-registro-calificacion-restaurado.png`
+- `e10-junit.xml`
+- `playwright-report/`
+
+Las capturas proceden del artefacto
+`playwright-test-results-docente` del run #856.
+
+El contenido de `playwright-report/` procede del artefacto
+`playwright-report-docente` del mismo run.
+
+Las capturas fueron renombradas al incorporarlas al repositorio para identificar
+el caso representado. No se modific? su contenido gr?fico.
+
+`01-acceso-sin-autenticacion.png` y `03-cierre-sesion-login.png` tienen el mismo
+SHA-256 porque ambos escenarios finalizan mostrando la misma pantalla de login.
 
 ## Integridad SHA-256
 
-| Artefacto | SHA-256 |
-| --- | --- |
-| `e10-junit.xml` | `2ccd59ec542f834802a14cce09142e8b2d4a2e3f121db7ce439c70a4eac0ac38` |
-| `playwright-report/index.html` | `0dfd328c09c5ace7df2e8feef1c956fe4d660a039273c78b1c3cd09358776ce9` |
-| `01-acceso-sin-autenticacion.png` | `01cd16bbd4feba1978873876237c5aa35f7bf29e787d2ff50e517846f53a8ad9` |
-| `02-login-dashboard.png` | `1e090b93d816af6bb0207b07313ff57ec483df9094c828df9b33739eaa43abc7` |
-| `03-cierre-sesion-login.png` | `01cd16bbd4feba1978873876237c5aa35f7bf29e787d2ff50e517846f53a8ad9` |
-| `04-consulta-cursos.png` | `5fdd019e56459270108d059931950d5ff0cb1feb28b832efcfd9311885bb0c55` |
-| `05-consulta-asistencia.png` | `912119a54ae69b6fb42d3e637b6209d5444876dcbdea94136eb66fff83b31853` |
-| `06-registro-calificacion-restaurado.png` | `adc0323356ee4bd15cf265bf49da5b3b4274c93398124dcb43f9eb455629d613` |
+| Artefacto | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `01-acceso-sin-autenticacion.png` | 58974 | `01CD16BBD4FEBA1978873876237C5AA35F7BF29E787D2FF50E517846F53A8AD9` |
+| `02-login-dashboard.png` | 174372 | `EB3422759625891923E803BA119313DD007C4FAB09215C518E98F2C1B21D2D47` |
+| `03-cierre-sesion-login.png` | 58974 | `01CD16BBD4FEBA1978873876237C5AA35F7BF29E787D2FF50E517846F53A8AD9` |
+| `04-consulta-cursos.png` | 70105 | `5FDD019E56459270108D059931950D5FF0CB1FEB28B832EFCFD9311885BB0C55` |
+| `05-consulta-asistencia.png` | 89323 | `912119A54AE69B6FB42D3E637B6209D5444876DCBDEA94136EB66FFF83B31853` |
+| `06-registro-calificacion-restaurado.png` | 88135 | `ADC0323356EE4BD15CF265BF49DA5B3B4274C93398124DCB43F9EB455629D613` |
+| `e10-junit.xml` | 2132 | `CD51C46190E2D2E2B2B03D7D8615270C0100431426FF0A80732C37FF89CA4296` |
+| `playwright-report/data/11e52593caf0509c4054c9aa105294d3562519d3.png` | 88135 | `ADC0323356EE4BD15CF265BF49DA5B3B4274C93398124DCB43F9EB455629D613` |
+| `playwright-report/data/2af3ed9364e9a4bcd6087e15d3d0b7cf442660c2.png` | 70105 | `5FDD019E56459270108D059931950D5FF0CB1FEB28B832EFCFD9311885BB0C55` |
+| `playwright-report/data/6eb3d0f3c4d153087b68e74c479a150cb2c12324.png` | 58974 | `01CD16BBD4FEBA1978873876237C5AA35F7BF29E787D2FF50E517846F53A8AD9` |
+| `playwright-report/data/be702267b7c87717d5aee7838c597041dbe0342e.png` | 174372 | `EB3422759625891923E803BA119313DD007C4FAB09215C518E98F2C1B21D2D47` |
+| `playwright-report/data/c5d7b69bb3ab32a34698bec3218606100592dc5e.png` | 89323 | `912119A54AE69B6FB42D3E637B6209D5444876DCBDEA94136EB66FFF83B31853` |
+| `playwright-report/index.html` | 532431 | `3AA3272204DB8FA9EFF929FDC71FBF3F3F41FAE69C5EB8AE6B3D7B1A4FB2134F` |
 
-Los hashes anteriores se calculan directamente sobre los archivos versionados en `ejecucion-verde/`.
+## Trazabilidad
+
+La cadena de trazabilidad de esta evidencia es:
+
+`main 7e7408bd2dd3ccdde41a97660023c62926857f56`
+
+? workflow `#856` / run `35674548611`
+
+? job E10 `106578153060` / resultado `success`
+
+? JUnit `6/6`
+
+? artefactos Playwright descargados de ese mismo run
+
+? commit `0489155b906c2f3c454f0c6ebd6a744775e5b303`.
+
+Esta evidencia sustituye la ejecuci?n anterior de E10 y vincula la entrega #36
+con una ejecuci?n posterior al merge del PR #187.
