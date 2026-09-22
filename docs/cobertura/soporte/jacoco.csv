@@ -2,7 +2,7 @@ GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_
 sga-soporte-backend,ec.uteq.sga.soporte.common.jdbc,GenericRowMapper,0,85,0,11,0,20,0,11,0,4
 sga-soporte-backend,ec.uteq.sga.soporte.security,SecurityFilterConfig,0,27,0,0,0,6,0,2,0,2
 sga-soporte-backend,ec.uteq.sga.soporte.security,CurrentUserArgumentResolver,0,23,0,2,0,6,0,4,0,3
-sga-soporte-backend,ec.uteq.sga.soporte.security,JwtService,0,44,0,2,0,14,0,3,0,2
+sga-soporte-backend,ec.uteq.sga.soporte.security,JwtService,0,46,0,2,0,13,0,3,0,2
 sga-soporte-backend,ec.uteq.sga.soporte.security,JwtAuthFilter,0,76,1,3,0,24,1,4,0,3
 sga-soporte-backend,ec.uteq.sga.soporte.security,AuthenticatedUser,0,43,0,12,0,4,0,9,0,3
 sga-soporte-backend,ec.uteq.sga.soporte.presentation,ElectionController,0,34,0,0,0,8,0,2,0,2
@@ -22,9 +22,9 @@ sga-soporte-backend,ec.uteq.sga.soporte.domain,TicketComentario,0,52,0,0,0,16,0,
 sga-soporte-backend,ec.uteq.sga.soporte.domain,Ticket,0,98,0,0,0,29,0,25,0,25
 sga-soporte-backend,ec.uteq.sga.soporte.domain,PrioridadTicket,0,27,0,0,0,5,0,1,0,1
 sga-soporte-backend,ec.uteq.sga.soporte.domain,EstadoTicket,0,27,0,0,0,5,0,1,0,1
-sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.logging,MemoryLogAppender,4,106,3,5,1,20,3,6,0,5
-sga-soporte-backend,ec.uteq.sga.soporte.election,LeaderElectionService.new StreamObserver() {...},23,0,0,0,6,0,4,0,4,0
+sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.logging,MemoryLogAppender,4,106,2,6,1,20,2,7,0,5
 sga-soporte-backend,ec.uteq.sga.soporte.election,LeaderElectionService,247,4,16,0,47,1,17,1,9,1
+sga-soporte-backend,ec.uteq.sga.soporte.election,LeaderElectionService.new StreamObserver() {...},23,0,0,0,6,0,4,0,4,0
 sga-soporte-backend,ec.uteq.sga.soporte.election,LeaderElectionService.new Election.Listener() {...},53,0,4,0,11,0,6,0,4,0
 sga-soporte-backend,ec.uteq.sga.soporte.election,TicketScheduledTasks,0,99,0,8,0,20,0,8,0,4
 sga-soporte-backend,ec.uteq.sga.soporte,SgaSoporteApplication,8,0,0,0,3,0,2,0,2,0
@@ -39,6 +39,6 @@ sga-soporte-backend,ec.uteq.sga.soporte.common,PageResult,1,32,1,1,0,3,1,2,0,2
 sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.grpc,GrpcChannelConfig,23,0,2,0,8,0,4,0,3,0
 sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.grpc,InternalAuthInterceptor.new ServerCall.Listener() {...},6,0,0,0,1,0,1,0,1,0
 sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.grpc,InternalAuthInterceptor,43,0,4,0,9,0,5,0,3,0
-sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.grpc,IncidenciaGrpcServer,56,0,0,0,19,0,3,0,3,0
 sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.grpc,TecnicoGrpcClient,191,4,10,0,43,1,10,1,5,1
+sga-soporte-backend,ec.uteq.sga.soporte.infrastructure.grpc,IncidenciaGrpcServer,56,0,0,0,19,0,3,0,3,0
 sga-soporte-backend,ec.uteq.sga.soporte.application,TicketService,9,436,23,47,1,87,23,29,0,17

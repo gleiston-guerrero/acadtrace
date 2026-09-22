@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CalificacionConsultaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">CalificacionConsultaService.java</span></div><h1>CalificacionConsultaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CalificacionConsultaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">CalificacionConsultaService.java</span></div><h1>CalificacionConsultaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
 import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
@@ -18,7 +18,7 @@ public class CalificacionConsultaService {
 <span class="fc" id="L18">    }</span>
 
     public List&lt;Map&lt;String, Object&gt;&gt; listarCursos(Long idAnoLectivo, Long idGrado) {
-<span class="nc" id="L21">        String sql = &quot;&quot;&quot;</span>
+        String sql = &quot;&quot;&quot;
                 SELECT asig.id_asignacion,
                        asig.id_grado, g.nombre AS grado_nombre,
                        asig.id_paralelo, p.letra AS paralelo_letra,
@@ -53,7 +53,7 @@ public class CalificacionConsultaService {
     }
 
     public List&lt;Map&lt;String, Object&gt;&gt; listarPeriodos(Long idAnoLectivo) {
-<span class="nc" id="L56">        String sql = &quot;&quot;&quot;</span>
+        String sql = &quot;&quot;&quot;
                 SELECT id_periodo, id_ano_lectivo, nombre, tipo, fecha_inicio, fecha_fin, activo
                 FROM sga_docente.periodos_evaluacion
 <span class="nc bnc" id="L59" title="All 2 branches missed.">                &quot;&quot;&quot; + (idAnoLectivo != null ? &quot; WHERE id_ano_lectivo = :idAno&quot; : &quot;&quot;)</span>
@@ -101,11 +101,11 @@ public class CalificacionConsultaService {
                 ORDER BY e.apellidos, e.nombres
                 &quot;&quot;&quot;;
 <span class="nc" id="L103">        List&lt;Map&lt;String, Object&gt;&gt; estudiantes = jdbc.query(sqlEstudiantes,</span>
-<span class="nc" id="L104">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="nc" id="L105">                        .addValue(&quot;idGrado&quot;, idGrado)</span>
 <span class="nc" id="L106">                        .addValue(&quot;idParalelo&quot;, idParalelo)</span>
 <span class="nc" id="L107">                        .addValue(&quot;idAno&quot;, idAnoLectivo),</span>
-<span class="nc" id="L108">                GenericRowMapper.INSTANCE);</span>
+                GenericRowMapper.INSTANCE);
 
 <span class="nc" id="L110">        List&lt;Map&lt;String, Object&gt;&gt; periodos = listarPeriodos(idAnoLectivo);</span>
 
