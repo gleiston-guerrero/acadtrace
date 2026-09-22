@@ -1,4 +1,4 @@
-﻿# Cobertura de sga-principal
+# Cobertura de sga-principal
 
 El reporte HTML de este módulo se elimina del árbol para no publicar sesiones
 mezcladas ni paquetes huérfanos.

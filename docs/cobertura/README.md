@@ -1,4 +1,4 @@
-﻿# Cobertura de código
+# Cobertura de código
 
 Esta tabla es la fuente central de cobertura documentada para E8.
 
