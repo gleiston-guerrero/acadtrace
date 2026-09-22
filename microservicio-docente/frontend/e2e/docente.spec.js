@@ -591,6 +591,39 @@ test.describe("Frontend Docente conectado al entorno real", () => {
         )
         .toBe(1);
 
+      /*
+       * E10 debe demostrar persistencia real. La UI vuelve a consultar
+       * las calificaciones de la actividad despues de guardar.
+       */
+      const persistenciaPromise =
+        page
+          .waitForResponse(
+            (response) => {
+              const request = response.request();
+
+              if (request.method() !== "GET") {
+                return false;
+              }
+
+              try {
+                const url = new URL(response.url());
+
+                return (
+                  url.pathname.includes(
+                    "/api/docente/calificaciones/"
+                  ) &&
+                  url.searchParams.has("id_actividad")
+                );
+              } catch {
+                return false;
+              }
+            },
+            {
+              timeout: 30_000,
+            }
+          )
+          .catch(() => null);
+
       const escrituraPromise =
         page.waitForResponse(
           (response) => {
@@ -648,6 +681,26 @@ test.describe("Frontend Docente conectado al entorno real", () => {
 
       const respuesta =
         await escrituraPromise;
+
+      const cuerpoRegistro =
+        await respuesta
+          .json()
+          .catch(() => null);
+
+      expect(
+        respuesta.ok(),
+        `La API respondio HTTP ${respuesta.status()} al guardar la calificacion`
+      ).toBeTruthy();
+
+      expect(
+        cuerpoRegistro,
+        "La API de registro no devolvio un cuerpo JSON"
+      ).not.toBeNull();
+
+      expect(
+        cuerpoRegistro?.exitoso,
+        `El backend rechazo la escritura: ${cuerpoRegistro?.mensaje ?? "sin mensaje"}`
+      ).toBe(true);
 
       const request =
         respuesta.request();
@@ -743,6 +796,69 @@ test.describe("Frontend Docente conectado al entorno real", () => {
       expect(
         Number(payload.nota),
         "La petición no contiene la nota esperada"
+      ).toBeCloseTo(
+        Number(valor),
+        2
+      );
+
+      const respuestaPersistencia =
+        await persistenciaPromise;
+
+      expect(
+        respuestaPersistencia,
+        "La interfaz no volvio a consultar las calificaciones despues de guardar"
+      ).not.toBeNull();
+
+      expect(
+        respuestaPersistencia.ok(),
+        `La consulta de persistencia respondio HTTP ${respuestaPersistencia.status()}`
+      ).toBeTruthy();
+
+      const cuerpoPersistencia =
+        await respuestaPersistencia
+          .json()
+          .catch(() => null);
+
+      const registrosPersistidos =
+        Array.isArray(cuerpoPersistencia)
+          ? cuerpoPersistencia
+          : Array.isArray(cuerpoPersistencia?.results)
+            ? cuerpoPersistencia.results
+            : [];
+
+      const idMatriculaEsperada =
+        Number(
+          payload.idMatricula ??
+          payload.id_matricula
+        );
+
+      const idActividadEsperada =
+        Number(
+          payload.idActividad ??
+          payload.id_actividad
+        );
+
+      const registroPersistido =
+        registrosPersistidos.find(
+          (registro) =>
+            Number(
+              registro.id_matricula ??
+              registro.idMatricula
+            ) === idMatriculaEsperada &&
+            Number(
+              registro.id_actividad ??
+              registro.idActividad
+            ) === idActividadEsperada
+        );
+
+      expect(
+        registroPersistido,
+        "La calificacion escrita no aparece en la consulta posterior"
+      ).toBeTruthy();
+
+      expect(
+        Number(registroPersistido.nota),
+        "La nota persistida no coincide con la enviada"
       ).toBeCloseTo(
         Number(valor),
         2
