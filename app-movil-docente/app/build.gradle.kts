@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.net.URI
 
 
 plugins {
@@ -31,6 +32,18 @@ val releaseKeyPassword = signingValue("SGA_RELEASE_KEY_PASSWORD", "keyPassword")
 val releaseSigningReady = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
     .all { !it.isNullOrBlank() } && releaseStoreFile?.let { file(it).isFile } == true
 
+fun endpoint(name: String, fallback: String): String {
+    val value = providers.environmentVariable(name).orElse(fallback).get().trim()
+    val uri = try { URI(value) } catch (_: Exception) {
+        throw GradleException("Invalid endpoint configuration: $name")
+    }
+    require(uri.scheme in listOf("http", "https") && !uri.host.isNullOrBlank() &&
+        uri.userInfo == null && uri.query == null && uri.fragment == null) {
+        "Invalid endpoint configuration: $name"
+    }
+    return "\"" + value.trimEnd('/').replace("\\", "\\\\").replace("\"", "\\\"") + "/\""
+}
+
 android {
     namespace = "ec.edu.uteq.sga.representante"
     compileSdk = 34
@@ -41,6 +54,8 @@ android {
         targetSdk = 34
         versionCode = 3
         versionName = "1.0.2"
+        buildConfigField("String", "BASE_GATEWAY_URL", endpoint("SGA_GATEWAY_URL", "http://10.0.2.2:8080/api/"))
+        buildConfigField("String", "BASE_DOCENTE_URL", endpoint("SGA_DOCENTE_URL", "http://10.0.2.2:8081/api/docente/"))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -83,6 +98,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"

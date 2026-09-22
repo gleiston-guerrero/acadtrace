@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import api from "../../config/axios";
+import api, { IA_API_BASE_URL } from "../../config/axios";
 import Layout from "../../components/Layout";
 
 const PRIMARY = "#243A76";
@@ -115,7 +115,7 @@ export default function Calificaciones() {
       }
     };
 
-    fetch("http://192.0.2.1:8084/api/ia/diagnostico-estudiante", {
+    fetch(`${IA_API_BASE_URL}/api/ia/diagnostico-estudiante`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
