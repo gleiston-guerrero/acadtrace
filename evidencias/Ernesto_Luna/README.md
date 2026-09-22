@@ -19,7 +19,7 @@ Este directorio contiene la consolidación estructurada de evidencias técnicas,
 
 1. **Microservicio de Secretaría (Spring Boot 3.2.5 + Java 21):**
    - Interfaz web del portal administrativo (Dashboard de estudiantes, matrículas, cursos y reportes).
-   - Cobertura de pruebas con JaCoCo certificada en **74.42 % de líneas (LINE)** y **72.74 % de instrucciones** a nivel de `BUNDLE` (superando la compuerta mínima estricta del 70 %).
+   - Cobertura de pruebas con JaCoCo certificada en **73.39 % de líneas (LINE, 2,115/2,882)** y **72.62 % de instrucciones (11,229/15,462)** a nivel de `BUNDLE` en CI #876 (superando la compuerta mínima estricta del 70 %).
    - Integración con base de datos real en contenedores efímeros vía **Testcontainers (PostgreSQL 16)** y migraciones deterministas con **Flyway** sincronizadas al 100% con producción (secuencia completa de 17 migraciones `V8` a `V26`) en Secretaría y Principal (Entregable #37 / Criterio E13).
 2. **Criptografía, Seguridad e Inmutabilidad (Entregable #43 / Criterios E2, E3):**
    - Disparador de base de datos **Append-Only** (`tg_auditoria_append_only`) en PostgreSQL que rechaza cualquier intento de `UPDATE` o `DELETE` con excepción fatal.
@@ -83,11 +83,11 @@ evidencias/
   - Gestión de Usuarios y Roles.
   - Importación Masiva y Reportes PDF institucionales.
 
-### B. Cobertura de Pruebas JaCoCo al 74.42 % (`Tarea E8 / Punto 38`)
-* **Ubicación del reporte oficial:** `docs/cobertura/secretaria/index.html`
+### B. Cobertura de Pruebas JaCoCo al 73.39 % (`Tarea E8 / Punto 38`)
+* **Ubicación del reporte oficial:** `docs/cobertura/secretaria/jacoco.xml` (y `docs/cobertura/README.md`)
 * **Métrica oficial:**
-  - **Líneas cubiertas (LINE):** 74.42 % (2,313 cubiertas de 3,108 líneas totales analizadas).
-  - **Instrucciones cubiertas (INSTRUCTION):** 72.74 % (11,272 de 15,497 instrucciones).
+  - **Líneas cubiertas (LINE):** 73.39 % (2,115 cubiertas de 2,882 líneas totales analizadas en CI #876).
+  - **Instrucciones cubiertas (INSTRUCTION):** 72.62 % (11,229 de 15,462 instrucciones).
   - **Batería de pruebas:** 96 pruebas automatizadas (0 fallos, 0 errores, 0 omitidas).
   - **Compuerta mínima:** Enforceable a nivel de `BUNDLE` al 70.00 % en `microservicio-secretaria/backend/pom.xml`.
 * **Comando reproducible:**
