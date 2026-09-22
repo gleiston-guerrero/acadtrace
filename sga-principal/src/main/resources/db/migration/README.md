@@ -87,9 +87,11 @@ Constancias de arranque regeneradas: Los archivos versionados en
 `evidencias/Pedro_Castro/Punto_05_Esquema_y_Migraciones/` (`arranque_base_nueva.log`
 y `arranque_base_migrada.log`) provienen de ejecuciones reales de `sga-principal`
 sobre PostgreSQL 16 con validación activa (`validate-on-migrate=true`) y sin `repair()`.
-Acreditan que la base nueva aplica limpiamente las migraciones hasta V26 (y valida
-19 en el segundo arranque), y que la base migrada desde V24 valida las existentes
-sin mismatch y aplica únicamente V25 y V26.
+Acreditan que la base inicializada con la línea base oficial institucional V8 registra
+la versión 8 como baseline y aplica ordenadamente las 17 migraciones pendientes hasta V26
+(validando 19 migraciones en el segundo arranque sin aplicar nada adicional, en plena
+concordancia con `AuditoriaFlywayMigrationContainerTest`), y que la base migrada desde
+V24 valida las existentes sin mismatch y aplica únicamente V25 y V26.
 
 ## Nota sobre la NOTA de V19
 
