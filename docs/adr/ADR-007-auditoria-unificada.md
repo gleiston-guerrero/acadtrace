@@ -57,12 +57,16 @@ El vector patrón constituye la referencia compartida utilizada por las pruebas 
 
 El vector patrón no demuestra equivalencia general de las serializaciones Java y Python. El arnés ejecutable `experimentos/arnes_12_vectores.py` mide el alcance real sobre doce vectores: Java Principal y Java Secretaría coinciden en 12/12 (100.0%), y Python coincide con Java en 8/12 (66.7%). Las cuatro divergencias reales fuera del dominio de cobertura son: flotantes de rango extremo (`1.0E-7` frente a `1e-07`, `1.0E21` frente a `1e+21`), orden de claves con caracteres suplementarios (UTF-16 frente a puntos de código) y el valor especial `NaN` (cadena `"NaN"` en Java frente a literal `NaN` en Python).
 
+Adicionalmente, fuera del vector patrón, los tipos nativos de marca de tiempo producen representaciones distintas en producción: Java `Instant.toString()` genera la representación ISO-8601 con sufijo `Z` (por ejemplo `2026-09-21T20:00:00Z`), mientras que Python `datetime.isoformat()` con timezone UTC genera el offset explícito `+00:00` (por ejemplo `2026-09-21T20:00:00+00:00`). El vector patrón v1 protege la marca de tiempo preformateada como cadena, pero ante tipos nativos se manifiesta esta diferencia; por ello la arquitectura persiste y verifica el `contenido_canonico` textual emitido por cada servicio, en lugar de depender de una representación idéntica entre lenguajes.
+
 Por ello, la garantía documentada es deliberadamente limitada: las pruebas protegen la compatibilidad del vector patrón y permiten detectar regresiones sobre ese contrato, pero no justifican afirmar una representación idéntica carácter por carácter para cualquier entrada.
 
 ### Divergencias reales fuera del vector patrón
 
 Medidas por `experimentos/arnes_12_vectores.py` sobre doce vectores
-(Java Principal == Java Secretaría: 12/12; Java == Python: 8/12):
+(Java Principal == Java Secretaría: 12/12; Java == Python: 8/12), más
+una divergencia adicional observada en producción cuando la marca de
+tiempo se serializa como objeto nativo en lugar de cadena preformateada:
 
 | Tipo de valor | Representación Java | Representación Python |
 |---|---|---|
@@ -70,6 +74,15 @@ Medidas por `experimentos/arnes_12_vectores.py` sobre doce vectores
 | Flotante de rango extremo grande | `1.0E21` | `1e+21` |
 | Orden de claves suplementarias | U+1F600 antes de U+FF01 (UTF-16) | orden por punto de código |
 | `NaN` | cadena `"NaN"` | literal JSON no estándar `NaN` |
+| Marca de tiempo como tipo nativo en producción (fuera de los doce vectores) | `Instant.toString()` con sufijo UTC: `2026-09-21T20:00:00Z` | `datetime.isoformat()` con offset: `2026-09-21T20:00:00+00:00` |
+
+La última fila no forma parte de los doce vectores del arnés: corresponde
+a la divergencia de producción entre `Instant.toString()` (sufijo `Z`) y
+`datetime.isoformat()` con timezone UTC (offset `+00:00`). El vector
+patrón v1 protege las marcas de tiempo preformateadas como cadena, pero
+ante tipos nativos se manifiesta esta diferencia, lo que refuerza la
+decisión arquitectónica de persistir y verificar el `contenido_canonico`
+textual emitido por cada servicio.
 
 ### Evidencia reproducible
 
