@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Modulo Banco Experimental y Evaluación Cuantitativa de Carga y Cripto-Auditoría
 Proyecto AcadTrace / SGA Escuela - Entrega 4
@@ -299,7 +299,7 @@ def _medir_operacion_rapida_amortizada(
     doc_id: int,
     nota: float,
 ) -> float:
-    """Mide M0/M1 en un lote mayor que la resolucion del reloj."""
+    """Mide M0-M3 con el mismo procedimiento amortizado por lotes."""
     clock_resolution_ns = max(
         1,
         int(round(time.get_clock_info("perf_counter").resolution * 1e9)),
@@ -312,18 +312,56 @@ def _medir_operacion_rapida_amortizada(
     repeticiones = 16
 
     while True:
+        # Cada intento comienza desde el mismo estado l?gico.
+        # As?, al duplicar el lote, no se arrastra estado del intento anterior.
+        lamport = 0
+        vector = {}
+        hash_p = GENESIS_HASH
+
         inicio_ns = time.perf_counter_ns()
 
-        if mecanismo == "M0":
-            for _ in range(repeticiones):
+        for i in range(repeticiones):
+            if mecanismo == "M0":
                 payload = f"{est_id}|{doc_id}|{nota}"
-        elif mecanismo == "M1":
-            for _ in range(repeticiones):
+
+            elif mecanismo == "M1":
                 payload = f"{est_id}|{doc_id}|{nota}|{time.time()}"
-        else:
-            raise ValueError(
-                f"Microbenchmark amortizado no valido para {mecanismo}"
-            )
+
+            elif mecanismo == "M2":
+                lamport = incrementar_lamport(lamport)
+                evento = construir_evento_productivo(
+                    identificador=i + 1,
+                    anterior=hash_p,
+                    lamport=lamport,
+                    vector=None,
+                    est_id=est_id,
+                    doc_id=doc_id,
+                    nota_final=nota,
+                    timestamp=time.time(),
+                    modo="m2",
+                )
+                hash_p = evento["hash_actual"]
+
+            elif mecanismo == "M3":
+                lamport = incrementar_lamport(lamport)
+                vector = incrementar_vector(vector, "docente-0")
+                evento = construir_evento_productivo(
+                    identificador=i + 1,
+                    anterior=hash_p,
+                    lamport=lamport,
+                    vector=vector,
+                    est_id=est_id,
+                    doc_id=doc_id,
+                    nota_final=nota,
+                    timestamp=time.time(),
+                    modo="m3",
+                )
+                hash_p = evento["hash_actual"]
+
+            else:
+                raise ValueError(
+                    f"Microbenchmark amortizado no valido para {mecanismo}"
+                )
 
         elapsed_ns = time.perf_counter_ns() - inicio_ns
 
@@ -331,11 +369,7 @@ def _medir_operacion_rapida_amortizada(
             elapsed_ns >= target_ns
             or repeticiones >= MICROBENCH_MAX_REPETITIONS
         ):
-            return (
-                elapsed_ns
-                / repeticiones
-                / 1_000_000.0
-            )
+            return elapsed_ns / repeticiones / 1_000_000.0
 
         repeticiones *= 2
 
@@ -391,8 +425,6 @@ def ejecutar_experimento_1_concurrencia(
                             )
                         latencias_op.append(lat_ms)
                     else:
-                        t_op0 = time.perf_counter_ns()
-
                         if mec == "M0":
                             payload = f"{est_id}|{doc_id}|{nota}"
 
@@ -430,22 +462,13 @@ def ejecutar_experimento_1_concurrencia(
                             )
                             hash_p = evento["hash_actual"]
 
-                        t_op1 = time.perf_counter_ns()
-
-                        # Microbenchmark local: únicamente tiempo observado.
-                        # No se añaden latencias, sobrecargas ni ruido sintético.
-                        lat_op = (t_op1 - t_op0) / 1e6
-                        latencias_op.append(lat_op)
-
-
                 t_fin = time.perf_counter()
                 duracion_total = t_fin - t_inicio
 
-                # M0/M1 duran demasiado poco para una medicion individual.
-                # La carga logica y el throughput ya terminaron en t_fin.
-                # Solo reemplazamos sus muestras de latencia por mediciones
-                # amortizadas en ventanas que superan la resolucion del reloj.
-                if not client.is_live and mec in ("M0", "M1"):
+                # En modo local M0, M1, M2 y M3 usan el mismo instrumento:
+                # una pareja de lecturas del reloj por lote y tiempo amortizado
+                # por operacion. Los deltas comparan brazos simetricos.
+                if not client.is_live:
                     latencias_op = [
                         _medir_operacion_rapida_amortizada(
                             mec,
