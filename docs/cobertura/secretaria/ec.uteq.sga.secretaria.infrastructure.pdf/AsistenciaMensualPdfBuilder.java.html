@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsistenciaMensualPdfBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">AsistenciaMensualPdfBuilder.java</span></div><h1>AsistenciaMensualPdfBuilder.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">package ec.uteq.sga.secretaria.infrastructure.pdf;</span>
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsistenciaMensualPdfBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">AsistenciaMensualPdfBuilder.java</span></div><h1>AsistenciaMensualPdfBuilder.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.pdf;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -15,13 +15,13 @@ import static ec.uteq.sga.secretaria.infrastructure.pdf.PdfValues.str;
 
 public final class AsistenciaMensualPdfBuilder {
 
-    private record Col(String label, float x, float w) {}
+<span class="fc" id="L18">    private record Col(String label, float x, float w) {}</span>
 
 <span class="fc" id="L20">    private static final List&lt;Col&gt; COLS = List.of(</span>
-<span class="fc" id="L21">            new Col(&quot;Fecha&quot;, 40, 90),</span>
-<span class="fc" id="L22">            new Col(&quot;Materia&quot;, 130, 300),</span>
-<span class="fc" id="L23">            new Col(&quot;Estado&quot;, 430, 90),</span>
-<span class="fc" id="L24">            new Col(&quot;Justificación&quot;, 520, 280)</span>
+            new Col(&quot;Fecha&quot;, 40, 90),
+            new Col(&quot;Materia&quot;, 130, 300),
+            new Col(&quot;Estado&quot;, 430, 90),
+            new Col(&quot;Justificación&quot;, 520, 280)
     );
 
     /** A4 landscape: se invierte el rectangulo en vez de usar page.setRotation, para dibujar sin transforms. */
@@ -32,7 +32,7 @@ public final class AsistenciaMensualPdfBuilder {
 <span class="fc" id="L32">            &quot;AUSENTE&quot;, Color.decode(&quot;#c0392b&quot;),</span>
 <span class="fc" id="L33">            &quot;ATRASO&quot;, Color.decode(&quot;#b8860b&quot;),</span>
 <span class="fc" id="L34">            &quot;JUSTIFICADO&quot;, Color.decode(&quot;#2e86ab&quot;)</span>
-<span class="fc" id="L35">    );</span>
+    );
 
     private AsistenciaMensualPdfBuilder() {}
 
@@ -55,7 +55,7 @@ public final class AsistenciaMensualPdfBuilder {
 <span class="fc" id="L55">                canvas.rect(40, y, canvas.pageWidth() - 80, 18, PdfTheme.SECONDARY);</span>
 <span class="fc bfc" id="L56" title="All 2 branches covered.">                for (Col c : COLS) {</span>
 <span class="fc" id="L57">                    canvas.text(c.x(), y + 5, c.label(), Fonts.HELVETICA_BOLD, 8, PdfTheme.WHITE);</span>
-                }
+<span class="fc" id="L58">                }</span>
 <span class="fc" id="L59">                y += 20;</span>
 
 <span class="fc" id="L61">                int i = 0;</span>
@@ -82,7 +82,7 @@ public final class AsistenciaMensualPdfBuilder {
 
 <span class="fc" id="L83">                    y += 16;</span>
 <span class="fc" id="L84">                    i++;</span>
-                }
+<span class="fc" id="L85">                }</span>
 
 <span class="pc bpc" id="L87" title="1 of 2 branches missed.">                if (registros.isEmpty()) {</span>
 <span class="nc" id="L88">                    canvas.text(40, y + 4, &quot;No hay registros de asistencia para este mes.&quot;, Fonts.HELVETICA, 9, PdfTheme.MUTED);</span>

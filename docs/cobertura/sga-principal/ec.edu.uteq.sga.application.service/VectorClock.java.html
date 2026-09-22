@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VectorClock.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">VectorClock.java</span></div><h1>VectorClock.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * Reloj vectorial para seguimiento de causalidad y ordenamiento parcial
+ * en entornos concurrentes y distribuidos (sga-principal, docente, secretaria).
+ * Conforme con ADR-007 (ISO/IEC 25010 - Integridad Causal).
+ */
+@Component
+public class VectorClock {
+
+<span class="fc" id="L21">    private static final ObjectMapper MAPPER = new ObjectMapper();</span>
+<span class="fc" id="L22">    private final ConcurrentHashMap&lt;String, AtomicLong&gt; clock = new ConcurrentHashMap&lt;&gt;();</span>
+
+<span class="fc" id="L24">    public VectorClock() {</span>
+        // Inicializar nodos reconocidos del cluster
+<span class="fc" id="L26">        clock.put(&quot;principal&quot;, new AtomicLong(0));</span>
+<span class="fc" id="L27">        clock.put(&quot;docente&quot;, new AtomicLong(0));</span>
+<span class="fc" id="L28">        clock.put(&quot;secretaria&quot;, new AtomicLong(0));</span>
+<span class="fc" id="L29">    }</span>
+
+    public synchronized Map&lt;String, Long&gt; increment(String node) {
+<span class="pc" id="L32">        clock.computeIfAbsent(node, k -&gt; new AtomicLong(0)).incrementAndGet();</span>
+<span class="fc" id="L33">        return current();</span>
+    }
+
+    public synchronized Map&lt;String, Long&gt; merge(Map&lt;String, Long&gt; remote) {
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (remote != null) {</span>
+<span class="fc" id="L38">            remote.forEach((node, val) -&gt; {</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">                if (val != null) {</span>
+<span class="nc" id="L40">                    clock.compute(node, (k, currentVal) -&gt; {</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">                        long current = (currentVal == null) ? 0L : currentVal.get();</span>
+<span class="nc" id="L42">                        return new AtomicLong(Math.max(current, val));</span>
+                    });
+                }
+<span class="nc" id="L45">            });</span>
+        }
+<span class="fc" id="L47">        return current();</span>
+    }
+
+    /**
+     * Recupera el ultimo vector confirmado en BD antes de generar
+     * un nuevo evento. Permite conservar causalidad tras reinicios
+     * y entre distintas instancias del servicio.
+     */
+    public synchronized Map&lt;String, Long&gt; mergeJson(String json) {
+<span class="pc bpc" id="L56" title="2 of 4 branches missed.">        if (json == null || json.isBlank()) {</span>
+<span class="nc" id="L57">            return current();</span>
+        }
+        try {
+<span class="fc" id="L60">            Map&lt;String, Long&gt; remote = MAPPER.readValue(</span>
+                    json,
+<span class="fc" id="L62">                    new TypeReference&lt;Map&lt;String, Long&gt;&gt;() {}</span>
+            );
+<span class="fc" id="L64">            return merge(remote);</span>
+<span class="nc" id="L65">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L66">            throw new IllegalArgumentException(</span>
+                    &quot;vector_reloj persistido no es JSON valido&quot;,
+                    e
+            );
+        }
+    }
+
+    public Map&lt;String, Long&gt; current() {
+<span class="fc" id="L74">        Map&lt;String, Long&gt; snapshot = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L75">        clock.forEach((k, v) -&gt; snapshot.put(k, v.get()));</span>
+<span class="fc" id="L76">        return snapshot;</span>
+    }
+
+    public String toJson() {
+        try {
+<span class="fc" id="L81">            return MAPPER.writeValueAsString(current());</span>
+<span class="nc" id="L82">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L83">            return &quot;{\&quot;principal\&quot;:&quot; + clock.getOrDefault(&quot;principal&quot;, new AtomicLong(0)).get() + &quot;}&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

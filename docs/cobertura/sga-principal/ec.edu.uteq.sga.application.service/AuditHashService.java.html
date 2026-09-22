@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuditHashService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">AuditHashService.java</span></div><h1>AuditHashService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+/**
+ * Servicio centralizado para el calculo del hash criptografico SHA-256 encadenado
+ * para la bitacora de auditoria (blockchain-style).
+ * Garantiza coincidencia canonica con la especificacion ADR-007 y los verificadores del cluster.
+ */
+@Service
+public class AuditHashService {
+
+    public static final String GENESIS_HASH = &quot;0000000000000000000000000000000000000000000000000000000000000000&quot;;
+
+<span class="fc" id="L27">    private static final Set&lt;String&gt; SECRET_KEYS = Set.of(</span>
+            &quot;authorization&quot;,
+            &quot;jwt&quot;,
+            &quot;password&quot;,
+            &quot;contrasena&quot;,
+            &quot;contrase\u00f1a&quot;,
+            &quot;contrase?a&quot;,
+            &quot;internal_token&quot;,
+            &quot;token&quot;,
+            &quot;secret&quot;
+    );
+
+    private final ObjectMapper mapper;
+
+<span class="fc" id="L41">    public AuditHashService() {</span>
+<span class="fc" id="L42">        this.mapper = new ObjectMapper();</span>
+<span class="fc" id="L43">        this.mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());</span>
+<span class="fc" id="L44">        this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);</span>
+<span class="fc" id="L45">        this.mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);</span>
+<span class="fc" id="L46">    }</span>
+
+    /**
+     * Genera la representación JSON canónica con claves ordenadas lexicográficamente
+     * y sin espacios adicionales entre separadores.
+     */
+    public String jsonCanonico(Map&lt;String, Object&gt; contenido) {
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (contenido == null) {</span>
+<span class="nc" id="L54">            return &quot;{}&quot;;</span>
+        }
+        try {
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L58">            Map&lt;String, Object&gt; normalizado =</span>
+<span class="fc" id="L59">                    (Map&lt;String, Object&gt;) normalizar(contenido);</span>
+<span class="fc" id="L60">            return mapper.writeValueAsString(normalizado);</span>
+<span class="nc" id="L61">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L62">            throw new IllegalStateException(</span>
+                    &quot;Error al serializar payload canonico de auditoria&quot;,
+                    e
+            );
+        }
+    }
+
+    /**
+     * Contrato canonico v1 compartido con microservicio-docente.
+     */
+    public Map&lt;String, Object&gt; contenidoEvento(
+            String tipoEvento,
+            String entidad,
+            Object entidadId,
+            String operacion,
+            Object actorId,
+            String timestamp,
+            Map&lt;String, Object&gt; payload,
+            String modo,
+            long relojLamport,
+            Map&lt;String, Long&gt; relojVectorial,
+            String estadoReconciliacion
+    ) {
+<span class="fc" id="L85">        Map&lt;String, Object&gt; contenido = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L86">        contenido.put(&quot;actor_id&quot;, actorId);</span>
+<span class="fc" id="L87">        contenido.put(&quot;entidad&quot;, entidad);</span>
+<span class="fc" id="L88">        contenido.put(</span>
+                &quot;entidad_id&quot;,
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                entidadId == null ? &quot;None&quot; : String.valueOf(entidadId)</span>
+        );
+<span class="fc" id="L92">        contenido.put(&quot;estado_reconciliacion&quot;, estadoReconciliacion);</span>
+<span class="fc" id="L93">        contenido.put(&quot;modo&quot;, modo);</span>
+<span class="fc" id="L94">        contenido.put(&quot;operacion&quot;, operacion);</span>
+<span class="fc" id="L95">        contenido.put(</span>
+                &quot;payload&quot;,
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">                normalizar(payload != null ? payload : Map.of())</span>
+        );
+<span class="fc" id="L99">        contenido.put(&quot;reloj_lamport&quot;, relojLamport);</span>
+<span class="fc" id="L100">        contenido.put(&quot;reloj_vectorial&quot;, normalizar(relojVectorial));</span>
+<span class="fc" id="L101">        contenido.put(&quot;timestamp&quot;, timestamp);</span>
+<span class="fc" id="L102">        contenido.put(&quot;tipo_evento&quot;, tipoEvento);</span>
+<span class="fc" id="L103">        return contenido;</span>
+    }
+
+    /**
+     * Normalizacion equivalente a docentes.auditoria.hashing.normalizar.
+     * Ordena mapas recursivamente y excluye material sensible.
+     */
+    private Object normalizar(Object valor) {
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (valor instanceof Map&lt;?, ?&gt; mapa) {</span>
+<span class="fc" id="L112">            Map&lt;String, Object&gt; resultado = new TreeMap&lt;&gt;();</span>
+
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            for (Map.Entry&lt;?, ?&gt; entry : mapa.entrySet()) {</span>
+<span class="fc" id="L115">                String clave = String.valueOf(entry.getKey());</span>
+
+<span class="fc bfc" id="L117" title="All 2 branches covered.">                if (SECRET_KEYS.contains(clave.toLowerCase())) {</span>
+<span class="fc" id="L118">                    continue;</span>
+                }
+
+<span class="fc" id="L121">                resultado.put(clave, normalizar(entry.getValue()));</span>
+<span class="fc" id="L122">            }</span>
+
+<span class="fc" id="L124">            return resultado;</span>
+        }
+
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (valor instanceof Collection&lt;?&gt; coleccion) {</span>
+<span class="nc" id="L128">            ArrayList&lt;Object&gt; resultado = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            for (Object elemento : coleccion) {</span>
+<span class="nc" id="L131">                resultado.add(normalizar(elemento));</span>
+<span class="nc" id="L132">            }</span>
+
+<span class="nc" id="L134">            return resultado;</span>
+        }
+
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (valor instanceof java.time.temporal.TemporalAccessor) {</span>
+<span class="fc" id="L138">            return valor.toString();</span>
+        }
+
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (valor instanceof java.util.Date d) {</span>
+<span class="nc" id="L142">            return d.toInstant().toString();</span>
+        }
+
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (valor instanceof java.math.BigDecimal) {</span>
+<span class="nc" id="L146">            return String.valueOf(valor);</span>
+        }
+
+<span class="fc" id="L149">        return valor;</span>
+    }
+
+    /**
+     * Calcula H_k = SHA-256(H_{k-1} + JSON_canonico(contenido)).
+     */
+    public String calcularHash(String hashAnterior, Map&lt;String, Object&gt; contenido) {
+<span class="pc bpc" id="L156" title="2 of 4 branches missed.">        String previo = (hashAnterior == null || hashAnterior.isBlank()) ? GENESIS_HASH : hashAnterior;</span>
+<span class="fc" id="L157">        String canonico = jsonCanonico(contenido);</span>
+<span class="fc" id="L158">        String material = previo + canonico;</span>
+<span class="fc" id="L159">        return sha256Hex(material);</span>
+    }
+
+    public static String sha256Hex(String input) {
+        try {
+<span class="fc" id="L164">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L165">            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L166">            StringBuilder sb = new StringBuilder(hashBytes.length * 2);</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">            for (byte b : hashBytes) {</span>
+<span class="fc" id="L168">                sb.append(String.format(&quot;%02x&quot;, b));</span>
+            }
+<span class="fc" id="L170">            return sb.toString();</span>
+<span class="nc" id="L171">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L172">            throw new IllegalStateException(&quot;Algoritmo SHA-256 no disponible en la JVM&quot;, e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

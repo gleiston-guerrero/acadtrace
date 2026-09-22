@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfCanvas.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">PdfCanvas.java</span></div><h1>PdfCanvas.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.pdf;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfCanvas.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.infrastructure.pdf</a> &gt; <span class="el_source">PdfCanvas.java</span></div><h1>PdfCanvas.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.infrastructure.pdf;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -95,7 +95,7 @@ public class PdfCanvas implements Closeable {
 <span class="fc bfc" id="L95" title="All 2 branches covered.">        for (String line : lines) {</span>
 <span class="fc" id="L96">            textAligned(x, y, width, line, font, size, color, align);</span>
 <span class="fc" id="L97">            y += lineHeight;</span>
-        }
+<span class="fc" id="L98">        }</span>
 <span class="fc" id="L99">        return y;</span>
     }
 
@@ -119,7 +119,7 @@ public class PdfCanvas implements Closeable {
 <span class="fc bfc" id="L119" title="All 4 branches covered.">                if (!current.isEmpty() &amp;&amp; widthOf(candidate, font, size) &gt; maxWidth) {</span>
 <span class="fc" id="L120">                    lines.add(current.toString());</span>
 <span class="fc" id="L121">                    current = new StringBuilder(word);</span>
-<span class="fc" id="L122">                } else {</span>
+                } else {
 <span class="fc" id="L123">                    current = new StringBuilder(candidate);</span>
                 }
             }
