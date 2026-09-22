@@ -1,4 +1,4 @@
-﻿# Cobertura de app-movil-docente
+# Cobertura de app-movil-docente
 
 Reporte JaCoCo del módulo Android en Kotlin/Jetpack Compose.
 

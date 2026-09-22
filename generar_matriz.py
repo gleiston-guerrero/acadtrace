@@ -1,4 +1,4 @@
-﻿"""E22: preview por defecto. Solo --write-csv/--write-latex escriben archivos.
+"""E22: preview por defecto. Solo --write-csv/--write-latex escriben archivos.
 Las categorias solicitadas por el proyecto no certifican ISO/IEC 25010 completo.
 La evidencia historica se distingue del conjunto nominal A. Solo biblioteca estandar.
 """
