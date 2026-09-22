@@ -57,7 +57,7 @@ Justificación: en PostgreSQL, el cambio de estado de un disparador exige ser pr
 - `sga-principal/src/test/java/ec/edu/uteq/sga/integration/AuditoriaFlywayMigrationContainerTest.java`
   - `pipelineRealDeFlywayCreaTriggerDeInmutabilidad`: ejecuta el pipeline real V8→V26 sobre PostgreSQL efímero, inserta un registro testigo (id positivo), y exige que `UPDATE`, `DELETE` y `TRUNCATE` fallen con `P0001` / `Operacion rechazada`.
   - `criterioE6_rolCreadoPorMigracionRechazaModificacionInclusoSinTrigger`: desactiva el disparador como propietario y exige que `sga_app` reciba `42501` / `permission denied` en `UPDATE` y `DELETE`.
-- Informe Surefire auténtico versionado: `docs/evidencia/pruebas/sga-principal/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml` — `tests="2" errors="0" skipped="0" failures="0"`, tiempo `27.068`, ejecución `2026-09-21T21-52-54`, SHA-256 `4C88EE974C7BAE1D630B40D58ABC67DC684B4720F4DA7C8D0B3B33692E69D042`.
+- Informe Surefire auténtico versionado: `docs/evidencia/pruebas/sga-principal/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml` — `tests="2" errors="0" skipped="0" failures="0"`, tiempo `9.673`, ejecución `2026-09-22` (Windows 11, JDK 21.0.11), SHA-256 `2015DB00A3BCA5876D6F950F1A193B846920BF5F2C2E1BA9F56265519EB9FA4F`.
 - Prueba complementaria de la capa de permisos con disparador desactivado: `sga-principal/src/test/java/ec/edu/uteq/sga/infrastructure/repository/AuditoriaInmutabilidadTest.java`.
 
 ---
