@@ -287,6 +287,59 @@ def percentile(data: List[float], p: float) -> float:
     return d0 + d1
 
 
+
+MICROBENCH_MIN_WINDOW_NS = 1_000_000
+MICROBENCH_MIN_CLOCK_TICKS = 10_000
+MICROBENCH_MAX_REPETITIONS = 1_048_576
+
+
+def _medir_operacion_rapida_amortizada(
+    mecanismo: str,
+    est_id: int,
+    doc_id: int,
+    nota: float,
+) -> float:
+    """Mide M0/M1 en un lote mayor que la resolucion del reloj."""
+    clock_resolution_ns = max(
+        1,
+        int(round(time.get_clock_info("perf_counter").resolution * 1e9)),
+    )
+    target_ns = max(
+        MICROBENCH_MIN_WINDOW_NS,
+        clock_resolution_ns * MICROBENCH_MIN_CLOCK_TICKS,
+    )
+
+    repeticiones = 16
+
+    while True:
+        inicio_ns = time.perf_counter_ns()
+
+        if mecanismo == "M0":
+            for _ in range(repeticiones):
+                payload = f"{est_id}|{doc_id}|{nota}"
+        elif mecanismo == "M1":
+            for _ in range(repeticiones):
+                payload = f"{est_id}|{doc_id}|{nota}|{time.time()}"
+        else:
+            raise ValueError(
+                f"Microbenchmark amortizado no valido para {mecanismo}"
+            )
+
+        elapsed_ns = time.perf_counter_ns() - inicio_ns
+
+        if (
+            elapsed_ns >= target_ns
+            or repeticiones >= MICROBENCH_MAX_REPETITIONS
+        ):
+            return (
+                elapsed_ns
+                / repeticiones
+                / 1_000_000.0
+            )
+
+        repeticiones *= 2
+
+
 def ejecutar_experimento_1_concurrencia(
     client: LiveBackendClient,
     *,
@@ -387,6 +440,22 @@ def ejecutar_experimento_1_concurrencia(
 
                 t_fin = time.perf_counter()
                 duracion_total = t_fin - t_inicio
+
+                # M0/M1 duran demasiado poco para una medicion individual.
+                # La carga logica y el throughput ya terminaron en t_fin.
+                # Solo reemplazamos sus muestras de latencia por mediciones
+                # amortizadas en ventanas que superan la resolucion del reloj.
+                if not client.is_live and mec in ("M0", "M1"):
+                    latencias_op = [
+                        _medir_operacion_rapida_amortizada(
+                            mec,
+                            (i % NUM_ESTUDIANTES) + 1,
+                            (i % NUM_DOCENTES) + 1,
+                            8.5,
+                        )
+                        for i in range(transacciones)
+                    ]
+
                 throughput = round(transacciones / max(duracion_total, 0.001), 2)
 
                 filas_exp1.append({
