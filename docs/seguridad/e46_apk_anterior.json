@@ -1,0 +1,12 @@
+{
+  "path": "C:\\Users\\Juliana\\AppData\\Local\\Temp\\acadtrace-e46-tools\\v1.0.2-published.apk",
+  "sha256": "cfd6b03995b292cba2a9926fc9adde3c6e9ebc075e2e034fee68b117d476e27c",
+  "production_server_literal_occurrences": 1,
+  "entries": [
+    {
+      "entry": "classes.dex",
+      "occurrences": 1
+    }
+  ],
+  "scope": "all ZIP entries, including every DEX and resource; ASCII/UTF-8 and UTF-16LE literals"
+}
