@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsignaturaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">AsignaturaService.java</span></div><h1>AsignaturaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsignaturaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">AsignaturaService.java</span></div><h1>AsignaturaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
 import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
@@ -60,10 +60,10 @@ public class AsignaturaService {
                    OR (codigo IS NOT NULL AND :codigo IS NOT NULL AND codigo != '' AND LOWER(codigo) = LOWER(:codigo))
                 &quot;&quot;&quot;;
 <span class="fc" id="L62">        List&lt;Long&gt; dup = jdbc.query(sqlDup,</span>
-<span class="fc" id="L63">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L64">                        .addValue(&quot;nombre&quot;, dto.nombre().trim())</span>
 <span class="fc" id="L65">                        .addValue(&quot;codigo&quot;, blankToNull(dto.codigo())),</span>
-<span class="pc" id="L66">                (rs, n) -&gt; rs.getLong(&quot;id_asignatura&quot;));</span>
+<span class="nc" id="L66">                (rs, n) -&gt; rs.getLong(&quot;id_asignatura&quot;));</span>
 
 <span class="fc bfc" id="L68" title="All 2 branches covered.">        if (!dup.isEmpty()) {</span>
 <span class="fc" id="L69">            throw ApiException.conflict(&quot;Ya existe una asignatura con ese nombre o código&quot;);</span>
@@ -75,12 +75,12 @@ public class AsignaturaService {
                 RETURNING id_asignatura
                 &quot;&quot;&quot;;
 <span class="fc" id="L77">        Long id = jdbc.queryForObject(sqlInsert,</span>
-<span class="fc" id="L78">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L79">                        .addValue(&quot;nombre&quot;, dto.nombre().trim())</span>
 <span class="fc" id="L80">                        .addValue(&quot;codigo&quot;, blankToNull(dto.codigo()))</span>
 <span class="fc" id="L81">                        .addValue(&quot;descripcion&quot;, blankToNull(dto.descripcion()))</span>
 <span class="pc bpc" id="L82" title="1 of 2 branches missed.">                        .addValue(&quot;horasSemana&quot;, dto.horasSemanales() != null ? dto.horasSemanales() : 4),</span>
-<span class="fc" id="L83">                Long.class);</span>
+                Long.class);
 
 <span class="fc" id="L85">        return obtenerPorId(id);</span>
     }
@@ -96,11 +96,11 @@ public class AsignaturaService {
                        OR (codigo IS NOT NULL AND :codigo IS NOT NULL AND codigo != '' AND LOWER(codigo) = LOWER(:codigo)))
                 &quot;&quot;&quot;;
 <span class="fc" id="L98">        List&lt;Long&gt; dup = jdbc.query(sqlDup,</span>
-<span class="fc" id="L99">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L100">                        .addValue(&quot;id&quot;, id)</span>
 <span class="fc" id="L101">                        .addValue(&quot;nombre&quot;, dto.nombre().trim())</span>
 <span class="fc" id="L102">                        .addValue(&quot;codigo&quot;, blankToNull(dto.codigo())),</span>
-<span class="pc" id="L103">                (rs, n) -&gt; rs.getLong(&quot;id_asignatura&quot;));</span>
+<span class="nc" id="L103">                (rs, n) -&gt; rs.getLong(&quot;id_asignatura&quot;));</span>
 
 <span class="fc bfc" id="L105" title="All 2 branches covered.">        if (!dup.isEmpty()) {</span>
 <span class="fc" id="L106">            throw ApiException.conflict(&quot;Ya existe otra asignatura con ese nombre o código&quot;);</span>
@@ -115,7 +115,7 @@ public class AsignaturaService {
                 WHERE id_asignatura = :id
                 &quot;&quot;&quot;;
 <span class="fc" id="L117">        jdbc.update(sqlUpdate,</span>
-<span class="fc" id="L118">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L119">                        .addValue(&quot;id&quot;, id)</span>
 <span class="fc" id="L120">                        .addValue(&quot;nombre&quot;, dto.nombre().trim())</span>
 <span class="fc" id="L121">                        .addValue(&quot;codigo&quot;, blankToNull(dto.codigo()))</span>

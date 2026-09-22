@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PushNotificationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">PushNotificationService.java</span></div><h1>PushNotificationService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+import ec.edu.uteq.sga.domain.dto.notificacion.EventoAcademicoPushDTO;
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.firebase.FcmGateway;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.Instant;
+import java.util.*;
+
+@Service @RequiredArgsConstructor
+public class PushNotificationService {
+ private final MatriculaRepository matriculas; private final AsignacionRepository asignaciones;
+ private final DispositivoRepresentanteRepository dispositivos; private final EventoNotificacionPushRepository eventos; private final FcmGateway fcm;
+
+ @Transactional public void procesar(EventoAcademicoPushDTO dto){
+<span class="pc bpc" id="L18" title="2 of 6 branches missed.">   if((dto.type().equals(&quot;AUSENTE&quot;)||dto.type().equals(&quot;ATRASO&quot;)) &amp;&amp; dto.matriculaId()==null) return;</span>
+<span class="fc" id="L19">   usuariosDestino(dto).forEach(u-&gt;enviarUnaVez(dto.eventKey(),u,dto.type(),titulo(dto),cuerpo(dto),datos(dto,u)));</span>
+<span class="fc" id="L20"> }</span>
+ @Transactional public void cierre(PeriodoEvaluacion periodo){
+<span class="nc bnc" id="L22" title="All 2 branches missed.">   for(Matricula m: matriculas.findByAnoLectivoWithEstudiante(periodo.getAnoLectivo().getIdAnoLectivo())) {</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">     Usuario u=usuario(m); if(u==null) continue;</span>
+<span class="nc" id="L24">     String key=&quot;CIERRE_CALIFICACIONES:&quot;+periodo.getIdPeriodo()+&quot;:&quot;+m.getEstudiante().getIdEstudiante();</span>
+<span class="nc" id="L25">     enviarUnaVez(key,u,&quot;CIERRE_CALIFICACIONES&quot;,&quot;Calificaciones disponibles&quot;,&quot;Las calificaciones del &quot;+periodo.getNombre()+&quot; ya estan disponibles.&quot;,</span>
+<span class="nc" id="L26">       Map.of(&quot;type&quot;,&quot;CIERRE_CALIFICACIONES&quot;,&quot;studentId&quot;,m.getEstudiante().getIdEstudiante().toString(),&quot;periodId&quot;,periodo.getIdPeriodo().toString()));</span>
+<span class="nc" id="L27">   }</span>
+<span class="nc" id="L28"> }</span>
+ private Set&lt;Usuario&gt; usuariosDestino(EventoAcademicoPushDTO dto){
+<span class="fc" id="L30">   Set&lt;Usuario&gt; out=new LinkedHashSet&lt;&gt;();</span>
+<span class="pc bpc" id="L31" title="2 of 4 branches missed.">   if(dto.matriculaId()!=null) matriculas.findById(dto.matriculaId()).map(this::usuario).ifPresent(u-&gt;{if(u!=null)out.add(u);});</span>
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">   if(dto.asignacionId()!=null) asignaciones.findById(dto.asignacionId()).ifPresent(a-&gt;matriculas.findByGrado_IdGradoAndParalelo_IdParaleloAndAnoLectivo_IdAnoLectivo(a.getGrado().getIdGrado(),a.getParalelo().getIdParalelo(),a.getAnoLectivo().getIdAnoLectivo()).stream().map(this::usuario).filter(Objects::nonNull).forEach(out::add));</span>
+<span class="fc" id="L33">   return out;</span>
+ }
+<span class="pc bpc" id="L35" title="2 of 4 branches missed."> private Usuario usuario(Matricula m){return m.getEstudiante()!=null&amp;&amp;m.getEstudiante().getRepresentante()!=null?m.getEstudiante().getRepresentante().getUsuario():null;}</span>
+ private void enviarUnaVez(String key,Usuario u,String tipo,String title,String body,Map&lt;String,String&gt; data){
+<span class="fc" id="L37">   EventoNotificacionPush ev=eventos.findByClaveEventoAndUsuario_IdUsuario(key,u.getIdUsuario()).orElseGet(()-&gt;eventos.save(EventoNotificacionPush.builder().claveEvento(key).usuario(u).tipo(tipo).build()));</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">   if(&quot;ENVIADO&quot;.equals(ev.getEstado())) return;</span>
+<span class="fc" id="L39">   boolean sent=false, failed=false;</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">   for(DispositivoRepresentante d:dispositivos.findByUsuario_IdUsuarioAndActivoTrue(u.getIdUsuario())){</span>
+<span class="fc" id="L41">     FcmGateway.Result r=fcm.send(d.getToken(),title,body,data);</span>
+<span class="pc bpc" id="L42" title="2 of 6 branches missed.">     if(r==FcmGateway.Result.INVALID_TOKEN){d.setActivo(false);dispositivos.save(d);} else if(r==FcmGateway.Result.SENT) sent=true; else if(r==FcmGateway.Result.FAILED) failed=true;</span>
+<span class="fc" id="L43">   }</span>
+<span class="pc bpc" id="L44" title="2 of 6 branches missed.">   ev.setEstado(sent?&quot;ENVIADO&quot;:failed?&quot;FALLIDO&quot;:&quot;SIN_DISPOSITIVO&quot;); if(sent)ev.setFechaEnvio(Instant.now()); eventos.save(ev);</span>
+<span class="fc" id="L45"> }</span>
+<span class="pc bpc" id="L46" title="2 of 5 branches missed."> private String titulo(EventoAcademicoPushDTO d){return d.title()!=null?d.title():switch(d.type()){case&quot;COMUNICADO&quot;-&gt;&quot;Nuevo comunicado&quot;;case&quot;AUSENTE&quot;-&gt;&quot;Ausencia registrada&quot;;default-&gt;&quot;Atraso registrado&quot;;};}</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed."> private String cuerpo(EventoAcademicoPushDTO d){return d.body()!=null?d.body():&quot;Hay nueva informacion academica disponible.&quot;;}</span>
+<span class="pc bpc" id="L48" title="2 of 12 branches missed."> private Map&lt;String,String&gt; datos(EventoAcademicoPushDTO d,Usuario u){Map&lt;String,String&gt; m=new HashMap&lt;&gt;();m.put(&quot;type&quot;,d.type()); if(d.announcementId()!=null)m.put(&quot;announcementId&quot;,d.announcementId().toString()); if(d.periodId()!=null)m.put(&quot;periodId&quot;,d.periodId().toString()); if(d.studentName()!=null)m.put(&quot;studentName&quot;,d.studentName()); if(d.date()!=null)m.put(&quot;date&quot;,d.date().toString()); if(d.attendanceId()!=null)m.put(&quot;attendanceId&quot;,d.attendanceId().toString()); if(d.matriculaId()!=null)matriculas.findById(d.matriculaId()).ifPresent(x-&gt;m.put(&quot;studentId&quot;,x.getEstudiante().getIdEstudiante().toString()));return m;}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

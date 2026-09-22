@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MallaCurricularService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">MallaCurricularService.java</span></div><h1>MallaCurricularService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MallaCurricularService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">MallaCurricularService.java</span></div><h1>MallaCurricularService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
 import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
@@ -65,7 +65,7 @@ public class MallaCurricularService {
 <span class="fc" id="L65">            item.put(&quot;docentes&quot;, new ArrayList&lt;String&gt;());</span>
 <span class="fc" id="L66">            item.put(&quot;origen&quot;, &quot;MALLA&quot;);</span>
 <span class="fc" id="L67">            mapaMaterias.put(idAsig, item);</span>
-        }
+<span class="fc" id="L68">        }</span>
 
 <span class="fc bfc" id="L70" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; a : rowsAsig) {</span>
 <span class="fc" id="L71">            Long idAsig = ((Number) a.get(&quot;id_asignatura&quot;)).longValue();</span>
@@ -94,7 +94,7 @@ public class MallaCurricularService {
 <span class="fc" id="L94">                item.put(&quot;origen&quot;, &quot;ASIGNACION&quot;);</span>
 <span class="fc" id="L95">                mapaMaterias.put(idAsig, item);</span>
             }
-        }
+<span class="fc" id="L97">        }</span>
 
 <span class="fc" id="L99">        List&lt;Map&lt;String, Object&gt;&gt; items = new ArrayList&lt;&gt;(mapaMaterias.values());</span>
 <span class="fc" id="L100">        int total = items.stream().mapToInt(i -&gt; Integer.parseInt(i.get(&quot;horasSemana&quot;).toString())).sum();</span>
@@ -126,7 +126,7 @@ public class MallaCurricularService {
 <span class="fc" id="L126">            Long idA = ((Number) m.get(&quot;id_asignatura&quot;)).longValue();</span>
 <span class="fc" id="L127">            int h = ((Number) m.get(&quot;horas&quot;)).intValue();</span>
 <span class="fc" id="L128">            mapaGrados.computeIfAbsent(idG, k -&gt; new HashMap&lt;&gt;()).put(idA, h);</span>
-        }
+<span class="fc" id="L129">        }</span>
 
 <span class="fc bfc" id="L131" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; a : asigs) {</span>
 <span class="fc" id="L132">            Long idG = ((Number) a.get(&quot;id_grado&quot;)).longValue();</span>
@@ -136,7 +136,7 @@ public class MallaCurricularService {
 <span class="fc" id="L136">            Map&lt;Long, Integer&gt; mapG = mapaGrados.get(idG);</span>
 <span class="fc" id="L137">            int hActual = mapG.getOrDefault(idA, 0);</span>
 <span class="pc bpc" id="L138" title="1 of 2 branches missed.">            if (h &gt; hActual) mapG.put(idA, h);</span>
-        }
+<span class="fc" id="L139">        }</span>
 
 <span class="fc" id="L141">        Map&lt;Long, Map&lt;String, Object&gt;&gt; res = new HashMap&lt;&gt;();</span>
 <span class="fc bfc" id="L142" title="All 2 branches covered.">        for (Map.Entry&lt;Long, Map&lt;Long, Integer&gt;&gt; entry : mapaGrados.entrySet()) {</span>
@@ -144,7 +144,7 @@ public class MallaCurricularService {
 <span class="fc" id="L144">            Map&lt;Long, Integer&gt; mapG = entry.getValue();</span>
 <span class="fc" id="L145">            int totalH = mapG.values().stream().mapToInt(Integer::intValue).sum();</span>
 <span class="fc" id="L146">            res.put(idG, Map.of(&quot;totalHoras&quot;, totalH, &quot;cantMaterias&quot;, mapG.size()));</span>
-        }
+<span class="fc" id="L147">        }</span>
 
 <span class="fc" id="L149">        return res;</span>
     }
@@ -156,11 +156,11 @@ public class MallaCurricularService {
                 WHERE id_grado = :idGrado AND id_asignatura = :idAsignatura AND id_ano_lectivo = :idAnoLectivo
                 &quot;&quot;&quot;;
 <span class="fc" id="L158">        Integer count = jdbc.queryForObject(checkSql,</span>
-<span class="fc" id="L159">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L160">                        .addValue(&quot;idGrado&quot;, req.idGrado())</span>
 <span class="fc" id="L161">                        .addValue(&quot;idAsignatura&quot;, req.idAsignatura())</span>
 <span class="fc" id="L162">                        .addValue(&quot;idAnoLectivo&quot;, req.idAnoLectivo()),</span>
-<span class="fc" id="L163">                Integer.class);</span>
+                Integer.class);
 
 <span class="pc bpc" id="L165" title="1 of 4 branches missed.">        if (count != null &amp;&amp; count &gt; 0) {</span>
 <span class="fc" id="L166">            throw ApiException.conflict(&quot;Esa asignatura ya está registrada en la malla del grado&quot;);</span>
@@ -171,7 +171,7 @@ public class MallaCurricularService {
                 VALUES (:idGrado, :idAsignatura, :idAnoLectivo, :horasSemana, :diasSemana, :duracion, true, NOW())
                 &quot;&quot;&quot;;
 <span class="fc" id="L173">        jdbc.update(insertSql,</span>
-<span class="fc" id="L174">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L175">                        .addValue(&quot;idGrado&quot;, req.idGrado())</span>
 <span class="fc" id="L176">                        .addValue(&quot;idAsignatura&quot;, req.idAsignatura())</span>
 <span class="fc" id="L177">                        .addValue(&quot;idAnoLectivo&quot;, req.idAnoLectivo())</span>
@@ -183,7 +183,7 @@ public class MallaCurricularService {
     @Transactional
     public void actualizarHoras(long idMalla, short horasSemana) {
 <span class="fc" id="L185">        int updated = jdbc.update(</span>
-<span class="fc" id="L186">                &quot;UPDATE sga_principal.malla_curricular SET horas_semana = :horas WHERE id_malla = :id&quot;,</span>
+                &quot;UPDATE sga_principal.malla_curricular SET horas_semana = :horas WHERE id_malla = :id&quot;,
 <span class="fc" id="L187">                new MapSqlParameterSource().addValue(&quot;id&quot;, idMalla).addValue(&quot;horas&quot;, horasSemana));</span>
 <span class="fc bfc" id="L188" title="All 2 branches covered.">        if (updated == 0) {</span>
 <span class="fc" id="L189">            throw ApiException.notFound(&quot;Registro de malla no encontrado&quot;);</span>
@@ -204,21 +204,21 @@ public class MallaCurricularService {
                     WHERE id_grado = :idGrado AND id_asignatura = :idAsig AND id_ano_lectivo = :idAno
                     &quot;&quot;&quot;;
 <span class="fc" id="L206">            List&lt;Long&gt; mallas = jdbc.query(findMalla,</span>
-<span class="fc" id="L207">                    new MapSqlParameterSource()</span>
+                    new MapSqlParameterSource()
 <span class="fc" id="L208">                            .addValue(&quot;idGrado&quot;, req.idGrado())</span>
 <span class="fc" id="L209">                            .addValue(&quot;idAsig&quot;, idAsig)</span>
 <span class="fc" id="L210">                            .addValue(&quot;idAno&quot;, req.idAnoLectivo()),</span>
-<span class="pc" id="L211">                    (rs, n) -&gt; rs.getLong(&quot;id_malla&quot;));</span>
+<span class="nc" id="L211">                    (rs, n) -&gt; rs.getLong(&quot;id_malla&quot;));</span>
 
 <span class="fc bfc" id="L213" title="All 2 branches covered.">            if (!mallas.isEmpty()) {</span>
 <span class="fc" id="L214">                jdbc.update(&quot;UPDATE sga_principal.malla_curricular SET horas_semana = :horas WHERE id_malla = :id&quot;,</span>
 <span class="fc" id="L215">                        new MapSqlParameterSource().addValue(&quot;id&quot;, mallas.get(0)).addValue(&quot;horas&quot;, nuevasHoras));</span>
-<span class="fc" id="L216">            } else {</span>
+            } else {
 <span class="fc" id="L217">                jdbc.update(&quot;&quot;&quot;</span>
                         INSERT INTO sga_principal.malla_curricular (id_grado, id_asignatura, id_ano_lectivo, horas_semana, activo, fecha_creacion)
                         VALUES (:idGrado, :idAsig, :idAno, :horas, true, NOW())
                         &quot;&quot;&quot;,
-<span class="fc" id="L221">                        new MapSqlParameterSource()</span>
+                        new MapSqlParameterSource()
 <span class="fc" id="L222">                                .addValue(&quot;idGrado&quot;, req.idGrado())</span>
 <span class="fc" id="L223">                                .addValue(&quot;idAsig&quot;, idAsig)</span>
 <span class="fc" id="L224">                                .addValue(&quot;idAno&quot;, req.idAnoLectivo())</span>
@@ -230,12 +230,12 @@ public class MallaCurricularService {
                     SET horas_semanales = :horas
                     WHERE id_grado = :idGrado AND id_asignatura = :idAsig AND id_ano_lectivo = :idAno
                     &quot;&quot;&quot;,
-<span class="fc" id="L233">                    new MapSqlParameterSource()</span>
+                    new MapSqlParameterSource()
 <span class="fc" id="L234">                            .addValue(&quot;idGrado&quot;, req.idGrado())</span>
 <span class="fc" id="L235">                            .addValue(&quot;idAsig&quot;, idAsig)</span>
 <span class="fc" id="L236">                            .addValue(&quot;idAno&quot;, req.idAnoLectivo())</span>
 <span class="fc" id="L237">                            .addValue(&quot;horas&quot;, nuevasHoras));</span>
-        }
+<span class="fc" id="L238">        }</span>
 <span class="fc" id="L239">    }</span>
 
     @Transactional

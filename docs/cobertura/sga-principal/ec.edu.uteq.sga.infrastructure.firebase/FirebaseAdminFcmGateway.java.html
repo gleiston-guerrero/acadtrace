@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FirebaseAdminFcmGateway.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.infrastructure.firebase</a> &gt; <span class="el_source">FirebaseAdminFcmGateway.java</span></div><h1>FirebaseAdminFcmGateway.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.infrastructure.firebase;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.*;
+import com.google.firebase.messaging.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import java.io.IOException;
+import java.util.Map;
+
+@Component
+public class FirebaseAdminFcmGateway implements FcmGateway {
+<span class="fc" id="L13"> private static final Logger log=LoggerFactory.getLogger(FirebaseAdminFcmGateway.class);</span>
+ private final boolean enabled;
+<span class="fc" id="L15"> public FirebaseAdminFcmGateway(@Value(&quot;${app.firebase.enabled:false}&quot;) boolean enabled){this.enabled=enabled;}</span>
+ private FirebaseMessaging messaging() throws IOException {
+   FirebaseApp app;
+<span class="nc bnc" id="L18" title="All 2 branches missed.">   if(FirebaseApp.getApps().isEmpty()) app=FirebaseApp.initializeApp(FirebaseOptions.builder().setCredentials(GoogleCredentials.getApplicationDefault()).build());</span>
+<span class="nc" id="L19">   else app=FirebaseApp.getInstance();</span>
+<span class="nc" id="L20">   return FirebaseMessaging.getInstance(app);</span>
+ }
+ public Result send(String token,String title,String body,Map&lt;String,String&gt; data){
+<span class="nc bnc" id="L23" title="All 2 branches missed.">   if(!enabled) return Result.DISABLED;</span>
+<span class="nc" id="L24">   try { messaging().send(Message.builder().setToken(token).setNotification(Notification.builder().setTitle(title).setBody(body).build()).putAllData(data).build()); return Result.SENT; }</span>
+<span class="nc" id="L25">   catch(FirebaseMessagingException e){</span>
+<span class="nc bnc" id="L26" title="All 4 branches missed.">     if(e.getMessagingErrorCode()==MessagingErrorCode.UNREGISTERED || e.getMessagingErrorCode()==MessagingErrorCode.INVALID_ARGUMENT) return Result.INVALID_TOKEN;</span>
+<span class="nc" id="L27">     log.warn(&quot;FCM no pudo entregar una notificacion (codigo={})&quot;, e.getMessagingErrorCode()); return Result.FAILED;</span>
+<span class="nc" id="L28">   } catch(Exception e){ log.warn(&quot;FCM no disponible: {}&quot;, e.getClass().getSimpleName()); return Result.FAILED; }</span>
+ }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

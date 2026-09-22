@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriculaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">MatriculaService.java</span></div><h1>MatriculaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriculaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">MatriculaService.java</span></div><h1>MatriculaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.edu.uteq.sga.grpc.principal.GuardarMatriculaRequest;
 import ec.edu.uteq.sga.grpc.principal.ListarMatriculasRequest;
@@ -80,7 +80,7 @@ public class MatriculaService {
 <span class="fc" id="L80">            c[0]++;</span>
 <span class="fc bfc" id="L81" title="All 2 branches covered.">            if (&quot;ACTIVA&quot;.equals(m.getEstado())) c[1]++;</span>
 <span class="fc bfc" id="L82" title="All 2 branches covered.">            if (&quot;RETIRADA&quot;.equals(m.getEstado())) c[2]++;</span>
-        }
+<span class="fc" id="L83">        }</span>
 
 <span class="fc" id="L85">        List&lt;CatalogoService.Grado&gt; grados = catalogo.grados().stream()</span>
 <span class="fc" id="L86">                .filter(CatalogoService.Grado::activo)</span>
@@ -102,8 +102,8 @@ public class MatriculaService {
 <span class="pc bpc" id="L102" title="1 of 2 branches missed.">                row.put(&quot;activas&quot;, c != null ? c[1] : 0L);</span>
 <span class="pc bpc" id="L103" title="1 of 2 branches missed.">                row.put(&quot;retiradas&quot;, c != null ? c[2] : 0L);</span>
 <span class="fc" id="L104">                resultado.add(row);</span>
-            }
-        }
+<span class="fc" id="L105">            }</span>
+<span class="fc" id="L106">        }</span>
 <span class="fc" id="L107">        return resultado;</span>
     }
 
@@ -116,7 +116,7 @@ public class MatriculaService {
 <span class="fc" id="L116">        enriquecerConCatalogo(data);</span>
 <span class="fc" id="L117">        enriquecerConHistorial(data);</span>
 <span class="fc" id="L118">        data.sort(Comparator.comparing(</span>
-<span class="pc" id="L119">                (Map&lt;String, Object&gt; row) -&gt; (LocalDate) row.get(&quot;ano_lectivo_fecha_inicio&quot;),</span>
+<span class="nc" id="L119">                (Map&lt;String, Object&gt; row) -&gt; (LocalDate) row.get(&quot;ano_lectivo_fecha_inicio&quot;),</span>
 <span class="fc" id="L120">                Comparator.nullsLast(Comparator.reverseOrder())));</span>
 <span class="fc" id="L121">        return data;</span>
     }
@@ -167,8 +167,8 @@ public class MatriculaService {
 
     private Long resolverIdUsuario(String username) {
 <span class="fc" id="L169">        List&lt;Long&gt; ids = jdbc.query(</span>
-<span class="fc" id="L170">                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,</span>
-<span class="pc" id="L171">                new MapSqlParameterSource(&quot;username&quot;, username), (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
+                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,
+<span class="nc" id="L171">                new MapSqlParameterSource(&quot;username&quot;, username), (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
 <span class="pc bpc" id="L172" title="1 of 2 branches missed.">        return ids.isEmpty() ? null : ids.get(0);</span>
     }
 
@@ -177,15 +177,15 @@ public class MatriculaService {
 <span class="pc bpc" id="L177" title="1 of 2 branches missed.">        if (filas.isEmpty()) return;</span>
 <span class="fc" id="L178">        List&lt;Long&gt; ids = filas.stream().map(f -&gt; (Long) f.get(&quot;id_matricula&quot;)).toList();</span>
 <span class="fc" id="L179">        List&lt;Map&lt;String, Object&gt;&gt; historial = jdbc.query(</span>
-<span class="fc" id="L180">                &quot;SELECT id_matricula, resultado AS resultado_promocion, promedio_anual FROM sga_principal.historial_promocion WHERE id_matricula IN (:ids)&quot;,</span>
-<span class="fc" id="L181">                new MapSqlParameterSource(&quot;ids&quot;, ids), GenericRowMapper.INSTANCE);</span>
+                &quot;SELECT id_matricula, resultado AS resultado_promocion, promedio_anual FROM sga_principal.historial_promocion WHERE id_matricula IN (:ids)&quot;,
+                new MapSqlParameterSource(&quot;ids&quot;, ids), GenericRowMapper.INSTANCE);
 <span class="fc" id="L182">        Map&lt;Long, Map&lt;String, Object&gt;&gt; porMatricula = new LinkedHashMap&lt;&gt;();</span>
 <span class="fc" id="L183">        historial.forEach(h -&gt; porMatricula.put((Long) h.get(&quot;id_matricula&quot;), h));</span>
 <span class="fc bfc" id="L184" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; fila : filas) {</span>
 <span class="fc" id="L185">            Map&lt;String, Object&gt; h = porMatricula.get((Long) fila.get(&quot;id_matricula&quot;));</span>
 <span class="pc bpc" id="L186" title="1 of 2 branches missed.">            fila.put(&quot;resultado_promocion&quot;, h != null ? h.get(&quot;resultado_promocion&quot;) : null);</span>
 <span class="pc bpc" id="L187" title="1 of 2 branches missed.">            fila.put(&quot;promedio_anual&quot;, h != null ? h.get(&quot;promedio_anual&quot;) : null);</span>
-        }
+<span class="fc" id="L188">        }</span>
 <span class="fc" id="L189">    }</span>
 
     private Map&lt;String, Object&gt; fromProto(MatriculaProto m) {
@@ -235,7 +235,7 @@ public class MatriculaService {
 <span class="pc bpc" id="L235" title="1 of 2 branches missed.">            fila.put(&quot;ano_lectivo_fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
 <span class="pc bpc" id="L236" title="1 of 2 branches missed.">            fila.put(&quot;fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
 <span class="pc bpc" id="L237" title="1 of 2 branches missed.">            fila.put(&quot;fecha_fin&quot;, ano != null ? ano.fechaFin() : null);</span>
-        }
+<span class="fc" id="L238">        }</span>
 <span class="fc" id="L239">    }</span>
 
     private static Long toLong(Object value) {

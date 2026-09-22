@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PushNotificationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.presentation.controller</a> &gt; <span class="el_source">PushNotificationController.java</span></div><h1>PushNotificationController.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.presentation.controller;
+import ec.edu.uteq.sga.application.service.*;
+import ec.edu.uteq.sga.domain.dto.notificacion.*;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
+@RestController @RequiredArgsConstructor
+public class PushNotificationController {
+ private final DispositivoRepresentanteService dispositivos; private final PushNotificationService push;
+ @Value(&quot;${app.notifications.internal-token:}&quot;) private String internalToken;
+ @PostMapping(&quot;/api/representante/me/dispositivos&quot;) @ResponseStatus(HttpStatus.NO_CONTENT)
+<span class="nc" id="L18"> public void registrar(Authentication auth,@Valid @RequestBody DispositivoRequestDTO dto){dispositivos.registrar(auth.getName(),dto);}</span>
+ @DeleteMapping(&quot;/api/representante/me/dispositivos&quot;) @ResponseStatus(HttpStatus.NO_CONTENT)
+<span class="nc" id="L20"> public void eliminar(Authentication auth,@Valid @RequestBody DispositivoRequestDTO dto){dispositivos.eliminar(auth.getName(),dto);}</span>
+ @PostMapping(&quot;/api/internal/notificaciones/eventos&quot;) @ResponseStatus(HttpStatus.ACCEPTED)
+ public void evento(@RequestHeader(value=&quot;X-Internal-Token&quot;,required=false) String token,@Valid @RequestBody EventoAcademicoPushDTO dto){
+<span class="nc bnc" id="L23" title="All 6 branches missed.">   if(internalToken.isBlank()||token==null||!MessageDigest.isEqual(internalToken.getBytes(StandardCharsets.UTF_8),token.getBytes(StandardCharsets.UTF_8))) throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED);</span>
+<span class="nc" id="L24">   push.procesar(dto);</span>
+<span class="nc" id="L25"> }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

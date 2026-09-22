@@ -26,28 +26,60 @@ COLUMNS = ('caracteristica', 'indicador', 'valor', 'fuente', 'alcance', 'criteri
 P99_LIMIT_MS = Decimal('500')
 COVERAGE_LIMIT_PCT = Decimal('70')  # Criterio de esta matriz, no medicion.
 COVERAGE_REPORTS = (
-    ('Secretaría', Path('docs/cobertura/secretaria/jacoco.xml')),
-    ('Soporte', Path('docs/cobertura/soporte/jacoco.xml')),
+    ('Principal', Path('docs/cobertura/sga-principal/jacoco.xml'),
+     'INSTRUCTION', Decimal('30')),
+    ('Secretaría', Path('docs/cobertura/secretaria/jacoco.xml'),
+     'LINE', Decimal('70')),
+    ('Soporte', Path('docs/cobertura/soporte/jacoco.xml'),
+     'LINE', Decimal('70')),
+    ('Aplicación móvil', Path('docs/cobertura/movil/jacoco.xml'),
+     'INSTRUCTION', Decimal('10')),
 )
 
 
 def derive_coverage():
     results = []
-    for module, relative in COVERAGE_REPORTS:
+    for module, relative, metric, minimum in COVERAGE_REPORTS:
         try:
             report = ET.parse(ROOT / relative).getroot()
         except ET.ParseError as exc:
-            raise ValueError(f'{relative}: XML JaCoCo invalido') from exc
-        counters = [c for c in report.findall('counter') if c.get('type') == 'LINE']
+            raise ValueError(f'{relative}: XML JaCoCo inválido') from exc
+
+        counters = [
+            c for c in report.findall('counter')
+            if c.get('type') == metric
+        ]
+
         if report.tag != 'report' or len(counters) != 1:
-            raise ValueError(f'{relative}: se requiere un contador global BUNDLE/LINE')
-        covered = number(counters[0].get('covered'), f'{relative}: covered', True)
-        missed = number(counters[0].get('missed'), f'{relative}: missed', True)
+            raise ValueError(
+                f'{relative}: se requiere un contador global '
+                f'BUNDLE/{metric}'
+            )
+
+        covered = number(
+            counters[0].get('covered'),
+            f'{relative}: cubiertas',
+            True,
+        )
+        missed = number(
+            counters[0].get('missed'),
+            f'{relative}: no cubiertas',
+            True,
+        )
+
         total = covered + missed
+
         if total == 0:
-            raise ValueError(f'{relative}: contador LINE sin lineas')
+            raise ValueError(
+                f'{relative}: contador {metric} sin elementos'
+            )
+
         percent = covered * 100 / total
-        results.append((module, relative, covered, total, percent))
+
+        results.append(
+            (module, relative, metric, minimum, covered, total, percent)
+        )
+
     return results
 
 
@@ -212,24 +244,31 @@ def build_rows(metrics, false_positives, historical_windows, stress_metrics=None
         'FPR = 0.00% en muestra de control (umbral tolerable < 5.0% a nivel de confianza 95%)',
         'Cumple en pruebas sintéticas: 0 falsos positivos (FPR = 0.00%, IC 95% [0.00%, 11.35%]); no certifica seguridad global')
     coverage = derive_coverage()
-    add('Mantenibilidad', 'Cobertura de pruebas en microservicios',
-        '; '.join(f'{module}: LINE {covered}/{total} = {percent:.2f}%'
-                  for module, _, covered, total, percent in coverage)
-        + '; Principal: No verificable con la evidencia versionada',
-        '; '.join(f'{path.as_posix()} (contador global LINE)'
-                  for _, path, _, _, _ in coverage)
-        + '; compuertas: microservicio-secretaria/backend/pom.xml, '
-        'microservicio-soporte/backend/pom.xml, sga-principal/pom.xml; '
-        'limitacion Principal: docs/cobertura/README.md (evidencia insuficiente e incoherente)',
-        'Contadores BUNDLE/LINE de reportes versionados, con sus exclusiones; '
-        'no acredita una nueva ejecucion ni cobertura del HEAD actual. '
-        'Compuertas particulares: Secretaría y Soporte >= 70% LINE; '
-        'Principal >= 30% INSTRUCTION (no equivale a LINE; cumplimiento no verificado)',
-        f'Criterio de evaluacion de esta matriz: cobertura >= {COVERAGE_LIMIT_PCT}% LINE por modulo',
-        '; '.join(f'{module}: {"Cumple" if percent >= COVERAGE_LIMIT_PCT else "No cumple"} '
-                  'el criterio LINE de la matriz'
-                  for module, _, _, _, percent in coverage)
-        + '; Principal: No verificable con la evidencia versionada')
+    add(
+        'Mantenibilidad',
+        'Cobertura oficial de pruebas por módulo',
+        '; '.join(
+            f'{module}: {metric} {covered}/{total} = {percent:.2f}%'
+            for module, _, metric, _, covered, total, percent in coverage
+        ),
+        '; '.join(
+            f'{path.as_posix()} (contador global {metric})'
+            for _, path, metric, _, _, _, _ in coverage
+        )
+        + '; evidencia común: CI #876, run 35693153935, commit 6c1f67ab28d569643b4c7ec4f740d7221bd60b0f',
+        'Un único contador oficial por módulo, obtenido del reporte '
+        'JaCoCo versionado generado por integración continua',
+        '; '.join(
+            f'{module}: mínimo {minimum}% {metric}'
+            for module, _, metric, minimum, _, _, _ in coverage
+        ),
+        '; '.join(
+            f'{module}: '
+            f'{"Cumple" if percent >= minimum else "No cumple"} '
+            f'la compuerta de {minimum}% {metric}'
+            for module, _, metric, minimum, _, _, percent in coverage
+        ),
+    )
     unevaluated = (
         ('Adecuaci\u00f3n funcional', 'Satisfaccion de requisitos funcionales',
          'No se evalua evidencia funcional en este generador'),

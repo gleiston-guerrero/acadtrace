@@ -2,24 +2,26 @@
 
 Esta tabla es la fuente central de cobertura documentada para E8.
 
-Actualización de Soporte (2026-09-20): el resultado actual es LINE 458/640 =
-71,5625 %, umbral 70 %, compuerta aprobada.
-El [XML actual](soporte/actual/jacoco.xml) es una copia sin edición del reporte
-local `microservicio-soporte/backend/target/site/jacoco/jacoco.xml` y es la
-fuente que consume `generar_matriz.py`. En la revisión final se ejecutó
-`mvn -o verify` con Maven 3.9.9 y Java 21 (compilación release 17): 74 pruebas,
-0 fallos, 0 errores y 0 omitidas; `BUILD SUCCESS` y todas las comprobaciones
-de cobertura aprobadas. El XML recién generado confirma LINE 458/640;
-la copia conservada no se reemplazó. Las cifras 459/641 y los reportes de Soporte enlazados
-más abajo se conservan como evidencia histórica anterior.
+## Fuente oficial de las mediciones
 
-| Módulo | Herramienta | Alcance | LINE | INSTRUCTION | BRANCH | Umbral | Fecha | Estado | Comando |
-|---|---|---|---:|---:|---:|---|---|---|---|
-| `microservicio-soporte/backend` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 71,56 % (458/640) | 73,04 % (2325/3183) | 59,61 % (121/203) | 70 % LINE | 2026-09-20 | Reporte oficial vigente en `docs/cobertura/soporte/jacoco.xml` (74 pruebas, 0 fallos, 0 errores); cumple el umbral de 70 % LINE | Desde `microservicio-soporte/backend`: `./mvnw clean verify` en Linux/CI; `./mvnw.cmd verify` en Windows |
-| `app-movil-docente` | JaCoCo 0.8.13 (Android) | BUNDLE, con exclusiones estándar de recursos generados | Regenerar con `jacocoTestReport` | Regenerar con `jacocoTestReport` | No aplica | 10 % INSTRUCTION (compuerta `jacocoCoverageVerification`) | 2026-09-16 | Compuerta encadenada a `check` en `build.gradle.kts` | Desde `app-movil-docente`: `./gradlew clean testDebugUnitTest jacocoTestReport jacocoCoverageVerification` |
-| `sga-principal` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 31,6 % (871 / 2752 líneas cubiertas; 1881 no cubiertas) | 30,9 % (4394 / 14202 instrucciones) | No disponible | 30 % INSTRUCTION | 2026-09-16 | Verificado contra `HEAD` actual con Eclipse Temurin JDK 17; cumple el umbral de 30 % INSTRUCTION | Desde `sga-principal`: `./mvnw clean test jacoco:report "-Dtest=!*ContainerTest,!*ConcurrencyE3Test"` |
-| `microservicio-secretaria/backend` | JaCoCo 0.8.11 | BUNDLE, con exclusiones configuradas en `pom.xml` | 74,42 % (2313/3108) | 72,74 % (11272/15497) | 49,67 % (523/1053) | 70 % LINE | 2026-09-18 | Verificado contra `HEAD` actual con Eclipse Temurin JDK 21; cumple el umbral de 70 % LINE (96 pruebas ejecutadas) | Desde `microservicio-secretaria/backend`: `./mvnw test` en Linux/CI; `.\mvnw.cmd test` en Windows |
-| `microservicio-docente` | coverage.py | Ejecución sobre el paquete `docentes` con exclusiones declaradas en `.coveragerc` | 72,56 % | No aplica | No aplica | 70 % LINE (fail_under) | 2026-09-17 | Verificado contra `HEAD` actual con Python 3.13.7; cumple el umbral de 70 % LINE | Desde `microservicio-docente`: `python -m pytest --cov=docentes --cov-fail-under=70` |
+Las cifras oficiales de cobertura de Principal, Secretaría, Soporte y la
+aplicación móvil proceden de una misma ejecución de integración continua:
+**CI #876**, run `35693153935`, sobre el commit
+`6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`.
+
+Los archivos `jacoco.xml` descargados de esa ejecución están versionados en
+`docs/cobertura/`. Cada módulo publica **una sola cifra oficial**, correspondiente
+a la métrica que utiliza su compuerta de calidad. Los demás contadores permanecen
+disponibles dentro del XML para auditoría, pero no se presentan como una segunda
+cifra oficial de cobertura.
+
+| Módulo | Herramienta | Alcance | Métrica oficial | Cobertura oficial | Compuerta | Evidencia | Estado | Comando reproducible |
+|---|---|---|---|---:|---|---|---|---|
+| `sga-principal` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `INSTRUCTION` | **32,79 % (4668/14237)** | mínimo 30 % `INSTRUCTION` | `docs/cobertura/sga-principal/jacoco.xml`, CI #876 | Cumple | Desde `sga-principal`: `./mvnw clean test -q` |
+| `microservicio-secretaria/backend` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `LINE` | **73,39 % (2115/2882)** | mínimo 70 % `LINE` | `docs/cobertura/secretaria/jacoco.xml`, CI #876 | Cumple | Desde `microservicio-secretaria/backend`: `./mvnw clean test -Dsurefire.useFile=false` |
+| `microservicio-soporte/backend` | JaCoCo 0.8.11 | Módulo completo (`BUNDLE`) con exclusiones justificadas en `pom.xml` | `LINE` | **71,56 % (458/640)** | mínimo 70 % `LINE` | `docs/cobertura/soporte/jacoco.xml`, CI #876 | Cumple | Desde `microservicio-soporte/backend`: `./mvnw clean verify` |
+| `app-movil-docente` | JaCoCo 0.8.13 | Módulo completo (`BUNDLE`) con exclusiones estándar de código generado | `INSTRUCTION` | **10,21 % (7611/74556)** | mínimo 10 % `INSTRUCTION` | `docs/cobertura/movil/jacoco.xml`, CI #876 | Cumple | Desde `app-movil-docente`: `./gradlew testDebugUnitTest jacocoTestReport jacocoCoverageVerification lintDebug --no-daemon` |
+| `microservicio-docente` | coverage.py | Paquete `docentes` con exclusiones declaradas en `.coveragerc` | `LINE` | **72,56 %** | mínimo 70 % `LINE` | Reporte `docs/cobertura/docente/` | Cumple | Desde `microservicio-docente`: `python -m pytest --cov=docentes --cov-fail-under=70` |
 
 ## Alcance oficial de Docente
 
@@ -38,7 +40,11 @@ Estas exclusiones no significan que todo el código excluido sea generado ni que
 
 ## Alcance oficial de Secretaría
 
-La cobertura fue regenerada y verificada el 2026-09-18 con Eclipse Temurin JDK 21 ejecutando la suite completa de 96 pruebas unitarias, de integración y gRPC in-process. El reporte actual registra 2313 de 3108 líneas cubiertas (74,42 %) y 11272 de 15497 instrucciones cubiertas (72,74 %), tomados directamente del contador de módulo del `jacoco.xml` generado. Se cumple formalmente con la regla enforceable a nivel de `BUNDLE` de mínimo 70 % LINE configurada en `pom.xml`.
+La cifra oficial de Secretaría es **73,39 % de cobertura de líneas**
+(2115 de 2882 líneas). Se obtiene directamente del contador global `LINE`
+del `jacoco.xml` generado por el CI #876, run `35693153935`, sobre el commit
+`6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`. La regla de calidad se aplica al módulo completo (`BUNDLE`) y exige
+un mínimo de 70 % de cobertura de líneas.
 
 El reporte de Secretaría usa JaCoCo 0.8.11 con alcance `BUNDLE` y las siguientes exclusiones estándar de infraestructura y transporte en `microservicio-secretaria/backend/pom.xml`:
 
@@ -62,7 +68,11 @@ El reporte HTML, XML y CSV generado reside de forma unificada en `docs/cobertura
 
 ## Alcance oficial de Soporte
 
-La cobertura fue regenerada el 2026-09-17 con Maven 3.9.9 y Java 21, y el reporte completo quedó versionado en el commit `a03d0abf`. El contador global `LINE` del reporte XML (alcance `BUNDLE`) registra 182 líneas no cubiertas y 459 cubiertas: 459/641 = 71,61 %, por lo que cumple el umbral mínimo de 70 % LINE. Esta cifra se obtiene del contador global, no de sumar filas por clase del CSV.
+La cifra oficial de Soporte es **71,56 % de cobertura de líneas**
+(458 de 640 líneas). Se obtiene directamente del contador global `LINE`
+del único `jacoco.xml` canónico, generado por el CI #876, run `35693153935`,
+sobre el commit `6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`. La compuerta exige un mínimo de 70 % de cobertura
+de líneas a nivel de módulo completo (`BUNDLE`).
 
 Evidencia versionada: [reporte HTML](soporte/index.html), [CSV](soporte/jacoco.csv) y [XML con contadores globales](soporte/jacoco.xml).
 
@@ -71,8 +81,14 @@ El reporte de Soporte usa JaCoCo 0.8.11 con alcance `BUNDLE` y estas exclusiones
 - `ec/uteq/sga/soporte/grpc/incidencias/**` (stubs gRPC generados)
 - `ec/uteq/sga/soporte/grpc/principal/**` (stubs gRPC generados)
 
-Por tanto, el 71,61 % de LINE corresponde al alcance configurado del reporte JaCoCo, no a todas las clases sin exclusiones.
+Por tanto, la cifra oficial de Soporte es 71,56 % de cobertura de líneas, calculada sobre el alcance configurado del módulo completo (`BUNDLE`).
 
 ## Regla de interpretación
 
-El umbral mínimo es **70 % de cobertura de líneas (LINE), medido por JaCoCo, para los módulos Java donde esté configurado**. Es un criterio de aprobación, no un resultado medido. No se mezclan métricas de JaCoCo con coverage.py.
+Las compuertas se interpretan según la métrica oficial de cada módulo:
+Principal exige un mínimo de 30 % de instrucciones (`INSTRUCTION`);
+Secretaría y Soporte exigen un mínimo de 70 % de líneas (`LINE`);
+la aplicación móvil utiliza una línea base de no regresión de 2 % de
+instrucciones; y Docente exige 70 % de líneas mediante `coverage.py`.
+El umbral es una regla de aprobación y no debe confundirse con la cifra
+de cobertura efectivamente medida.

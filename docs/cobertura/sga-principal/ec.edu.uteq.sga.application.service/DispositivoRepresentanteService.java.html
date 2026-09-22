@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DispositivoRepresentanteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-principal</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.application.service</a> &gt; <span class="el_source">DispositivoRepresentanteService.java</span></div><h1>DispositivoRepresentanteService.java</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.application.service;
+import ec.edu.uteq.sga.domain.dto.notificacion.DispositivoRequestDTO;
+import ec.edu.uteq.sga.domain.entity.*;
+import ec.edu.uteq.sga.infrastructure.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import java.time.Instant;
+
+@Service @RequiredArgsConstructor
+public class DispositivoRepresentanteService {
+ private final UsuarioRepository usuarios; private final RepresentanteRepository representantes;
+ private final DispositivoRepresentanteRepository dispositivos;
+ @Transactional public void registrar(String username, DispositivoRequestDTO dto) {
+<span class="fc" id="L17">   Usuario usuario=usuarios.findByUsername(username).orElseThrow();</span>
+<span class="fc bfc" id="L18" title="All 2 branches covered.">   if(representantes.findByUsuario_Username(username).isEmpty()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);</span>
+<span class="pc" id="L19">   DispositivoRepresentante d=dispositivos.findByToken(dto.token()).orElseGet(()-&gt;DispositivoRepresentante.builder().token(dto.token()).build());</span>
+<span class="fc" id="L20">   d.setUsuario(usuario); d.setPlataforma(dto.plataforma()); d.setActivo(true); d.setFechaActualizacion(Instant.now()); dispositivos.save(d);</span>
+<span class="fc" id="L21"> }</span>
+ @Transactional public void eliminar(String username, DispositivoRequestDTO dto) {
+<span class="nc" id="L23">   dispositivos.findByToken(dto.token()).filter(d-&gt;d.getUsuario().getUsername().equals(username)).ifPresent(d-&gt;{d.setActivo(false); d.setFechaActualizacion(Instant.now()); dispositivos.save(d);});</span>
+<span class="nc" id="L24"> }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

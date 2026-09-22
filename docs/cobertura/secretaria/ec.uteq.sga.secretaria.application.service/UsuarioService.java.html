@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">UsuarioService.java</span></div><h1>UsuarioService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">UsuarioService.java</span></div><h1>UsuarioService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
 import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
@@ -87,9 +87,9 @@ public class UsuarioService {
     @Transactional
     public Map&lt;String, Object&gt; crear(UsuarioRequest dto) {
 <span class="fc" id="L89">        List&lt;Long&gt; dup = jdbc.query(</span>
-<span class="fc" id="L90">                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username OR correo = :correo&quot;,</span>
+                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username OR correo = :correo&quot;,
 <span class="fc" id="L91">                new MapSqlParameterSource().addValue(&quot;username&quot;, dto.username()).addValue(&quot;correo&quot;, dto.correo()),</span>
-<span class="pc" id="L92">                (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
+<span class="nc" id="L92">                (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
 <span class="fc bfc" id="L93" title="All 2 branches covered.">        if (!dup.isEmpty()) throw ApiException.conflict(&quot;Username o correo ya existe&quot;);</span>
 
 <span class="fc" id="L95">        String primerNombre = dto.nombres().trim().split(&quot;\\s+&quot;)[0].toLowerCase(Locale.ROOT);</span>
@@ -97,20 +97,20 @@ public class UsuarioService {
 <span class="fc" id="L97">        String hash = passwordEncoder.encode(tempPass);</span>
 
 <span class="fc" id="L99">        Long idUsuario = jdbc.queryForObject(</span>
-<span class="fc" id="L100">                &quot;INSERT INTO sga_principal.usuarios (username, correo, password_hash, estado, primer_ingreso) &quot; +</span>
+                &quot;INSERT INTO sga_principal.usuarios (username, correo, password_hash, estado, primer_ingreso) &quot; +
                         &quot;VALUES (:username, :correo, :hash, true, true) RETURNING id_usuario&quot;,
-<span class="fc" id="L102">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="fc" id="L103">                        .addValue(&quot;username&quot;, dto.username())</span>
 <span class="fc" id="L104">                        .addValue(&quot;correo&quot;, dto.correo())</span>
 <span class="fc" id="L105">                        .addValue(&quot;hash&quot;, hash),</span>
-<span class="fc" id="L106">                Long.class);</span>
+                Long.class);
 
 <span class="pc bpc" id="L108" title="4 of 8 branches missed.">        if (dto.nombres() != null &amp;&amp; !dto.nombres().isBlank() &amp;&amp; dto.apellidos() != null &amp;&amp; !dto.apellidos().isBlank()) {</span>
 <span class="fc" id="L109">            jdbc.update(</span>
-<span class="fc" id="L110">                    &quot;INSERT INTO sga_principal.personas &quot; +</span>
+                    &quot;INSERT INTO sga_principal.personas &quot; +
                             &quot;(id_usuario, cedula, nombres, apellidos, telefono, cargo, titulo_academico, especializacion, correo_personal) &quot; +
                             &quot;VALUES (:idUsuario, :cedula, :nombres, :apellidos, :telefono, :cargo, :tituloAcademico, :especializacion, :correo)&quot;,
-<span class="fc" id="L113">                    new MapSqlParameterSource()</span>
+                    new MapSqlParameterSource()
 <span class="fc" id="L114">                            .addValue(&quot;idUsuario&quot;, idUsuario)</span>
 <span class="fc" id="L115">                            .addValue(&quot;cedula&quot;, blankToNull(dto.cedula()))</span>
 <span class="fc" id="L116">                            .addValue(&quot;nombres&quot;, dto.nombres())</span>
@@ -125,15 +125,15 @@ public class UsuarioService {
 <span class="pc bpc" id="L125" title="2 of 4 branches missed.">        if (dto.roles() != null &amp;&amp; !dto.roles().isEmpty()) {</span>
 <span class="fc bfc" id="L126" title="All 2 branches covered.">            for (String rolNombre : dto.roles()) {</span>
 <span class="fc" id="L127">                List&lt;Long&gt; rolIds = jdbc.query(</span>
-<span class="fc" id="L128">                        &quot;SELECT id_rol FROM sga_principal.roles WHERE nombre = :nombre AND activo = true&quot;,</span>
-<span class="pc" id="L129">                        new MapSqlParameterSource(&quot;nombre&quot;, rolNombre), (rs, n) -&gt; rs.getLong(&quot;id_rol&quot;));</span>
+                        &quot;SELECT id_rol FROM sga_principal.roles WHERE nombre = :nombre AND activo = true&quot;,
+<span class="nc" id="L129">                        new MapSqlParameterSource(&quot;nombre&quot;, rolNombre), (rs, n) -&gt; rs.getLong(&quot;id_rol&quot;));</span>
 <span class="pc bpc" id="L130" title="1 of 2 branches missed.">                if (!rolIds.isEmpty()) {</span>
 <span class="fc" id="L131">                    jdbc.update(</span>
-<span class="fc" id="L132">                            &quot;INSERT INTO sga_principal.usuario_roles (id_usuario, id_rol) VALUES (:idUsuario, :idRol) &quot; +</span>
+                            &quot;INSERT INTO sga_principal.usuario_roles (id_usuario, id_rol) VALUES (:idUsuario, :idRol) &quot; +
                                     &quot;ON CONFLICT DO NOTHING&quot;,
 <span class="fc" id="L134">                            new MapSqlParameterSource().addValue(&quot;idUsuario&quot;, idUsuario).addValue(&quot;idRol&quot;, rolIds.get(0)));</span>
                 }
-            }
+<span class="fc" id="L136">            }</span>
         }
 
 <span class="fc" id="L139">        Map&lt;String, Object&gt; created = new LinkedHashMap&lt;&gt;(obtenerPorId(idUsuario));</span>
@@ -146,12 +146,12 @@ public class UsuarioService {
 <span class="fc" id="L146">        String nombres = (String) usuario.get(&quot;nombres&quot;);</span>
 <span class="pc bpc" id="L147" title="2 of 4 branches missed.">        String nombre = (nombres != null &amp;&amp; !nombres.isBlank())</span>
 <span class="fc" id="L148">                ? nombres.trim().split(&quot;\\s+&quot;)[0]</span>
-<span class="nc" id="L149">                : (String) usuario.get(&quot;username&quot;);</span>
+<span class="pc" id="L149">                : (String) usuario.get(&quot;username&quot;);</span>
 <span class="fc" id="L150">        String tempPass = nombre.toLowerCase(Locale.ROOT) + Year.now().getValue();</span>
 <span class="fc" id="L151">        String hash = passwordEncoder.encode(tempPass);</span>
 
 <span class="fc" id="L153">        jdbc.update(</span>
-<span class="fc" id="L154">                &quot;UPDATE sga_principal.usuarios SET &quot; +</span>
+                &quot;UPDATE sga_principal.usuarios SET &quot; +
                         &quot;password_hash = :hash, primer_ingreso = true, &quot; +
                         &quot;intentos_fallidos = 0, bloqueado_hasta = NULL, fecha_actualizacion = NOW() &quot; +
                         &quot;WHERE id_usuario = :id&quot;,
@@ -163,14 +163,14 @@ public class UsuarioService {
     public void cambiarEstado(long id, boolean estado) {
 <span class="fc" id="L164">        obtenerPorId(id);</span>
 <span class="fc" id="L165">        jdbc.update(</span>
-<span class="fc" id="L166">                &quot;UPDATE sga_principal.usuarios SET estado = :estado, fecha_actualizacion = NOW() WHERE id_usuario = :id&quot;,</span>
+                &quot;UPDATE sga_principal.usuarios SET estado = :estado, fecha_actualizacion = NOW() WHERE id_usuario = :id&quot;,
 <span class="fc" id="L167">                new MapSqlParameterSource().addValue(&quot;estado&quot;, estado).addValue(&quot;id&quot;, id));</span>
 <span class="fc" id="L168">    }</span>
 
     public List&lt;Map&lt;String, Object&gt;&gt; listarRoles() {
 <span class="fc" id="L171">        return jdbc.query(</span>
-<span class="fc" id="L172">                &quot;SELECT id_rol, nombre, descripcion FROM sga_principal.roles WHERE activo = true ORDER BY nombre&quot;,</span>
-<span class="fc" id="L173">                GenericRowMapper.INSTANCE);</span>
+                &quot;SELECT id_rol, nombre, descripcion FROM sga_principal.roles WHERE activo = true ORDER BY nombre&quot;,
+                GenericRowMapper.INSTANCE);
     }
 
     @Transactional
@@ -180,14 +180,14 @@ public class UsuarioService {
 <span class="fc" id="L180">                new MapSqlParameterSource(&quot;id&quot;, id));</span>
 <span class="fc bfc" id="L181" title="All 2 branches covered.">        for (String rolNombre : roles) {</span>
 <span class="fc" id="L182">            List&lt;Long&gt; rolIds = jdbc.query(</span>
-<span class="fc" id="L183">                    &quot;SELECT id_rol FROM sga_principal.roles WHERE nombre = :nombre&quot;,</span>
-<span class="pc" id="L184">                    new MapSqlParameterSource(&quot;nombre&quot;, rolNombre), (rs, n) -&gt; rs.getLong(&quot;id_rol&quot;));</span>
+                    &quot;SELECT id_rol FROM sga_principal.roles WHERE nombre = :nombre&quot;,
+<span class="nc" id="L184">                    new MapSqlParameterSource(&quot;nombre&quot;, rolNombre), (rs, n) -&gt; rs.getLong(&quot;id_rol&quot;));</span>
 <span class="pc bpc" id="L185" title="1 of 2 branches missed.">            if (!rolIds.isEmpty()) {</span>
 <span class="fc" id="L186">                jdbc.update(</span>
-<span class="fc" id="L187">                        &quot;INSERT INTO sga_principal.usuario_roles (id_usuario, id_rol) VALUES (:id, :idRol)&quot;,</span>
+                        &quot;INSERT INTO sga_principal.usuario_roles (id_usuario, id_rol) VALUES (:id, :idRol)&quot;,
 <span class="fc" id="L188">                        new MapSqlParameterSource().addValue(&quot;id&quot;, id).addValue(&quot;idRol&quot;, rolIds.get(0)));</span>
             }
-        }
+<span class="fc" id="L190">        }</span>
 <span class="fc" id="L191">    }</span>
 
     private static String blankToNull(String value) {
