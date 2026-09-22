@@ -17,7 +17,7 @@
 # contra sga_principal.auditoria.
 #
 # Uso:
-#   NUEVA_PASSWORD='<valor>' DB_HOST=192.0.2.1 scripts/rotar_password_sga_app.sh
+#   NUEVA_PASSWORD='<valor>' DB_HOST="${DB_HOST:?Configure DB_HOST}" scripts/rotar_password_sga_app.sh
 #   scripts/rotar_password_sga_app.sh --nueva-password '<valor>'
 #
 # Parametros (entorno o banderas):
@@ -65,7 +65,7 @@ Variables de entorno admitidas:
   DB_ADMIN_PASSWORD   Contrasena del rol administrador (opcional)
 
 Ejemplo:
-  NUEVA_PASSWORD='...' DB_HOST=192.0.2.1 \
+  NUEVA_PASSWORD='...' DB_HOST="${DB_HOST:?Configure DB_HOST}" \
       scripts/rotar_password_sga_app.sh
 EOF
 }
