@@ -30,7 +30,7 @@ Ante la observación de la evaluación sobre la línea base de la prueba:
 
 ## Ejecución reproducible
 
-Comando ejecutado desde la raíz del repositorio el 2026-09-21:
+Comando ejecutado desde la raíz del repositorio el 2026-09-22:
 
 ```powershell
 cd sga-principal
@@ -40,7 +40,7 @@ cd sga-principal
 Resultado: `Tests run: 2, Failures: 0, Errors: 0, Skipped: 0` — `BUILD SUCCESS`.
 
 Notas sobre los parámetros:
-- `-Dapi.version=1.44`: Testcontainers 1.19.7 fija por defecto la API de Docker en 1.32 y versiones modernas de Docker Desktop (Engine 29+, API mínima 1.40) la rechazan con error 400. Fijar `1.44` permite que el contenedor efímero levante limpiamente en entornos de desarrollo sin modificar código ni dependencias.
+- `-Dapi.version=1.44`: el núcleo `testcontainers` 1.19.7 (resuelto por la BOM de Spring Boot 3.2.5) fija por defecto la API de Docker en 1.32 y versiones modernas de Docker Desktop (Engine 29+, API mínima 1.40) la rechazan con error 400. Fijar `1.44` permite que el contenedor efímero levante limpiamente en entornos de desarrollo sin modificar código ni dependencias.
 - `-Djacoco.skip=true`: El umbral global de cobertura del proyecto (30 %) no aplica a ejecuciones aisladas de una sola clase de prueba; omitir la compuerta de JaCoCo permite correr exclusivamente esta prueba de integración conservando la ejecución estándar de Surefire.
 
 ---
@@ -61,7 +61,8 @@ El informe manipulado del 18/09 (`surefirebooter-20260918173808715`) fue **compl
 ## Cadena validada (V8 a V26)
 
 - **Línea base:** `db/migration/V8__baseline_completo.sql` cargada como init script del contenedor PostgreSQL efímero.
-- **Migraciones aplicadas por Flyway:** V9, V10, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25 y V26 (no existe V11 en el proyecto), culminando en la versión `v26`.
+- **Migraciones aplicadas por Flyway:** 17 migraciones sobre la línea base oficial V8 — V9, V10, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25 y V26 (no existe V11 en el proyecto) —, culminando en la versión `v26`, conforme a la constancia de `arranque_base_nueva.log`: `Successfully applied 17 migrations to schema "sga_principal", now at version v26`.
+- **Segunda pasada de validación:** se validan exitosamente 19 migraciones — `Successfully validated 19 migrations` y `Schema "sga_principal" is up to date. No migration necessary.` —, coherentes con la constancia de producción de `evidencias/Pedro_Castro/Punto_05_Esquema_y_Migraciones/arranque_base_nueva.log`.
 - **Verificación del historial:** El test valida directamente sobre `flyway_schema_history` la presencia y éxito de cada una de las versiones de la cadena.
 
 ---

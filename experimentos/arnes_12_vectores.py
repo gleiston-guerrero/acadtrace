@@ -8,12 +8,17 @@ mismos 12 vectores de entrada (experimentos/vectores_canonicos_v1.json):
   - AuditHashService de secretaria (Java), via CanonicoRunner + subprocess.
   - docentes/auditoria/hashing.py (Python), importado directo por ruta.
 
-Antes de ejecutar verifica la frescura de las clases compiladas en
-experimentos/java_harness/build frente a las fuentes .java que las
-producen: si el directorio build no existe, falta alguna clase o el mtime
-de una fuente es mayor que el de su .class, invoca javac automaticamente
-y aborta con exit 1 si la compilacion falla. Asi, modificar o sabortear
-cualquier AuditHashService.java sin recompilar a mano se detecta, se
+Antes de ejecutar exige que experimentos/vectores_canonicos_v1.json
+exista y contenga exactamente 12 vectores, y verifica la frescura de las
+clases compiladas en experimentos/java_harness/build frente a las fuentes
+.java que las producen con una comprobacion en dos capas: temporal (build
+no existe, falta alguna clase o el mtime de la fuente es mayor que el de
+su .class) y criptografica (SHA-256 de la fuente contrastado con el
+manifiesto build/.fuentes_sha256.json, inmune al touch del .class). Ante
+cualquier motivo invoca javac automaticamente, persiste las firmas de las
+fuentes recien compiladas y aborta con exit 1 si la compilacion falla.
+Asi, modificar o sabotear cualquier AuditHashService.java sin recompilar
+a mano se detecta tambien si se altera el timestamp de su .class, se
 recompila de forma transparente y el arnes sale con codigo 1 si hay
 regresion.
 
@@ -24,6 +29,7 @@ deja de coincidir con Java Secretaria en algun vector, o si el conteo
 Java == Python cambia respecto a la evidencia congelada EXPECTED_PYP.
 """
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -34,6 +40,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HARNESS_BUILD = REPO_ROOT / "experimentos" / "java_harness" / "build"
+HASHES_MANIFEST = HARNESS_BUILD / ".fuentes_sha256.json"
 VECTORES_PATH = REPO_ROOT / "experimentos" / "vectores_canonicos_v1.json"
 HASHING_PATH = (
     REPO_ROOT / "microservicio-docente" / "docentes" / "auditoria" / "hashing.py"
@@ -102,6 +109,10 @@ FUENTES_JAVA = (
 # arnes falla con exit 1 (deteccion de regresion/divergencia nueva).
 EXPECTED_PYP = 8
 
+# Blindaje de entrada: el contrato canonico v1 exige exactamente 12
+# vectores. Con otro conteo el arnes no mide nada y aborta con exit 1.
+VECTORES_ESPERADOS = 12
+
 
 def cargar_hashing():
     """Carga el modulo REAL hashing.py por ruta, sin reimplementarlo."""
@@ -147,25 +158,66 @@ def localizar_classpath_compilacion():
     return os.pathsep.join(jars_minimos())
 
 
+def calcular_sha256(ruta):
+    """Calcula el hash SHA-256 de un archivo en disco."""
+    h = hashlib.sha256()
+    with open(ruta, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def motivos_desfase():
     """Lista de razones por las que las clases estan desactualizadas."""
     motivos = []
     if not HARNESS_BUILD.is_dir():
         motivos.append("el directorio experimentos/java_harness/build no existe")
+        return motivos
+
+    hashes_guardados = {}
+    if HASHES_MANIFEST.is_file():
+        try:
+            with open(HASHES_MANIFEST, "r", encoding="utf-8") as f:
+                hashes_guardados = json.load(f)
+            if not isinstance(hashes_guardados, dict):
+                raise ValueError("el manifiesto no es un objeto JSON")
+        except Exception:
+            hashes_guardados = {}
+            motivos.append(
+                "registro de firmas .fuentes_sha256.json corrupto o ilegible"
+            )
+    else:
+        motivos.append(
+            "registro de firmas criptograficas .fuentes_sha256.json ausente"
+        )
+
     for fuente, clase in FUENTES_JAVA:
         if not fuente.is_file():
             raise SystemExit(f"ERROR: fuente Java no encontrada: {fuente}")
         if not clase.is_file():
-            if HARNESS_BUILD.is_dir():
-                motivos.append(
-                    "clase ausente: "
-                    + str(clase.relative_to(REPO_ROOT)).replace(os.sep, "/")
-                )
+            motivos.append(
+                "clase ausente: "
+                + str(clase.relative_to(REPO_ROOT)).replace(os.sep, "/")
+            )
             continue
+        rel_fuente = str(fuente.relative_to(REPO_ROOT)).replace(os.sep, "/")
+        # 1. Comprobacion de timestamp mtime
         if fuente.stat().st_mtime > clase.stat().st_mtime:
             motivos.append(
-                "fuente mas reciente que la clase: "
-                + str(fuente.relative_to(REPO_ROOT)).replace(os.sep, "/")
+                "fuente mas reciente que la clase: " + rel_fuente
+            )
+            continue
+        # 2. Comprobacion por contenido SHA-256 (inmune a la
+        #    manipulacion artificial del mtime del .class)
+        hash_actual = calcular_sha256(fuente)
+        hash_previo = hashes_guardados.get(rel_fuente)
+        if not hash_previo:
+            motivos.append(f"firma SHA-256 previa no registrada para: {rel_fuente}")
+        elif hash_actual != hash_previo:
+            motivos.append(
+                "contenido de fuente modificado "
+                f"(SHA-256 actual {hash_actual[:8]} != "
+                f"compilado {hash_previo[:8]}): {rel_fuente}"
             )
     return motivos
 
@@ -207,6 +259,16 @@ def compilar_fuentes(classpath_compilacion):
         print(proc.stdout.strip())
     print(f"Compilacion javac OK ({len(orden)} fuentes) -> "
           f"{str(HARNESS_BUILD.relative_to(REPO_ROOT)).replace(os.sep, '/')}")
+    # Guardar firmas SHA-256 de las fuentes efectivamente compiladas
+    hashes = {}
+    for fuente, _ in FUENTES_JAVA:
+        rel = str(fuente.relative_to(REPO_ROOT)).replace(os.sep, "/")
+        hashes[rel] = calcular_sha256(fuente)
+    try:
+        with open(HASHES_MANIFEST, "w", encoding="utf-8") as f:
+            json.dump(hashes, f, indent=2)
+    except Exception as e:
+        print(f"ADVERTENCIA: no se pudo escribir {HASHES_MANIFEST}: {e}")
 
 
 def asegurar_clases_frescas():
@@ -244,12 +306,43 @@ def ejecutar_java(vectores_doc, classpath):
     return json.loads(proc.stdout.decode("utf-8"))
 
 
+def cargar_vectores():
+    """Carga los vectores canonicos y exige el contrato v1 (12 en total)."""
+    if not VECTORES_PATH.is_file():
+        try:
+            detalle = str(VECTORES_PATH.relative_to(REPO_ROOT)).replace(
+                os.sep, "/"
+            )
+        except ValueError:
+            detalle = str(VECTORES_PATH)
+        raise SystemExit(
+            "ERROR: archivo de vectores canonicos no encontrado: " + detalle
+        )
+    try:
+        documento = json.loads(VECTORES_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"ERROR: vectores canonicos ilegibles: {exc}")
+    if not isinstance(documento, dict) or not isinstance(
+        documento.get("vectores"), list
+    ):
+        raise SystemExit(
+            "ERROR: vectores_canonicos_v1.json no declara la lista 'vectores'"
+        )
+    vectores = documento["vectores"]
+    if len(vectores) != VECTORES_ESPERADOS:
+        raise SystemExit(
+            f"ERROR: se esperaban exactamente {VECTORES_ESPERADOS} vectores "
+            f"canonicos y el archivo declara {len(vectores)}."
+        )
+    return documento
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
-    vectores_doc = json.loads(VECTORES_PATH.read_text(encoding="utf-8"))
+    vectores_doc = cargar_vectores()
     vectores = vectores_doc["vectores"]
     total = len(vectores)
 
