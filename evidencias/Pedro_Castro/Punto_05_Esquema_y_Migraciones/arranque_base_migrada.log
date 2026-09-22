@@ -1,89 +1,119 @@
-===============================================================================
-Escenario: base ya migrada con V18 del 13/09
-Fecha:     2026-09-17T13:08:51Z
-Postgres:  17 en contenedor efimero pfc-e5-migrada:55433
-===============================================================================
+﻿[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ------------------------------------------------------------------------
+[INFO] os.detected.name: windows
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 10.0
+[INFO] os.detected.version.major: 10
+[INFO] os.detected.version.minor: 0
+[INFO] os.detected.classifier: windows-x86_64
+[INFO] 
+[INFO] -------------------< ec.edu.uteq.sga:sga-principal >--------------------
+[INFO] Building sga-principal 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ sga-principal >>>
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (default) @ sga-principal ---
+[INFO] argLine set to -javaagent:C:\\Users\\leo23\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.11\\org.jacoco.agent-0.8.11-runtime.jar=destfile=C:\\Users\\leo23\\Documents\\PROYECTOS\\acadtrace\\sga-principal\\target\\jacoco.exec,excludes=**/grpc/**:**/*Proto*:ec/edu/uteq/sga/grpc/**:**/dto/**:**/payload/**:**/entity/**:**/entities/**:**/model/**:**/models/**:**/config/**:**/configuration/**:**/exception/**:**/exceptions/**:**/*Exception.*:ec/edu/uteq/sga/SgaPrincipalApplication.*:**/constants/**:**/enums/**:**/mapper/**:**/mappers/**
+[INFO] 
+[INFO] --- protobuf:0.6.1:compile (default) @ sga-principal ---
+[INFO] Compiling 6 proto file(s) to C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\generated-sources\protobuf\java
+[INFO] 
+[INFO] --- protobuf:0.6.1:compile-custom (default) @ sga-principal ---
+[INFO] Compiling 6 proto file(s) to C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\generated-sources\protobuf\grpc-java
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ sga-principal ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\proto to target\classes
+[INFO] Copying 6 resources from src\main\proto to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ sga-principal ---
+[INFO] Compiling 172 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ sga-principal ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sga-principal ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ sga-principal <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ sga-principal ---
+[INFO] Attaching agents: []
 
-===============================================================================
-PASO 1  Estado inicial: V9..V18 aplicadas con V18 vieja del commit 78b0d175
-===============================================================================
- version |  checksum   | success |              description              
----------+-------------+---------+---------------------------------------
- 8       |             | t       | << Flyway Baseline >>
- 9       |   -28737681 | t       | representante usuario y rol
- 10      |  -877754385 | t       | vincular cuentas representante
- 12      |  1764344342 | t       | notificaciones push fcm
- 13      |  -825957691 | t       | trigger y revocacion auditoria
- 14      |  -193375823 | t       | cadena auditoria lamport
- 15      |  2014659661 | t       | auditoria campos criptograficos
- 16      |   360741646 | t       | estado cadena auditoria
- 17      | -1587529564 | t       | accion auditoria docente
- 18      |   361159887 | t       | rol aplicacion y revocacion auditoria
-(10 rows)
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
 
-
-===============================================================================
-PASO 2  Intento de migrate con V18 nueva + V19 + V20 SIN repair previo
-        Reproduce el fallo reportado por el ingeniero
-===============================================================================
-WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
-
-Flyway Community Edition 9.22.3 by Redgate
-See release notes here: https://rd.gt/416ObMi
-
-Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
-WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-exit=1
-
-===============================================================================
-PASO 3  Ejecutando flyway.repair() equivalente al FlywayMigrationStrategy
-        que sga-principal ejecuta en el arranque (FlywayConfig.java)
-===============================================================================
-WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
-
-Flyway Community Edition 9.22.3 by Redgate
-See release notes here: https://rd.gt/416ObMi
-
-Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
-WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-Repair of failed migration in Schema History table "sga_principal"."flyway_schema_history" not necessary. No failed migration detected.
-Repairing Schema History table for version 18 (Description: rol aplicacion y revocacion auditoria, Type: SQL, Checksum: -78359442)  ...
-Successfully repaired schema history table "sga_principal"."flyway_schema_history" (execution time 00:00.434s).
-
-===============================================================================
-PASO 4  Repetir migrate DESPUES de repair. Debe cerrar en Successfully applied
-===============================================================================
-WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
-
-Flyway Community Edition 9.22.3 by Redgate
-See release notes here: https://rd.gt/416ObMi
-
-Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
-WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-Successfully validated 12 migrations (execution time 00:00.248s)
-Current version of schema "sga_principal": 18
-Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
-Migrating schema "sga_principal" to version "20 - reparar checksum v18"
-DB: V20: marca de reparacion aplicada. El checksum de V18 fue reparado por FlywayMigrationStrategy en el arranque de sga-principal.
-Successfully applied 2 migrations to schema "sga_principal", now at version v20 (execution time 00:00.165s)
-A Flyway report has been generated here: /flyway/report.html
-
-===============================================================================
-PASO 5  Estado final del historial. V18 con checksum recalculado, V19 y V20 OK
-===============================================================================
- version |  checksum   | success |              description              
----------+-------------+---------+---------------------------------------
- 8       |             | t       | << Flyway Baseline >>
- 9       |   -28737681 | t       | representante usuario y rol
- 10      |  -877754385 | t       | vincular cuentas representante
- 12      |  1764344342 | t       | notificaciones push fcm
- 13      |  -825957691 | t       | trigger y revocacion auditoria
- 14      |  -193375823 | t       | cadena auditoria lamport
- 15      |  2014659661 | t       | auditoria campos criptograficos
- 16      |   360741646 | t       | estado cadena auditoria
- 17      | -1587529564 | t       | accion auditoria docente
- 18      |   -78359442 | t       | rol aplicacion y revocacion auditoria
- 19      |  -554118186 | t       | ampliar permisos sga app
- 20      |  -386259163 | t       | reparar checksum v18
-(12 rows)
-
+2026-09-21T23:53:37.285-05:00  INFO 20016 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : Starting SgaPrincipalApplication using Java 17.0.14 with PID 20016 (C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\classes started by leo23 in C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal)
+2026-09-21T23:53:37.290-05:00  INFO 20016 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-21T23:53:37.422-05:00  INFO 20016 --- [sga-principal] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-09-21T23:53:37.422-05:00  INFO 20016 --- [sga-principal] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-09-21T23:53:42.591-05:00  INFO 20016 --- [sga-principal] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-21T23:53:43.226-05:00  INFO 20016 --- [sga-principal] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 612 ms. Found 25 JPA repository interfaces.
+2026-09-21T23:53:46.449-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-21T23:53:46.483-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-21T23:53:46.483-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-21T23:53:46.657-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-21T23:53:46.662-05:00  INFO 20016 --- [sga-principal] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 9234 ms
+2026-09-21T23:53:48.252-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 9.22.3 by Redgate
+2026-09-21T23:53:48.252-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : See release notes here: https://rd.gt/416ObMi
+2026-09-21T23:53:48.252-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : 
+2026-09-21T23:53:48.405-05:00  INFO 20016 --- [sga-principal] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:55432/sga (PostgreSQL 16.15)
+2026-09-21T23:53:48.429-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 16.15 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+2026-09-21T23:53:48.652-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.184s)
+2026-09-21T23:53:48.841-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "sga_principal": 24
+2026-09-21T23:53:48.900-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "25 - delta v8 tablas vistas"
+2026-09-21T23:53:48.922-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_secretaria" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:53:48.935-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "estudiantes" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:48.945-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "matriculas" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:48.955-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "fichas_estudiante" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:49.135-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "escala_calificaciones" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:49.147-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "id_usuario" of relation "representantes" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:53:49.234-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "dispositivos_representante" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:49.240-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "eventos_notificacion_push" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:49.245-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "contenido_canonico" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:53:49.245-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "version_canonica" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:53:49.257-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "estado_cadena_auditoria" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:53:49.510-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "26 - objetos faltantes codigo"
+2026-09-21T23:53:49.526-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_principal" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:53:49.554-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_secretaria" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:53:49.560-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_soporte" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:53:50.081-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: trigger "tg_horario_no_choque" for relation "sga_principal.horarios" does not exist, skipping
+2026-09-21T23:53:50.199-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Successfully applied 2 migrations to schema "sga_principal", now at version v26 (execution time 00:00.976s)
+2026-09-21T23:53:50.570-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-21T23:53:50.799-05:00  INFO 20016 --- [sga-principal] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-21T23:53:50.937-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-21T23:53:51.752-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-21T23:53:51.849-05:00  INFO 20016 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-21T23:53:51.931-05:00  INFO 20016 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1fb404c4
+2026-09-21T23:53:51.936-05:00  INFO 20016 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-21T23:53:52.020-05:00  WARN 20016 --- [sga-principal] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-21T23:53:56.070-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-21T23:53:56.079-05:00  INFO 20016 --- [sga-principal] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-21T23:53:57.186-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-21T23:53:59.894-05:00  INFO 20016 --- [sga-principal] [  restartedMain] n.d.b.g.c.a.GrpcClientAutoConfiguration  : Detected grpc-netty-shaded: Creating ShadedNettyChannelFactory + InProcessChannelFactory
+2026-09-21T23:54:00.922-05:00  INFO 20016 --- [sga-principal] [  restartedMain] e.e.u.s.i.c.RestriccionBitacoraValidator : Verificado: usuario sga_app no puede modificar la bitacora
+2026-09-21T23:54:01.130-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc$PrincipalServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-21T23:54:01.154-05:00  WARN 20016 --- [sga-principal] [  restartedMain] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.contexto.TeacherContextServiceGrpc$TeacherContextServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-21T23:54:04.157-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-21T23:54:04.429-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@3e7dcc5, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@59f4d629, org.springframework.security.web.context.SecurityContextHolderFilter@49e05e61, org.springframework.security.web.header.HeaderWriterFilter@355a654e, org.springframework.web.filter.CorsFilter@77a4c000, org.springframework.security.web.authentication.logout.LogoutFilter@5834d707, ec.edu.uteq.sga.infrastructure.security.JwtFilter@437afaa8, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@76a94bd1, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@4fe9ae41, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@325bdfd2, org.springframework.security.web.session.SessionManagementFilter@47581173, org.springframework.security.web.access.ExceptionTranslationFilter@1db9d38c, org.springframework.security.web.access.intercept.AuthorizationFilter@5b95f408]
+2026-09-21T23:54:05.166-05:00  INFO 20016 --- [sga-principal] [  restartedMain] g.s.a.GrpcServerFactoryAutoConfiguration : Detected grpc-netty-shaded: Creating ShadedNettyGrpcServerFactory
+2026-09-21T23:54:06.201-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-21T23:54:06.380-05:00  INFO 20016 --- [sga-principal] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-09-21T23:54:06.398-05:00  INFO 20016 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.principal.PrincipalService, bean: principalGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.PrincipalGrpcService$$SpringCGLIB$$0
+2026-09-21T23:54:06.398-05:00  INFO 20016 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.contexto.TeacherContextService, bean: teacherContextGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.TeacherContextGrpcService$$SpringCGLIB$$0
+2026-09-21T23:54:06.399-05:00  INFO 20016 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.health.v1.Health, bean: grpcHealthService, class: io.grpc.protobuf.services.HealthServiceImpl
+2026-09-21T23:54:06.400-05:00  INFO 20016 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.reflection.v1alpha.ServerReflection, bean: protoReflectionService, class: io.grpc.protobuf.services.ProtoReflectionService
+2026-09-21T23:54:06.662-05:00  INFO 20016 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.GrpcServerLifecycle          : gRPC Server started, listening on address: *, port: 9092
+2026-09-21T23:54:06.691-05:00  INFO 20016 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : Started SgaPrincipalApplication in 30.579 seconds (process running for 32.361)

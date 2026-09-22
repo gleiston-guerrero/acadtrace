@@ -1,3 +1,156 @@
+﻿[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ------------------------------------------------------------------------
+[INFO] os.detected.name: windows
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 10.0
+[INFO] os.detected.version.major: 10
+[INFO] os.detected.version.minor: 0
+[INFO] os.detected.classifier: windows-x86_64
+[INFO] 
+[INFO] -------------------< ec.edu.uteq.sga:sga-principal >--------------------
+[INFO] Building sga-principal 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ sga-principal >>>
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (default) @ sga-principal ---
+[INFO] argLine set to -javaagent:C:\\Users\\leo23\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.11\\org.jacoco.agent-0.8.11-runtime.jar=destfile=C:\\Users\\leo23\\Documents\\PROYECTOS\\acadtrace\\sga-principal\\target\\jacoco.exec,excludes=**/grpc/**:**/*Proto*:ec/edu/uteq/sga/grpc/**:**/dto/**:**/payload/**:**/entity/**:**/entities/**:**/model/**:**/models/**:**/config/**:**/configuration/**:**/exception/**:**/exceptions/**:**/*Exception.*:ec/edu/uteq/sga/SgaPrincipalApplication.*:**/constants/**:**/enums/**:**/mapper/**:**/mappers/**
+[INFO] 
+[INFO] --- protobuf:0.6.1:compile (default) @ sga-principal ---
+[INFO] Compiling 6 proto file(s) to C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\generated-sources\protobuf\java
+[INFO] 
+[INFO] --- protobuf:0.6.1:compile-custom (default) @ sga-principal ---
+[INFO] Compiling 6 proto file(s) to C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\generated-sources\protobuf\grpc-java
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ sga-principal ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\proto to target\classes
+[INFO] Copying 6 resources from src\main\proto to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ sga-principal ---
+[INFO] Compiling 172 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ sga-principal ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sga-principal ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ sga-principal <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ sga-principal ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-09-21T23:40:08.949-05:00  INFO 9724 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : Starting SgaPrincipalApplication using Java 17.0.14 with PID 9724 (C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\classes started by leo23 in C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal)
+2026-09-21T23:40:08.954-05:00  INFO 9724 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-21T23:40:09.087-05:00  INFO 9724 --- [sga-principal] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-09-21T23:40:09.087-05:00  INFO 9724 --- [sga-principal] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-09-21T23:40:12.986-05:00  INFO 9724 --- [sga-principal] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-21T23:40:13.513-05:00  INFO 9724 --- [sga-principal] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 505 ms. Found 25 JPA repository interfaces.
+2026-09-21T23:40:16.506-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-21T23:40:16.546-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-21T23:40:16.547-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-21T23:40:16.763-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-21T23:40:16.767-05:00  INFO 9724 --- [sga-principal] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 7675 ms
+2026-09-21T23:40:18.318-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 9.22.3 by Redgate
+2026-09-21T23:40:18.318-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : See release notes here: https://rd.gt/416ObMi
+2026-09-21T23:40:18.318-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : 
+2026-09-21T23:40:18.416-05:00  INFO 9724 --- [sga-principal] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:55432/sga (PostgreSQL 16.15)
+2026-09-21T23:40:18.438-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 16.15 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+2026-09-21T23:40:18.563-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "sga_principal"."flyway_schema_history" does not exist yet
+2026-09-21T23:40:18.573-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 18 migrations (execution time 00:00.107s)
+2026-09-21T23:40:18.631-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "sga_principal"."flyway_schema_history" with baseline ...
+2026-09-21T23:40:18.714-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbBaseline     : Successfully baselined schema with version: 8
+2026-09-21T23:40:18.800-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "sga_principal": 8
+2026-09-21T23:40:18.821-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "9 - representante usuario y rol"
+2026-09-21T23:40:18.925-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "10 - vincular cuentas representante"
+2026-09-21T23:40:18.987-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "12 - notificaciones push fcm"
+2026-09-21T23:40:19.096-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "13 - trigger y revocacion auditoria"
+2026-09-21T23:40:19.109-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: trigger "tg_auditoria_append_only" for relation "sga_principal.auditoria" does not exist, skipping
+2026-09-21T23:40:19.183-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "14 - cadena auditoria lamport"
+2026-09-21T23:40:19.193-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_anterior" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.193-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_actual" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.193-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "reloj_lamport" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.274-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "15 - auditoria campos criptograficos"
+2026-09-21T23:40:19.285-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_anterior" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.285-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "hash_actual" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.285-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "reloj_lamport" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.285-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "vector_reloj" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.402-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "16 - estado cadena auditoria"
+2026-09-21T23:40:19.409-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "contenido_canonico" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.417-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "version_canonica" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:19.538-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "17 - accion auditoria docente"
+2026-09-21T23:40:19.603-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "18 - rol aplicacion y revocacion auditoria"
+2026-09-21T23:40:19.716-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
+2026-09-21T23:40:19.723-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_docente" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:19.734-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_secretaria" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:19.737-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_soporte" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:19.858-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "20 - reparar checksum v18"
+2026-09-21T23:40:19.874-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: V20: marca de reparacion aplicada. El checksum de V18 fue reparado por FlywayMigrationStrategy en el arranque de sga-principal.
+2026-09-21T23:40:19.935-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "21 - trigger truncate auditoria"
+2026-09-21T23:40:19.955-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: trigger "tg_auditoria_no_truncate" for relation "sga_principal.auditoria" does not exist, skipping
+2026-09-21T23:40:20.053-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "22 - marca reparacion v18 confirmada"
+2026-09-21T23:40:20.071-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: V22: reparacion del checksum de V18 confirmada el 2026-09-18. Ejecutada por FlywayConfig.repairAntesDeMigrar antes del migrate. Validacion de Flyway activa (validateOnMigrate=true por defecto).
+2026-09-21T23:40:20.149-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "23 - grants sga secretaria y auditoria diferidos"
+2026-09-21T23:40:20.238-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "24 - acotar revocacion bitacora"
+2026-09-21T23:40:20.466-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "25 - delta v8 tablas vistas"
+2026-09-21T23:40:20.489-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_secretaria" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:20.499-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "estudiantes" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.510-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "matriculas" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.519-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "fichas_estudiante" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.699-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "escala_calificaciones" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.736-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "id_usuario" of relation "representantes" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:20.795-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "dispositivos_representante" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.799-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "eventos_notificacion_push" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.804-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "contenido_canonico" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:20.804-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: column "version_canonica" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
+2026-09-21T23:40:20.811-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: relation "estado_cadena_auditoria" already exists, skipping (SQL State: 42P07 - Error Code: 0)
+2026-09-21T23:40:20.915-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "sga_principal" to version "26 - objetos faltantes codigo"
+2026-09-21T23:40:20.922-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_principal" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:20.937-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_secretaria" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:20.942-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "sga_soporte" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-09-21T23:40:21.143-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: trigger "tg_horario_no_choque" for relation "sga_principal.horarios" does not exist, skipping
+2026-09-21T23:40:21.189-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Successfully applied 17 migrations to schema "sga_principal", now at version v26 (execution time 00:01.426s)
+2026-09-21T23:40:21.537-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-21T23:40:21.785-05:00  INFO 9724 --- [sga-principal] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-21T23:40:21.943-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-21T23:40:22.717-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-21T23:40:22.816-05:00  INFO 9724 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-21T23:40:22.978-05:00  INFO 9724 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@65d7431e
+2026-09-21T23:40:22.983-05:00  INFO 9724 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-21T23:40:23.091-05:00  WARN 9724 --- [sga-principal] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-21T23:40:27.608-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-21T23:40:27.638-05:00  INFO 9724 --- [sga-principal] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-21T23:40:29.213-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-21T23:40:32.646-05:00  INFO 9724 --- [sga-principal] [  restartedMain] n.d.b.g.c.a.GrpcClientAutoConfiguration  : Detected grpc-netty-shaded: Creating ShadedNettyChannelFactory + InProcessChannelFactory
+2026-09-21T23:40:33.831-05:00  INFO 9724 --- [sga-principal] [  restartedMain] e.e.u.s.i.c.RestriccionBitacoraValidator : Verificado: usuario sga_app no puede modificar la bitacora
+2026-09-21T23:40:34.134-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc$PrincipalServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-21T23:40:34.169-05:00  WARN 9724 --- [sga-principal] [  restartedMain] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.contexto.TeacherContextServiceGrpc$TeacherContextServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-21T23:40:37.058-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-21T23:40:37.325-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7d551534, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@5834d707, org.springframework.security.web.context.SecurityContextHolderFilter@2f52ea15, org.springframework.security.web.header.HeaderWriterFilter@2bbdc088, org.springframework.web.filter.CorsFilter@4f0a2910, org.springframework.security.web.authentication.logout.LogoutFilter@6ce1c662, ec.edu.uteq.sga.infrastructure.security.JwtFilter@75b6ae50, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@d6033b2, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@795be7da, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@131915be, org.springframework.security.web.session.SessionManagementFilter@4f1d45d8, org.springframework.security.web.access.ExceptionTranslationFilter@4b15ee62, org.springframework.security.web.access.intercept.AuthorizationFilter@2b0b8e64]
+2026-09-21T23:40:38.087-05:00  INFO 9724 --- [sga-principal] [  restartedMain] g.s.a.GrpcServerFactoryAutoConfiguration : Detected grpc-netty-shaded: Creating ShadedNettyGrpcServerFactory
+2026-09-21T23:40:39.332-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-21T23:40:39.551-05:00  INFO 9724 --- [sga-principal] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-09-21T23:40:39.572-05:00  INFO 9724 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.principal.PrincipalService, bean: principalGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.PrincipalGrpcService$$SpringCGLIB$$0
+2026-09-21T23:40:39.573-05:00  INFO 9724 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.contexto.TeacherContextService, bean: teacherContextGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.TeacherContextGrpcService$$SpringCGLIB$$0
+2026-09-21T23:40:39.573-05:00  INFO 9724 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.health.v1.Health, bean: grpcHealthService, class: io.grpc.protobuf.services.HealthServiceImpl
+2026-09-21T23:40:39.573-05:00  INFO 9724 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.reflection.v1alpha.ServerReflection, bean: protoReflectionService, class: io.grpc.protobuf.services.ProtoReflectionService
+2026-09-21T23:40:39.932-05:00  INFO 9724 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.GrpcServerLifecycle          : gRPC Server started, listening on address: *, port: 9092
+2026-09-21T23:40:39.964-05:00  INFO 9724 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : Started SgaPrincipalApplication in 32.156 seconds (process running for 34.2)
 [INFO] Scanning for projects...
 [INFO] ------------------------------------------------------------------------
 [INFO] Detecting the operating system and CPU architecture
@@ -9,588 +162,94 @@
 [INFO] os.detected.version.major: 10
 [INFO] os.detected.version.minor: 0
 [INFO] os.detected.classifier: windows-x86_64
-Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.pom
-Progress (1): 856 B
-Progress (1): 2.8 kB
-Progress (1): 4.4 kB
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.pom (4.4 kB at 4.4 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.jar
-Progress (1): 0.9/112 kB
-Progress (1): 2.3/112 kB
-Progress (1): 3.6/112 kB
-Progress (1): 5.0/112 kB
-Progress (1): 6.4/112 kB
-Progress (1): 7.7/112 kB
-Progress (1): 9.1/112 kB
-Progress (1): 10/112 kB 
-Progress (1): 11/112 kB
-Progress (1): 13/112 kB
-Progress (1): 14/112 kB
-Progress (1): 15/112 kB
-Progress (1): 17/112 kB
-Progress (1): 18/112 kB
-Progress (1): 20/112 kB
-Progress (1): 21/112 kB
-Progress (1): 22/112 kB
-Progress (1): 24/112 kB
-Progress (1): 25/112 kB
-Progress (1): 26/112 kB
-Progress (1): 28/112 kB
-Progress (1): 29/112 kB
-Progress (1): 31/112 kB
-Progress (1): 32/112 kB
-Progress (1): 33/112 kB
-Progress (1): 35/112 kB
-Progress (1): 36/112 kB
-Progress (1): 37/112 kB
-Progress (1): 39/112 kB
-Progress (1): 40/112 kB
-Progress (1): 41/112 kB
-Progress (1): 43/112 kB
-Progress (1): 44/112 kB
-Progress (1): 46/112 kB
-Progress (1): 47/112 kB
-Progress (1): 48/112 kB
-Progress (1): 50/112 kB
-Progress (1): 51/112 kB
-Progress (1): 55/112 kB
-Progress (1): 60/112 kB
-Progress (1): 64/112 kB
-Progress (1): 68/112 kB
-Progress (1): 72/112 kB
-Progress (1): 76/112 kB
-Progress (1): 81/112 kB
-Progress (1): 85/112 kB
-Progress (1): 89/112 kB
-Progress (1): 93/112 kB
-Progress (1): 98/112 kB
-Progress (1): 98/112 kB
-Progress (1): 103/112 kB
-Progress (1): 107/112 kB
-Progress (1): 111/112 kB
-Progress (1): 112 kB    
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/flyway-maven-plugin/9.22.3/flyway-maven-plugin-9.22.3.jar (112 kB at 443 kB/s)
 [INFO] 
 [INFO] -------------------< ec.edu.uteq.sga:sga-principal >--------------------
 [INFO] Building sga-principal 0.0.1-SNAPSHOT
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
-[INFO] --- flyway:9.22.3:migrate (default-cli) @ sga-principal ---
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.pom
-Progress (1): 1.0 kB
-Progress (1): 3.2 kB
-Progress (1): 3.5 kB
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.pom (3.5 kB at 38 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformats-text/2.15.2/jackson-dataformats-text-2.15.2.pom
-Progress (1): 1.2 kB
-Progress (1): 3.0 kB
-Progress (1): 3.5 kB
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformats-text/2.15.2/jackson-dataformats-text-2.15.2.pom (3.5 kB at 58 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.15.2/jackson-base-2.15.2.pom
-Progress (1): 921 B
-Progress (1): 2.4 kB
-Progress (1): 4.3 kB
-Progress (1): 6.3 kB
-Progress (1): 8.4 kB
-Progress (1): 10 kB 
-Progress (1): 11 kB
-                   
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.15.2/jackson-base-2.15.2.pom (11 kB at 245 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.pom
-Progress (1): 975 B
-Progress (1): 2.4 kB
-Progress (1): 4.0 kB
-Progress (1): 6.5 kB
-Progress (1): 8.4 kB
-Progress (1): 10 kB 
-Progress (1): 14 kB
-Progress (1): 15 kB
-Progress (1): 16 kB
-Progress (1): 18 kB
-Progress (1): 19 kB
-                   
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.pom (19 kB at 280 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.pom
-Progress (1): 946 B
-Progress (1): 2.4 kB
-Progress (1): 3.9 kB
-Progress (1): 6.3 kB
-Progress (1): 7.1 kB
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.pom (7.1 kB at 94 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.pom
-Progress (1): 981 B
-Progress (1): 2.9 kB
-Progress (1): 6.7 kB
-Progress (1): 9.3 kB
-Progress (1): 9.8 kB
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.pom (9.8 kB at 153 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.pom
-Progress (1): 742 B
-Progress (1): 2.2 kB
-Progress (1): 3.9 kB
-Progress (1): 6.7 kB
-Progress (1): 9.9 kB
-Progress (1): 14 kB 
-Progress (1): 17 kB
-Progress (1): 17 kB
-Progress (1): 20 kB
-Progress (1): 21 kB
-                   
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.pom (21 kB at 88 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/54/commons-parent-54.pom
-Progress (1): 706 B
-Progress (1): 1.9 kB
-Progress (1): 3.1 kB
-Progress (1): 4.6 kB
-Progress (1): 6.4 kB
-Progress (1): 8.3 kB
-Progress (1): 10 kB 
-Progress (1): 11 kB
-Progress (1): 13 kB
-Progress (1): 16 kB
-Progress (1): 18 kB
-Progress (1): 20 kB
-Progress (1): 23 kB
-Progress (1): 26 kB
-Progress (1): 30 kB
-Progress (1): 33 kB
-Progress (1): 34 kB
-Progress (1): 39 kB
-Progress (1): 42 kB
-Progress (1): 45 kB
-Progress (1): 47 kB
-Progress (1): 50 kB
-Progress (1): 52 kB
-Progress (1): 56 kB
-Progress (1): 59 kB
-Progress (1): 60 kB
-Progress (1): 62 kB
-Progress (1): 66 kB
-Progress (1): 69 kB
-Progress (1): 76 kB
-Progress (1): 78 kB
-Progress (1): 82 kB
-                   
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/54/commons-parent-54.pom (82 kB at 1.2 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.jar
-Progress (1): 3.8/56 kB
-Progress (1): 8.0/56 kB
-Progress (1): 11/56 kB 
-Progress (1): 28/56 kB
-Progress (1): 44/56 kB
-Progress (1): 56 kB   
-                   
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.2/jackson-dataformat-toml-2.15.2.jar (56 kB at 753 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar
-Progress (1): 7.7/76 kB
-Progress (1): 11/76 kB 
-Progress (1): 28/76 kB
-Progress (1): 44/76 kB
-Progress (1): 61/76 kB
-Progress (1): 76 kB   
-                   
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.jar (76 kB at 1.1 MB/s)
-Progress (1): 0.9/238 kB
-Progress (1): 2.3/238 kB
-Progress (1): 3.6/238 kB
-Progress (1): 5.0/238 kB
-Progress (1): 6.4/238 kB
-Progress (1): 7.7/238 kB
-Progress (1): 9.1/238 kB
-Progress (1): 10/238 kB 
-Progress (1): 12/238 kB
-Progress (1): 12/238 kB
-Progress (1): 14/238 kB
-Progress (1): 15/238 kB
-Progress (1): 16/238 kB
-Progress (1): 18/238 kB
-Progress (1): 19/238 kB
-Progress (1): 21/238 kB
-Progress (1): 22/238 kB
-Progress (1): 23/238 kB
-Progress (1): 25/238 kB
-Progress (1): 26/238 kB
-Progress (1): 27/238 kB
-Progress (1): 29/238 kB
-Progress (1): 30/238 kB
-Progress (1): 31/238 kB
-Progress (1): 33/238 kB
-Progress (1): 34/238 kB
-Progress (1): 36/238 kB
-Progress (1): 37/238 kB
-Progress (1): 38/238 kB
-Progress (1): 40/238 kB
-Progress (1): 41/238 kB
-Progress (1): 42/238 kB
-Progress (1): 44/238 kB
-Progress (1): 45/238 kB
-Progress (1): 47/238 kB
-Progress (1): 48/238 kB
-Progress (1): 49/238 kB
-Progress (2): 49/238 kB | 0/1.6 MB
-Progress (2): 51/238 kB | 0/1.6 MB
-Progress (2): 51/238 kB | 0/1.6 MB
-Progress (2): 51/238 kB | 0/1.6 MB
-Progress (2): 52/238 kB | 0/1.6 MB
-Progress (2): 53/238 kB | 0/1.6 MB
-Progress (2): 53/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 55/238 kB | 0/1.6 MB
-Progress (2): 59/238 kB | 0/1.6 MB
-Progress (2): 63/238 kB | 0/1.6 MB
-Progress (3): 63/238 kB | 0/1.6 MB | 0.9/549 kB
-Progress (3): 63/238 kB | 0/1.6 MB | 2.3/549 kB
-Progress (3): 63/238 kB | 0/1.6 MB | 3.6/549 kB
-Progress (3): 63/238 kB | 0/1.6 MB | 5.0/549 kB
-Progress (3): 63/238 kB | 0/1.6 MB | 6.4/549 kB
-Progress (3): 63/238 kB | 0/1.6 MB | 7.7/549 kB
-Progress (3): 63/238 kB | 0/1.6 MB | 9.1/549 kB
-Progress (3): 67/238 kB | 0/1.6 MB | 9.1/549 kB
-Progress (3): 67/238 kB | 0/1.6 MB | 10/549 kB 
-Progress (3): 72/238 kB | 0/1.6 MB | 10/549 kB
-Progress (3): 72/238 kB | 0/1.6 MB | 11/549 kB
-Progress (3): 76/238 kB | 0/1.6 MB | 11/549 kB
-Progress (3): 76/238 kB | 0/1.6 MB | 13/549 kB
-Progress (3): 76/238 kB | 0/1.6 MB | 14/549 kB
-Progress (3): 76/238 kB | 0/1.6 MB | 15/549 kB
-Progress (3): 76/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 80/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 84/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 89/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 89/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 93/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 93/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 93/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 97/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 97/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 97/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 101/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 105/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 105/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 105/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 110/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 110/238 kB | 0/1.6 MB | 17/549 kB
-Progress (3): 110/238 kB | 0/1.6 MB | 18/549 kB
-Progress (3): 110/238 kB | 0/1.6 MB | 18/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 18/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 20/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 20/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 21/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 21/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 22/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 22/549 kB
-Progress (3): 114/238 kB | 0/1.6 MB | 24/549 kB
-Progress (3): 114/238 kB | 0.1/1.6 MB | 24/549 kB
-Progress (3): 114/238 kB | 0.1/1.6 MB | 25/549 kB
-Progress (3): 114/238 kB | 0.1/1.6 MB | 25/549 kB
-Progress (3): 114/238 kB | 0.1/1.6 MB | 26/549 kB
-Progress (3): 114/238 kB | 0.1/1.6 MB | 28/549 kB
-Progress (3): 114/238 kB | 0.1/1.6 MB | 28/549 kB
-Progress (3): 118/238 kB | 0.1/1.6 MB | 28/549 kB
-Progress (3): 118/238 kB | 0.1/1.6 MB | 29/549 kB
-Progress (3): 118/238 kB | 0.1/1.6 MB | 31/549 kB
-Progress (3): 118/238 kB | 0.1/1.6 MB | 32/549 kB
-Progress (3): 122/238 kB | 0.1/1.6 MB | 32/549 kB
-Progress (3): 127/238 kB | 0.1/1.6 MB | 32/549 kB
-Progress (3): 131/238 kB | 0.1/1.6 MB | 32/549 kB
-Progress (3): 131/238 kB | 0.1/1.6 MB | 33/549 kB
-Progress (3): 131/238 kB | 0.1/1.6 MB | 35/549 kB
-Progress (3): 131/238 kB | 0.1/1.6 MB | 35/549 kB
-Progress (3): 131/238 kB | 0.1/1.6 MB | 35/549 kB
-Progress (3): 135/238 kB | 0.1/1.6 MB | 35/549 kB
-Progress (3): 135/238 kB | 0.1/1.6 MB | 36/549 kB
-Progress (3): 135/238 kB | 0.1/1.6 MB | 37/549 kB
-Progress (3): 139/238 kB | 0.1/1.6 MB | 37/549 kB
-Progress (3): 139/238 kB | 0.1/1.6 MB | 39/549 kB
-Progress (3): 139/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 143/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 143/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 143/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 148/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 152/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 152/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 152/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 156/238 kB | 0.1/1.6 MB | 40/549 kB
-Progress (3): 156/238 kB | 0.1/1.6 MB | 41/549 kB
-Progress (3): 156/238 kB | 0.1/1.6 MB | 41/549 kB
-Progress (3): 160/238 kB | 0.1/1.6 MB | 41/549 kB
-Progress (3): 160/238 kB | 0.1/1.6 MB | 43/549 kB
-Progress (3): 160/238 kB | 0.1/1.6 MB | 44/549 kB
-Progress (3): 160/238 kB | 0.1/1.6 MB | 44/549 kB
-Progress (3): 165/238 kB | 0.1/1.6 MB | 44/549 kB
-Progress (3): 165/238 kB | 0.1/1.6 MB | 46/549 kB
-Progress (3): 165/238 kB | 0.1/1.6 MB | 47/549 kB
-Progress (3): 165/238 kB | 0.1/1.6 MB | 47/549 kB
-Progress (3): 169/238 kB | 0.1/1.6 MB | 47/549 kB
-Progress (3): 169/238 kB | 0.1/1.6 MB | 48/549 kB
-Progress (3): 169/238 kB | 0.1/1.6 MB | 50/549 kB
-Progress (3): 173/238 kB | 0.1/1.6 MB | 50/549 kB
-Progress (3): 173/238 kB | 0.1/1.6 MB | 50/549 kB
-Progress (3): 173/238 kB | 0.1/1.6 MB | 51/549 kB
-Progress (3): 173/238 kB | 0.1/1.6 MB | 52/549 kB
-Progress (3): 177/238 kB | 0.1/1.6 MB | 52/549 kB
-Progress (3): 177/238 kB | 0.1/1.6 MB | 52/549 kB
-Progress (3): 177/238 kB | 0.1/1.6 MB | 54/549 kB
-Progress (3): 177/238 kB | 0.1/1.6 MB | 55/549 kB
-Progress (3): 177/238 kB | 0.1/1.6 MB | 55/549 kB
-Progress (3): 181/238 kB | 0.1/1.6 MB | 55/549 kB
-Progress (3): 181/238 kB | 0.1/1.6 MB | 59/549 kB
-Progress (3): 181/238 kB | 0.1/1.6 MB | 59/549 kB
-Progress (3): 186/238 kB | 0.1/1.6 MB | 59/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 59/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 59/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 64/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 68/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 72/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 76/549 kB
-Progress (3): 190/238 kB | 0.1/1.6 MB | 81/549 kB
-Progress (3): 194/238 kB | 0.1/1.6 MB | 81/549 kB
-Progress (3): 198/238 kB | 0.1/1.6 MB | 81/549 kB
-Progress (3): 198/238 kB | 0.1/1.6 MB | 85/549 kB
-Progress (3): 198/238 kB | 0.1/1.6 MB | 85/549 kB
-Progress (3): 203/238 kB | 0.1/1.6 MB | 85/549 kB
-Progress (3): 203/238 kB | 0.1/1.6 MB | 89/549 kB
-Progress (3): 203/238 kB | 0.1/1.6 MB | 89/549 kB
-Progress (3): 207/238 kB | 0.1/1.6 MB | 89/549 kB
-Progress (3): 207/238 kB | 0.1/1.6 MB | 93/549 kB
-Progress (3): 207/238 kB | 0.1/1.6 MB | 93/549 kB
-Progress (3): 211/238 kB | 0.1/1.6 MB | 93/549 kB
-Progress (3): 211/238 kB | 0.1/1.6 MB | 97/549 kB
-Progress (3): 215/238 kB | 0.1/1.6 MB | 97/549 kB
-Progress (3): 215/238 kB | 0.1/1.6 MB | 97/549 kB
-Progress (3): 215/238 kB | 0.1/1.6 MB | 102/549 kB
-Progress (3): 215/238 kB | 0.1/1.6 MB | 106/549 kB
-Progress (3): 215/238 kB | 0.1/1.6 MB | 106/549 kB
-Progress (3): 219/238 kB | 0.1/1.6 MB | 106/549 kB
-Progress (3): 219/238 kB | 0.1/1.6 MB | 106/549 kB
-Progress (3): 219/238 kB | 0.1/1.6 MB | 110/549 kB
-Progress (3): 224/238 kB | 0.1/1.6 MB | 110/549 kB
-Progress (3): 224/238 kB | 0.1/1.6 MB | 110/549 kB
-Progress (3): 224/238 kB | 0.1/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.1/1.6 MB | 110/549 kB    
-Progress (3): 238 kB | 0.1/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.1/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 110/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 114/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 114/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 119/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 123/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 126/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 126/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 130/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 130/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 130/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 135/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 135/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 135/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 139/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 139/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 139/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 143/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 143/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 147/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 151/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 156/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 156/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 160/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 164/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 168/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 173/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 177/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 181/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 185/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 189/549 kB
-Progress (3): 238 kB | 0.2/1.6 MB | 194/549 kB
-                                              
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar (238 kB at 842 kB/s)
-Progress (2): 0.3/1.6 MB | 194/549 kB
-Progress (2): 0.3/1.6 MB | 198/549 kB
-Progress (2): 0.3/1.6 MB | 202/549 kB
-Progress (2): 0.3/1.6 MB | 202/549 kB
-Progress (2): 0.3/1.6 MB | 206/549 kB
-Progress (2): 0.3/1.6 MB | 211/549 kB
-Progress (2): 0.3/1.6 MB | 211/549 kB
-Progress (2): 0.3/1.6 MB | 215/549 kB
-Progress (2): 0.3/1.6 MB | 215/549 kB
-Progress (2): 0.3/1.6 MB | 219/549 kB
-Progress (2): 0.3/1.6 MB | 219/549 kB
-Progress (2): 0.3/1.6 MB | 223/549 kB
-Progress (2): 0.3/1.6 MB | 223/549 kB
-Progress (2): 0.3/1.6 MB | 223/549 kB
-Progress (2): 0.3/1.6 MB | 240/549 kB
-Progress (2): 0.4/1.6 MB | 240/549 kB
-Progress (2): 0.4/1.6 MB | 256/549 kB
-Progress (2): 0.4/1.6 MB | 257/549 kB
-Progress (2): 0.4/1.6 MB | 274/549 kB
-Progress (2): 0.4/1.6 MB | 274/549 kB
-Progress (2): 0.4/1.6 MB | 274/549 kB
-Progress (2): 0.4/1.6 MB | 274/549 kB
-Progress (2): 0.4/1.6 MB | 274/549 kB
-Progress (2): 0.4/1.6 MB | 290/549 kB
-Progress (2): 0.4/1.6 MB | 290/549 kB
-Progress (2): 0.4/1.6 MB | 306/549 kB
-Progress (2): 0.5/1.6 MB | 306/549 kB
-Progress (2): 0.5/1.6 MB | 323/549 kB
-Progress (2): 0.5/1.6 MB | 339/549 kB
-Progress (2): 0.5/1.6 MB | 339/549 kB
-Progress (2): 0.5/1.6 MB | 355/549 kB
-Progress (2): 0.5/1.6 MB | 372/549 kB
-Progress (2): 0.5/1.6 MB | 372/549 kB
-Progress (2): 0.5/1.6 MB | 388/549 kB
-Progress (2): 0.5/1.6 MB | 388/549 kB
-Progress (2): 0.5/1.6 MB | 405/549 kB
-Progress (2): 0.5/1.6 MB | 405/549 kB
-Progress (2): 0.5/1.6 MB | 421/549 kB
-Progress (2): 0.5/1.6 MB | 421/549 kB
-Progress (2): 0.5/1.6 MB | 437/549 kB
-Progress (2): 0.6/1.6 MB | 437/549 kB
-Progress (2): 0.6/1.6 MB | 437/549 kB
-Progress (2): 0.6/1.6 MB | 437/549 kB
-Progress (2): 0.6/1.6 MB | 437/549 kB
-Progress (2): 0.6/1.6 MB | 454/549 kB
-Progress (2): 0.6/1.6 MB | 454/549 kB
-Progress (2): 0.6/1.6 MB | 454/549 kB
-Progress (2): 0.7/1.6 MB | 454/549 kB
-Progress (2): 0.7/1.6 MB | 454/549 kB
-Progress (2): 0.7/1.6 MB | 470/549 kB
-Progress (2): 0.7/1.6 MB | 487/549 kB
-Progress (2): 0.7/1.6 MB | 487/549 kB
-Progress (2): 0.7/1.6 MB | 487/549 kB
-Progress (2): 0.7/1.6 MB | 503/549 kB
-Progress (2): 0.7/1.6 MB | 503/549 kB
-Progress (2): 0.7/1.6 MB | 519/549 kB
-Progress (2): 0.7/1.6 MB | 519/549 kB
-Progress (2): 0.7/1.6 MB | 536/549 kB
-Progress (2): 0.7/1.6 MB | 549 kB    
-Progress (2): 0.8/1.6 MB | 549 kB
-Progress (2): 0.8/1.6 MB | 549 kB
-Progress (2): 0.8/1.6 MB | 549 kB
-Progress (2): 0.8/1.6 MB | 549 kB
-Progress (2): 0.8/1.6 MB | 549 kB
-Progress (2): 0.8/1.6 MB | 549 kB
-Progress (2): 0.9/1.6 MB | 549 kB
-Progress (2): 0.9/1.6 MB | 549 kB
-Progress (2): 0.9/1.6 MB | 549 kB
-Progress (2): 0.9/1.6 MB | 549 kB
-Progress (2): 0.9/1.6 MB | 549 kB
-Progress (2): 0.9/1.6 MB | 549 kB
-Progress (2): 1.0/1.6 MB | 549 kB
-Progress (2): 1.0/1.6 MB | 549 kB
-                                 
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.jar (549 kB at 1.5 MB/s)
-Progress (1): 1.0/1.6 MB
-Progress (1): 1.0/1.6 MB
-Progress (1): 1.0/1.6 MB
-Progress (1): 1.0/1.6 MB
-Progress (1): 1.0/1.6 MB
-Progress (1): 1.1/1.6 MB
-Progress (1): 1.1/1.6 MB
-Progress (1): 1.1/1.6 MB
-Progress (1): 1.1/1.6 MB
-Progress (1): 1.1/1.6 MB
-Progress (1): 1.1/1.6 MB
-Progress (1): 1.2/1.6 MB
-Progress (1): 1.2/1.6 MB
-Progress (1): 1.2/1.6 MB
-Progress (1): 1.2/1.6 MB
-Progress (1): 1.2/1.6 MB
-Progress (1): 1.2/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.3/1.6 MB
-Progress (1): 1.4/1.6 MB
-Progress (1): 1.4/1.6 MB
-Progress (1): 1.4/1.6 MB
-Progress (1): 1.4/1.6 MB
-Progress (1): 1.4/1.6 MB
-Progress (1): 1.4/1.6 MB
-Progress (1): 1.5/1.6 MB
-Progress (1): 1.5/1.6 MB
-Progress (1): 1.5/1.6 MB
-Progress (1): 1.5/1.6 MB
-Progress (1): 1.5/1.6 MB
-Progress (1): 1.5/1.6 MB
-Progress (1): 1.6/1.6 MB
-Progress (1): 1.6/1.6 MB
-Progress (1): 1.6/1.6 MB
-Progress (1): 1.6/1.6 MB
-Progress (1): 1.6 MB    
-                    
-Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.jar (1.6 MB at 3.9 MB/s)
-[INFO] Flyway Community Edition 9.22.3 by Redgate
-[INFO] See release notes here: https://rd.gt/416ObMi
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ sga-principal >>>
 [INFO] 
-[INFO] Database: jdbc:postgresql://localhost:55432/sga (PostgreSQL 17.11)
-[WARNING] Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-[INFO] Schema history table "sga_principal"."flyway_schema_history" does not exist yet
-[INFO] Successfully validated 11 migrations (execution time 00:00.154s)
-[INFO] Creating Schema History table "sga_principal"."flyway_schema_history" with baseline ...
-[INFO] Successfully baselined schema with version: 8
-[INFO] Current version of schema "sga_principal": 8
-[INFO] Migrating schema "sga_principal" to version "9 - representante usuario y rol"
-[INFO] Migrating schema "sga_principal" to version "10 - vincular cuentas representante"
-[INFO] Migrating schema "sga_principal" to version "12 - notificaciones push fcm"
-[INFO] Migrating schema "sga_principal" to version "13 - trigger y revocacion auditoria"
-[INFO] DB: trigger "tg_auditoria_append_only" for relation "sga_principal.auditoria" does not exist, skipping
-[INFO] Migrating schema "sga_principal" to version "14 - cadena auditoria lamport"
-[INFO] Migrating schema "sga_principal" to version "15 - auditoria campos criptograficos"
-[WARNING] DB: column "hash_anterior" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
-[WARNING] DB: column "hash_actual" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
-[WARNING] DB: column "reloj_lamport" of relation "auditoria" already exists, skipping (SQL State: 42701 - Error Code: 0)
-[INFO] Migrating schema "sga_principal" to version "16 - estado cadena auditoria"
-[INFO] Migrating schema "sga_principal" to version "17 - accion auditoria docente"
-[INFO] Migrating schema "sga_principal" to version "18 - rol aplicacion y revocacion auditoria"
-[INFO] Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
-[WARNING] DB: schema "sga_docente" already exists, skipping (SQL State: 42P06 - Error Code: 0)
-[WARNING] DB: schema "sga_soporte" already exists, skipping (SQL State: 42P06 - Error Code: 0)
-[INFO] Migrating schema "sga_principal" to version "20 - reparar checksum v18"
-[INFO] DB: V20: fila V18 marcada con checksum NULL para recalculo
-[INFO] Successfully applied 11 migrations to schema "sga_principal", now at version v20 (execution time 00:00.878s)
-[WARNING] Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  16.371 s
-[INFO] Finished at: 2026-09-17T07:29:19-05:00
-[INFO] ------------------------------------------------------------------------
+[INFO] --- jacoco:0.8.11:prepare-agent (default) @ sga-principal ---
+[INFO] argLine set to -javaagent:C:\\Users\\leo23\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.11\\org.jacoco.agent-0.8.11-runtime.jar=destfile=C:\\Users\\leo23\\Documents\\PROYECTOS\\acadtrace\\sga-principal\\target\\jacoco.exec,excludes=**/grpc/**:**/*Proto*:ec/edu/uteq/sga/grpc/**:**/dto/**:**/payload/**:**/entity/**:**/entities/**:**/model/**:**/models/**:**/config/**:**/configuration/**:**/exception/**:**/exceptions/**:**/*Exception.*:ec/edu/uteq/sga/SgaPrincipalApplication.*:**/constants/**:**/enums/**:**/mapper/**:**/mappers/**
+[INFO] 
+[INFO] --- protobuf:0.6.1:compile (default) @ sga-principal ---
+[INFO] Compiling 6 proto file(s) to C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\generated-sources\protobuf\java
+[INFO] 
+[INFO] --- protobuf:0.6.1:compile-custom (default) @ sga-principal ---
+[INFO] Compiling 6 proto file(s) to C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\generated-sources\protobuf\grpc-java
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ sga-principal ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\proto to target\classes
+[INFO] Copying 6 resources from src\main\proto to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ sga-principal ---
+[INFO] Compiling 172 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ sga-principal ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sga-principal ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ sga-principal <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ sga-principal ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-09-21T23:44:57.404-05:00  INFO 25880 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : Starting SgaPrincipalApplication using Java 17.0.14 with PID 25880 (C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\classes started by leo23 in C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal)
+2026-09-21T23:44:57.409-05:00  INFO 25880 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-21T23:44:57.557-05:00  INFO 25880 --- [sga-principal] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-09-21T23:44:57.558-05:00  INFO 25880 --- [sga-principal] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-09-21T23:45:03.290-05:00  INFO 25880 --- [sga-principal] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-21T23:45:03.667-05:00  INFO 25880 --- [sga-principal] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 363 ms. Found 25 JPA repository interfaces.
+2026-09-21T23:45:06.457-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-21T23:45:06.500-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-21T23:45:06.501-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-21T23:45:06.730-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-21T23:45:06.735-05:00  INFO 25880 --- [sga-principal] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 9171 ms
+2026-09-21T23:45:08.255-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 9.22.3 by Redgate
+2026-09-21T23:45:08.255-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : See release notes here: https://rd.gt/416ObMi
+2026-09-21T23:45:08.255-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.f.c.internal.license.VersionPrinter    : 
+2026-09-21T23:45:08.346-05:00  INFO 25880 --- [sga-principal] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:55432/sga (PostgreSQL 16.15)
+2026-09-21T23:45:08.370-05:00  WARN 25880 --- [sga-principal] [  restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 16.15 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+2026-09-21T23:45:08.527-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.127s)
+2026-09-21T23:45:08.639-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "sga_principal": 26
+2026-09-21T23:45:08.648-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "sga_principal" is up to date. No migration necessary.
+2026-09-21T23:45:09.051-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-21T23:45:09.298-05:00  INFO 25880 --- [sga-principal] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-21T23:45:09.434-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-21T23:45:10.318-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-21T23:45:10.492-05:00  INFO 25880 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-21T23:45:10.581-05:00  INFO 25880 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@254bd816
+2026-09-21T23:45:10.586-05:00  INFO 25880 --- [sga-principal] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-21T23:45:10.708-05:00  WARN 25880 --- [sga-principal] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-21T23:45:15.136-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-21T23:45:15.143-05:00  INFO 25880 --- [sga-principal] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-21T23:45:16.133-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-21T23:45:19.177-05:00  INFO 25880 --- [sga-principal] [  restartedMain] n.d.b.g.c.a.GrpcClientAutoConfiguration  : Detected grpc-netty-shaded: Creating ShadedNettyChannelFactory + InProcessChannelFactory
+2026-09-21T23:45:20.274-05:00  INFO 25880 --- [sga-principal] [  restartedMain] e.e.u.s.i.c.RestriccionBitacoraValidator : Verificado: usuario sga_app no puede modificar la bitacora
+2026-09-21T23:45:20.480-05:00  WARN 25880 --- [sga-principal] [  restartedMain] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc$PrincipalServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-21T23:45:20.518-05:00  WARN 25880 --- [sga-principal] [  restartedMain] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.contexto.TeacherContextServiceGrpc$TeacherContextServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-21T23:45:23.170-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-21T23:45:23.505-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@61dd305b, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@28569976, org.springframework.security.web.context.SecurityContextHolderFilter@28f2b597, org.springframework.security.web.header.HeaderWriterFilter@71e38807, org.springframework.web.filter.CorsFilter@2fec3cf5, org.springframework.security.web.authentication.logout.LogoutFilter@6bbd290, ec.edu.uteq.sga.infrastructure.security.JwtFilter@202d7fd7, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@29b61382, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2eb9ab90, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@7ccd49c, org.springframework.security.web.session.SessionManagementFilter@69640e2f, org.springframework.security.web.access.ExceptionTranslationFilter@48d71e01, org.springframework.security.web.access.intercept.AuthorizationFilter@42b61fc1]
+2026-09-21T23:45:24.280-05:00  INFO 25880 --- [sga-principal] [  restartedMain] g.s.a.GrpcServerFactoryAutoConfiguration : Detected grpc-netty-shaded: Creating ShadedNettyGrpcServerFactory
+2026-09-21T23:45:25.214-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-21T23:45:25.413-05:00  INFO 25880 --- [sga-principal] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-09-21T23:45:25.433-05:00  INFO 25880 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.principal.PrincipalService, bean: principalGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.PrincipalGrpcService$$SpringCGLIB$$0
+2026-09-21T23:45:25.434-05:00  INFO 25880 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.contexto.TeacherContextService, bean: teacherContextGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.TeacherContextGrpcService$$SpringCGLIB$$0
+2026-09-21T23:45:25.434-05:00  INFO 25880 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.health.v1.Health, bean: grpcHealthService, class: io.grpc.protobuf.services.HealthServiceImpl
+2026-09-21T23:45:25.434-05:00  INFO 25880 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.reflection.v1alpha.ServerReflection, bean: protoReflectionService, class: io.grpc.protobuf.services.ProtoReflectionService
+2026-09-21T23:45:25.775-05:00  INFO 25880 --- [sga-principal] [  restartedMain] n.d.b.g.s.s.GrpcServerLifecycle          : gRPC Server started, listening on address: *, port: 9092
+2026-09-21T23:45:25.804-05:00  INFO 25880 --- [sga-principal] [  restartedMain] e.edu.uteq.sga.SgaPrincipalApplication   : Started SgaPrincipalApplication in 29.476 seconds (process running for 30.93)
