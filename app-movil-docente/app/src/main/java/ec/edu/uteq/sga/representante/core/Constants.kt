@@ -1,11 +1,13 @@
 package ec.edu.uteq.sga.representante.core
 
+import ec.edu.uteq.sga.representante.BuildConfig
+
 object Constants {
     // URL base por defecto para el Gateway/Principal (puerto 8080)
-    const val DEFAULT_BASE_GATEWAY_URL = "http://192.0.2.1:8080/api/"
+    const val DEFAULT_BASE_GATEWAY_URL = BuildConfig.BASE_GATEWAY_URL
 
     // URL base por defecto para el Microservicio Docente (puerto 8081)
-    const val DEFAULT_BASE_DOCENTE_URL = "http://192.0.2.1:8081/api/docente/"
+    const val DEFAULT_BASE_DOCENTE_URL = BuildConfig.BASE_DOCENTE_URL
 
     const val PREFS_NAME = "sga_representante_secure_prefs"
     const val KEY_JWT_TOKEN = "jwt_token"
