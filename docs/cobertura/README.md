@@ -88,7 +88,7 @@ Por tanto, la cifra oficial de Soporte es 71,56 % de cobertura de líneas, calcu
 Las compuertas se interpretan según la métrica oficial de cada módulo:
 Principal exige un mínimo de 30 % de instrucciones (`INSTRUCTION`);
 Secretaría y Soporte exigen un mínimo de 70 % de líneas (`LINE`);
-la aplicación móvil utiliza una línea base de no regresión de 2 % de
+la aplicación móvil utiliza una compuerta mínima de no regresión de 10 % de
 instrucciones; y Docente exige 70 % de líneas mediante `coverage.py`.
 El umbral es una regla de aprobación y no debe confundirse con la cifra
 de cobertura efectivamente medida.
