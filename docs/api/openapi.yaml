@@ -596,13 +596,6 @@ components:
         application/pdf:
           schema: {type: string, format: binary}
 paths:
-  /actuator/health:
-    get:
-      tags: [principal]
-      summary: Health publico de sga-principal
-      servers: [{url: http://localhost:8080}]
-      security: []
-      responses: {'200': {description: Estado de salud}}
   /api/auth/login:
     post:
       tags: [principal]
@@ -640,6 +633,13 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'200': {description: Estudiante actualizado}}
+  /api/estudiantes/por-grado:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: grado, in: query, required: false, schema: {type: string}}]
+      responses: {'200': {description: Estudiantes por grado}}
   /api/matriculas:
     get:
       tags: [principal]
@@ -659,6 +659,30 @@ paths:
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
       responses: {'201': {description: Matricula creada}}
+  /api/matriculas/{id}:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses: {'200': {description: Detalle de matricula}}
+  /api/matriculas/{id}/pdf:
+    get:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      responses:
+        '200':
+          $ref: '#/components/responses/Pdf'
+  /api/matriculas/{id}/estado:
+    patch:
+      tags: [principal]
+      servers: [{url: http://localhost:8080}]
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Empty'}}}}
+      responses: {'200': {description: Estado de matricula actualizado}}
   /api/auditoria:
     get:
       tags: [principal]
@@ -2819,10 +2843,9 @@ paths:
       responses: {'200': {description: Asistencia procesada}, '400': {description: Peticion invalida}, '409': {description: Registro duplicado}}
   /health:
     get:
-      tags: [docente, soporte, ia]
+      tags: [docente, ia]
       servers:
         - {url: http://localhost:8000, description: microservicio-docente}
-        - {url: http://localhost:8083, description: microservicio-soporte}
         - {url: http://localhost:8084, description: microservicio-ia}
       security: []
       responses: {'200': {description: Servicio saludable}}
