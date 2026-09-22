@@ -19,7 +19,7 @@ Reglas:
 
 Para levantar la base desde un clon limpio y llegar al esquema completo:
 
-1. `createdb sga_principal`
+1. `createdb sga`
 2. `cd sga-principal && ./mvnw spring-boot:run`
 3. Verificar que Flyway aplica la línea base `V8__baseline_completo.sql` y
    luego V9 hasta V26 automáticamente. La aplicación debe arrancar sin
@@ -39,9 +39,12 @@ correctos), el proceso de arranque es idéntico:
 La validación por omisión de Flyway (`spring.flyway.validate-on-migrate=true`)
 se ejecutará correctamente sin necesidad de mecanismos de bypass ni `repair()`.
 Flyway validará las migraciones existentes y aplicará automáticamente solo las
-nuevas (V25 y V26). Bases anteriores al 13/09/2026 no tienen camino automático
-porque V18 fue reparada con V20/V22; requieren restauración desde el dump
-post-V24 de `92f2ec91`.
+nuevas (V25 y V26). Bases que contengan checksums divergentes o estados no
+oficiales (como los generados temporalmente por `7898744a` o anteriores al
+13/09/2026) se normalizan mediante el procedimiento oficial documentado en
+`docs/db/RECONSTRUCCION_PRODUCCION.md`, inicializando con la línea base oficial
+V8 y aplicando ordenadamente V9 hasta V26 sin anular la validación ni alterar
+historiales pasados.
 
 ### Corrección de V19 y creación de V23
 
@@ -80,12 +83,13 @@ hacia adelante:
   `paralelos`, `sga_soporte.historial_ticket` y la función
   `sga_principal.fn_horario_no_choque` con su trigger.
 
-Regeneración de constancias pendiente: se hará en una segunda pasada cuando
-PostgreSQL 15/16 esté disponible localmente. Cuando se ejecute, base nueva
-debe aplicar 18 migraciones (V8..V26) y base ya migrada desde V24 (dump
-`92f2ec91`) debe validar sin mismatch y aplicar solo V25/V26. Los logs
-actuales en la carpeta de evidencias son del 18/09/2026 y corresponden al
-conjunto anterior; se sustituirán con la corrida nueva.
+Constancias de arranque regeneradas: Los archivos versionados en
+`evidencias/Pedro_Castro/Punto_05_Esquema_y_Migraciones/` (`arranque_base_nueva.log`
+y `arranque_base_migrada.log`) provienen de ejecuciones reales de `sga-principal`
+sobre PostgreSQL 16 con validación activa (`validate-on-migrate=true`) y sin `repair()`.
+Acreditan que la base nueva aplica limpiamente las migraciones hasta V26 (y valida
+19 en el segundo arranque), y que la base migrada desde V24 valida las existentes
+sin mismatch y aplica únicamente V25 y V26.
 
 ## Nota sobre la NOTA de V19
 
