@@ -1,66 +1,141 @@
-﻿# ADR-007: Arquitectura de Auditoria Criptografica Unificada y Conmutador de Mecanismos
+﻿# ADR-007: Arquitectura de Auditoría Criptográfica y Contrato Canónico de Auditoría
 
 ## Estado
+
 Aceptado
 
 ## Contexto
-El sistema AcadTrace opera bajo una arquitectura de microservicios distribuidos y poliglotas (Java Spring Boot, Python Django REST Framework, Node.js Express). Durante iteraciones previas existian discrepancias en la implementacion de la bitacora entre servicios (uso asimetrico de HMAC-SHA256, cadenas SHA-256 independientes y relojes logicos sin unificacion causal formal). Para garantizar el cumplimiento estricto del estandar ISO/IEC 25010 (Integridad, No-repudio y Trazabilidad), se requiere una decision arquitectonica vinculante y definitiva que unifique el esquema de auditoria en todos los nodos del cluster.
 
-## Decision
+AcadTrace opera con una arquitectura distribuida y políglota que incluye servicios Java Spring Boot y Python Django. Las iteraciones del sistema incorporaron mecanismos de auditoría implementados de forma independiente en los distintos servicios, por lo que no existe una biblioteca común de serialización canónica compartida entre Java y Python.
 
-Se establece una **Arquitectura de Auditoria Unificada** obligatoria para todos los microservicios de AcadTrace (`sga-principal`, `microservicio-docente`, `microservicio-secretaria`, `microservicio-soporte` y clientes).
+La interoperabilidad de la cadena criptográfica se sostiene sobre un contrato canónico v1, un vector patrón común y el almacenamiento del contenido canónico utilizado para calcular cada eslabón. Esta decisión no implica que las implementaciones Java y Python produzcan una representación idéntica para cualquier valor posible.
 
-### 1. Mecanismo Oficial
-El sistema opera mediante un conmutador determinista de cuatro mecanismos controlado por la variable de entorno `AUDIT`:
-- **M0 (Baseline):** Persistencia transaccional sin registro de bitacora (control negativo de rendimiento).
-- **M1 (Convencional):** Registro relacional estandar sin sellos criptograficos ni orden logico causal.
-- **M2 (Oficial de Produccion — HMAC-SHA256 + Relojes de Lamport):** Hash SHA-256 encadenado ($H_k = \text{SHA-256}(H_{k-1} \parallel \text{payload} \parallel L_k)$), firma de autenticidad local HMAC-SHA256 y avance monotono del reloj logico de Lamport.
-- **M3 (Concurrencia Offline — M2 + Relojes Vectoriales):** Incorporacion de un vector de versiones para reconciliacion determinista ante ediciones concurrentes desconectadas.
+## Decisión
 
-### 2. Formato Canonico del Evento
-Todo evento de auditoria generado en el cluster se serializa bajo la siguiente estructura JSON canonica estandarizada:
-- `trace_id`: UUID global de correlacion (propagado en headers HTTP y metadata gRPC).
-- `schema_origen`: Identificador del microservicio emisor (`PRINCIPAL`, `DOCENTE`, `SECRETARIA`, `SOPORTE`).
-- `actor`: Nombre de usuario autenticado o servicio emisor.
-- `accion`: Operacion ejecutada (`CREAR`, `MODIFICAR`, `ELIMINAR`, `LLAMADA_GRPC`).
-- `tabla_afectada`: Entidad de dominio afectada.
-- `registro_id`: Identificador numerico del registro intervenido.
-- `descripcion`: Resumen legible de la transaccion con traza de relojes.
-- `lamport_clock`: Marca de tiempo logica escalar creciente.
-- `vector_clock`: Vector de versiones logico para eventos concurrentes.
-- `hash_anterior`: Hash SHA-256 del eslabon previo (o 64 ceros para genesis).
-- `hash_actual`: Hash SHA-256 computado sobre el estado actual.
-- `hmac`: Firma de integridad calculada con clave secreta compartida.
-- `timestamp`: Marca temporal UTC en precision de milisegundos.
+Se adopta un contrato institucional para los eventos versionados de auditoría y para el encadenamiento criptográfico. Las implementaciones productivas permanecen separadas por lenguaje: Java dispone de `AuditHashService`, mientras que Docente implementa la lógica correspondiente en `docentes/auditoria/hashing.py`.
 
-### 3. Autoridad que Genera el Hash y Mantiene la Cabeza
-- **Generador del Hash:** Cada microservicio productor calcula el hash SHA-256 de su transaccion en su capa de aplicacion/infraestructura antes de persistir.
-- **Autoridad de la Cabeza de Cadena:** La persistencia relacional en PostgreSQL (`sga_principal.auditoria` y `sga_docente.eventos_auditoria`) actua como la autoridad centralizada de ordenacion fisica. El puntero al ultimo hash emitido se actualiza atomicamente dentro de la transaccion.
+No se ha extraído la serialización canónica a una biblioteca común entre Java y Python. Por ello, la sincronización del contrato se sostiene sobre el vector patrón compartido y sus pruebas de conformidad. Esta protección cubre los valores representados por dicho vector, pero no demuestra equivalencia carácter por carácter para todo el dominio de valores.
 
-### 4. Tratamiento de Eventos entre Microservicios
-La correlacion distribuida se propaga mediante:
-- **gRPC Metadata:** Los clientes gRPC inyectan en las cabeceras binarias HTTP/2 las claves `trace_id`, `actor_username` y `internal_token`.
-- **Intercepcion y MDC:** El interceptor `InternalAuthInterceptor` (Java) y el middleware de Django capturan estos encabezados, los inyectan en el Mapped Diagnostic Context (MDC de SLF4J / Python Logger) y los asocian al evento de auditoria generado en el servicio receptor.
+### 1. Mecanismos de auditoría
 
-### 5. Rol de HMAC vs Cadena Criptografica
-- **HMAC-SHA256:** Se define y conserva formalmente como una **firma de autenticidad e integridad local complementaria**. Certifica que el registro fue emitido legitimamente por un nodo que posee la clave secreta compartida (`JWT_SECRET`), impidiendo falsificaciones externas.
-- **Cadena SHA-256:** Garantiza la **secuencia e inmutabilidad temporal** de la historia completa.
+El sistema utiliza modos de auditoría controlados por la variable de entorno `AUDIT`:
 
-### 6. Relojes Logicos (Lamport y Vectoriales)
-- **Lamport Clock:** Define el orden monotono total en llamadas secuenciales e inter-servicio ($L = \max(L_{\text{loc}}, L_{\text{rx}}) + 1$).
-- **Relojes Vectoriales:** Gestionados por la app movil y el microservicio docente para detectar bifurcaciones ($A \parallel B$) originadas por sincronizaciones fuera de linea (*offline-first* via Room SQLite y WorkManager).
+- **M0 (Baseline):** ejecución utilizada como control sin el mecanismo criptográfico versionado.
+- **M1 (Convencional):** registro de auditoría sin la cadena criptográfica v1.
+- **M2 (Cadena SHA-256 + Reloj de Lamport):** encadenamiento criptográfico de eventos mediante el hash anterior, el contenido canónico v1 y el avance monotónico del reloj lógico de Lamport.
+- **M3 (M2 + Relojes Vectoriales):** extiende M2 con información vectorial para los escenarios de concurrencia y reconciliación contemplados por el sistema.
 
-### 7. Manejo de Concurrencia
-Para prevenir condiciones de carrera al calcular el siguiente eslabon:
-1. En transacciones concurrentes sobre la misma entidad se aplica bloqueo pesimista a nivel de fila (`SELECT ... FOR UPDATE`).
-2. En operaciones masivas (asistencia, calificaciones) se calculan los eslabones secuencialmente en lote dentro del mismo bloque transaccional.
+Para los eslabones versionados, la fórmula institucional implementada es:
 
-### 8. Comportamiento y Deteccion ante Manipulacion
-El sistema cuenta con una doble barrera de defensa:
-1. **Barrera Fisica Preventiva (Base de Datos):** El disparador PL/pgSQL `tg_auditoria_append_only` rechaza a nivel de motor cualquier sentencia `UPDATE` o `DELETE` sobre la tabla de auditoria, lanzando una excepcion `RAISE EXCEPTION (SQLState P0001)`.
-2. **Deteccion Correctiva (Verificador Criptografico):** El modulo `verificador_cadena.py` recorre la bitacora recalculando hashes y contrastando firmas HMAC. Ante una alteracion directa ($T_1$) o eliminacion ($T_2$), el verificador reporta el primer eslabon roto y aborta la validacion de la cadena.
+`H_k = SHA-256(H_{k-1} + contenido_canonico_v1)`
+
+El reloj de Lamport forma parte del contenido canónico v1; no se concatena como un tercer elemento independiente fuera de dicho contenido.
+
+### 2. Contrato canónico v1
+
+El contenido canónico v1 se construye con once campos:
+
+- `actor_id`
+- `entidad`
+- `entidad_id`
+- `estado_reconciliacion`
+- `modo`
+- `operacion`
+- `payload`
+- `reloj_lamport`
+- `reloj_vectorial`
+- `timestamp`
+- `tipo_evento`
+
+Este contrato no debe confundirse con las columnas físicas de las tablas de auditoría ni con metadatos adicionales de correlación o persistencia.
+
+Las implementaciones Java de Principal y Secretaría mantienen su propia implementación de `AuditHashService`, mientras que Docente mantiene la implementación Python en `docentes/auditoria/hashing.py`. El repositorio no contiene una biblioteca canónica única importada por los tres servicios.
+
+### 3. Alcance del vector patrón
+
+El vector patrón constituye la referencia compartida utilizada por las pruebas de conformidad de las implementaciones. Su finalidad es detectar cambios incompatibles en el contrato representado por ese conjunto de datos.
+
+El vector patrón no demuestra equivalencia general de las serializaciones Java y Python. El arnés ejecutable `experimentos/arnes_12_vectores.py` mide el alcance real sobre doce vectores: Java Principal y Java Secretaría coinciden en 12/12 (100.0%), y Python coincide con Java en 8/12 (66.7%). Las cuatro divergencias reales fuera del dominio de cobertura son: flotantes de rango extremo (`1.0E-7` frente a `1e-07`, `1.0E21` frente a `1e+21`), orden de claves con caracteres suplementarios (UTF-16 frente a puntos de código) y el valor especial `NaN` (cadena `"NaN"` en Java frente a literal `NaN` en Python).
+
+Por ello, la garantía documentada es deliberadamente limitada: las pruebas protegen la compatibilidad del vector patrón y permiten detectar regresiones sobre ese contrato, pero no justifican afirmar una representación idéntica carácter por carácter para cualquier entrada.
+
+### Divergencias reales fuera del vector patrón
+
+Medidas por `experimentos/arnes_12_vectores.py` sobre doce vectores
+(Java Principal == Java Secretaría: 12/12; Java == Python: 8/12):
+
+| Tipo de valor | Representación Java | Representación Python |
+|---|---|---|
+| Flotante de rango extremo pequeño | `1.0E-7` | `1e-07` |
+| Flotante de rango extremo grande | `1.0E21` | `1e+21` |
+| Orden de claves suplementarias | U+1F600 antes de U+FF01 (UTF-16) | orden por punto de código |
+| `NaN` | cadena `"NaN"` | literal JSON no estándar `NaN` |
+
+### Evidencia reproducible
+
+`experimentos/arnes_12_vectores.py` compila e invoca las tres
+implementaciones reales (`AuditHashService` de sga-principal y de
+secretaría vía `experimentos/java_harness/CanonicoRunner.java`, y
+`docentes/auditoria/hashing.py`) sobre
+`experimentos/vectores_canonicos_v1.json`, calcula los porcentajes y
+falla con código 1 si Java Principal deja de coincidir con Java
+Secretaría o si el conteo Java == Python cambia respecto a 8/12.
+Procedimiento en `experimentos/README_arnes.md`; reproducible desde un
+clon limpio.
+
+### 4. Persistencia e interoperabilidad de la cadena
+
+Los productores que participan en la cadena institucional versionada calculan el hash correspondiente al evento antes de persistir el eslabón. Para los eventos institucionales versionados se almacenan, entre otros datos necesarios para la verificación, `hash_anterior`, `hash_actual`, `reloj_lamport`, `contenido_canonico` y `version_canonica`.
+
+La interoperabilidad de la cadena se apoya en el contenido canónico almacenado. Un verificador puede comprobar un eslabón utilizando el `hash_anterior` y el `contenido_canonico` persistido sin tener que reconstruir en otro lenguaje el objeto original que produjo ese texto.
+
+Esto permite verificar cadenas compuestas por eventos producidos por implementaciones distintas sin afirmar que Java y Python serialicen de manera idéntica todos los tipos de entrada.
+
+### 5. Rol de HMAC y de la cadena SHA-256
+
+HMAC-SHA256 existe como mecanismo complementario en componentes Java que lo utilizan. Sin embargo, HMAC no forma parte de la fórmula institucional de encadenamiento:
+
+`H_k = SHA-256(H_{k-1} + contenido_canonico_v1)`
+
+Tampoco forma parte de las comprobaciones realizadas por el verificador de cadena de Docente. Por tanto, no se atribuye a dicho verificador una validación de firmas HMAC.
+
+La cadena SHA-256 permite detectar inconsistencias que alteren la continuidad entre los eslabones sometidos a verificación.
+
+### 6. Relojes lógicos
+
+El reloj de Lamport proporciona el orden lógico utilizado por los eventos encadenados y forma parte del contrato canónico v1 mediante `reloj_lamport`.
+
+El contrato también incluye `reloj_vectorial` para los escenarios que requieren información causal o reconciliación. Su presencia en el contrato no implica que todos los componentes del sistema implementen exactamente la misma estrategia local de persistencia.
+
+### 7. Concurrencia y autoridad de la cabeza
+
+Los escritores de la cadena institucional deben coordinar la actualización de la cabeza para evitar que dos operaciones concurrentes utilicen simultáneamente el mismo estado anterior.
+
+La autoridad de la cabeza y del reloj lógico de los eventos institucionales versionados se mantiene en la persistencia correspondiente, utilizando mecanismos transaccionales de bloqueo donde están implementados.
+
+Esta decisión describe el contrato de la cadena y no supone que todas las bitácoras históricas o auxiliares del sistema hayan sido eliminadas.
+
+### 8. Verificación de la cadena
+
+El verificador productivo de Docente comprueba la continuidad de `hash_anterior`, recalcula el hash esperado a partir de hash_anterior y contenido_canonico y valida la monotonicidad del reloj de Lamport. Para la cadena institucional versionada, el verificador opera sobre los eslabones v1 almacenados en `sga_principal.auditoria`.
+
+Cuando detecta una inconsistencia, devuelve el primer eslabón afectado y el tipo de inconsistencia correspondiente.
+
+El verificador de cadena no contrasta firmas HMAC. HMAC y el encadenamiento SHA-256 son mecanismos distintos y no deben documentarse como una única comprobación.
+
+## Limitaciones conocidas
+
+La arquitectura actual conserva implementaciones canónicas independientes entre Java y Python y no dispone de una biblioteca común compartida por los tres servicios productores.
+
+Las pruebas del vector patrón protegen el contrato que representan, pero no cubren todas las diferencias de serialización posibles entre lenguajes. Por ello, cualquier ampliación del dominio canónico debe incorporar nuevos vectores de conformidad antes de considerarse interoperable.
+
+También pueden coexistir proyecciones o bitácoras locales utilizadas por componentes específicos. La existencia de estas persistencias auxiliares no debe describirse como una unificación física total de todas las bitácoras del sistema.
 
 ## Consecuencias
-- Unificacion total de criterios entre los 4 microservicios y la aplicacion movil.
-- Imposibilidad de repudiar o alterar transacciones sin deteccion inmediata.
-- Cumplimiento estricto del criterio de consolidacion E3 de la asignatura.
+
+- Se documenta explícitamente que la forma canónica no procede de una biblioteca común entre Java y Python.
+- El contrato canónico v1 queda identificado mediante sus once campos reales.
+- El vector patrón se presenta como una protección de compatibilidad acotada y no como prueba de identidad universal entre serializadores.
+- La fórmula documentada de la cadena coincide con el mecanismo `SHA-256(hash_anterior + contenido_canonico_v1)`.
+- HMAC queda separado conceptualmente de la verificación de la cadena SHA-256 y no se atribuye al verificador una comprobación que no realiza.
+- Se reconoce la coexistencia de implementaciones y persistencias auxiliares en lugar de afirmar una unificación total que el repositorio no demuestra.

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SessionManager.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.core</a> &gt; <span class="el_source">SessionManager.kt</span></div><h1>SessionManager.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.core
+
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import android.util.Base64
+import com.google.gson.JsonParser
+
+<span class="nc" id="L15">class SessionManager(context: Context) {</span>
+
+<span class="nc" id="L17">    private val appContext = context.applicationContext</span>
+
+    private fun createEncryptedPreferences(): SharedPreferences {
+<span class="nc" id="L20">        val masterKey = MasterKey.Builder(appContext)</span>
+<span class="nc" id="L21">            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)</span>
+<span class="nc" id="L22">            .build()</span>
+
+<span class="nc" id="L24">        return EncryptedSharedPreferences.create(</span>
+<span class="nc" id="L25">            appContext,</span>
+<span class="nc" id="L26">            Constants.PREFS_NAME,</span>
+<span class="nc" id="L27">            masterKey,</span>
+<span class="nc" id="L28">            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,</span>
+<span class="nc" id="L29">            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM</span>
+<span class="nc" id="L30">        ).also { preferences -&gt;</span>
+            // Fuerza una lectura para detectar una sesión cifrada
+            // que ya no pueda descifrarse con la clave actual.
+<span class="nc" id="L33">            preferences.all</span>
+<span class="nc" id="L34">        }</span>
+    }
+
+<span class="nc" id="L37">    private val prefs: SharedPreferences = try {</span>
+<span class="nc" id="L38">        createEncryptedPreferences()</span>
+<span class="nc" id="L39">    }   catch (_: Exception) {</span>
+<span class="nc" id="L40">        appContext.deleteSharedPreferences(Constants.PREFS_NAME)</span>
+<span class="nc" id="L41">        createEncryptedPreferences()</span>
+    }
+
+<span class="nc" id="L44">    private val gson = Gson()</span>
+
+<span class="nc bnc" id="L46" title="All 6 branches missed.">    private val _isLoggedIn = MutableStateFlow(getToken()?.let { !isTokenExpired(it) } == true)</span>
+<span class="nc" id="L47">    val isLoggedIn: StateFlow&lt;Boolean&gt; = _isLoggedIn.asStateFlow()</span>
+
+<span class="nc" id="L49">    fun saveSession(</span>
+        token: String,
+        idUsuario: Long,
+        username: String,
+        correo: String?,
+        roles: List&lt;String&gt;,
+<span class="nc" id="L55">        idPersona: Long? = null,</span>
+<span class="nc" id="L56">        primerIngreso: Boolean = false</span>
+    ) {
+<span class="nc" id="L58">        prefs.edit()</span>
+<span class="nc" id="L59">            .putString(Constants.KEY_JWT_TOKEN, token)</span>
+<span class="nc" id="L60">            .putLong(Constants.KEY_USER_ID, idUsuario)</span>
+<span class="nc" id="L61">            .putString(Constants.KEY_USERNAME, username)</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            .putString(Constants.KEY_CORREO, correo ?: &quot;&quot;)</span>
+<span class="nc" id="L63">            .putString(Constants.KEY_ROLES, gson.toJson(roles))</span>
+<span class="nc" id="L64">            .putBoolean(Constants.KEY_PRIMER_INGRESO, primerIngreso)</span>
+<span class="nc" id="L65">            .apply()</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (idPersona != null) {</span>
+<span class="nc" id="L68">            prefs.edit().putLong(Constants.KEY_ID_PERSONA, idPersona).apply()</span>
+        }
+
+<span class="nc" id="L71">        _isLoggedIn.value = true</span>
+<span class="nc" id="L72">    }</span>
+
+<span class="nc" id="L74">    fun getToken(): String? = prefs.getString(Constants.KEY_JWT_TOKEN, null)</span>
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">    fun isTokenExpired(token: String = getToken().orEmpty()): Boolean {</span>
+<span class="nc" id="L77">        return try {</span>
+<span class="nc" id="L78">            val payload = token.split('.')[1]</span>
+<span class="nc" id="L79">            val decoded = String(Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            val expiration = JsonParser.parseString(decoded).asJsonObject.get(&quot;exp&quot;)?.asLong</span>
+<span class="nc bnc" id="L81" title="All 4 branches missed.">            expiration == null || expiration &lt;= System.currentTimeMillis() / 1000</span>
+<span class="nc" id="L82">        } catch (_: Exception) { true }</span>
+    }
+
+<span class="nc" id="L85">    fun getUserId(): Long = prefs.getLong(Constants.KEY_USER_ID, 0L)</span>
+
+<span class="nc" id="L87">    fun getUsername(): String? = prefs.getString(Constants.KEY_USERNAME, null)</span>
+
+<span class="nc" id="L89">    fun getCorreo(): String? = prefs.getString(Constants.KEY_CORREO, null)</span>
+
+    fun getRoles(): List&lt;String&gt; {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        val rolesJson = prefs.getString(Constants.KEY_ROLES, null) ?: return emptyList()</span>
+<span class="nc" id="L93">        val type = object : TypeToken&lt;List&lt;String&gt;&gt;() {}.type</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        return gson.fromJson(rolesJson, type) ?: emptyList()</span>
+    }
+<span class="nc" id="L96">    fun isPrimerIngreso(): Boolean = prefs.getBoolean(Constants.KEY_PRIMER_INGRESO, false)</span>
+
+<span class="nc" id="L98">    fun isBiometricEnabled(): Boolean = prefs.getBoolean(Constants.KEY_BIOMETRIC_ENABLED, false)</span>
+
+    fun setBiometricEnabled(enabled: Boolean) {
+<span class="nc" id="L101">        prefs.edit().putBoolean(Constants.KEY_BIOMETRIC_ENABLED, enabled).apply()</span>
+<span class="nc" id="L102">    }</span>
+
+<span class="nc" id="L104">    fun areNotificationsEnabled(): Boolean = prefs.getBoolean(Constants.KEY_NOTIFICATIONS_ENABLED, false)</span>
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+<span class="nc" id="L107">        prefs.edit().putBoolean(Constants.KEY_NOTIFICATIONS_ENABLED, enabled).apply()</span>
+<span class="nc" id="L108">    }</span>
+
+    fun isRepresentante(): Boolean {
+<span class="nc" id="L111">        return getRoles().any { it == Constants.ROL_REPRESENTANTE_LOGIN }</span>
+    }
+
+<span class="nc" id="L114">    fun getIdPersona(): Long = prefs.getLong(Constants.KEY_ID_PERSONA, getUserId())</span>
+
+    fun setIdPersona(id: Long) {
+<span class="nc" id="L117">        prefs.edit().putLong(Constants.KEY_ID_PERSONA, id).apply()</span>
+<span class="nc" id="L118">    }</span>
+
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    fun getGatewayUrl(): String = prefs.getString(Constants.KEY_GATEWAY_URL, Constants.DEFAULT_BASE_GATEWAY_URL)</span>
+<span class="nc" id="L121">        ?: Constants.DEFAULT_BASE_GATEWAY_URL</span>
+
+    fun setGatewayUrl(url: String) {
+<span class="nc" id="L124">        prefs.edit().putString(Constants.KEY_GATEWAY_URL, url).apply()</span>
+<span class="nc" id="L125">    }</span>
+
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    fun getDocenteUrl(): String = prefs.getString(Constants.KEY_DOCENTE_URL, Constants.DEFAULT_BASE_DOCENTE_URL)</span>
+<span class="nc" id="L128">        ?: Constants.DEFAULT_BASE_DOCENTE_URL</span>
+
+    fun setDocenteUrl(url: String) {
+<span class="nc" id="L131">        prefs.edit().putString(Constants.KEY_DOCENTE_URL, url).apply()</span>
+<span class="nc" id="L132">    }</span>
+
+    fun clearSession() {
+<span class="nc" id="L135">        prefs.edit()</span>
+<span class="nc" id="L136">            .remove(Constants.KEY_JWT_TOKEN)</span>
+<span class="nc" id="L137">            .remove(Constants.KEY_USER_ID)</span>
+<span class="nc" id="L138">            .remove(Constants.KEY_USERNAME)</span>
+<span class="nc" id="L139">            .remove(Constants.KEY_CORREO)</span>
+<span class="nc" id="L140">            .remove(Constants.KEY_ROLES)</span>
+<span class="nc" id="L141">            .remove(Constants.KEY_ID_PERSONA)</span>
+<span class="nc" id="L142">            .remove(Constants.KEY_PRIMER_INGRESO)</span>
+<span class="nc" id="L143">            .apply()</span>
+<span class="nc" id="L144">        _isLoggedIn.value = false</span>
+<span class="nc" id="L145">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

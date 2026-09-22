@@ -1,24 +1,49 @@
 % Archivo generado automaticamente por experimentos/generar_tabla_latencias.py.
-% No editar manualmente: la fuente unica es experimentos/resultados/exp1_concurrencia.csv.
+% Fuente unica: experimentos/resultados/exp1_concurrencia.csv.
 \begin{table}[H]
 \centering
-\caption{Resumen reproducible de latencia mediana por mecanismo ($B = 10{,}000$; semilla 20260831).}
+\scriptsize
+\caption{Latencia segmentada por mecanismo y nivel de carga ($B=10{,}000$; semilla 20260831).}
 \label{tab:estadistica-inferencial}
-\begin{tabular}{|l|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
-\textbf{Mecanismo} & \textbf{$n$} & \textbf{Mediana (ms)} & \textbf{IC 95\% bootstrap (ms)} & \textbf{$P_{95}$ (ms)} \\
+\textbf{Mec.} & \textbf{Nivel} & \textbf{$n$} & \textbf{Mediana (ms)} & \textbf{IC 95\% med.} & \textbf{$\Delta$ vs. $M_0$} & \textbf{$A_{12}$} \\
 \hline
-$M_0$ (Base) & 40 & 0.001 & [0.001, 0.001] & 0.001 \\
+$M_0$ (Base) & 1 & 10 & 0.000600 & [0.000600, 0.000900] & -- & -- \\
 \hline
-$M_1$ (SQL) & 40 & 0.002 & [0.002, 0.002] & 0.003 \\
+$M_1$ (Relacional simple) & 1 & 10 & 0.001300 & \emph{no informativo} & 0.000700 [0.000400, 0.000700] & 1.0000 \\
 \hline
-$M_2$ (SHA-256 + Lamport) & 40 & 0.007 & [0.007, 0.007] & 0.010 \\
+$M_2$ (SHA-256 + Lamport) & 1 & 10 & 0.022500 & [0.022300, 0.022750] & 0.021900 [0.021575, 0.022150] & 1.0000 \\
 \hline
-$M_3$ (Vector Clocks) & 40 & 0.010 & [0.010, 0.010] & 0.010 \\
+$M_3$ (Vector Clocks) & 1 & 10 & 0.026150 & [0.024200, 0.046800] & 0.025550 [0.023575, 0.046200] & 1.0000 \\
+\hline
+$M_0$ (Base) & 5 & 10 & 0.000600 & [0.000600, 0.000900] & -- & -- \\
+\hline
+$M_1$ (Relacional simple) & 5 & 10 & 0.002000 & [0.001650, 0.002100] & 0.001400 [0.000950, 0.001500] & 1.0000 \\
+\hline
+$M_2$ (SHA-256 + Lamport) & 5 & 10 & 0.021300 & [0.021300, 0.021450] & 0.020700 [0.020400, 0.020800] & 1.0000 \\
+\hline
+$M_3$ (Vector Clocks) & 5 & 10 & 0.022925 & [0.022800, 0.023100] & 0.022325 [0.022000, 0.022475] & 1.0000 \\
+\hline
+$M_0$ (Base) & 10 & 10 & 0.000600 & [0.000500, 0.000600] & -- & -- \\
+\hline
+$M_1$ (Relacional simple) & 10 & 10 & 0.001300 & \emph{no informativo} & 0.000700 [0.000700, 0.000800] & 1.0000 \\
+\hline
+$M_2$ (SHA-256 + Lamport) & 10 & 10 & 0.021700 & [0.021700, 0.021850] & 0.021100 [0.021100, 0.021275] & 1.0000 \\
+\hline
+$M_3$ (Vector Clocks) & 10 & 10 & 0.023500 & [0.023400, 0.023650] & 0.022900 [0.022800, 0.023075] & 1.0000 \\
+\hline
+$M_0$ (Base) & 14 & 10 & 0.000500 & [0.000500, 0.000600] & -- & -- \\
+\hline
+$M_1$ (Relacional simple) & 14 & 10 & 0.001300 & \emph{no informativo} & 0.000800 [0.000700, 0.000800] & 1.0000 \\
+\hline
+$M_2$ (SHA-256 + Lamport) & 14 & 10 & 0.021700 & [0.021700, 0.021800] & 0.021200 [0.021100, 0.021300] & 1.0000 \\
+\hline
+$M_3$ (Vector Clocks) & 14 & 10 & 0.023350 & [0.023300, 0.023500] & 0.022850 [0.022700, 0.022950] & 1.0000 \\
 \hline
 \end{tabular}
 \vspace{0.35em}
 \begin{minipage}{0.98\columnwidth}
-\footnotesize Fuente: \texttt{experimentos/resultados/exp1\_concurrencia.csv}, columna \texttt{latencia\_mediana\_ms}. Entrada y salida expresadas directamente en milisegundos (ms), sin conversi\'on adicional. Cada mecanismo contiene $n=40$ observaciones. El IC 95\% corresponde al bootstrap no param\'etrico de la mediana con $B=10{,}000$ y semilla fija 20260831.
+\footnotesize Fuente: \texttt{experimentos/resultados/exp1\_concurrencia.csv}, columna \texttt{latencia\_mediana\_ms}. Cada fila contiene $n=10$ repeticiones de una unica combinacion mecanismo--nivel; no se mezclan los niveles 1, 5, 10 y 14. Los IC 95\% corresponden al bootstrap no parametrico de la mediana con $B=10{,}000$ y semilla fija 20260831. Cuando los cuantiles bootstrap coinciden por la resolucion de los datos, el IC se marca como \emph{no informativo} y no se interpreta como precision infinita. $A_{12}$ es el tamano de efecto Vargha--Delaney calculado contra $M_0$ dentro del mismo nivel: $A_{12}=P(X>M_0)+0.5P(X=M_0)$. No se reportan valores $p$ ni contrastes entre niveles distintos.
 \end{minipage}
 \end{table}

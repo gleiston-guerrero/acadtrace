@@ -80,6 +80,8 @@
 }
 \lstset{style=codigo}
 
+\input{cifras_carga_generadas.tex}
+
 \begin{document}
 
 % =============================================================================
@@ -135,10 +137,10 @@ Prof. Ing. Gleiston C. Guerrero-Ulloa, Mgs.
 \section*{Resumen y Abstract}
 \addcontentsline{toc}{section}{Resumen y Abstract}
 
-\noindent\textbf{Resumen}---El presente trabajo expone el dise\~no, refactorizaci\'on, despliegue y evaluaci\'on experimental de \textbf{AcadTrace}, un sistema de gesti\'on acad\'emica distribuido dotado de una capa de auditor\'ia criptogr\'afica inmutable sobre PostgreSQL con separaci\'on l\'ogica multiesquema. Frente a las limitaciones de trazabilidad en sistemas educativos tradicionales, se implement\'o una arquitectura pol\'iglota de cuatro microservicios (Java Spring Boot, Python Django REST, Node.js Express) interconectados mediante protocolos h\'ibridos (gRPC con HTTP/2 interno y REST perimetral bajo HAProxy). Se integraron cinco patrones de dise\~no GoF, desacoplando el dominio de la infraestructura. La soluci\'on incorpora dos aplicaciones cliente: un portal Web SPA con control de acceso por roles e internacionalizaci\'on, y un cliente m\'ovil nativo Android concebido para representantes de alumnos, con sincronizaci\'on \textit{offline-first}, soporte biom\'etrico y notificaciones push. La evaluaci\'on experimental seg\'un ISO/IEC 25010 mediante 120 corridas factoriales demostr\'o una tasa de detecci\'on del 100\% ante alteraciones directas de datos e inserciones no secuenciales bajo los mecanismos de bit\'acora encadenada SHA-256 combinada con Relojes de Lamport y Relojes Vectoriales, con una sobrecarga de latencia marginal. La corrida oficial nominal local de Soporte conserva 12{,}994 peticiones con cero fallos; las corridas históricas fallidas no permiten certificar estrés exitoso ni atribuir por sí solas la causa raíz al pool de conexiones. El ciclo de vida est\'a soportado por un pipeline CI/CD de siete trabajos encadenados y un panel de observabilidad en Grafana de seis vistas en tiempo real.\par
+\noindent\textbf{Resumen}---El presente trabajo expone el dise\~no, refactorizaci\'on, despliegue y evaluaci\'on experimental de \textbf{AcadTrace}, un sistema de gesti\'on acad\'emica distribuido dotado de una capa de auditor\'ia criptogr\'afica inmutable sobre PostgreSQL con separaci\'on l\'ogica multiesquema. Frente a las limitaciones de trazabilidad en sistemas educativos tradicionales, se implement\'o una arquitectura pol\'iglota de cuatro microservicios (Java Spring Boot, Python Django REST, Node.js Express) interconectados mediante protocolos h\'ibridos (gRPC con HTTP/2 interno y REST perimetral bajo HAProxy). Se integraron cinco patrones de dise\~no GoF, desacoplando el dominio de la infraestructura. La soluci\'on incorpora dos aplicaciones cliente: un portal Web SPA con control de acceso por roles e internacionalizaci\'on, y un cliente m\'ovil nativo Android concebido para representantes de alumnos, con sincronizaci\'on \textit{offline-first}, soporte biom\'etrico y notificaciones push. La evaluaci\'on experimental seg\'un ISO/IEC 25010 mediante 600 corridas factoriales demostr\'o una tasa de detecci\'on del 100\% en los cinco tipos de manipulaci\'on T1--T5 bajo los mecanismos protegidos m2 y m3, basados en encadenamiento SHA-256 y metadatos de orden l\'ogico, con latencia cuantificada únicamente mediante un microbenchmark local secuencial en memoria. La corrida nominal local actual de Soporte conserva \CargaPeticiones{} peticiones con \CargaFallos{} fallos; las corridas históricas fallidas no permiten certificar estrés exitoso ni atribuir por sí solas la causa raíz al pool de conexiones. El ciclo de vida est\'a soportado por un pipeline CI/CD de siete trabajos encadenados y un panel de observabilidad en Grafana de seis vistas en tiempo real.\par
 
 \vspace{0.4cm}
-\noindent\textbf{Abstract}---This work presents the design, refactoring, deployment, and experimental evaluation of \textbf{AcadTrace}, a distributed academic management system equipped with an immutable cryptographic audit layer over PostgreSQL with logical schema separation. Addressing the traceability shortcomings of traditional educational software, a polyglot microservice architecture was developed across four services (Java Spring Boot, Python Django REST, Node.js Express), interconnected via hybrid protocols (internal gRPC over HTTP/2 and perimeter REST via HAProxy). Five GoF design patterns were applied to isolate domain logic from infrastructure details. The solution includes two client applications: a responsive Web SPA featuring role-based access control and internationalization, and a native Android mobile client tailored for student guardians, incorporating offline-first synchronization, biometric authentication, and push notifications. Experimental evaluation under ISO/IEC 25010 through 120 factorial runs verified a 100\% detection rate for unauthorized direct database modifications and non-sequential tampering using SHA-256 hash chaining combined with Lamport and Vector Clocks, with marginal latency overhead. The official local nominal Support run preserves 12,994 requests with zero failures. Historical failed runs do not certify successful stress testing or independently establish connection pool exhaustion as their root cause. The operational lifecycle is governed by an end-to-end seven-job CI/CD pipeline and a six-view real-time Grafana observability dashboard.\par
+\noindent\textbf{Abstract}---This work presents the design, refactoring, deployment, and experimental evaluation of \textbf{AcadTrace}, a distributed academic management system equipped with an immutable cryptographic audit layer over PostgreSQL with logical schema separation. Addressing the traceability shortcomings of traditional educational software, a polyglot microservice architecture was developed across four services (Java Spring Boot, Python Django REST, Node.js Express), interconnected via hybrid protocols (internal gRPC over HTTP/2 and perimeter REST via HAProxy). Five GoF design patterns were applied to isolate domain logic from infrastructure details. The solution includes two client applications: a responsive Web SPA featuring role-based access control and internationalization, and a native Android mobile client tailored for student guardians, incorporating offline-first synchronization, biometric authentication, and push notifications. Experimental evaluation under ISO/IEC 25010 through 600 factorial runs verified a 100\% detection rate across the five T1--T5 tampering types under the protected m2 and m3 mechanisms, based on SHA-256 hash chaining and logical-order metadata, with latency quantified only through a local sequential in-memory microbenchmark. The official local nominal Support run preserves \CargaPeticiones{} requests with \CargaFallos{} failures. Historical failed runs do not certify successful stress testing or independently establish connection pool exhaustion as their root cause. The operational lifecycle is governed by an end-to-end seven-job CI/CD pipeline and a six-view real-time Grafana observability dashboard.\par
 
 \vspace{0.3cm}
 \noindent\textbf{Palabras Clave:} Sistemas Distribuidos, Auditor\'ia Criptogr\'afica, Relojes L\'ogicos de Lamport, Relojes Vectoriales, gRPC, Microservicios, ISO/IEC 25010, CI/CD, Observabilidad.
@@ -530,6 +532,15 @@ Como evidencia operativa del cliente web para la gesti\'on administrativa, la Fi
 \label{fig:portal_secretaria}
 \end{figure}
 
+Asimismo, como evidencia operativa de la gesti\'on de soporte t\'ecnico e incidencias, la Figura~\ref{fig:portal_soporte} ilustra el portal web del Microservicio de Soporte (\texttt{localhost:8083/soporte}). En dicha interfaz se visualiza el tablero interactivo de tickets estructurado bajo columnas de estado, destinado a la administraci\'on y seguimiento de requerimientos institucionales por parte del operador.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{soporte_tickets.png}
+\caption{Portal web del Microservicio de Soporte: tablero interactivo de control para la administraci\'on y gesti\'on de incidencias con clasificaci\'on por estados de tickets.}
+\label{fig:portal_soporte}
+\end{figure}
+
 \subsection{M\'odulo C -- Aplicaci\'on M\'ovil Nativa para Representantes (Kotlin + Jetpack Compose)}
 La aplicaci\'on m\'ovil est\'a desarrollada en Android Nativo (SDK m\'inimo 26, objetivo 34) bajo arquitectura MVVM con soporte \textit{offline-first}:
 \begin{enumerate}
@@ -564,11 +575,69 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
   \item \textbf{Motor de Sincronizaci\'on en Background (\texttt{WorkManager}):} Un componente \texttt{Periodic\-Work\-Request\-Builder} con restricciones de red (\texttt{NetworkType.\allowbreak CONNECTED}) se activa autom\'aticamente al recuperar la conectividad, drenando la cola transaccional hacia el API Gateway mediante peticiones idempotentes y actualizando el reloj vectorial del dispositivo.
 \end{enumerate}
 
+La Figura~\ref{fig:app_movil_representante} reúne las vistas de seguridad, calificaciones y asistencia de la aplicación para representantes descrita en esta sección.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{movil_representante_evidencia.png}
-\caption{Interfaz de la Aplicaci\'on M\'ovil para Representantes (Kotlin + Jetpack Compose): (a) Desbloqueo seguro de sesi\'on mediante autenticaci\'on biom\'etrica nativa (\texttt{BiometricPrompt}), (b) Consulta acad\'emica con soporte de cach\'e desconectado \textit{offline-first} en SQLite Room, y (c) M\'odulo de asistencia y resumen escolar con reconciliaci\'on autom\'atica mediante \texttt{WorkManager}.}
+\caption{Vistas reales de la Aplicaci\'on M\'ovil para Representantes (Kotlin + Jetpack Compose): (a) Configuraci\'on de seguridad y protecci\'on de acceso biom\'etrico, (b) Consulta de asignaturas y calificaciones trimestrales del estudiante representado, y (c) Resumen cuantitativo y consolidado de asistencia escolar categorizado por estados.}
 \label{fig:app_movil_representante}
+\end{figure}
+
+\subsection{Evidencias visuales de interfaces y servicios}
+
+El panel principal organiza los accesos a los módulos académicos y administrativos, como se observa en la Figura~\ref{fig:sga-principal}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../release/screenshots/sga_principal.png}
+    \caption{Panel principal del SGA con accesos visibles a los m\'odulos acad\'emicos y administrativos.}
+    \label{fig:sga-principal}
+\end{figure}
+
+La documentación de la API de IA presenta las rutas de salud, diagnóstico de estudiante y asistente en la Figura~\ref{fig:microservicio-ia}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../release/screenshots/microservicio_ia.png}
+    \caption{Documentaci\'on de la API del microservicio de IA con las rutas de salud, diagn\'ostico de estudiante y asistente visibles.}
+    \label{fig:microservicio-ia}
+\end{figure}
+
+En el portal docente, la vista de registro semanal permite seleccionar el curso y consultar los estados de asistencia por estudiante; la Figura~\ref{fig:docente-asistencia} muestra esta interfaz.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../release/screenshots/docente_asistencia.png}
+    \caption{Portal del docente en la vista de registro semanal de asistencia, con selecci\'on de curso y estados por estudiante.}
+    \label{fig:docente-asistencia}
+\end{figure}
+
+En el cliente móvil, los ajustes de seguridad agrupan la protección de acceso y la opción de desbloqueo biométrico, visibles en la Figura~\ref{fig:movil-biometria}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_biometria.png}
+    \caption{Aplicaci\'on m\'ovil del representante: pantalla de ajustes de seguridad con gesti\'on de protecci\'on, interruptor para desbloqueo biom\'etrico y avisos de expiraci\'on de sesi\'on.}
+    \label{fig:movil-biometria}
+\end{figure}
+
+La consulta de calificaciones del representante organiza las asignaturas y sus ponderaciones por trimestre, como muestra la Figura~\ref{fig:movil-calificaciones}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_calificaciones.png}
+    \caption{Aplicaci\'on m\'ovil del representante: vista de calificaciones detalladas por trimestre con listado de asignaturas y ponderaciones.}
+    \label{fig:movil-calificaciones}
+\end{figure}
+
+El resumen de asistencia complementa la consulta académica con el desglose por estados mostrado en la Figura~\ref{fig:movil-asistencia}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{../release/screenshots/movil_representante_asistencia.png}
+    \caption{Aplicaci\'on m\'ovil del representante: resumen porcentual global de asistencia (87,83\,\%) y desglose interactivo por categor\'ias (presentes, ausentes, atrasos y justificados).}
+    \label{fig:movil-asistencia}
 \end{figure}
 
 % =============================================================================
@@ -579,7 +648,7 @@ La aplicaci\'on m\'ovil nativa para Representantes resuelve el desaf\'io de cone
 \subsection{Pir\'amide de Pruebas de Cinco Niveles}
 La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
 \begin{enumerate}
-  \item \textbf{Unitarias:} Evidencia hist\'orica conservada de pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python): Cobertura JaCoCo del modulo sga-principal: 48.1\% de instrucciones sobre el BUNDLE completo (excluyendo codigo generado gRPC, DTOs, entidades JPA y configuracion Spring). Compuerta CI configurada al 40\% minimo con \texttt{<element>BUNDLE</element>}, deuda tecnica documentada para elevar el umbral al 70\% en iteraciones posteriores.
+  \item \textbf{Unitarias:} Evidencia conservada de pruebas de servicios con dobles de prueba (Mockito en Java, \texttt{pytest-mock} en Python): Cobertura JaCoCo del m\'odulo \texttt{sga-principal}: 30,9\,\% de instrucciones (4394/14202) y 31,6\,\% de l\'ineas sobre el BUNDLE completo (excluyendo c\'odigo generado gRPC, DTOs, entidades JPA y configuraci\'on Spring). Compuerta CI configurada al 30\,\% m\'inimo con \texttt{<element>BUNDLE</element>} en \texttt{pom.xml}.
   \item \textbf{Integraci\'on:} Validaci\'on de repositorios y transacciones con aislamiento de esquemas.
   \item \textbf{Contrato:} Pruebas con \textbf{Pact} (\texttt{portal-docente-microservicio-docente.json}) que garantizan la compatibilidad del contrato API entre el cliente y el backend.
   \item \textbf{Extremo a Extremo (E2E):} Verificaci\'on de flujos completos desde la autenticaci\'on hasta la consulta de datos.
@@ -590,11 +659,13 @@ La estrategia de aseguramiento de calidad cubre los cinco estratos exigidos:
     \end{itemize}
 \end{enumerate}
 
+Como evidencia complementaria de observabilidad, la Figura~\ref{fig:grafana-hikari-latencias} muestra el panel de Grafana con métricas del pool HikariCP y percentiles de latencia; corresponde a una captura histórica, no a la interfaz de Locust.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{locust_resultados.png}
-\caption{Captura histórica/complementaria de Grafana. No acredita el agregado del CSV oficial nominal de Soporte.}
-\label{fig:locust-resultados}
+\includegraphics[width=0.85\textwidth]{grafana_hikari_p95.png}
+\caption{M\'etricas de observabilidad en Grafana durante la ejecuci\'on de pruebas de carga: monitoreo del pool HikariCP y percentiles de latencia ($P_{50}$ y $P_{99}$) como evidencia complementaria.}
+\label{fig:grafana-hikari-latencias}
 \end{figure}
 
 \subsection{Pipeline CI/CD de Siete Trabajos Encadenados (GitHub Actions)}
@@ -612,7 +683,7 @@ El archivo \texttt{.github/workflows/ci-cd.yml} orquesta siete trabajos bloquean
 \hline
 1 & \texttt{lint} & An\'alisis est\'atico con Flake8 y validaci\'on de formato en Python y Java. \\
 \hline
-2 & \texttt{test-backend} & Tests unitarios Java (Surefire/JaCoCo, umbral m\'inimo de 70\% LINE) y Python (\texttt{pytest-cov}); el umbral es criterio de calidad, no resultado medido. \\
+2 & \texttt{test-backend} & Tests unitarios Java (Surefire/JaCoCo con umbrales configurados por m\'odulo en Maven) y Python (\texttt{pytest-cov} al 70\,\%); el umbral es criterio de calidad, no resultado medido. \\
 \hline
 3 & \texttt{test-web} & Compilaci\'on TypeScript y empaquetado de distribuciones React en \texttt{.tar.gz}. \\
 \hline
@@ -699,27 +770,38 @@ El layout personalizado \texttt{JsonStructuredLayout} formatea los registros en 
 
 
 \subsection{Conjunto oficial de carga y trazabilidad E5}
-La única corrida OFICIAL NOMINAL de Soporte es \path{microservicio-soporte/locust_esc1_stats.csv}, acompañada por \path{microservicio-soporte/locust_esc1_stats_history.csv}, \path{microservicio-soporte/locust_esc1_failures.csv} y \path{microservicio-soporte/locust_esc1_exceptions.csv}. Sus métricas proceden de \texttt{Aggregated}: 12{,}994 peticiones, 0 fallos, 43.537580\,req/s, promedio 109.113664\,ms, $P_{50}=6$\,ms, $P_{95}=440$\,ms, $P_{99}=850$\,ms y máximo 2037.104700\,ms; no hay HTTP 401 ni HTTP 500 registrados. Es una prueba de carga reproducible ejecutada en entorno local/contenedorizado, no tráfico real de producción.
 
-El inicio registrado es 2026-09-11 03:59:05 UTC; el historial abarca 299 segundos entre muestras. El perfil configura 50 usuarios virtuales, 5 usuarios/s, 5 minutos y \url{http://localhost:8083}. Commit de conservación del resultado: \texttt{956cafcb}, con normalización posterior en \texttt{c5c0e6f5}. Commit del código ejecutado: \textbf{No disponible en la evidencia conservada}.
+La medición nominal actual procede de los CSV candidatos validados, copiados sin edición a \path{microservicio-soporte/locust_esc1_stats.csv} y \path{microservicio-soporte/locust_esc1_stats_history.csv}. Registra \CargaPeticiones{} peticiones, \CargaFallos{} fallos y $P_{99}=\CargaPnoventaNueveMs$\,ms; cumple el criterio de latencia PI-1 en el escenario nominal local. El perfil validado manualmente configura 50 usuarios, 5 usuarios/s y 5 minutos. La matriz siguiente deriva sus valores de los CSV actuales.
 
-La tabla completa de estados, fechas, commits de conservación, métricas y motivos está en \path{experimentos/resultados/corridas-e5.md}. B (12{,}236 peticiones), C (13{,}606) y F (2{,}419) son preliminares/históricas; D y E son fallidas. \textbf{Corrida oficial de estrés: NO DISPONIBLE --- las evidencias conservadas no satisfacen el criterio}. La numeración histórica de estrés difiere entre protocolo (escenario 3) y \path{docs/locust/escenario2_estres_stats.csv}; no son nuevos resultados oficiales.
+Los CSV anteriores se conservan sin alteración en \path{microservicio-soporte/resultados_historicos/}, con nombres que identifican el P99 histórico. La ejecución histórica no cumplía PI-1. La comparación no atribuye causalidad exclusiva a la optimización de \texttt{JwtParser}: no está acreditada la equivalencia entre el dataset histórico y el entorno local actual. El máximo atípico actual de 47\,889,96\,ms pertenece a \path{/api/soporte/tickets} y se conserva sin filtrar; es un evento aislado según la validación manual, con $P_{95}=13$\,ms, $P_{99}=32$\,ms y 0 fallos en ese endpoint. No es el percentil 99 agregado. Los detalles y la trazabilidad temporal están en \path{evidencias/Juliana_Emanuel/E48_actual_README.md}.
 
-La captura \path{evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png} es histórica/complementaria: muestra 13{,}031 peticiones en terminal; el CSV oficial conserva 12{,}994 y siempre prevalece. La causa de la diferencia no está demostrada. Falta una captura manual de la ruta del CSV y su fila \texttt{Aggregated}, con Request Count 12994, Failure Count 0 y métricas visibles. Las imágenes de Grafana son complementarias, sin vinculación exacta acreditada con ese agregado.
+La evidencia nominal se basa en los dos CSV promovidos, sus salidas derivadas y las capturas conservadas en \texttt{332158e4}. El \texttt{console.log} y el \texttt{validation.json} de \path{microservicio-soporte/resultados_candidatos/} pertenecen a una ejecución anterior y no acreditan temporalmente esta corrida. El resultado nominal local no demuestra disponibilidad de producción.
 
+La corrida HISTÓRICA ANTERIOR de Soporte ocupaba \path{microservicio-soporte/locust_esc1_stats.csv}, acompañada por \path{microservicio-soporte/locust_esc1_stats_history.csv}, \path{microservicio-soporte/locust_esc1_failures.csv} y \path{microservicio-soporte/locust_esc1_exceptions.csv}. Sus métricas históricas proceden de \texttt{Aggregated}: 12{,}994 peticiones, 0 fallos, 43.537580\,req/s, promedio 109.113664\,ms, $P_{50}=6$\,ms, $P_{95}=440$\,ms, $P_{99}=850$\,ms y máximo 2037.104700\,ms; no hay HTTP 401 ni HTTP 500 registrados. Es una prueba de carga reproducible ejecutada en entorno local/contenedorizado, no tráfico real de producción.
+
+El inicio histórico registrado es 2026-09-11 03:59:05 UTC; el historial abarca 299 segundos entre muestras. El perfil configura 50 usuarios virtuales, 5 usuarios/s, 5 minutos y \url{http://localhost:8083}. Commit de conservación del resultado: \texttt{956cafcb}, con normalización posterior en \texttt{c5c0e6f5}. Commit del código ejecutado: \textbf{No disponible en la evidencia conservada}.
+
+La tabla histórica de estados, fechas, commits de conservación, métricas y motivos está en \path{experimentos/resultados/corridas-e5.md}. B (12{,}236 peticiones), C (13{,}606) y F (2{,}419) son preliminares/históricas; D y E son fallidas. \textbf{Existe una corrida oficial de estrés válida}, distinta de los antecedentes D y E; se conserva en \texttt{b43008e5}. La numeración histórica de estrés difiere entre protocolo (escenario 3) y \path{docs/locust/escenario2_estres_stats.csv}; no son nuevos resultados oficiales.
+
+Se conserva la descripción histórica de \path{evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png}, pero no el archivo de imagen versionado; esa descripción atribuye 13{,}031 peticiones en terminal; el CSV histórico conserva el agregado anterior y prevalece para esa comparación histórica. La causa de la diferencia no está demostrada. La captura histórica E48 se conserva como resultado anterior. Las capturas nominales actuales de CSV, matriz e historial están conservadas en \texttt{332158e4} y se detallan en \path{evidencias/Juliana_Emanuel/E48_actual_README.md}. Las imágenes de Grafana son complementarias, sin vinculación exacta acreditada con ese agregado.
+
+
+La corrida oficial de estrés en \path{microservicio-soporte/resultados_estres/20260920_164722/} ejecutó el código \texttt{88649f3f} contra \url{http://localhost:8085}, con incorporación de 1 usuario/s, 200 usuarios máximos y 10 minutos configurados. El historial abarca los timestamps 1789940845--1789941444 (599 segundos). Su agregado registra 98{,}684 peticiones, 0 fallos, 164.86740285525565\,req/s, promedio 7.86715629893033\,ms, $P_{50}=7$\,ms, $P_{95}=15$\,ms, $P_{99}=23$\,ms y máximo 324.8848000075668\,ms, con \texttt{EXIT\_CODE=0}. Cumple el criterio de aceptación de estrés: $P_{95}<500$\,ms y 0 fallos. El perfil, resumen, cuatro CSV y la captura \path{evidencias/Juliana_Emanuel/E48_estres_200_resumen.png} se conservan en \texttt{b43008e5}. Es una ejecución distinta del nominal y del histórico D de 106{,}735 peticiones y 26 fallos, que permanece FALLIDO/HISTÓRICO. Los percentiles agregan la rampa completa; no certifican disponibilidad de producción ni el estado de HikariCP. La corrida incompleta \texttt{20260920\_163041} no es oficial. La evidencia original del perfil nominal sigue sin estar disponible.
+
+Para ambos escenarios se conserva una sola corrida oficial ($n=1$ nominal y $n=1$ estrés); no hay repeticiones independientes y el intervalo de confianza entre corridas no es estimable. Los percentiles describen peticiones de cada ejecución. El manifiesto \path{docs/locust/manifest_carga.json} y el verificador comprueban integridad y métricas de ambos conjuntos. En estrés, \texttt{perfil.txt} y \texttt{resumen\_validacion.txt} son derivados y la captura relee los CSV: no se conserva consola original de Locust ni evidencia primaria adicional. El código ejecutado, host, tasa de incorporación, duración configurada y código de salida citados son metadatos declarados, sin acreditación independiente mediante esa captura. La comprobación no fabrica una validación retrospectiva.
 
 \subsection{Preguntas de Investigaci\'on Emp\'iricas (PI)}
 Para guiar la evaluaci\'on cuantitativa de rendimiento, resiliencia y comportamiento del sistema bajo cargas extremas, se formularon dos Preguntas de Investigaci\'on (PI) emp\'iricas dise\~nadas formalmente para admitir refutaci\'on (respuesta negativa):
 \begin{itemize}[leftmargin=*]
   \item \textbf{PI-1:} \textit{\textquestiondown Puede el Microservicio de Soporte mantener una tasa de errores HTTP 5xx igual a 0\,\% y una latencia $P_{99}$ inferior a 500\,ms cuando la carga aumenta desde 50 hasta 200 usuarios concurrentes sin evidenciar agotamiento o contenci\'on significativa del pool de conexiones HikariCP?} \\
-  \textbf{Respuesta empírica:} \textbf{No se satisface el umbral propuesto.} La corrida OFICIAL NOMINAL de Soporte conserva 12{,}994 peticiones, 0 fallos, 43.537580\,req/s, promedio 109.113664\,ms, $P_{50}=6$\,ms, $P_{95}=440$\,ms, $P_{99}=850$\,ms y máximo 2037.104700\,ms. El $P_{99}$ ya supera 500\,ms en nominal. El perfil configurado es de 50 usuarios virtuales, 5 usuarios/s y 5 minutos contra localhost:8083. No hay corrida oficial de estrés válida:   Locust por sí solo no demuestra la causa raíz ni el estado del pool HikariCP.
+  \textbf{Respuesta empírica:} \textbf{Cumple el criterio de latencia PI-1 en nominal local.} La corrida actual registra \CargaPeticiones{} peticiones, \CargaFallos{} fallos, \CargaRPS{}\,req/s, promedio \CargaMediaMs{}\,ms, $P_{50}=\CargaPcinquentaMs$\,ms, $P_{95}=\CargaPnoventaCincoMs$\,ms y $P_{99}=\CargaPnoventaNueveMs$\,ms. El percentil actual es inferior al umbral de PI-1. La corrida oficial de estrés separada alcanza 200 usuarios y cumple su criterio de aceptación. La ausencia de agotamiento o contención de HikariCP sigue sin estar acreditada; el agregado de la rampa no resuelve por sí solo esa parte de PI-1.
   
   \item \textbf{PI-2:} \textit{\textquestiondown Mantienen los endpoints que requieren acceso a base de datos un comportamiento de latencia equivalente al de los endpoints stateless cuando el sistema es sometido al escenario de estr\'es de hasta 200 usuarios concurrentes?} \\
-  \textbf{Respuesta empírica:} \textbf{Pendiente para estrés.} No existe una corrida oficial válida de hasta 200 usuarios. En el CSV oficial nominal, tickets registra 3{,}704 peticiones, 0 fallos, mediana 130\,ms, promedio 256.303638\,ms y $P_{95}=650$\,ms. Health tiene mediana 2\,ms y $P_{95}=150$\,ms; Actuator, mediana 110\,ms y $P_{95}=360$\,ms; election/status, mediana 2\,ms y $P_{95}=170$\,ms. Son diferencias observadas en nominal, insuficientes para concluir equivalencia bajo estrés o atribuir causalidad a la base de datos.
+  \textbf{Respuesta empírica:} \textbf{Equivalencia no demostrada.} Existe una corrida oficial válida de hasta 200 usuarios; cumplir el criterio agregado no demuestra equivalencia de latencias entre endpoints ni causalidad de la base de datos. En el CSV HISTÓRICO nominal anterior, tickets registra 3{,}704 peticiones, 0 fallos, mediana 130\,ms, promedio 256.303638\,ms y $P_{95}=650$\,ms. Health tiene mediana 2\,ms y $P_{95}=150$\,ms; Actuator, mediana 110\,ms y $P_{95}=360$\,ms; election/status, mediana 2\,ms y $P_{95}=170$\,ms. Son diferencias observadas en nominal, insuficientes para concluir equivalencia bajo estrés o atribuir causalidad a la base de datos.
 \end{itemize}
 
 \subsection{Protocolo Experimental y Cuatro Mecanismos de Auditor\'ia}
-En cumplimiento de la ampliaci\'on del M\'odulo G de la gu\'ia rectora, se ejecut\'o un banco experimental con 120 corridas factoriales ($30 \times 4$) evaluando cuatro configuraciones de auditor\'ia conmutables v\'ia la variable de entorno \texttt{AUDIT}:
+En cumplimiento de la ampliaci\'on del M\'odulo G de la gu\'ia rectora, se ejecut\'o un banco experimental con 600 corridas factoriales ($30 \times 4 \times 5$) evaluando cuatro configuraciones de auditor\'ia conmutables v\'ia la variable de entorno \texttt{AUDIT}:
 \begin{itemize}
   \item \textbf{m0 (Sin auditor\'ia):} L\'inea base donde la calificaci\'on se persiste sin rastro estructurado.
   \item \textbf{m1 (Bit\'acora convencional):} Registro relacional de eventos sin encadenamiento criptogr\'afico ni orden l\'ogico.
@@ -748,52 +830,56 @@ Las pruebas can\'onicas comparten un vector patr\'on con los campos:
 \texttt{estado\_reconciliacion}, \texttt{modo}, \texttt{operacion},
 \texttt{payload}, \texttt{reloj\_lamport}, \texttt{reloj\_vectorial},
 \texttt{timestamp} y \texttt{tipo\_evento}. La verificaci\'on est\'a en
-\path{sga-principal/src/test/java/.../AuditoriaCanonicaTest.java} y en
+\path{sga-principal/src/test/java/.../AuditHashServiceCanonicalTest.java} y en
 \path{microservicio-docente/docentes/tests/test_auditoria_canonica_v1.py};
 ambas afirman que, dado el mismo vector, la implementaci\'on de su
 lenguaje produce el mismo hash conocido.
 
 \paragraph{Alcance real de la equivalencia entre lenguajes.}
 El vector patr\'on solo emplea cadenas, enteros de tama\~no acotado y
-un \texttt{timestamp} preformateado como texto. Un cotejo m\'as amplio
-sobre doce vectores independientes muestra que las dos implementaciones
-Java coinciden en los doce casos, mientras que la implementaci\'on
-Python coincide con Java en cinco de los doce. Los siete casos en que
-las representaciones difieren son:
+un \texttt{timestamp} preformateado como texto. Un arn\'es ejecutable
+(\path{experimentos/arnes_12_vectores.py}, ver
+\path{experimentos/README_arnes.md}) compila e invoca las tres
+implementaciones reales sobre doce vectores independientes: las dos
+implementaciones Java coinciden en los doce casos (12/12, 100.0\%),
+mientras que la implementaci\'on Python coincide con Java en ocho de
+los doce (8/12, 66.7\%). Los cuatro casos en que las representaciones
+difieren son:
 
-\begin{itemize}
-  \item Decimales: Java emite \texttt{\{"nota":8.50\}}; Python emite
-        \texttt{\{"nota":"8.50"\}}.
-  \item Flotantes de rango extremo: Java emite \texttt{1.0E-7} /
-        \texttt{1.0E21}; Python emite \texttt{1e-07} / \texttt{1e+21}.
-  \item Marca de tiempo del mismo instante: Java emite
-        \texttt{...00.120Z}; Python emite \texttt{...00.120000+00:00}.
-  \item Fechas dentro del payload: Python las serializa como
-        \texttt{"2012-03-05"}; Java lanza \texttt{IllegalStateException}
-        y, dado que \texttt{AuditoriaService.guardar} es \textit{fail-open},
-        el evento se pierde en Java.
-  \item Claves excluidas del canon: la lista literal en Java contiene
-        \texttt{contrase?a} con el byte \texttt{0x3F} por defecto de
-        codificaci\'on, por lo que \texttt{contrase\~na} y
-        \texttt{CONTRASE\~NA} entran al canon en Java y no en Python;
-        Python tampoco excluye \texttt{contrasena}.
-  \item Orden de claves con caracteres suplementarios: Java ordena por
-        UTF-16 (por ejemplo U+1F600 antes de U+FF01); Python ordena por
-        punto de c\'odigo.
-  \item \texttt{NaN}: Java emite la cadena \texttt{"NaN"}; Python emite
-        el literal JSON no est\'andar \texttt{NaN}.
-\end{itemize}
+\begin{tabular}{l|l|l}
+\hline
+Tipo de valor & Representaci\'on Java & Representaci\'on Python \\
+\hline
+Flotante de rango extremo peque\~no & \texttt{1.0E-7} & \texttt{1e-07} \\
+Flotante de rango extremo grande & \texttt{1.0E21} & \texttt{1e+21} \\
+Orden de claves suplementarias & U+1F600 antes de U+FF01 (UTF-16) & orden por punto de c\'odigo \\
+\texttt{NaN} & cadena \texttt{"NaN"} & literal JSON no est\'andar \texttt{NaN} \\
+\hline
+\end{tabular}
+
+\paragraph{Qu\'e protege el vector patr\'on, qu\'e no protege.}
+Protege: cadenas ASCII, enteros dentro del rango que las pruebas cubren,
+\texttt{timestamp} preformateado como cadena, claves ordenadas por punto
+de c\'odigo Unicode dentro del plano b\'asico y exclusi\'on de las claves
+sensibles enumeradas (\texttt{authorization}, \texttt{jwt},
+\texttt{password}, \texttt{contrasena}, \texttt{contrase\~na},
+\texttt{contrase?a}, \texttt{internal\_token}, \texttt{token},
+\texttt{secret}). No protege: representaci\'on de flotantes de rango
+extremo, marcas de tiempo como \texttt{Instant} sin preformatear, orden
+de claves con caracteres suplementarios (U+10000 y siguientes), el valor
+especial \texttt{NaN} ni ning\'un tipo fuera del vector patr\'on.
 
 \paragraph{Interoperabilidad real entre lenguajes.}
-Una cadena de cuatro eslabones escrita por Java se valida en Python con
-\texttt{verificar\_cadena\_global} y una cadena de tres eslabones escrita
-por Python se valida con \texttt{AuditHashService.sha256Hex} en Java.
-Esta interoperabilidad ocurre porque el verificador rehashea el texto
-almacenado en la columna \texttt{contenido\_canonico}, no porque cada
-implementaci\'on produzca el mismo texto para el mismo evento. En
-consecuencia, la propiedad verificada es \textit{la integridad de la
-cadena tal como fue almacenada}, no la equivalencia de las
-representaciones can\'onicas entre lenguajes.
+Los verificadores rehashean el texto almacenado en la columna
+\texttt{contenido\_canonico}, no exigen que cada implementaci\'on
+produzca el mismo texto para el mismo evento. En consecuencia, la
+propiedad verificada es \textit{la integridad de la cadena tal como fue
+almacenada}, no la equivalencia de las representaciones can\'onicas
+entre lenguajes. El cotejo independiente de los doce vectores vive de
+forma ejecutable en \path{experimentos/arnes_12_vectores.py}: si Java
+Principal deja de coincidir con Java Secretaria en alg\'un vector, o si
+el conteo Java == Python cambia respecto a la evidencia congelada
+(8/12), el arn\'es falla con c\'odigo de salida 1.
 
 \paragraph{Bit\'acoras paralelas an activas.}
 Adem\'as de \texttt{sga\_principal.auditoria}, coexisten dos bit\'acoras
@@ -819,16 +905,16 @@ constituyen la superficie residual de riesgo y se documentan en el
 apartado de amenazas a la validez.
 
 \subsection{Cinco Tipos de Manipulaci\'on Inyectados (T1 a T5)}
-Se inyectaron 20 manipulaciones sint\'eticas controladas de cada tipo por mecanismo:
+Se ejecutaron 30 repeticiones sint\'eticas controladas de cada tipo de manipulaci\'on por mecanismo, para un total de 600 corridas ($30 \times 4 \times 5$):
 \begin{itemize}
-  \item \textbf{T1 (Alteraci\'on directa en BD):} Modificaci\'on de un registro de nota eludiendo la aplicaci\'on.
-  \item \textbf{T2 (Eliminaci\'on de evento):} Supresi\'on f\'isica de una fila intermedia de la bit\'acora.
-  \item \textbf{T3 (Permutaci\'on de orden causal):} Intercambio de orden entre dos transacciones contiguas.
-  \item \textbf{T4 (Inyecci\'on retroactiva):} Inserci\'on de un evento con marca de tiempo anterior a la real.
-  \item \textbf{T5 (Falsificaci\'on de timestamp/reloj):} Modificaci\'on del reloj l\'ogico o marca temporal de un evento existente.
+  \item \textbf{T1 (Alteraci\'on de calificaci\'on fuera de la bit\'acora):} Modificaci\'on de la calificaci\'on en la tabla simulada sin actualizar el evento de auditor\'ia.
+  \item \textbf{T2 (Alteraci\'on del payload protegido):} Modificaci\'on de \texttt{nota\_final} en el payload y en el contenido can\'onico sin recalcular el hash.
+  \item \textbf{T3 (Alteraci\'on del reloj de Lamport):} Reducci\'on artificial del contador Lamport del evento seleccionado sin recalcular la cadena.
+  \item \textbf{T4 (Eliminaci\'on de evento):} Supresi\'on f\'isica del evento seleccionado de la secuencia.
+  \item \textbf{T5 (Alteraci\'on retroactiva del timestamp):} Retroceso de 86{,}400 segundos en el timestamp del evento y en su contenido can\'onico sin recalcular el hash.
 \end{itemize}
 
-\subsection{Resultados Experimentales de Detecci\'on y Sobrecarga}
+\subsection{Resultados Experimentales de Detecci\'on}
 \label{subsec:resultados-deteccion}
 Los datos crudos generados en el banco experimental y almacenados en \texttt{experimentos/resultados/} (\texttt{deteccion.csv}, \texttt{manipulaciones.csv}, \texttt{iso25010.csv}) arrojaron la matriz factorial de la Tabla~\ref{tab:deteccion-matriz}:
 
@@ -837,58 +923,46 @@ Los datos crudos generados en el banco experimental y almacenados en \texttt{exp
 \caption{Matriz Experimental de Detecci\'on Factorial por Tipo de Manipulaci\'on ($T_1$ a $T_5$).}
 \label{tab:deteccion-matriz}
 \resizebox{\columnwidth}{!}{%
-\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
-\textbf{Mecanismo} & \textbf{T1 (BD)} & \textbf{T2 (Borrado)} & \textbf{T3 (Orden)} & \textbf{T4 (Retro)} & \textbf{T5 (Reloj)} & \textbf{Sobrecarga} & \textbf{Tasa Detecci\'on ($CI_{95\%}$)} \\
+\textbf{Mecanismo} & \textbf{T1} & \textbf{T2} & \textbf{T3} & \textbf{T4} & \textbf{T5} & \textbf{Tasa Detecci\'on ($IC_{95\%}$)} \\
 \hline
-\textbf{m0 (Sin auditor\'ia)} & 0\% & 0\% & 0\% & 0\% & 0\% & 0.0\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
+\textbf{m0 (Sin auditor\'ia)} & 0\% & 0\% & 0\% & 0\% & 0\% & $0.0\% \; [0.0000\%, 2.4293\%]$ \\
 \hline
-\textbf{m1 (Convencional)} & 0\% & 0\% & 0\% & 0\% & 0\% & +2.8\,ms & $0.0\% \; [0.0\%, 3.6\%]$ \\
+\textbf{m1 (Convencional)} & 0\% & 0\% & 0\% & 0\% & 0\% & $0.0\% \; [0.0000\%, 2.4293\%]$ \\
 \hline
-\textbf{m2 (Lamport+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +5.6\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
+\textbf{m2 (Lamport+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & $100.0\% \; [97.5707\%, 100.0000\%]$ \\
 \hline
-\textbf{m3 (Vectorial+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & +8.1\,ms & $100.0\% \; [96.4\%, 100.0\%]$ \\
+\textbf{m3 (Vectorial+Hash)} & 100\% & 100\% & 100\% & 100\% & 100\% & $100.0\% \; [97.5707\%, 100.0000\%]$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
+\noindent Los intervalos de detecci\'on son IC exactos bilaterales de Clopper--Pearson al 95\%, calculados por mecanismo sobre $n=150$ corridas ($5$ tipos $\times$ $30$ repeticiones): m0/m1 registran $0/150$ e IC $[0.0000\%,\,2.4293\%]$, mientras m2/m3 registran $150/150$ e IC $[97.5707\%,\,100.0000\%]$.
 
-\noindent\textbf{An\'alisis Estad\'istico Reproducible de Latencias:} La Tabla~\ref{tab:estadistica-inferencial} se genera directamente desde \texttt{experimentos/resultados/exp1\_concurrencia.csv}, usando las 40 observaciones de \texttt{latencia\_mediana\_ms} de cada mecanismo. La entrada y la salida se expresan en milisegundos (ms), sin conversi\'on adicional. Los intervalos corresponden al bootstrap no param\'etrico de la mediana con $B=10{,}000$ y semilla fija 20260831. Se descartan los contrastes $U$, valores $p$ y tama\~nos de efecto hist\'oricos porque no pertenecen a esta fuente oficial.
+\noindent\textbf{An\'alisis Estad\'istico Reproducible de Latencias:} La Tabla~\ref{tab:estadistica-inferencial} se genera directamente desde \texttt{experimentos/resultados/exp1\_concurrencia.csv} preservando la estructura factorial del archivo: cuatro mecanismos ($M_0$--$M_3$) por cuatro niveles de carga/tama\~no de lote (1, 5, 10 y 14), con $n=10$ repeticiones por combinaci\'on y 160 observaciones totales. No se mezclan los niveles al estimar estad\'isticas. La entrada y salida se expresan en milisegundos (ms), sin conversi\'on adicional. Para cada una de las 16 celdas se reportan mediana, $P_{95}$ e IC 95\% bootstrap no param\'etrico de la mediana con $B=10{,}000$ y semilla fija 20260831; si los cuantiles bootstrap colapsan por la resoluci\'on de los datos, el intervalo se marca como \emph{no informativo}. La magnitud del efecto frente a $M_0$ se expresa mediante la diferencia de medianas y el tama\~no de efecto no param\'etrico Vargha--Delaney $A_{12}=P(X>M_0)+0.5P(X=M_0)$, siempre dentro del mismo nivel. No se publican contrastes $U$, valores $p$ ni comparaciones inferenciales entre niveles distintos, y no se deriva un orden global entre $M_2$ y $M_3$ de este microbenchmark.
 
 \input{tabla_latencias_generada.tex}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.78\textwidth]{boxplot_latencia.png}
-\caption{Distribuci\'on de las 40 observaciones de \texttt{latencia\_mediana\_ms} por mecanismo, expresadas en milisegundos y obtenidas de \texttt{exp1\_concurrencia.csv}.}
+\caption{Distribuci\'on de \texttt{latencia\_mediana\_ms} segmentada por mecanismo y nivel de carga/tama\~no de lote. Cada una de las 16 combinaciones contiene $n=10$ repeticiones del microbenchmark local secuencial en memoria.}
 \label{fig:boxplot-latencia}
 \end{figure}
 \subsection{Matriz Formal de Evaluaci\'on de Calidad ISO/IEC 25010:2023}
 \label{subsec:matriz-iso25010}
-La Tabla~\ref{tab:iso-matriz-calidad} presenta la matriz de calidad actualizada. Cabe destacar que la caracter\'istica de disponibilidad en producci\'on no se encuentra acreditada en la muestra actual, y las ventanas de estr\'es operan bajo un perfil no validado:
+La Tabla~\ref{tab:iso-matriz-calidad} presenta la evaluación parcial generada de forma reproducible desde las fuentes versionadas. La evidencia nominal corresponde al Microservicio de Soporte (Conjunto~A). La matriz deriva el percentil $P_{99}$ del agregado de carga y lo compara con el criterio documental estricto de PI-1 ($P_{99}<500$\,ms); el umbral es un criterio, no una medición. El valor y el veredicto calculados se consultan en la propia matriz. Los fallos nominales no demuestran fiabilidad global ni disponibilidad temporal de producción. Las ventanas históricas de \texttt{locust\_esc3} tienen un perfil no validado y no acreditan estrés oficial actual.
 
-\begin{table}[H]
-\centering
+Seguridad incorpora los falsos positivos M2 observados en pruebas sintéticas, sin certificar seguridad global ni mediciones en producción. Mantenibilidad deriva cobertura BUNDLE/LINE de los reportes JaCoCo versionados de Secretaría y Soporte y aplica el criterio de esta matriz de cobertura LINE mínima del 70\,\%. Sus compuertas particulares usan esa misma métrica; la compuerta de Principal usa INSTRUCTION y no es intercambiable con LINE. Principal queda como \textit{No verificable con la evidencia versionada}. Los reportes conservados no acreditan una nueva ejecución sobre el código actual. Adecuación funcional, usabilidad, portabilidad y compatibilidad permanecen explícitamente no evaluadas en este alcance; ello no equivale a incumplimiento.
+
+\begingroup
 \scriptsize
-\renewcommand{\arraystretch}{1.3}
-\caption{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 con Mediciones Parciales y Planes de Mejora.}
+\renewcommand{\arraystretch}{1.2}
+\captionof{table}{Matriz de Evaluaci\'on de Calidad ISO/IEC 25010:2023 con Mediciones Parciales y Delimitaci\'on de Alcance.}
 \label{tab:iso-matriz-calidad}
-\begin{tabularx}{\textwidth}{|p{2.3cm}|p{3.7cm}|c|p{2.8cm}|X|}
-\hline
-\textbf{Característica} & \textbf{Métrica Real Medida} & \textbf{Objetivo} & \textbf{Estado} & \textbf{Plan de Mejora Técnico} \\
-\hline
-\textbf{1. Disponibilidad} \newline \textit{(Availability)} & 0 fallos en 12{,}994 peticiones nominales (100\% de éxito en la muestra local); sin medición oficial válida de estrés & $\ge 99.5\%$ & Parcial: no acredita disponibilidad de producción & Medir disponibilidad temporal y repetir estrés con evidencia válida. \\
-\hline
-\textbf{2. Rendimiento} \newline \textit{(Performance)} & Nominal oficial: $P_{95}=440$\,ms, $P_{50}=6$\,ms, $P_{99}=850$\,ms; 43.537580\,req/s & $P_{95}<500$\,ms & Cumple en agregado nominal local & Evaluar por endpoint: tickets presenta $P_{95}=650$\,ms; repetir estrés. \\
-\hline
-\textbf{3. Fiabilidad} \newline \textit{(Reliability)} & 0 fallos nominales; sin estrés oficial validado & $<1.0\%$ & Nominal observado; E5 estrés pendiente & Obtener una corrida de estrés autenticada con cero fallos para E5. \\
-\hline
-\textbf{4. Mantenibilidad} \newline \textit{(Maintainability)} & Secretar\'ia: 71.42\% LINE (2217/3104) \newline Soporte: 71.61\% LINE (459/641) & $\ge 70\%$ LINE JaCoCo BUNDLE & \textbf{\checkmark} Cumple en Secretar\'ia y Soporte & Mantener la compuerta JaCoCo a nivel BUNDLE en CI/CD y expandir cobertura automatizada en SGA Principal y Docente. \\
-\hline
-\textbf{5. Seguridad} \newline \textit{(Security)} & \textbf{100\% Rechazo 401 / FPR = 0.0\%} \newline (Certificado en suite E2E sin JWT; FPR $0.0\% \; [0.0\%, 11.6\%]$ en 30 cadenas limpias) & 100\% / 0\% & \textbf{\checkmark} Cumple & Automatizar la rotación de secretos criptográficos JWT/AES vía AWS Secrets Manager y habilitar listas de revocación de tokens en Redis. \\
-\hline
-\end{tabularx}
-\end{table}
+\input{matriz_iso25010_generada.tex}
+\endgroup
 
 \newpage
 
@@ -901,9 +975,9 @@ Siguiendo las pautas metodol\'ogicas para experimentaci\'on en ingenier\'ia de s
 
 \subsection{Amenazas a la Validez Interna}
 \begin{enumerate}
-  \item \textbf{Efecto de calentamiento de la JVM (\textit{Warm-up Effect}):} Las primeras ejecuciones en Java reflejan sobrecosto por compilaci\'on JIT. Se mitig\'o descartando la primera y \'ultima repetici\'on de cada bloque experimental.
+  \item \textbf{Resoluci\'on temporal y entorno de ejecuci\'on:} Las 160 observaciones de latencia se conservan completas y se analizan como 16 celdas independientes ($4$ mecanismos $\times$ $4$ niveles, $n=10$ por celda), sin mezclar los niveles 1, 5, 10 y 14. En algunas celdas los cuantiles bootstrap coinciden por la resoluci\'on temporal del microbenchmark; esos IC se etiquetan como \emph{no informativos} en lugar de interpretarlos como precisi\'on infinita. El bloque sigue siendo un microbenchmark local secuencial en memoria, no una prueba de concurrencia HTTP ni de acceso real a base de datos; la resoluci\'on del temporizador y la planificaci\'on del sistema operativo permanecen como amenazas residuales.
   \item \textbf{Semillas y Pseudoaleatoriedad del Inyector:} La variabilidad en la generaci\'on de manipulaciones se mitig\'o fijando una semilla determinista (\texttt{SEED = 20260831}) en \texttt{run\_experimentos.py}.
-  \item \textbf{Contenci\'on de Recursos en Host Compartido:} La ejecuci\'on simult\'anea de Locust y los contenedores puede generar contenci\'on de CPU. Se control\'o con cAdvisor verificando que el uso global del procesador se mantuviera $<75\%$.
+  \item \textbf{Contenci\'on de Recursos en Host Compartido:} Durante las pruebas de estr\'es con Locust y ejecuci\'on concurrente de microservicios, la contenci\'on de procesador y memoria en hosts compartidos representa una amenaza residual de variabilidad en latencias, monitoreada a nivel de host mediante la pila de observabilidad.
   \item \textbf{Divergencias entre implementaciones can\'onicas.} La forma
 can\'onica de la bit\'acora se implementa tres veces (dos en Java y una
 en Python) sin biblioteca compartida. Sobre doce vectores independientes,
@@ -948,9 +1022,9 @@ La Entrega 4 valida con \'exito la convergencia de una arquitectura de microserv
 
   \item \textbf{Keyla Betzabe Bedon Viteri (Responsable de Microservicio Docente y App M\'ovil):} Durante el desarrollo de la Entrega 4 se logr\'o la construcci\'on integral del microservicio Docente en Python/Django REST Framework y del cliente m\'ovil nativo para Representantes en Android (Kotlin + Jetpack Compose). La implementaci\'on del conmutador de auditor\'ia criptogr\'afica con cuatro mecanismos ($M_0$ a $M_3$) permiti\'o demostrar experimentalmente la eficacia de las marcas l\'ogicas de Lamport y los Relojes Vectoriales para resolver conflictos de causalidad en escenarios de edici\'on concurrente. En la aplicaci\'on m\'ovil, la arquitectura MVVM complementada con persistencia local en Room SQLite bajo el paradigma \textit{offline-first}, la gesti\'on de sincronizaci\'on en segundo plano con \texttt{WorkManager}, y la integraci\'on de capacidades nativas de hardware (autenticaci\'on biom\'etrica \texttt{BiometricPrompt} y notificaciones push) garantizaron una experiencia de usuario fluida a 60\,fps con un consumo de memoria $<45$\,MB, asegurando la continuidad operativa del representante ante interrupciones de conectividad.
 
-  \item \textbf{Ernesto Gregory Luna Mora (Responsable de Microservicio Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 permiti\'o consolidar la robustez del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on centralizada de enrutamiento, terminaci\'on segura y balanceo de carga. Se implement\'o una estricta compuerta de calidad mediante el plugin JaCoCo (\texttt{<goal>check</goal>}) enforceable al 70\%, alcanzando una cobertura global consolidada de 71.42\% de l\'ineas (LINE) y 71.34\% de instrucciones a nivel de \texttt{BUNDLE} soportada por una bater\'ia de 94 pruebas automatizadas (unitarias, verificaci\'on gRPC in-process, detecci\'on criptogr\'afica de manipulaci\'on y de integraci\'on extremo a extremo E2E) que certifican la interoperabilidad entre servicios y el rechazo inmediato (HTTP 401 Unauthorized) ante peticiones carentes de tokens JWT HMAC-SHA256 v\'alidos. Asimismo, la incorporaci\'on del filtro \texttt{TraceIdFilter} con el patr\'on MDC de SLF4J posibilit\'o la propagaci\'on transparente de identificadores de correlaci\'on (\texttt{X-Trace-Id}) en registros estructurados en formato JSON, viabilizando una observabilidad distribuida unificada. Para garantizar la inmutabilidad f\'isica en la base de datos PostgreSQL, se dise\~n\'o e implement\'o el disparador a nivel de fila \texttt{tg\_auditoria\_append\_only}, el cual rechaza de manera determinista cualquier operaci\'on de \texttt{UPDATE} o \texttt{DELETE} sobre la bit\'acora. En el aspecto evaluativo cuantitativo, el M\'odulo G document\'o desde \texttt{experimentos/resultados/exp1\_concurrencia.csv} medianas de 0.001\,ms para $M_0$, 0.002\,ms para $M_1$, 0.007\,ms para $M_2$ y 0.010\,ms para $M_3$. La tabla y la figura expresan estos valores directamente en milisegundos, sin conversi\'on adicional; los contrastes $U$, valores $p$ y tama\~nos de efecto hist\'oricos se retiraron por no provenir de esta fuente. Adicionalmente, la evaluaci\'on experimental revel\'o las limitaciones arquitect\'onicas del despliegue monoinstancia al evidenciar que, si bien en el Escenario 1 de carga nominal (50 usuarios) el sistema exhibi\'o 0\,\% de fallos, bajo estr\'es extremo de rampa hasta 200 usuarios concurrentes (Escenario 2) se alcanz\'o la saturaci\'on con degradaci\'on global por timeout de 4100\,ms y contenci\'on del pool HikariCP, lo cual desmiente la ilusi\'on de disponibilidad al 100\,\% bajo sobrecarga extrema y fundamenta la necesidad de incorporar auto-escalado horizontal (HPA) y circuit breakers. Este hallazgo metodol\'ogico subraya la importancia de medir los microservicios m\'as all\'a del filtro de seguridad perimetral.
+  \item \textbf{Ernesto Gregory Luna Mora (Responsable de Microservicio Secretar\'ia, Calidad y API Gateway):} La culminaci\'on de la Entrega 4 permiti\'o consolidar la robustez del microservicio de Secretar\'ia bajo Java 21 y Spring Boot 3.2.5, integrando el API Gateway perimetral con HAProxy 2.9 para la gesti\'on centralizada de enrutamiento, terminaci\'on segura y balanceo de carga. Se implement\'o una estricta compuerta de calidad mediante el plugin JaCoCo (\texttt{<goal>check</goal>}) enforceable al 70\%, alcanzando una cobertura global consolidada de 74,42\% de l\'ineas (LINE, 2313/3108) y 72,74\% de instrucciones (11272/15497) a nivel de \texttt{BUNDLE} soportada por una bater\'ia de 96 pruebas automatizadas (unitarias, verificaci\'on gRPC in-process, detecci\'on criptogr\'afica de manipulaci\'on y de integraci\'on extremo a extremo E2E) que certifican la interoperabilidad entre servicios y el rechazo inmediato (HTTP 401 Unauthorized) ante peticiones carentes de tokens JWT HMAC-SHA256 v\'alidos. Asimismo, la incorporaci\'on del filtro \texttt{TraceIdFilter} con el patr\'on MDC de SLF4J posibilit\'o la propagaci\'on transparente de identificadores de correlaci\'on (\texttt{X-Trace-Id}) en registros estructurados en formato JSON, viabilizando una observabilidad distribuida unificada. Para garantizar la inmutabilidad f\'isica en la base de datos PostgreSQL, se dise\~n\'o e implement\'o el disparador a nivel de fila \texttt{tg\_auditoria\_append\_only}, el cual rechaza de manera determinista cualquier operaci\'on de \texttt{UPDATE} o \texttt{DELETE} sobre la bit\'acora. En el aspecto evaluativo cuantitativo, el M\'odulo G conserva \texttt{experimentos/resultados/exp1\_concurrencia.csv} como fuente versionada de la tabla y figura de latencias. Los resultados vigentes se regeneran desde ese archivo por mecanismo y nivel de carga, con $n=10$ por celda, y reportan mediana, IC 95\%, $P_{95}$, diferencia de medianas frente a $M_0$ y el tama\~no de efecto no param\'etrico Vargha--Delaney $A_{12}$ dentro del mismo nivel; no se publican contrastes $U$ ni valores $p$. La corrida nominal oficial registra \CargaPeticiones{} peticiones y \CargaFallos{} fallos, con un m\'aximo observado de \CargaUsuariosMaximos{} usuarios. Las corridas fallidas hist\'oricas no acreditan estr\'es oficial v\'alido ni permiten atribuir causalidad a HikariCP. Este hallazgo metodol\'ogico subraya la importancia de medir los microservicios m\'as all\'a del filtro de seguridad perimetral.
 
-  \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se completó la refactorización del microservicio de Soporte y Gestión de Tickets bajo Java 17/Spring Boot, incorporando el bus de comunicación gRPC (elección de líder vía \texttt{etcd}) y la arquitectura de observabilidad con Prometheus, Grafana y cAdvisor. El diseño del tablero de Grafana (\texttt{ops/grafana/pfc-dashboard.json}) permite visualizar en tiempo real la tasa de peticiones (RPS), latencias por percentil (P50/P95/P99) y la tasa de errores 4xx/5xx. Se consolidó la trazabilidad E5 del microservicio de Soporte y sus evidencias de carga. La corrida OFICIAL NOMINAL es una prueba de carga reproducible ejecutada en entorno local/contenedorizado, con perfil configurado de 50 usuarios virtuales durante 5 minutos y spawn rate de 5 usuarios/s. El CSV oficial (Corrida A) registra 12{,}994 peticiones, 0 fallos, 43.53 req/s, y latencias dentro de los umbrales operativos. E5 permanece parcial: falta una captura exacta del CSV y una corrida oficial válida de estrés.
+  \item \textbf{Juliana Romina Emanuel Pino (Responsable de Microservicio Soporte y Observabilidad):} En esta entrega se completó la refactorización del microservicio de Soporte y Gestión de Tickets bajo Java 17/Spring Boot, incorporando el bus de comunicación gRPC (elección de líder vía \texttt{etcd}) y la arquitectura de observabilidad con Prometheus, Grafana y cAdvisor. El diseño del tablero de Grafana (\texttt{ops/grafana/pfc-dashboard.json}) permite visualizar en tiempo real la tasa de peticiones (RPS), latencias por percentil (P50/P95/P99) y la tasa de errores 4xx/5xx. Se consolidó la trazabilidad E5 del microservicio de Soporte y sus evidencias de carga. La corrida OFICIAL NOMINAL es una prueba de carga reproducible ejecutada en entorno local/contenedorizado, con perfil configurado de 50 usuarios virtuales durante 5 minutos y spawn rate de 5 usuarios/s. El CSV nominal actual registra \CargaPeticiones{} peticiones, \CargaFallos{} fallos, \CargaRPS{} req/s, y $P_{99}=\CargaPnoventaNueveMs$\,ms, inferior al objetivo de 500\,ms. E5 dispone de capturas nominales y una corrida oficial válida de estrés; sigue no disponible la evidencia original del perfil nominal y no se acredita el estado de HikariCP.
 \end{itemize}
 
 \section{Declaración de Uso de Inteligencia Artificial}
@@ -962,48 +1036,48 @@ En cumplimiento de la transparencia académica exigida por la cátedra, se decla
 
   \item \textbf{Keyla Betzabe Bedon Viteri:} Dise\~no asistido de componentes visuales en Jetpack Compose para la aplicaci\'on m\'ovil en Android, estructuraci\'on de entidades Room SQLite y adaptaci\'on de serializers en Django REST Framework. Las pruebas de sincronizaci\'on en segundo plano con \texttt{WorkManager} fueron ejecutadas y comprobadas en dispositivo real.
 
-  \item \textbf{Ernesto Gregory Luna Mora:} Uso asistido de Antigravity (Google DeepMind) y ChatGPT para la generaci\'on de la suite de 94 pruebas automatizadas en Spring Boot (unitarias, verificaci\'on gRPC in-process y pruebas E2E), configuraci\'on de enrutamiento y proxy en HAProxy 2.9, implementaci\'on del filtro \texttt{TraceIdFilter} con MDC, y dise\~no del disparador SQL \texttt{tg\_auditoria\_append\_only}. Las firmas criptogr\'aficas HMAC-SHA256 y la compuerta JaCoCo (71.42\% LINE / 71.34\% INSTRUCTION bajo regla BUNDLE enforceable al 70\%) fueron auditadas y certificadas manualmente en PostgreSQL.
+  \item \textbf{Ernesto Gregory Luna Mora:} Uso asistido de Antigravity (Google DeepMind) y ChatGPT para la generaci\'on de la suite de 96 pruebas automatizadas en Spring Boot (unitarias, verificaci\'on gRPC in-process y pruebas E2E), configuraci\'on de enrutamiento y proxy en HAProxy 2.9, implementaci\'on del filtro \texttt{TraceIdFilter} con MDC, y dise\~no del disparador SQL \texttt{tg\_auditoria\_append\_only}. Las firmas criptogr\'aficas HMAC-SHA256 y la compuerta JaCoCo (74,42\% LINE / 72,74\% INSTRUCTION bajo regla BUNDLE enforceable al 70\%) fueron auditadas y certificadas manualmente en PostgreSQL.
 
   \item \textbf{Juliana Romina Emanuel Pino:} Uso de Claude y Antigravity para generaci\'on asistida de la prueba de carga (\texttt{locustfile.py}), configuraci\'on de Prometheus/Grafana/cAdvisor, correcci\'on de secreto JWT en el generador de carga y verificaci\'on bibliogr\'afica. Todo hallazgo t\'ecnico documentado (latencias, tasas de error) proviene de ejecuciones reales verificadas manualmente, no de datos simulados.
 \end{itemize}
 
-\section{Gestión de Integración de Código, Compuertas de Calidad CI/CD y Trazabilidad de Issues}
+\section{Gestión de Integración de Código y Trazabilidad de Pull Requests}
 \label{sec:revision-cruzada}
-El aseguramiento de la calidad del software en el repositorio AcadTrace (\url{https://github.com/LEO23as/acadtrace}) se fundamentó en un flujo estructurado de desarrollo colaborativo apoyado en el seguimiento mediante \textbf{issues de GitHub}, la validación automatizada mediante compuertas de \textbf{Integración Continua (CI/CD)} y la coordinación técnica entre integrantes a través de \textit{Pull Requests} (PR).
+La integración de cambios en el repositorio AcadTrace (\url{https://github.com/gleiston-guerrero/acadtrace}) se documenta mediante ramas de trabajo, commits y \textit{Pull Requests} (PR), junto con las ejecuciones disponibles de GitHub Actions. Para los seis PR citados en la tabla, la API de GitHub registra el autor y la fusión, pero no registra revisiones formales en el endpoint \texttt{/reviews}; no se acredita una revisión obligatoria por otra persona.
 
-\subsection{Metodología de Trabajo por Issues y Solicitudes de Incorporación}
-Cada nuevo requerimiento funcional, módulo arquitectónico o corrección de defectos fue formalizado previamente mediante un \textbf{issue de seguimiento}, asignándole etiquetas de clasificación (\texttt{architecture}, \texttt{security}, \texttt{testing}, \texttt{devops}, \texttt{bugfix}), integrante responsable y criterios de aceptación técnicos. El desarrollo se ejecutó en ramas de características personales aisladas (\texttt{Ernesto-Luna}, \texttt{devBedon}, \texttt{Juliana-Emanuel}, \texttt{feat/cluster-db-fragmentacion}).
+\subsection{Trabajo en Ramas y Solicitudes de Incorporación}
+El desarrollo se ejecutó en ramas de trabajo (\texttt{Ernesto-Luna}, \texttt{devBedon}, \texttt{Juliana-Emanuel}, \texttt{feat/cluster-db-fragmentacion}) y se integró mediante PR. El historial consultado no acredita que cada requerimiento, módulo o corrección tuviera previamente un issue con etiquetas, responsable y criterios de aceptación; esa trazabilidad debe comprobarse caso por caso.
 
-Para la incorporación y fusión de cambios a la rama principal (\texttt{main}), el flujo de trabajo aplicó los siguientes controles técnicos y compuertas de aseguramiento:
+Para la incorporación y fusión de cambios a la rama principal (\texttt{main}), se distinguen los registros comprobados de las prácticas cuya aplicación general no está acreditada:
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Trazabilidad al Issue Asociado:} Toda solicitud de incorporación debió vincular explícitamente el \textbf{issue} de GitHub correspondiente mediante directivas de cierre (\texttt{Closes \#...}, \texttt{Fixes \#...}) para garantizar la justificación y auditoría de cada cambio.
-  \item \textbf{Compuertas Automatizadas de Integración Continua (CI/CD):} Como condición indispensable, los flujos automatizados de GitHub Actions (compilación de código, análisis estático, cobertura JaCoCo, y suites de pruebas unitarias e integración en contenedores) debieron certificarse en estado verde (\textit{All checks passed}) antes de autorizar la fusión definitiva.
-  \item \textbf{Validación Colaborativa y Coordinación Técnica:} La compatibilidad de dependencias entre subsistemas (contratos gRPC Protobuf, esquemas de bases de datos y enrutamiento del API Gateway) fue validada y coordinada entre los integrantes responsables, asegurando la resolución colaborativa de conflictos y la estabilidad antes del cierre e integración del PR.
+  \item \textbf{Vinculación con issues:} No se acredita el uso sistemático de directivas de cierre (\texttt{Closes \#...}, \texttt{Fixes \#...}) en todos los PR. Los vínculos entre issues y cambios se reconocen únicamente cuando constan en sus registros.
+  \item \textbf{Integración Continua (CI/CD):} El repositorio dispone de flujos de GitHub Actions para compilación, análisis estático y pruebas. Su existencia no demuestra que todas las fusiones estuvieran condicionadas a un estado verde (\textit{All checks passed}); el historial revisado no respalda esa condición universal. El resultado y el momento de las comprobaciones deben contrastarse para cada fusión.
+  \item \textbf{Registro de incorporación:} Los seis PR comprobados figuran como fusionados en GitHub. En cada uno, la cuenta que realizó el merge coincide con la cuenta autora; este dato no acredita una revisión por otra persona.
 \end{enumerate}
 
 \begin{table}[H]
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{1.22}
-\caption{Registro de trazabilidad de Pull Requests, validación colaborativa y seguimiento de issues en GitHub (\url{https://github.com/LEO23as/acadtrace/pulls}).}
+\caption{Tareas y Pull Requests contrastados con GitHub (\url{https://github.com/gleiston-guerrero/acadtrace/pulls}).}
 \label{tab:peer-review}
-\begin{tabularx}{\textwidth}{|c|c|p{2.8cm}|p{2.2cm}|p{2.2cm}|X|}
+\begin{tabularx}{\textwidth}{|c|c|p{3.1cm}|p{2.4cm}|X|}
 \hline
-\textbf{Tarea / Ref} & \textbf{PR} & \textbf{Módulo / Requerimiento} & \textbf{Autor} & \textbf{Coordinación y Validación} & \textbf{Criterio Técnico y Validación Automatizada en CI} \\
+\textbf{Tarea / Ref} & \textbf{PR} & \textbf{Alcance comprobado} & \textbf{Autor} & \textbf{Archivos o cambios presentes en el PR} \\
 \hline
-Tarea A & \#48 & Soporte: Observabilidad y Elección de Líder & Juliana Emanuel & Pedro Castro & Verificación de contenedor \texttt{etcd}, scraping de Prometheus cada 15\,s y tablero Grafana. Validación técnica exitosa con métricas de salud en CI. \\
+Tarea A & \#48 & Soporte y componentes frontend & Juliana Emanuel (\texttt{JulianaEmanuel}) & Cambios en \texttt{microservicio-soporte/backend}, pruebas de Soporte y componentes frontend. \\
 \hline
-Tarea B & \#51 & Calidad: Trazabilidad y Filtro de Correlación & Ernesto Luna & Juliana Emanuel & Certificación de inyección de \texttt{X-Trace-Id} mediante \texttt{TraceIdFilter} con SLF4J MDC y compuerta JaCoCo superada en el microservicio de Secretaría. \\
+Tarea B & \#51 & Documentación del PFC & Ernesto Luna (\texttt{Ernesto835}) & Cambios en manuscritos e informes LaTeX y en el flujo de CI/CD. \\
 \hline
-Tarea C & \#58 & Móvil: Persistencia Offline-First en SQLite & Keyla Bedon & Pedro Castro & Validación del patrón Repository con Room SQLite, tareas periódicas \texttt{WorkManager} y suite de pruebas JVM ejecutadas en verde en GitHub Actions. \\
+Tarea C & --- & Persistencia SQLite: sin PR verificado entre los consultados & No atribuido & El PR \#58 no acredita esta tarea; no se asigna otro PR ni autor. \\
 \hline
-Tarea D & \#55 & Seguridad: Auditoría Inmutable y Conmutador & Ernesto Luna & Keyla Bedon & Validación del disparador \texttt{tg\_auditoria\_append\_only} en PostgreSQL (rechazo de UPDATE/DELETE) y conmutación efectiva de mecanismos $M_0$--$M_3$ vía \texttt{AUDIT}. \\
+Tarea D & \#55 & Interfaces de Secretaría y SGA Principal & Ernesto Luna (\texttt{Ernesto835}) & Cambios en componentes frontend, \texttt{docker-compose.yml} y \texttt{CITATION.cff}. \\
 \hline
-Tarea E & \#60 & Contratos: gRPC SGA Principal y Satélites & Pedro Castro & Ernesto Luna & Comprobación de compatibilidad binaria Protobuf v3 entre Principal y Docente con paso limpio en la suite Surefire de Maven en CI. \\
+Tarea E & \#60 & Consolidación de pruebas, métricas y trazabilidad & Ernesto Luna (\texttt{Ernesto835}) & Incorpora archivos de pruebas, resultados experimentales y cambios en el informe. \\
 \hline
-Tarea F & \#58 & Móvil: APK Representante y Evidencias & Keyla Bedon & Juliana Emanuel & Auditoría de artefacto APK empaquetado en \texttt{release/apk/}, capturas de pantalla de biometría y actualización del registro ADR-006. \\
+Tarea F & \#58 & APK de representante y evidencias & Ernesto Luna (\texttt{Ernesto835}) & El APK actual está publicado en GitHub Release \texttt{v1.0.1}; \texttt{release/apk/} contiene el índice documental, no el binario. El PR incorpora capturas y la actualización de ADR-006. \\
 \hline
-Tarea G & \#59 & Actas y Pruebas Carga Oficiales Locust & Juliana Emanuel & Ernesto Luna & Incorporación de actas de seguimiento en \texttt{docs/actas/}, resultados nominales y de estrés de Locust con metadatos congelados. \\
+Tarea G & \#59 & Actas y datos Locust & Juliana Emanuel (\texttt{JulianaEmanuel}) & Incluye actas en \texttt{docs/actas/} y archivos de datos Locust. \\
 \hline
 \end{tabularx}
 \end{table}
@@ -1016,10 +1090,10 @@ Tarea G & \#59 & Actas y Pruebas Carga Oficiales Locust & Juliana Emanuel & Erne
 \addcontentsline{toc}{section}{Anexo: Respuestas a Preguntas de Evaluaci\'on Oral}
 
 \subsection*{1. \textquestiondown Si alguien con acceso a la base de datos cambia una nota sin pasar por la aplicaci\'on, \textquestiondown lo detectan? \textquestiondown Con cu\'al de los cuatro mecanismos y en cu\'anto tiempo?}
-\textbf{Respuesta:} S\'i. Se detecta con los mecanismos \textbf{m2 (Encadenada + Lamport)} y \textbf{m3 (m2 + Vectorial)}. Bajo m0 y m1 pasa inadvertida (control negativo). El verificador (\texttt{verificador\_cadena.py}) recorre la bit\'acora y detecta el eslab\'on roto al contrastar el hash recalculado frente al hash almacenado en menos de 0.05 segundos para 10,000 registros.
+\textbf{Respuesta:} S\'i, dentro del escenario experimental ejecutado. M2 y M3 detectaron 30 de 30 manipulaciones T1 por mecanismo; m0 y m1 registraron 0 de 30. La evidencia vigente demuestra detecci\'on en esas corridas, pero no respalda una afirmaci\'on temporal para 10{,}000 registros.
 
 \subsection*{2. \textquestiondown Cu\'al es la sobrecarga medida del mecanismo encadenado frente a no tener auditor\'ia, y qu\'e significa para un docente que carga cincuenta notas seguidas?}
-\textbf{Respuesta:} La sobrecarga medida es de \textbf{1.6\,ms por evento} (de 13.5\,ms en m0 a 15.1\,ms en m2). Para un docente que carga 50 notas consecutivas, el incremento total es de apenas $50 \times 4.8\,\text{ms} = 240\,\text{ms}$ (menos de un cuarto de segundo), resultando completamente imperceptible para el usuario y garantizando integridad criptogr\'afica total.
+\textbf{Respuesta:} El bloque vigente de latencias es un microbenchmark local secuencial en memoria. No representa cincuenta solicitudes concurrentes, acceso real a base de datos ni una operaci\'on HTTP completa. La evidencia se presenta por combinaci\'on mecanismo--nivel con $n=10$: se reportan mediana, IC 95\% bootstrap, diferencia de medianas frente a $M_0$ y Vargha--Delaney $A_{12}$ dentro del mismo nivel. Por ello no se mezclan niveles ni se extrapola linealmente el resultado a cincuenta notas.
 
 \subsection*{3. \textquestiondown C\'omo garantizan, con relojes l\'ogicos, el orden real de dos modificaciones hechas desde nodos distintos sin reloj com\'un?}
 \textbf{Respuesta:} Mediante los \textbf{Relojes de Lamport y Relojes Vectoriales} (m3). Cada nodo mantiene un vector de versiones $\vec{V}$. Cuando un nodo emite una modificaci\'on, incrementa su posici\'on local $V_i = V_i + 1$. Al sincronizarse dos eventos concurrentes $A$ y $B$, si $\vec{V}_A < \vec{V}_B$, $A$ precedi\'o causalmente a $B$; si ninguno domina al otro ($A \parallel B$), el algoritmo detecta concurrencia y aplica reconciliaci\'on determinista basada en el identificador de nodo prioritario.

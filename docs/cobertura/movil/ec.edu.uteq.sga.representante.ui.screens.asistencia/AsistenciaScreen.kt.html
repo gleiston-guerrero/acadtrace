@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsistenciaScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.asistencia</a> &gt; <span class="el_source">AsistenciaScreen.kt</span></div><h1>AsistenciaScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.asistencia
+
+import android.app.DatePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.ui.components.*
+import ec.edu.uteq.sga.representante.ui.theme.*
+import java.util.*
+
+@Composable
+fun AsistenciaScreen(
+    idAsignacion: Long,
+    viewModel: AsistenciaViewModel,
+    onBackClick: () -&gt; Unit,
+    onVerResumenClick: () -&gt; Unit
+<span class="nc" id="L34">) {</span>
+<span class="nc" id="L35">    val state by viewModel.uiState.collectAsState()</span>
+<span class="nc" id="L36">    val context = LocalContext.current</span>
+
+<span class="nc" id="L38">    LaunchedEffect(idAsignacion) {</span>
+<span class="nc" id="L39">        viewModel.init(idAsignacion)</span>
+<span class="nc" id="L40">    }</span>
+
+<span class="nc" id="L42">    val calendar = Calendar.getInstance()</span>
+<span class="nc" id="L43">    val datePicker = DatePickerDialog(</span>
+<span class="nc" id="L44">        context,</span>
+        { _, year, month, dayOfMonth -&gt;
+<span class="nc" id="L46">            val formatted = String.format(Locale.getDefault(), &quot;%04d-%02d-%02d&quot;, year, month + 1, dayOfMonth)</span>
+<span class="nc" id="L47">            viewModel.changeFecha(formatted)</span>
+<span class="nc" id="L48">        },</span>
+<span class="nc" id="L49">        calendar.get(Calendar.YEAR),</span>
+<span class="nc" id="L50">        calendar.get(Calendar.MONTH),</span>
+<span class="nc" id="L51">        calendar.get(Calendar.DAY_OF_MONTH)</span>
+    )
+
+<span class="nc" id="L54">    Scaffold(</span>
+<span class="nc" id="L55">        topBar = {</span>
+<span class="nc" id="L56">            SgaTopAppBar(</span>
+<span class="nc" id="L57">                title = &quot;Control de Asistencia&quot;,</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                subtitle = state.selectedAsignacion?.let { &quot;${it.asignaturaNombre} • ${it.gradoNombre} \&quot;${it.paraleloLetra}\&quot;&quot; },</span>
+<span class="nc" id="L59">                showBackButton = true,</span>
+<span class="nc" id="L60">                onBackClick = onBackClick,</span>
+<span class="nc" id="L61">                actions = {</span>
+<span class="nc" id="L62">                    IconButton(onClick = onVerResumenClick) {</span>
+<span class="nc" id="L63">                        Icon(</span>
+<span class="nc" id="L64">                            imageVector = Icons.Default.Analytics,</span>
+<span class="nc" id="L65">                            contentDescription = &quot;Ver Resumen&quot;,</span>
+<span class="nc" id="L66">                            tint = Color.White</span>
+                        )
+                    }
+                }
+            )
+        }
+<span class="nc" id="L72">    ) { padding -&gt;</span>
+<span class="nc" id="L73">        Column(</span>
+<span class="nc" id="L74">            modifier = Modifier</span>
+<span class="nc" id="L75">                .fillMaxSize()</span>
+<span class="nc" id="L76">                .padding(padding)</span>
+<span class="nc" id="L77">                .background(BackgroundSlate)</span>
+        ) {
+<span class="nc" id="L79">            OfflineBanner(isOffline = state.isOffline)</span>
+
+            // ─── SELECTOR RÁPIDO DE CURSO ─────────────────────────────────────
+<span class="nc bnc" id="L82" title="All 4 branches missed.">            if (state.asignaciones.isNotEmpty()) {</span>
+<span class="nc" id="L83">                Surface(</span>
+<span class="nc" id="L84">                    color = CardSurface,</span>
+<span class="nc" id="L85">                    shadowElevation = 1.dp</span>
+<span class="nc" id="L86">                ) {</span>
+<span class="nc" id="L87">                    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {</span>
+<span class="nc" id="L88">                        Text(</span>
+<span class="nc" id="L89">                            text = &quot;Curso seleccionado:&quot;,</span>
+<span class="nc" id="L90">                            fontSize = 11.sp,</span>
+<span class="nc" id="L91">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L92">                            color = TextSecondary,</span>
+<span class="nc" id="L93">                            modifier = Modifier.padding(horizontal = 16.dp)</span>
+                        )
+<span class="nc" id="L95">                        LazyRow(</span>
+<span class="nc" id="L96">                            modifier = Modifier</span>
+<span class="nc" id="L97">                                .fillMaxWidth()</span>
+<span class="nc" id="L98">                                .padding(horizontal = 16.dp, vertical = 6.dp),</span>
+<span class="nc" id="L99">                            horizontalArrangement = Arrangement.spacedBy(8.dp)</span>
+                        ) {
+<span class="nc" id="L101">                            items(state.asignaciones) { asig -&gt;</span>
+<span class="nc" id="L102">                                val isSelected = state.selectedAsignacion?.idAsignacion == asig.idAsignacion</span>
+<span class="nc" id="L103">                                FilterChip(</span>
+<span class="nc" id="L104">                                    selected = isSelected,</span>
+<span class="nc" id="L105">                                    onClick = { viewModel.selectAsignacion(asig) },</span>
+<span class="nc" id="L106">                                    label = {</span>
+<span class="nc" id="L107">                                        Text(</span>
+<span class="nc" id="L108">                                            text = &quot;${asig.asignaturaNombre} (${asig.gradoNombre} ${asig.paraleloLetra})&quot;,</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,</span>
+<span class="nc" id="L110">                                            fontSize = 12.sp</span>
+                                        )
+                                    },
+<span class="nc" id="L113">                                    colors = FilterChipDefaults.filterChipColors(</span>
+<span class="nc" id="L114">                                        selectedContainerColor = ModuloAsistenciaBg,</span>
+<span class="nc" id="L115">                                        selectedLabelColor = ModuloAsistenciaText</span>
+                                    )
+                                )
+<span class="nc" id="L118">                            }</span>
+<span class="nc" id="L119">                        }</span>
+<span class="nc" id="L120">                    }</span>
+                }
+            }
+
+            // ─── BARRA DE FECHA Y MARCADO RÁPIDO ──────────────────────────────
+<span class="nc" id="L125">            Surface(</span>
+<span class="nc" id="L126">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L127">                color = CardSurface,</span>
+<span class="nc" id="L128">                shadowElevation = 1.dp</span>
+<span class="nc" id="L129">            ) {</span>
+<span class="nc" id="L130">                Row(</span>
+<span class="nc" id="L131">                    modifier = Modifier</span>
+<span class="nc" id="L132">                        .fillMaxWidth()</span>
+<span class="nc" id="L133">                        .padding(horizontal = 16.dp, vertical = 10.dp),</span>
+<span class="nc" id="L134">                    horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L135">                    verticalAlignment = Alignment.CenterVertically</span>
+                ) {
+<span class="nc" id="L137">                    Row(</span>
+<span class="nc" id="L138">                        verticalAlignment = Alignment.CenterVertically,</span>
+<span class="nc" id="L139">                        modifier = Modifier.weight(1f)</span>
+                    ) {
+<span class="nc" id="L141">                        Icon(</span>
+<span class="nc" id="L142">                            imageVector = Icons.Default.Today,</span>
+<span class="nc" id="L143">                            contentDescription = null,</span>
+<span class="nc" id="L144">                            tint = PrimaryNavy,</span>
+<span class="nc" id="L145">                            modifier = Modifier.size(20.dp)</span>
+                        )
+<span class="nc" id="L147">                        Spacer(modifier = Modifier.width(6.dp))</span>
+<span class="nc" id="L148">                        TextButton(</span>
+<span class="nc" id="L149">                            onClick = { datePicker.show() },</span>
+<span class="nc" id="L150">                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)</span>
+<span class="nc" id="L151">                        ) {</span>
+<span class="nc" id="L152">                            Text(</span>
+<span class="nc" id="L153">                                text = &quot;Fecha: ${state.selectedFecha}&quot;,</span>
+<span class="nc" id="L154">                                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L155">                                fontSize = 14.sp,</span>
+<span class="nc" id="L156">                                color = PrimaryNavy</span>
+                            )
+                        }
+<span class="nc" id="L159">                    }</span>
+
+<span class="nc" id="L161">                    FilledTonalButton(</span>
+<span class="nc" id="L162">                        onClick = { viewModel.marcarTodosPresentes() },</span>
+<span class="nc" id="L163">                        colors = ButtonDefaults.filledTonalButtonColors(</span>
+<span class="nc" id="L164">                            containerColor = ModuloAsistenciaBg,</span>
+<span class="nc" id="L165">                            contentColor = ModuloAsistenciaText</span>
+                        ),
+<span class="nc" id="L167">                        shape = RoundedCornerShape(10.dp),</span>
+<span class="nc" id="L168">                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)</span>
+<span class="nc" id="L169">                    ) {</span>
+<span class="nc" id="L170">                        Icon(</span>
+<span class="nc" id="L171">                            Icons.Default.DoneAll,</span>
+<span class="nc" id="L172">                            contentDescription = null,</span>
+<span class="nc" id="L173">                            tint = ModuloAsistenciaText,</span>
+<span class="nc" id="L174">                            modifier = Modifier.size(16.dp)</span>
+                        )
+<span class="nc" id="L176">                        Spacer(modifier = Modifier.width(6.dp))</span>
+<span class="nc" id="L177">                        Text(&quot;Todos Presentes&quot;, color = ModuloAsistenciaText, fontWeight = FontWeight.Bold, fontSize = 12.sp)</span>
+                    }
+<span class="nc" id="L179">                }</span>
+            }
+
+<span class="nc bnc" id="L182" title="All 4 branches missed.">            if (state.isLoading &amp;&amp; state.items.isEmpty()) {</span>
+<span class="nc" id="L183">                LoadingView(&quot;Cargando lista de asistencia...&quot;)</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            } else if (state.items.isEmpty()) {</span>
+<span class="nc" id="L185">                EmptyStateView(</span>
+<span class="nc" id="L186">                    icon = Icons.Default.PersonOff,</span>
+<span class="nc" id="L187">                    title = &quot;No hay estudiantes matriculados&quot;,</span>
+<span class="nc" id="L188">                    subtitle = &quot;Selecciona otra asignatura o sincroniza los datos.&quot;</span>
+                )
+<span class="nc" id="L190">            } else {</span>
+<span class="nc" id="L191">                LazyColumn(</span>
+<span class="nc" id="L192">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L193">                    contentPadding = PaddingValues(16.dp),</span>
+<span class="nc" id="L194">                    verticalArrangement = Arrangement.spacedBy(10.dp)</span>
+                ) {
+<span class="nc" id="L196">                    items(state.items) { item -&gt;</span>
+<span class="nc" id="L197">                        ItemAsistenciaEstudiante(</span>
+<span class="nc" id="L198">                            item = item,</span>
+                            onSelectEstado = { nuevoEstado -&gt;
+<span class="nc" id="L200">                                viewModel.setEstadoAsistencia(item.estudiante.idMatricula, nuevoEstado)</span>
+<span class="nc" id="L201">                            }</span>
+                        )
+<span class="nc" id="L203">                    }</span>
+<span class="nc" id="L204">                }</span>
+            }
+<span class="nc" id="L206">        }</span>
+    }
+<span class="nc" id="L208">}</span>
+
+@Composable
+fun ItemAsistenciaEstudiante(
+    item: EstudianteAsistenciaItem,
+    onSelectEstado: (String) -&gt; Unit
+<span class="nc" id="L214">) {</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    val estadoActual = item.asistencia?.estado</span>
+
+<span class="nc" id="L217">    Card(</span>
+<span class="nc" id="L218">        modifier = Modifier</span>
+<span class="nc" id="L219">            .fillMaxWidth()</span>
+<span class="nc" id="L220">            .shadow(1.dp, RoundedCornerShape(14.dp)),</span>
+<span class="nc" id="L221">        shape = RoundedCornerShape(14.dp),</span>
+<span class="nc" id="L222">        colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L223">        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L224">    ) {</span>
+<span class="nc" id="L225">        Column(modifier = Modifier.padding(14.dp)) {</span>
+<span class="nc" id="L226">            Row(</span>
+<span class="nc" id="L227">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L228">                horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L229">                verticalAlignment = Alignment.CenterVertically</span>
+            ) {
+<span class="nc" id="L231">                Row(</span>
+<span class="nc" id="L232">                    verticalAlignment = Alignment.CenterVertically,</span>
+<span class="nc" id="L233">                    modifier = Modifier.weight(1f)</span>
+                ) {
+<span class="nc" id="L235">                    Box(</span>
+<span class="nc" id="L236">                        modifier = Modifier</span>
+<span class="nc" id="L237">                            .size(36.dp)</span>
+<span class="nc" id="L238">                            .clip(CircleShape)</span>
+<span class="nc" id="L239">                            .background(ModuloAsistenciaBg),</span>
+<span class="nc" id="L240">                        contentAlignment = Alignment.Center</span>
+                    ) {
+<span class="nc" id="L242">                        Text(</span>
+<span class="nc" id="L243">                            text = item.estudiante.apellidos.take(1).uppercase(),</span>
+<span class="nc" id="L244">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L245">                            color = PrimaryNavy,</span>
+<span class="nc" id="L246">                            fontSize = 14.sp</span>
+                        )
+<span class="nc" id="L248">                    }</span>
+<span class="nc" id="L249">                    Spacer(modifier = Modifier.width(10.dp))</span>
+<span class="nc" id="L250">                    Column {</span>
+<span class="nc" id="L251">                        Text(</span>
+<span class="nc" id="L252">                            text = item.estudiante.nombreCompleto,</span>
+<span class="nc" id="L253">                            style = MaterialTheme.typography.titleMedium,</span>
+<span class="nc" id="L254">                            fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L255">                            color = TextPrimary,</span>
+<span class="nc" id="L256">                            fontSize = 14.sp</span>
+                        )
+<span class="nc bnc" id="L258" title="All 4 branches missed.">                        if (item.estudiante.cedula.isNotBlank()) {</span>
+<span class="nc" id="L259">                            Text(</span>
+<span class="nc" id="L260">                                text = &quot;C.I. ${item.estudiante.cedula}&quot;,</span>
+<span class="nc" id="L261">                                fontSize = 11.sp,</span>
+<span class="nc" id="L262">                                color = TextSecondary</span>
+                            )
+                        }
+<span class="nc" id="L265">                    }</span>
+<span class="nc" id="L266">                }</span>
+
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                if (estadoActual != null) {</span>
+<span class="nc" id="L269">                    AttendanceBadge(estado = estadoActual)</span>
+                }
+<span class="nc" id="L271">            }</span>
+
+<span class="nc" id="L273">            Spacer(modifier = Modifier.height(10.dp))</span>
+
+            // Botones de marcado rápido (P, A, J, At)
+<span class="nc" id="L276">            Row(</span>
+<span class="nc" id="L277">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L278">                horizontalArrangement = Arrangement.spacedBy(6.dp)</span>
+            ) {
+<span class="nc" id="L280">                EstadoBoton(</span>
+<span class="nc" id="L281">                    texto = &quot;P&quot;,</span>
+<span class="nc" id="L282">                    label = &quot;Presente&quot;,</span>
+<span class="nc" id="L283">                    color = ChipPresente,</span>
+<span class="nc" id="L284">                    isSelected = estadoActual == &quot;PRESENTE&quot;,</span>
+<span class="nc" id="L285">                    modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L286">                    onClick = { onSelectEstado(&quot;PRESENTE&quot;) }</span>
+                )
+<span class="nc" id="L288">                EstadoBoton(</span>
+<span class="nc" id="L289">                    texto = &quot;A&quot;,</span>
+<span class="nc" id="L290">                    label = &quot;Ausente&quot;,</span>
+<span class="nc" id="L291">                    color = ChipAusente,</span>
+<span class="nc" id="L292">                    isSelected = estadoActual == &quot;AUSENTE&quot;,</span>
+<span class="nc" id="L293">                    modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L294">                    onClick = { onSelectEstado(&quot;AUSENTE&quot;) }</span>
+                )
+<span class="nc" id="L296">                EstadoBoton(</span>
+<span class="nc" id="L297">                    texto = &quot;J&quot;,</span>
+<span class="nc" id="L298">                    label = &quot;Justif.&quot;,</span>
+<span class="nc" id="L299">                    color = ChipJustificado,</span>
+<span class="nc" id="L300">                    isSelected = estadoActual == &quot;JUSTIFICADO&quot;,</span>
+<span class="nc" id="L301">                    modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L302">                    onClick = { onSelectEstado(&quot;JUSTIFICADO&quot;) }</span>
+                )
+<span class="nc" id="L304">                EstadoBoton(</span>
+<span class="nc" id="L305">                    texto = &quot;At&quot;,</span>
+<span class="nc" id="L306">                    label = &quot;Atraso&quot;,</span>
+<span class="nc" id="L307">                    color = ChipAtraso,</span>
+<span class="nc" id="L308">                    isSelected = estadoActual == &quot;ATRASO&quot;,</span>
+<span class="nc" id="L309">                    modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L310">                    onClick = { onSelectEstado(&quot;ATRASO&quot;) }</span>
+                )
+<span class="nc" id="L312">            }</span>
+<span class="nc" id="L313">        }</span>
+    }
+}
+
+@Composable
+fun EstadoBoton(
+    texto: String,
+    label: String,
+    color: Color,
+    isSelected: Boolean,
+<span class="nc" id="L323">    modifier: Modifier = Modifier,</span>
+    onClick: () -&gt; Unit
+<span class="nc bnc" id="L325" title="All 2 branches missed.">) {</span>
+<span class="nc" id="L326">    Surface(</span>
+<span class="nc" id="L327">        modifier = modifier,</span>
+<span class="nc" id="L328">        shape = RoundedCornerShape(8.dp),</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">        color = if (isSelected) color else color.copy(alpha = 0.08f),</span>
+<span class="nc" id="L330">        onClick = onClick</span>
+<span class="nc" id="L331">    ) {</span>
+<span class="nc" id="L332">        Column(</span>
+<span class="nc" id="L333">            modifier = Modifier.padding(vertical = 6.dp),</span>
+<span class="nc" id="L334">            horizontalAlignment = Alignment.CenterHorizontally</span>
+        ) {
+<span class="nc" id="L336">            Text(</span>
+<span class="nc" id="L337">                text = texto,</span>
+<span class="nc" id="L338">                fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L339">                fontSize = 14.sp,</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                color = if (isSelected) Color.White else color</span>
+            )
+<span class="nc" id="L342">            Text(</span>
+<span class="nc" id="L343">                text = label,</span>
+<span class="nc" id="L344">                fontSize = 9.sp,</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                color = if (isSelected) Color.White else color</span>
+            )
+<span class="nc" id="L347">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

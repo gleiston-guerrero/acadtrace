@@ -8,6 +8,10 @@ import ec.edu.uteq.sga.application.service.AuditoriaService;
 import ec.edu.uteq.sga.domain.entity.Usuario;
 import ec.edu.uteq.sga.infrastructure.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,7 +44,18 @@ class AuditoriaPostgresContainerTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withInitScript("db/init/V0__baseline.sql");
+            .withInitScript("db/migration/V8__baseline_completo.sql");
+
+
+    @BeforeAll
+    static void initSgaApp() throws Exception {
+        try (Connection conn = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='sga_app') THEN CREATE ROLE sga_app WITH LOGIN PASSWORD 'test_pass_123' NOSUPERUSER NOCREATEDB NOCREATEROLE; END IF; END $$;");
+            stmt.execute("GRANT CONNECT ON DATABASE " + postgres.getDatabaseName() + " TO sga_app;");
+            stmt.execute("GRANT USAGE ON SCHEMA public TO sga_app;");
+        }
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -49,8 +64,8 @@ class AuditoriaPostgresContainerTest {
         final String jwtPrueba =
                 UUID.randomUUID().toString() + UUID.randomUUID().toString();
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.username", () -> "sga_app");
+        registry.add("spring.datasource.password", () -> "test_pass_123");
 
         // Secreto exclusivo del contexto de prueba.
         // Evita depender de JWT_SECRET del entorno local o de produccion.
@@ -69,9 +84,22 @@ class AuditoriaPostgresContainerTest {
                 () -> "86400000"
         );
 
-        // Hibernate crea las tablas; Flyway se desactiva porque V9+ asume datos de produccion
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
-        registry.add("spring.flyway.enabled", () -> "false");
+        // Flyway crea las tablas via migraciones; Hibernate en none como en produccion
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
+        registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
+        registry.add("spring.flyway.baseline-on-migrate", () -> "true");
+        registry.add("spring.flyway.baseline-version", () -> "8");
+        registry.add("spring.flyway.schemas", () -> "sga_principal");
+        registry.add("spring.flyway.default-schema", () -> "sga_principal");
+        registry.add("spring.flyway.placeholders.sga_app_password", () -> "test_pass_123");
+        registry.add("spring.flyway.user", postgres::getUsername);
+        registry.add("spring.flyway.password", postgres::getPassword);
+        registry.add("GRPC_INTERNAL_TOKEN", () -> "test-grpc-token");
+        registry.add("app.grpc.internal-token", () -> "test-grpc-token");
+        registry.add("app.notifications.internal-token", () -> "test-grpc-token");
+        registry.add("MAIL_PASSWORD", () -> "test-mail-password");
+        registry.add("spring.mail.password", () -> "test-mail-password");
         // Usar puerto aleatorio para gRPC y Tomcat para evitar conflictos
         registry.add("grpc.server.port", () -> 0);
     }

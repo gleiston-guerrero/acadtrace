@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SgaRepresentanteApp.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante</a> &gt; <span class="el_source">SgaRepresentanteApp.kt</span></div><h1>SgaRepresentanteApp.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante
+
+import android.app.Application
+import ec.edu.uteq.sga.representante.core.SessionManager
+import ec.edu.uteq.sga.representante.data.local.AppDatabase
+import ec.edu.uteq.sga.representante.data.remote.RetrofitClient
+import ec.edu.uteq.sga.representante.data.repository.AuthRepositoryImpl
+import ec.edu.uteq.sga.representante.data.repository.RepresentanteRepositoryImpl
+import ec.edu.uteq.sga.representante.domain.repository.AuthRepository
+import ec.edu.uteq.sga.representante.domain.repository.RepresentanteRepository
+import ec.edu.uteq.sga.representante.notifications.NotificationSupport
+import ec.edu.uteq.sga.representante.data.sync.SyncWorker
+import ec.edu.uteq.sga.representante.notifications.DeviceTokenRegistrar
+
+<span class="nc" id="L15">class SgaRepresentanteApp : Application() {</span>
+<span class="nc" id="L16">    lateinit var database: AppDatabase private set</span>
+<span class="nc" id="L17">    lateinit var sessionManager: SessionManager private set</span>
+<span class="nc" id="L18">    lateinit var authRepository: AuthRepository private set</span>
+<span class="nc" id="L19">    lateinit var representanteRepository: RepresentanteRepository private set</span>
+    override fun onCreate() {
+<span class="nc" id="L21">        super.onCreate()</span>
+<span class="nc" id="L22">        sessionManager = SessionManager(this)</span>
+<span class="nc" id="L23">        database = AppDatabase.getInstance(this)</span>
+<span class="nc" id="L24">        val client = RetrofitClient(sessionManager)</span>
+<span class="nc" id="L25">        authRepository = AuthRepositoryImpl(client, sessionManager)</span>
+<span class="nc" id="L26">        representanteRepository = RepresentanteRepositoryImpl(database, client)</span>
+<span class="nc" id="L27">        NotificationSupport.createChannel(this)</span>
+<span class="nc" id="L28">        NotificationSupport.createAcademicChannels(this)</span>
+<span class="nc" id="L29">        DeviceTokenRegistrar.refreshAndRegister(this)</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (sessionManager.areNotificationsEnabled()) NotificationSupport.schedule(this)</span>
+<span class="nc" id="L31">        SyncWorker.schedulePeriodicSync(this)</span>
+<span class="nc" id="L32">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

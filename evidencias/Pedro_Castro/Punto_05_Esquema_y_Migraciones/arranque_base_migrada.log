@@ -1,89 +1,50 @@
-===============================================================================
-Escenario: base ya migrada con V18 del 13/09
-Fecha:     2026-09-17T13:08:51Z
-Postgres:  17 en contenedor efimero pfc-e5-migrada:55433
-===============================================================================
 
-===============================================================================
-PASO 1  Estado inicial: V9..V18 aplicadas con V18 vieja del commit 78b0d175
-===============================================================================
- version |  checksum   | success |              description              
----------+-------------+---------+---------------------------------------
- 8       |             | t       | << Flyway Baseline >>
- 9       |   -28737681 | t       | representante usuario y rol
- 10      |  -877754385 | t       | vincular cuentas representante
- 12      |  1764344342 | t       | notificaciones push fcm
- 13      |  -825957691 | t       | trigger y revocacion auditoria
- 14      |  -193375823 | t       | cadena auditoria lamport
- 15      |  2014659661 | t       | auditoria campos criptograficos
- 16      |   360741646 | t       | estado cadena auditoria
- 17      | -1587529564 | t       | accion auditoria docente
- 18      |   361159887 | t       | rol aplicacion y revocacion auditoria
-(10 rows)
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
 
-
-===============================================================================
-PASO 2  Intento de migrate con V18 nueva + V19 + V20 SIN repair previo
-        Reproduce el fallo reportado por el ingeniero
-===============================================================================
-WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
-
-Flyway Community Edition 9.22.3 by Redgate
-See release notes here: https://rd.gt/416ObMi
-
-Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
-WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-exit=1
-
-===============================================================================
-PASO 3  Ejecutando flyway.repair() equivalente al FlywayMigrationStrategy
-        que sga-principal ejecuta en el arranque (FlywayConfig.java)
-===============================================================================
-WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
-
-Flyway Community Edition 9.22.3 by Redgate
-See release notes here: https://rd.gt/416ObMi
-
-Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
-WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-Repair of failed migration in Schema History table "sga_principal"."flyway_schema_history" not necessary. No failed migration detected.
-Repairing Schema History table for version 18 (Description: rol aplicacion y revocacion auditoria, Type: SQL, Checksum: -78359442)  ...
-Successfully repaired schema history table "sga_principal"."flyway_schema_history" (execution time 00:00.434s).
-
-===============================================================================
-PASO 4  Repetir migrate DESPUES de repair. Debe cerrar en Successfully applied
-===============================================================================
-WARNING: This version of Flyway is out of date. Upgrade to Flyway 13.7.0: https://rd.gt/3rXiSlV
-
-Flyway Community Edition 9.22.3 by Redgate
-See release notes here: https://rd.gt/416ObMi
-
-Database: jdbc:postgresql://localhost:55433/sga (PostgreSQL 17.11)
-WARNING: Flyway upgrade recommended: PostgreSQL 17.11 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
-Successfully validated 12 migrations (execution time 00:00.248s)
-Current version of schema "sga_principal": 18
-Migrating schema "sga_principal" to version "19 - ampliar permisos sga app"
-Migrating schema "sga_principal" to version "20 - reparar checksum v18"
-DB: V20: marca de reparacion aplicada. El checksum de V18 fue reparado por FlywayMigrationStrategy en el arranque de sga-principal.
-Successfully applied 2 migrations to schema "sga_principal", now at version v20 (execution time 00:00.165s)
-A Flyway report has been generated here: /flyway/report.html
-
-===============================================================================
-PASO 5  Estado final del historial. V18 con checksum recalculado, V19 y V20 OK
-===============================================================================
- version |  checksum   | success |              description              
----------+-------------+---------+---------------------------------------
- 8       |             | t       | << Flyway Baseline >>
- 9       |   -28737681 | t       | representante usuario y rol
- 10      |  -877754385 | t       | vincular cuentas representante
- 12      |  1764344342 | t       | notificaciones push fcm
- 13      |  -825957691 | t       | trigger y revocacion auditoria
- 14      |  -193375823 | t       | cadena auditoria lamport
- 15      |  2014659661 | t       | auditoria campos criptograficos
- 16      |   360741646 | t       | estado cadena auditoria
- 17      | -1587529564 | t       | accion auditoria docente
- 18      |   -78359442 | t       | rol aplicacion y revocacion auditoria
- 19      |  -554118186 | t       | ampliar permisos sga app
- 20      |  -386259163 | t       | reparar checksum v18
-(12 rows)
-
+2026-09-18T23:28:03.075-05:00  INFO 8620 --- [sga-principal] [           main] e.edu.uteq.sga.SgaPrincipalApplication   : Starting SgaPrincipalApplication v0.0.1-SNAPSHOT using Java 17.0.20.1 with PID 8620 (C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal\target\sga-principal-0.0.1-SNAPSHOT.jar started by leo23 in C:\Users\leo23\Documents\PROYECTOS\acadtrace\sga-principal)
+2026-09-18T23:28:03.088-05:00  INFO 8620 --- [sga-principal] [           main] e.edu.uteq.sga.SgaPrincipalApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-18T23:28:10.648-05:00  INFO 8620 --- [sga-principal] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-18T23:28:11.405-05:00  INFO 8620 --- [sga-principal] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 682 ms. Found 25 JPA repository interfaces.
+2026-09-18T23:28:16.264-05:00  INFO 8620 --- [sga-principal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8099 (http)
+2026-09-18T23:28:16.357-05:00  INFO 8620 --- [sga-principal] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-18T23:28:16.359-05:00  INFO 8620 --- [sga-principal] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-18T23:28:16.647-05:00  INFO 8620 --- [sga-principal] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-18T23:28:16.655-05:00  INFO 8620 --- [sga-principal] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 13246 ms
+2026-09-18T23:28:19.984-05:00  INFO 8620 --- [sga-principal] [           main] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 9.22.3 by Redgate
+2026-09-18T23:28:19.984-05:00  INFO 8620 --- [sga-principal] [           main] o.f.c.internal.license.VersionPrinter    : See release notes here: https://rd.gt/416ObMi
+2026-09-18T23:28:19.984-05:00  INFO 8620 --- [sga-principal] [           main] o.f.c.internal.license.VersionPrinter    : 
+2026-09-18T23:28:20.193-05:00  INFO 8620 --- [sga-principal] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5433/sga (PostgreSQL 15.19)
+2026-09-18T23:28:20.502-05:00  INFO 8620 --- [sga-principal] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 17 migrations (execution time 00:00.175s)
+2026-09-18T23:28:20.652-05:00  INFO 8620 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "sga_principal": 24
+2026-09-18T23:28:20.665-05:00  INFO 8620 --- [sga-principal] [           main] o.f.core.internal.command.DbMigrate      : Schema "sga_principal" is up to date. No migration necessary.
+2026-09-18T23:28:21.305-05:00  INFO 8620 --- [sga-principal] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-18T23:28:21.735-05:00  INFO 8620 --- [sga-principal] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-18T23:28:21.938-05:00  INFO 8620 --- [sga-principal] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-18T23:28:22.976-05:00  INFO 8620 --- [sga-principal] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-18T23:28:23.078-05:00  INFO 8620 --- [sga-principal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-18T23:28:23.147-05:00  INFO 8620 --- [sga-principal] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@21948bd1
+2026-09-18T23:28:23.153-05:00  INFO 8620 --- [sga-principal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-18T23:28:23.242-05:00  WARN 8620 --- [sga-principal] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-18T23:28:29.230-05:00  INFO 8620 --- [sga-principal] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-18T23:28:29.243-05:00  INFO 8620 --- [sga-principal] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-18T23:28:31.665-05:00  INFO 8620 --- [sga-principal] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-18T23:28:37.319-05:00  INFO 8620 --- [sga-principal] [           main] n.d.b.g.c.a.GrpcClientAutoConfiguration  : Detected grpc-netty-shaded: Creating ShadedNettyChannelFactory + InProcessChannelFactory
+2026-09-18T23:28:38.910-05:00  INFO 8620 --- [sga-principal] [           main] e.e.u.s.i.c.RestriccionBitacoraValidator : Verificado: usuario sga_app no puede modificar la bitacora
+2026-09-18T23:28:39.104-05:00  WARN 8620 --- [sga-principal] [           main] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc$PrincipalServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-18T23:28:39.139-05:00  WARN 8620 --- [sga-principal] [           main] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.contexto.TeacherContextServiceGrpc$TeacherContextServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-18T23:28:42.608-05:00  INFO 8620 --- [sga-principal] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-18T23:28:42.950-05:00  INFO 8620 --- [sga-principal] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1e81ebc8, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@3ff19826, org.springframework.security.web.context.SecurityContextHolderFilter@7bb8ede7, org.springframework.security.web.header.HeaderWriterFilter@70ce4b5d, org.springframework.web.filter.CorsFilter@3040fba9, org.springframework.security.web.authentication.logout.LogoutFilter@4cdedf52, ec.edu.uteq.sga.infrastructure.security.JwtFilter@248b2b61, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5adf6039, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@610f146c, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@1ef39b1a, org.springframework.security.web.session.SessionManagementFilter@27d74f45, org.springframework.security.web.access.ExceptionTranslationFilter@2b4f1b37, org.springframework.security.web.access.intercept.AuthorizationFilter@1ef2b7ef]
+2026-09-18T23:28:43.739-05:00  INFO 8620 --- [sga-principal] [           main] g.s.a.GrpcServerFactoryAutoConfiguration : Detected grpc-netty-shaded: Creating ShadedNettyGrpcServerFactory
+2026-09-18T23:28:45.440-05:00  INFO 8620 --- [sga-principal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8099 (http) with context path ''
+2026-09-18T23:28:45.459-05:00  INFO 8620 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.principal.PrincipalService, bean: principalGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.PrincipalGrpcService$$SpringCGLIB$$0
+2026-09-18T23:28:45.459-05:00  INFO 8620 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.contexto.TeacherContextService, bean: teacherContextGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.TeacherContextGrpcService$$SpringCGLIB$$0
+2026-09-18T23:28:45.459-05:00  INFO 8620 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.health.v1.Health, bean: grpcHealthService, class: io.grpc.protobuf.services.HealthServiceImpl
+2026-09-18T23:28:45.459-05:00  INFO 8620 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.reflection.v1alpha.ServerReflection, bean: protoReflectionService, class: io.grpc.protobuf.services.ProtoReflectionService
+2026-09-18T23:28:46.011-05:00  INFO 8620 --- [sga-principal] [           main] n.d.b.g.s.s.GrpcServerLifecycle          : gRPC Server started, listening on address: *, port: 9099
+2026-09-18T23:28:46.071-05:00  INFO 8620 --- [sga-principal] [           main] e.edu.uteq.sga.SgaPrincipalApplication   : Started SgaPrincipalApplication in 45.093 seconds (process running for 47.586)

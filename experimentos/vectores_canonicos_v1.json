@@ -1,0 +1,214 @@
+{
+  "descripcion": "12 vectores de entrada para el arnes de conformidad canonica v1. Solo entradas: ningun vector lleva canonicos esperados hardcodeados. Los canonicos los producen en la ejecucion las tres implementaciones reales (AuditHashService de sga-principal, AuditHashService de secretaria, docentes/auditoria/hashing.py). Valores especiales con tipos fuera de JSON: {\"$nan\": true} se decodifica como NaN nativo de cada lenguaje.",
+  "vectores": [
+    {
+      "id": 1,
+      "nombre": "Vector patron canonico v1 (ADR-007)",
+      "contenido": {
+        "actor_id": "123",
+        "entidad": "calificacion",
+        "entidad_id": "456",
+        "estado_reconciliacion": "APLICADO",
+        "modo": "m3",
+        "operacion": "EDITAR",
+        "payload": {
+          "descripcion": "Ajuste",
+          "resultado": "EXITO",
+          "schema_origen": "PRINCIPAL",
+          "trace_id": "11111111-1111-1111-1111-111111111111"
+        },
+        "reloj_lamport": 42,
+        "reloj_vectorial": {"docente": 2, "principal": 5, "secretaria": 1},
+        "timestamp": "2026-09-13T08:30:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 2,
+      "nombre": "Booleanos y contadores enteros",
+      "contenido": {
+        "actor_id": "admin",
+        "entidad": "usuario",
+        "entidad_id": "789",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "AUTH",
+        "payload": {"activo": true, "bloqueado": false, "intentos": 3},
+        "reloj_lamport": 43,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T09:00:00Z",
+        "tipo_evento": "LOGIN"
+      }
+    },
+    {
+      "id": 3,
+      "nombre": "Arreglos de texto",
+      "contenido": {
+        "actor_id": "coordinador",
+        "entidad": "curso",
+        "entidad_id": "202",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "ACTUALIZAR",
+        "payload": {"materias": ["FIS-202", "MAT-101", "QUI-303"]},
+        "reloj_lamport": 44,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T09:15:00Z",
+        "tipo_evento": "ASIGNACION"
+      }
+    },
+    {
+      "id": 4,
+      "nombre": "Mapas anidados con claves ASCII",
+      "contenido": {
+        "actor_id": "secretaria",
+        "entidad": "aula",
+        "entidad_id": "12",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "EDITAR",
+        "payload": {"aula": "B-12", "detalles": {"capacidad": 40, "piso": 2, "proyector": true}},
+        "reloj_lamport": 45,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T09:30:00Z",
+        "tipo_evento": "AULA_MODIFICADA"
+      }
+    },
+    {
+      "id": 5,
+      "nombre": "Cadenas y listas vacias",
+      "contenido": {
+        "actor_id": "docente_1",
+        "entidad": "asistencia",
+        "entidad_id": "99",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "CREAR",
+        "payload": {"justificacion": "", "novedades": []},
+        "reloj_lamport": 46,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T10:00:00Z",
+        "tipo_evento": "REGISTRO_ASISTENCIA"
+      }
+    },
+    {
+      "id": 6,
+      "nombre": "Decimal como numero JSON",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "nota",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "EDITAR",
+        "payload": {"nota": 8.5},
+        "reloj_lamport": 47,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T10:10:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 7,
+      "nombre": "Flotante de rango extremo pequeno",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "calc",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "COMPUTAR",
+        "payload": {"val": 1e-07},
+        "reloj_lamport": 48,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T10:20:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 8,
+      "nombre": "Marca de tiempo y fecha como cadenas",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "alumno",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "CREAR",
+        "payload": {"fecha_nacimiento": "2012-03-05"},
+        "reloj_lamport": 50,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T10:30:00.120Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 9,
+      "nombre": "Claves sensibles con tildes y variantes",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "usuario",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "LOGIN",
+        "payload": {"contraseña": "secreto", "contrase?a": "x", "dato": "ok", "password": "p", "token": "t"},
+        "reloj_lamport": 51,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T10:50:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 10,
+      "nombre": "Flotante de rango extremo grande",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "calc",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "COMPUTAR",
+        "payload": {"val": 1e21},
+        "reloj_lamport": 52,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T10:55:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 11,
+      "nombre": "Claves con caracteres suplementarios",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "emoji",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "TEST",
+        "payload": {"！": "exclamacion", "😀": "cara"},
+        "reloj_lamport": 53,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T11:00:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    },
+    {
+      "id": 12,
+      "nombre": "NaN como valor especial",
+      "contenido": {
+        "actor_id": "1",
+        "entidad": "calculo",
+        "entidad_id": "1",
+        "estado_reconciliacion": "NO_APLICA",
+        "modo": "m2",
+        "operacion": "TEST",
+        "payload": {"val": {"$nan": true}},
+        "reloj_lamport": 54,
+        "reloj_vectorial": {},
+        "timestamp": "2026-09-13T11:10:00Z",
+        "tipo_evento": "AUDITORIA"
+      }
+    }
+  ]
+}

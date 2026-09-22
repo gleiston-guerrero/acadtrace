@@ -40,23 +40,23 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | Estructura Prescrita | Carpeta en AcadTrace | Contenido y Responsabilidad | Comando de Reproducción |
 | :--- | :--- | :--- | :--- |
 | `src/core` | [`sga-principal/`](sga-principal/) | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
-| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | `cd microservicio-docente && GRPC_INTERNAL_TOKEN=test-internal-token pytest` |
+| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | Desde la raíz del repositorio, con Python instalado. **PowerShell 5.1 / Windows:** `Set-Location -ErrorAction Stop microservicio-docente; py -3 -m venv .venv; if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear el venv' }; .\.venv\Scripts\python.exe -m pip install -r requirements.txt; if ($LASTEXITCODE -ne 0) { throw 'No se pudieron instalar las dependencias' }; $env:GRPC_INTERNAL_TOKEN='test-internal-token'; .\.venv\Scripts\python.exe -m pytest`<br>**Bash / Linux:** `cd microservicio-docente && python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt && GRPC_INTERNAL_TOKEN=test-internal-token .venv/bin/python -m pytest` |
 | `src/secretaria` | [`microservicio-secretaria/`](microservicio-secretaria/) | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
 | `src/soporte` | [`microservicio-soporte/`](microservicio-soporte/) | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
 | Inteligencia artificial (complementario) | [`microservicio-ia/`](microservicio-ia/) | Microservicio FastAPI para diagnóstico académico y asistencia mediante inteligencia artificial | No aplica al mapa |
 | `apps/mobile` | [`app-movil-docente/`](app-movil-docente/) | Ruta física actual de la aplicación móvil para representantes; cliente Android (Kotlin/Jetpack Compose) con persistencia offline Room | `cd app-movil-docente && ./gradlew test` |
-| `apps/web` — Principal | [`sga-principal/sga-frontend/`](sga-principal/sga-frontend/) | Portal web de Principal en React y Vite | `cd sga-principal/sga-frontend && npm run build` |
+| `apps/web` — Principal | [`sga-principal/sga-frontend/`](sga-principal/sga-frontend/) | Portal web de Principal en React y Vite | `cd sga-principal/sga-frontend && npm ci --no-audit && npm run build` |
 | `apps/web` — Secretaría | [`microservicio-secretaria/client/`](microservicio-secretaria/client/) | Interfaz web de Secretaría | No aplica al mapa |
-| `apps/web` — Docente | [`microservicio-docente/frontend/`](microservicio-docente/frontend/) | Interfaz web de Docente | No aplica al mapa |
+| `apps/web` — Docente | [`microservicio-docente/frontend/`](microservicio-docente/frontend/) | Interfaz web de Docente en React 19 y Vite 8 | `cd microservicio-docente/frontend && npm ci --no-audit && npm run build` |
 | `apps/web` — Soporte | [`microservicio-soporte/src/`](microservicio-soporte/src/) | Código fuente de la interfaz web de Soporte | No aplica al mapa |
 | Infraestructura (complementario) | [`infra/`](infra/), [`docker-compose.yml`](docker-compose.yml) | Configuración de infraestructura del sistema, gateway y despliegue; el Compose raíz integra los servicios y componentes operativos | No aplica al mapa |
 | `infra/gateway` | [`infra/haproxy/`](infra/haproxy/) | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
 | `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/), [`docker-compose.yml`](docker-compose.yml) | Observabilidad con Prometheus (:9090), Grafana (:3001) y Dozzle (:8888); el Compose raíz contiene su configuración de despliegue | `docker compose up prometheus grafana dozzle -d` |
 | Operación (complementario) | [`ops/`](ops/) | Recursos y configuración operativa de Prometheus y Grafana, en una ubicación distinta de la infraestructura agrupada en `infra/` | No aplica al mapa |
-| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Scripts de verificación de bitácora y datasets de reproducibilidad | `python experimentos/verificador_cadena.py` |
+| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Verificación de bitácora, arnés de 12 vectores canónicos y reproducibilidad experimental | `python experimentos/arnes_12_vectores.py` (arnés canónico E2) y `python -m pytest experimentos/test_verificador_cadena_base.py` (22 pruebas E3). Para base PostgreSQL: `DB_HOST=<host> DB_PORT=<port> DB_USER=<user> DB_PASSWORD=<pass> DB_NAME=sga python experimentos/verificador_cadena.py` |
 | Documentación técnica (complementario) | [`docs/`](docs/), [`docs/api/openapi.yaml`](docs/api/openapi.yaml), [`docs/api/README.md`](docs/api/README.md) | Arquitectura, seguridad, documentación API y contrato OpenAPI versionado | No aplica al mapa |
 | Utilidades (complementario) | [`scripts/`](scripts/), [`scripts/verificar_openapi.py`](scripts/verificar_openapi.py), [`docs/api/validate_openapi.py`](docs/api/validate_openapi.py) | Utilidades del proyecto; verificación del contrato OpenAPI runtime y validación estática del contrato versionado | No aplica al mapa |
-| Entregables (complementario) | [`release/`](release/) | Artefactos y capturas asociados al release; no acredita un release final confirmado | No aplica al mapa |
+| Entregables (complementario) | [`release/`](release/) | Índice y documentación de verificación del release oficial `v1.0.1` (`app-release.apk`, `app-release.aab` y `SHA256SUMS.txt` publicados en GitHub Release) | No aplica al mapa |
 | Trazabilidad del release (complementario) | [`docs/evidencias/release/`](docs/evidencias/release/) | Manifiesto y documentación de las evidencias del release | No aplica al mapa |
 | Informe académico (complementario) | [`Informe-E4_BCEL/`](Informe-E4_BCEL/), [`TA-PFC-E4_BCEL.tex`](Informe-E4_BCEL/TA-PFC-E4_BCEL.tex) | Informe académico acumulativo del proyecto y sus recursos | No aplica al mapa |
 | Evidencias (complementario) | [`evidencias/`](evidencias/) | Evidencias organizadas del proyecto y por integrantes | No aplica al mapa |
@@ -208,7 +208,9 @@ LIMIT 20;
 
 El job `build-images` de `.github/workflows/ci-cd.yml` publica imágenes propias
 en `ghcr.io/<repository_owner-en-minúsculas>/<imagen>`, mediante `GITHUB_TOKEN`.
-Conserva las dependencias `test-backend`, `test-soporte-backend` y `test-web`.
+Depende de los 10 trabajos bloqueantes de prueba, validación y contrato del pipeline:
+`test-backend`, `test-soporte-backend`, `test-secretaria-backend`, `test-web`, `lint`,
+`ci-docente`, `ci-movil-representante`, `test-mobile`, `e2e-docente` y `contract-openapi`.
 
 | Imagen | Contexto de construcción | Dockerfile desde la raíz |
 |---|---|---|
@@ -229,14 +231,15 @@ postgres-exporter) no se republican. PostgreSQL en el Compose de Principal
 también es externo. Las imágenes base de los Dockerfiles son dependencias,
 no módulos propios a publicar.
 
-Esta configuración publica paquetes; no cambia el despliegue existente, que
-continúa construyendo mediante Compose. La construcción y publicación efectiva
-de las cinco imágenes deberá confirmarse en GitHub Actions/GHCR después de
-integrar y enviar los cambios. La modificación local no acredita publicación.
+Esta configuración publica paquetes en GitHub Container Registry (GHCR); el despliegue
+local se realiza mediante Docker Compose. Las cinco imágenes del sistema (`sga-principal`,
+`microservicio-docente`, `microservicio-secretaria`, `microservicio-soporte` y `microservicio-ia`)
+se construyen y publican en GHCR con la etiqueta del commit SHA y la etiqueta `latest`
+al completar exitosamente el pipeline en la rama `main`.
 
 ## Requisitos del Sistema
 
-* **Java JDK:** 17 o superior
+* **Java JDK:** JDK 17 o 21 (JDK 25 NO es compatible con Lombok 1.18.36 ni con JaCoCo 0.8.11)
 * **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
 * **Node.js:** ^20.19.0 || >= 22.12.0 (recomendado LTS v22.x, npm v10+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
@@ -257,25 +260,6 @@ En cumplimiento de la transparencia academica exigida por la catedra, se declara
 Ningun contenido generado por IA fue incorporado sin revision humana previa; los hallazgos tecnicos documentados (cuello de botella, tasas de error, latencias) provienen de ejecuciones reales de las herramientas (Locust, Prometheus, Grafana) sobre el sistema, no de datos simulados o inventados por el modelo de IA.
 
 ---
-
-## Compilacion del Informe LaTeX
-
-Los informes individuales de cada integrante (carpeta `Informe-E4_BCEL/`) se compilan con `pdflatex` (TeX Live 2023 o superior). Desde la carpeta `Informe-E4_BCEL/`:
-
-```bash
-# 1ra pasada: genera el .aux con las referencias de citas pendientes
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-
-# Resuelve las citas bibliograficas contra referencias.bib
-bibtex TA_PFC_E4_Soporte
-
-# 2da y 3ra pasada: incorpora la bibliografia resuelta y fija la numeracion
-# de figuras/secciones cruzadas (se corre dos veces por convencion de LaTeX)
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-pdflatex -interaction=nonstopmode TA_PFC_E4_Soporte.tex
-```
-
-El PDF resultante es `TA_PFC_E4_Soporte.pdf`, en la misma carpeta. El mismo procedimiento aplica para el resto de informes individuales del equipo (reemplazando el nombre del archivo `.tex`).
 
 ## 🤖 Declaración de Uso de Inteligencia Artificial Generativa
 
@@ -300,29 +284,65 @@ sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recomm
 ### Compilación limpia del informe maestro:
 ```bash
 cd Informe-E4_BCEL
+python ../scripts/recalcular_metricas_carga.py --generate-latex --check-latex
+python ../generar_matriz.py --write-csv --write-latex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 bibtex TA-PFC-E4_BCEL
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 pdflatex -interaction=nonstopmode TA-PFC-E4_BCEL.tex
 ```
+`generar_matriz.py` usa solo la biblioteca estándar de Python (CI usa Python 3.13) y genera tanto `docs/experimentos/resultados/matriz_iso25010.csv` como `Informe-E4_BCEL/matriz_iso25010_generada.tex`. El manuscrito incorpora el segundo mediante `\input{matriz_iso25010_generada.tex}`.
+
+Fuentes y límites de la evaluación #22:
+
+- **Nominal local:** `microservicio-soporte/locust_esc1_stats.csv` (fila `Aggregated`) y `locust_esc1_stats_history.csv` (máximo `User Count`). P99 es una medición; el umbral estricto de 500 ms procede del criterio documental PI-1.
+- **Histórica / perfil no validado:** ventanas de `experimentos/resultados/iso25010.csv` derivadas de `experimentos/resultados/locust_esc3_stats_history.csv`. No constituyen estrés oficial actual ni disponibilidad temporal de producción.
+- **Sintética:** observaciones M2 de `experimentos/resultados/falsos_positivos.csv`; no miden seguridad en producción.
+- **Cobertura:** contadores globales `LINE` de `docs/cobertura/secretaria/jacoco.xml` y `docs/cobertura/soporte/jacoco.xml`; porcentaje calculado como `covered / (covered + missed) * 100`, con las exclusiones de esos reportes. Se compara sin redondear con el criterio de la matriz de 70% LINE. Reporte ausente o inválido impide generar; no se sustituye por porcentajes de respaldo.
+- **Principal:** `No verificable con la evidencia versionada`. Su compuerta particular de 30% INSTRUCTION no es la métrica LINE de la matriz. Las compuertas de Secretaría y Soporte son 70% LINE, según sus respectivos `pom.xml`.
+
+Los reportes versionados no prueban una nueva ejecución sobre el HEAD actual. La integridad de un hash tampoco demuestra vigencia de una medición.
+
+Desde la raíz, regenerar ambos artefactos y comprobar que coinciden con las versiones almacenadas (la comprobación falla si hay cambios pendientes en ellos):
+
+```bash
+python generar_matriz.py --write-csv --write-latex
+git diff --exit-code -- docs/experimentos/resultados/matriz_iso25010.csv Informe-E4_BCEL/matriz_iso25010_generada.tex
+```
+
+El job de matriz ISO en CI ejecuta esta misma comprobación para ambos archivos. Para consultar sin escribir, usar `python generar_matriz.py --preview --format json` (también admite `csv` y `latex`). La generación reproduce los artefactos desde las fuentes conservadas; no ejecuta carga ni regenera las mediciones históricas.
+
 *(El PDF final resultante se generará en `Informe-E4_BCEL/TA-PFC-E4_BCEL.pdf`).*
 
 ## Resultados oficiales de carga — E5
 
-La única corrida **OFICIAL NOMINAL de Soporte** es [locust_esc1_stats.csv](microservicio-soporte/locust_esc1_stats.csv), junto con [su historial](microservicio-soporte/locust_esc1_stats_history.csv), [fallos](microservicio-soporte/locust_esc1_failures.csv) y [excepciones](microservicio-soporte/locust_esc1_exceptions.csv). La [tabla E5](experimentos/resultados/corridas-e5.md) clasifica las demás corridas y conserva las referencias históricas.
+La corrida **nominal local vigente de Soporte** se acredita con [sus estadísticas](microservicio-soporte/locust_esc1_stats.csv) y [su historial](microservicio-soporte/locust_esc1_stats_history.csv). **PI-1 cumplido: P99=23 ms < 500 ms, 0 fallos y 50 usuarios máximos.**
 
 Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. Perfil configurado: 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. No representa tráfico real de producción.
 
 | Métrica de Aggregated | Valor oficial |
 |---|---|
-| Peticiones / fallos | **12.994 / 0**; sin HTTP 401 ni HTTP 500 registrados |
-| RPS | 43,537580 req/s |
-| Promedio | 109,113664 ms |
-| P50 / P95 / P99 | 6 / 440 / 850 ms |
-| Máximo | 2.037,104700 ms |
+| Peticiones / fallos | **12.217 / 0**; sin HTTP 401 ni HTTP 500 registrados |
+| RPS | 40,955420 req/s |
+| Promedio | 10,181439 ms |
+| P50 / P95 / P99 | 4 / 9 / 23 ms |
+| Máximo | 47889,955900 ms |
 
-Inicio registrado: **2026-09-11 03:59:05 UTC** (2026-09-10 22:59:05 UTC−05:00); 299 segundos entre muestras. Commit de conservación: `956cafcb` (normalización posterior `c5c0e6f5`). Commit del código ejecutado: **No disponible en la evidencia conservada**.
+El máximo aislado pertenece a `/api/soporte/tickets`; no es el P99. Fechas, detalle por endpoint y antecedentes: [registro E5](experimentos/resultados/corridas-e5.md).
 
-**Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio.** El conjunto D es FALLIDA/HISTÓRICA: 106.735 peticiones, 26 fallos (15 HTTP 500 y 11 HTTP 503).
+**Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. El conjunto D permanece FALLIDA/HISTÓRICA: 106.735 peticiones y 26 fallos (15 HTTP 500 y 11 HTTP 503), una ejecución distinta. Detalle: [registro E5](experimentos/resultados/corridas-e5.md).
 
-La captura histórica/complementaria de Juliana no está disponible en el árbol actual. La descripción conservada le atribuye 13.031 peticiones en terminal, mientras el CSV oficial contiene 12.994. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su ruta y fila `Aggregated` con todas las métricas. **E5: PARCIAL** por esa evidencia visual y la ausencia de estrés válido.
+La [tabla E5](experimentos/resultados/corridas-e5.md) conserva el resultado histórico anterior P99=850 ms, que no cumplía PI-1. No se atribuye la diferencia exclusivamente a `JwtParser`: la equivalencia de datasets y entornos no está demostrada. Las [capturas nominales E48](evidencias/Juliana_Emanuel/E48_actual_README.md) están conservadas en `332158e4` y existe estrés oficial válido. Sigue sin estar disponible la evidencia original del perfil nominal; no se acredita el estado de HikariCP.
+
+
+### Reproducción de cifras de carga (#48)
+
+```bash
+python scripts/recalcular_metricas_carga.py --json
+python scripts/recalcular_metricas_carga.py --check-latex
+python scripts/recalcular_metricas_carga.py --emit-latex-block
+```
+
+`--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
+
+Antes de compilar, `--generate-latex --check-latex` regenera `Informe-E4_BCEL/cifras_carga_generadas.tex` desde A y comprueba las publicaciones oficiales. Para comprobar sin regenerar, usar solo `--check-latex`; no confundir regeneración con validación del archivo previamente almacenado. Los pasos de #22 se mantienen independientes.

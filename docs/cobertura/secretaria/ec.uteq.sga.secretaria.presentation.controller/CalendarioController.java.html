@@ -16,9 +16,9 @@ public class CalendarioController {
 
     private final CalendarioService service;
 
-<span class="nc" id="L19">    public CalendarioController(CalendarioService service) {</span>
-<span class="nc" id="L20">        this.service = service;</span>
-<span class="nc" id="L21">    }</span>
+<span class="fc" id="L19">    public CalendarioController(CalendarioService service) {</span>
+<span class="fc" id="L20">        this.service = service;</span>
+<span class="fc" id="L21">    }</span>
 
     @GetMapping
     public List&lt;Map&lt;String, Object&gt;&gt; calendario(@RequestParam(name = &quot;mes&quot;) String mes) {

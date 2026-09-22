@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepresentanteDTOs.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.remote.dto</a> &gt; <span class="el_source">RepresentanteDTOs.kt</span></div><h1>RepresentanteDTOs.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.remote.dto
+
+import com.google.gson.annotations.SerializedName
+
+<span class="pc" id="L5">data class RepresentadoDTO(val idEstudiante: Long, val nombres: String, val apellidos: String,</span>
+<span class="pc" id="L6">    val curso: String?, val paralelo: String?, val matriculas: List&lt;Long&gt; = emptyList())</span>
+<span class="nc" id="L7">data class CalificacionRepresentadoDTO(@SerializedName(&quot;id_calificacion&quot;) val idCalificacion: Long,</span>
+<span class="pc" id="L8">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long, @SerializedName(&quot;id_actividad&quot;) val idActividad: Long,</span>
+<span class="nc" id="L9">    val actividad: String, @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="pc" id="L10">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long, val periodo: String, val asignatura: String?, val nota: Double?,</span>
+<span class="nc" id="L11">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String?)</span>
+<span class="nc" id="L12">data class PromedioRepresentadoDTO(@SerializedName(&quot;id_matricula&quot;) val idMatricula: Long,</span>
+<span class="nc" id="L13">    @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long, @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long,</span>
+<span class="nc" id="L14">    val periodo: String, val asignatura: String?, @SerializedName(&quot;promedio_formativo&quot;) val promedioFormativo: Double,</span>
+<span class="nc" id="L15">    @SerializedName(&quot;nota_sumativa&quot;) val notaSumativa: Double,</span>
+<span class="nc" id="L16">    @SerializedName(&quot;promedio_trimestral&quot;) val promedioTrimestral: Double,</span>
+<span class="nc" id="L17">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String)</span>
+<span class="nc" id="L18">data class PeriodoCalificacionesDTO(@SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long, val nombre: String,</span>
+<span class="nc" id="L19">    val activo: Boolean, @SerializedName(&quot;fecha_inicio&quot;) val fechaInicio: String)</span>
+<span class="nc" id="L20">data class PromedioAnualRepresentadoDTO(@SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="nc" id="L21">    val asignatura: String?, @SerializedName(&quot;promedio_anual&quot;) val promedioAnual: Double,</span>
+<span class="nc" id="L22">    @SerializedName(&quot;nota_cualitativa&quot;) val notaCualitativa: String)</span>
+<span class="fc" id="L23">data class CalificacionesRepresentadoDTO(val calificaciones: List&lt;CalificacionRepresentadoDTO&gt; = emptyList(),</span>
+<span class="pc" id="L24">    val promedios: List&lt;PromedioRepresentadoDTO&gt; = emptyList(), val periodos: List&lt;PeriodoCalificacionesDTO&gt; = emptyList(),</span>
+<span class="pc" id="L25">    @SerializedName(&quot;promedios_anuales&quot;) val promediosAnuales: List&lt;PromedioAnualRepresentadoDTO&gt; = emptyList(),</span>
+<span class="pc" id="L26">    @SerializedName(&quot;mostrar_promedios_anuales&quot;) val mostrarPromediosAnuales: Boolean = false)</span>
+<span class="nc" id="L27">data class AsistenciaHijoDTO(@SerializedName(&quot;id_asistencia&quot;) val idAsistencia: Long,</span>
+<span class="nc" id="L28">    @SerializedName(&quot;id_matricula&quot;) val idMatricula: Long, @SerializedName(&quot;id_asignacion&quot;) val idAsignacion: Long,</span>
+<span class="pc" id="L29">    @SerializedName(&quot;id_periodo&quot;) val idPeriodo: Long, val periodo: String, val fecha: String, val estado: String)</span>
+<span class="nc" id="L30">data class ResumenAsistenciaHijoDTO(val total: Int, val presentes: Int, val ausentes: Int,</span>
+<span class="pc" id="L31">    val justificados: Int, val atrasos: Int, @SerializedName(&quot;porcentaje_asistencia&quot;) val porcentajeAsistencia: Double)</span>
+<span class="pc" id="L32">data class AsistenciaRepresentadoDTO(val asistencias: List&lt;AsistenciaHijoDTO&gt;, val resumen: ResumenAsistenciaHijoDTO)</span>
+<span class="nc" id="L33">data class ComunicadoDTO(val id: Long, val titulo: String, val contenido: String, val fecha: String, val fijado: Boolean)</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

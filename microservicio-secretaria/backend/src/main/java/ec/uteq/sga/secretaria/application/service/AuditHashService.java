@@ -25,6 +25,7 @@ public class AuditHashService {
             "jwt",
             "password",
             "contrasena",
+            "contrase\u00f1a",
             "contrase?a",
             "internal_token",
             "token",
@@ -35,6 +36,8 @@ public class AuditHashService {
 
     public AuditHashService() {
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.mapper.configure(
                 SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,
                 true
@@ -187,6 +190,18 @@ public class AuditHashService {
             }
 
             return resultado;
+        }
+
+        if (valor instanceof java.time.temporal.TemporalAccessor) {
+            return valor.toString();
+        }
+
+        if (valor instanceof java.util.Date d) {
+            return d.toInstant().toString();
+        }
+
+        if (valor instanceof java.math.BigDecimal) {
+            return String.valueOf(valor);
         }
 
         return valor;

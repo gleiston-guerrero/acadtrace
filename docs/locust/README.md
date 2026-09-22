@@ -4,66 +4,117 @@ Este directorio conserva artefactos de las pruebas de rendimiento y carga ejecut
 
 ---
 
-## 1. Declaración Formal del Conjunto Único Oficial
+## 1. Declaración Formal del Conjunto Nominal Oficial
 
 En cumplimiento del criterio de cierre **E5 / E14 (Item 48)** de la guía rectora del PFC:
 
-> **ÚNICO CONJUNTO OFICIAL DECLARADO (Corrida A):**
+> **CONJUNTO OFICIAL NOMINAL (Corrida A):**
 > - **Ubicación:** [`microservicio-soporte/locust_esc1_stats.csv`](../../microservicio-soporte/locust_esc1_stats.csv)
 > - **Archivos asociados:**
 >   - [`microservicio-soporte/locust_esc1_stats_history.csv`](../../microservicio-soporte/locust_esc1_stats_history.csv)
->   - [`microservicio-soporte/locust_esc1_failures.csv`](../../microservicio-soporte/locust_esc1_failures.csv)
->   - [`microservicio-soporte/locust_esc1_exceptions.csv`](../../microservicio-soporte/locust_esc1_exceptions.csv)
 > - **Métricas oficiales (Fila `Aggregated`):**
->   - **Peticiones Totales:** 12,994
+>   - **Peticiones Totales:** 12,217
 >   - **Fallos Totales:** 0 (0.00% tasa de error; sin 401 ni 500)
->   - **Throughput Promedio:** 43.537580 req/s
->   - **Latencia Promedio:** 109.113664 ms
->   - **Percentil 50 (P50 / Mediana):** 6 ms
->   - **Percentil 95 (P95):** 440 ms
->   - **Percentil 99 (P99):** 850 ms
->   - **Latencia Máxima:** 2,037.104700 ms
-> - **Perfil de ejecución:** 50 usuarios concurrentes, spawn rate 5 usuarios/s, 5 minutos nominales (299 s observados entre primera y última muestra), host `http://localhost:8083` con JWT instrumentado.
+>   - **Throughput Promedio:** 40.955420 req/s
+>   - **Latencia Promedio:** 10.181439 ms
+>   - **Percentil 50 (P50 / Mediana):** 4 ms
+>   - **Percentil 95 (P95):** 9 ms
+>   - **Percentil 99 (P99):** 23 ms
+>   - **Latencia Máxima:** 47889.955900 ms
+> - **Criterio PI-1:** P99 < 500 ms; cumple en escenario nominal local.
+> - **Perfil de ejecución validado manualmente:** 50 usuarios concurrentes, spawn rate 5 usuarios/s, 5 minutos nominales (298 s observados entre primera y última muestra), host `http://localhost:8083` con JWT instrumentado.
 
 ---
 
 ## 2. Conjuntos No Oficiales, Preliminares y Retirados
 
-Los siguientes cuatro conjuntos de datos existentes en el repositorio son **NO OFICIALES** y se conservan exclusivamente como evidencia histórica o exploratoria. **No deben ser utilizados como métricas del sistema en el informe ni en publicaciones**:
+La ejecución A anterior, conservada en `microservicio-soporte/resultados_historicos/`, registró 12.994 peticiones, 0 fallos y P99=850 ms: no cumplía PI-1. No se ha demostrado equivalencia exacta de datasets y entornos con la actual, por lo que la diferencia no se atribuye exclusivamente a `JwtParser`.
+
+El máximo actual de 47.889,96 ms es un evento aislado de `/api/soporte/tickets`, con P95=13 ms, P99=32 ms y 0 fallos; permanece sin filtrar. Cero fallos no demuestra disponibilidad de producción. El log y el JSON candidatos son anteriores, no acreditan esta corrida. Los auxiliares vacíos de fallos/excepciones tampoco acreditan su procedencia actual. Véase [E48](../../evidencias/Juliana_Emanuel/E48_actual_README.md).
+
+Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OFICIALES** y se conservan como evidencia histórica o exploratoria. Pueden citarse con ese alcance explícito, pero **no deben presentarse como resultados oficiales del conjunto A**:
 
 | Identificador | Archivo | Peticiones | Fallos | Estado y Dictamen |
 |---|---|---|---|---|
 | **B** | `experimentos/resultados/locust_esc1_stats.csv` | 12,236 | 0 | **HISTÓRICO / NO OFICIAL:** Corrida nominal anterior previa a la instrumentación definitiva. Retirada de las métricas oficiales. |
 | **C** | `docs/locust/escenario1_nominal_stats.csv` | 13,606 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida exploratoria inicial. Se retira su carácter oficial previo en favor del conjunto A. |
-| **D** | `docs/locust/escenario2_estres_stats.csv` | 106,735 | 26 | **FALLIDO / NO OFICIAL:** Prueba de estrés escalonado (hasta 200 usuarios) fallida con 15 HTTP 500 y 11 HTTP 503. No satisface el criterio de cero fallos. **No existe estrés oficial válido.** |
-| **E** | `docs/locust/resultados_carga_stats.csv` | 2,419 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida corta de calibración (59 segundos); no cumple el perfil nominal de 5 minutos. |
+| **D** | `docs/locust/escenario2_estres_stats.csv` | 106,735 | 26 | **FALLIDO / NO OFICIAL:** Prueba de estrés escalonado (hasta 200 usuarios) fallida con 15 HTTP 500 y 11 HTTP 503. No satisface el criterio de cero fallos. Antecedente distinto de la nueva corrida oficial de estrés. |
+| **E** | `experimentos/resultados/locust_esc3_stats.csv` | 717 | 565 | **FALLIDO / NO OFICIAL:** Ejecución con HTTP 401; máximo un usuario observado. No acredita estrés oficial válido. |
+| **F** | `docs/locust/resultados_carga_stats.csv` | 2,419 | 0 | **PRELIMINAR / NO OFICIAL:** Corrida corta de calibración (59 segundos); no cumple el perfil nominal de 5 minutos. |
 
 ---
 
+## Corrida oficial de estrés vigente
+
+**Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. Evidencia: `microservicio-soporte/resultados_estres/20260920_164722/`; host `http://localhost:8085`, incorporación de 1 usuario/s, 10 minutos configurados y 599 s entre muestras. Véase [registro E5](../../experimentos/resultados/corridas-e5.md). Las capturas nominales están conservadas en `332158e4` y la captura de estrés en `b43008e5`; solo la evidencia original del perfil nominal sigue no disponible. El estado de HikariCP no está acreditado.
+
 ## 3. Firmas Criptográficas (SHA-256)
 
+### 3.1. Conjunto Oficial Nominal (Corrida A)
 | Tipo | Archivo | Hash SHA-256 |
 |---|---|---|
-| **OFICIAL** | `microservicio-soporte/locust_esc1_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
-| **OFICIAL** | `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+| **OFICIAL NOMINAL** | `microservicio-soporte/locust_esc1_stats.csv` | `900BED90BFD113B06F9FCA11EE58974ACAD632A6C599FE2C3EFC214217D26A4C` |
+| **OFICIAL NOMINAL** | `microservicio-soporte/locust_esc1_stats_history.csv` | `FFB37013E8A01EC99C1F1ED24400999A1B48564A67AE1EBE1DC29288B8678EA3` |
+| Histórico anterior | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats.csv` | `8A76EEA34413AD186C014FEBC594ACBB0353DA6ABB81D750F1D32A8C621528CB` |
+| Histórico anterior | `microservicio-soporte/resultados_historicos/locust_esc1_historico_p99_850ms_stats_history.csv` | `317409E18325BD454248029443E9EBB6039FB41E451502215E410367BF526116` |
+| Histórico; no actual | `microservicio-soporte/locust_esc1_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
+| Histórico; no actual | `microservicio-soporte/locust_esc1_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+
+### 3.2. Conjunto Oficial de Estrés Vigente (200 usuarios, corrida 20260920_164722)
+| Tipo | Archivo | Hash SHA-256 |
+|---|---|---|
+| **OFICIAL ESTRÉS** | `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats.csv` | `C4E286ECD346C593EBFDE080F047519B45CEA00E27E5C5EC909F31E07D8AC089` |
+| **OFICIAL ESTRÉS** | `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats_history.csv` | `226729064FA77A0CCA51BE22C26C91D401869694D8D4926418DB97BB58BFB627` |
+| **OFICIAL ESTRÉS** | `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_failures.csv` | `48EA7DC61427ABBA01680829DD9FB55B50A69604F28AE3139E85D888B289349B` |
+| **OFICIAL ESTRÉS** | `microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_exceptions.csv` | `6DBA11106E7EB84C71D85B91CB592276309D8B2D485BA6EA8E82DA18E6ED7663` |
+| **OFICIAL ESTRÉS** | `microservicio-soporte/resultados_estres/20260920_164722/perfil.txt` | `EC56FA4028F8643227570D24B63F5696042890C09ADD698DF4991770EDD0B586` |
+| **OFICIAL ESTRÉS** | `microservicio-soporte/resultados_estres/20260920_164722/resumen_validacion.txt` | `DC5CA0B77E464126EF5AA97664CFB303B3FDDB85CC84E1B6C0432E1F9B604DB8` |
+
+### 3.3. Conjuntos No Oficiales, Preliminares e Históricos
+| Tipo | Archivo | Hash SHA-256 |
+|---|---|---|
 | No oficial (B) | `experimentos/resultados/locust_esc1_stats.csv` | `FC63845A59A397EAEA6E9EA15746BCDEBEA7A479EB09582B4691B016371903EA` |
 | No oficial (C) | `docs/locust/escenario1_nominal_stats.csv` | `539C7F827F950FE572178A8CED7E25ACD3976E5C0289066896ECEC870B323B03` |
 | No oficial (D) | `docs/locust/escenario2_estres_stats.csv` | `2AD7C788EA7E13DD48424F591DD170E2A8B3C7600C1EA0FAF24BFC25BB06B143` |
-| No oficial (E) | `docs/locust/resultados_carga_stats.csv` | `D9C99B33A05DA637B7C1AEB2743FD5E2F98FFF06FAC4CDB8FCC9C15D9B501AE6` |
+| No oficial (F) | `docs/locust/resultados_carga_stats.csv` | `D9C99B33A05DA637B7C1AEB2743FD5E2F98FFF06FAC4CDB8FCC9C15D9B501AE6` |
 
 ---
 
 ## 4. Reproducibilidad y Validación Automatizada
 
-Para reproducir y derivar deterministamente cada una de las cifras publicadas en el informe técnico a partir del conjunto de datos oficial:
-
 ```bash
-python scripts/recalcular_metricas_carga.py
+python scripts/recalcular_metricas_carga.py --json
+python scripts/recalcular_metricas_carga.py --check-latex
+python scripts/recalcular_metricas_carga.py --emit-latex-block
 ```
 
-El guion valida automáticamente que:
-1. Los valores agregados y por endpoint coincidan de manera exacta con el CSV crudo.
-2. El informe técnico `Informe-E4_BCEL/TA-PFC-E4_BCEL.tex` cite únicamente los valores del conjunto oficial (12,994 reqs, 43.537580 req/s, P50=6ms, P95=440ms, P99=850ms).
-3. No existan cifras inventadas ni retractadas (como 12,265 o 12,735) en la matriz de evaluación ISO/IEC 25010 ni en las tablas principales.
+`--json` informa métricas derivadas de A, auxiliares, endpoints e históricos B y E; no comprueba documentos. `--emit-latex-block` imprime las macros de A sin escribir. `--check-latex` compara las macros almacenadas y las afirmaciones oficiales seleccionadas del manuscrito (incluido el abstract), además de las secciones oficiales de `README.md`, `docs/locust/README.md`, `docs/locust/entorno_medicion.md`, ambos `protocolo-e4.md` y la tabla de métricas de A en `corridas-e5.md`. Termina con error ante discrepancias o métricas requeridas ausentes. No es un parser general: no valida todo el manuscrito, imágenes, fechas ni resultados históricos. Las cifras se derivan de A, admitiendo el redondeo publicado; cero fallos no demuestra disponibilidad de producción.
+
+## Integridad y límites de evidencia (#48)
+
+El manifiesto `docs/locust/manifest_carga.json` fija los SHA-256 de los dos
+CSV nominales vigentes y los cuatro CSV del estrés `20260920_164722`, además
+de sus métricas declaradas. `scripts/recalcular_metricas_carga.py` verifica
+ambos conjuntos antes de emitir resultados o generar macros; `--check-latex`
+verifica también los hashes publicados de los archivos referenciados de Soporte,
+las afirmaciones nominales seleccionadas y las peticiones, fallos y percentiles
+de los bloques oficiales de estrés reconocidos en Markdown y LaTeX. No valida
+automáticamente toda la prosa de estrés del informe.
+Los hashes se calculan sobre bytes exactos, incluidos finales de línea;
+una normalización del archivo provoca fallo y requiere revisión explícita.
+
+Hay **n=1 corrida nominal y n=1 corrida de estrés**. No existen repeticiones
+independientes oficiales para estimar variabilidad entre ejecuciones: el
+intervalo de confianza entre corridas **no es estimable**. Los percentiles
+son descriptivos de peticiones dentro de cada corrida, no repeticiones.
+
+La carpeta oficial de estrés conserva cuatro CSV y dos TXT. `perfil.txt` y
+`resumen_validacion.txt` son documentación derivada; la captura relee los CSV.
+No se conserva consola original de Locust ni otra evidencia primaria adicional
+que acredite independientemente la ejecución. El commit ejecutado, host,
+spawn rate, duración configurada y EXIT_CODE son metadatos declarados en esos
+TXT, no comprobados por el hash ni por la captura. El nominal tampoco conserva
+la evidencia original de configuración. La compuerta acredita integridad y
+coherencia de los artefactos declarados, no una validación retrospectiva.
+No se usa la corrida incompleta `20260920_163041/` ni los candidatos.
+No se ejecutaron nuevas cargas ni se fabricaron repeticiones o logs.

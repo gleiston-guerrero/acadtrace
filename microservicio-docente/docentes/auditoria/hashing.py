@@ -10,6 +10,8 @@ SECRET_KEYS = {
     "jwt",
     "password",
     "contraseña",
+    "contrasena",
+    "contrase?a",
     "internal_token",
     "token",
     "secret",

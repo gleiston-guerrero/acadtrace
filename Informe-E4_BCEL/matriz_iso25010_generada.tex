@@ -1,0 +1,100 @@
+% Generado por generar_matriz.py; requiere tabularx y UTF-8.
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Eficiencia de desempeño \\ \hline
+indicador & Carga y latencias del agregado nominal \\ \hline
+valor & peticiones=12217; fallos=0; rps=40.95542036966924; media\_ms=10.181439175291882; p50\_ms=4; p95\_ms=9; p99\_ms=23; usuarios\_maximos=50 \\ \hline
+fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); microservicio-soporte/locust\_esc1\_stats\_history.csv (maximo User Count) \\ \hline
+alcance & Conjunto A, agregado nominal local de Soporte; no demuestra estres exitoso ni disponibilidad de produccion; el veredicto evalua p99 conforme a PI-1 (umbral 500 ms) \\ \hline
+criterio & p99 \textless{} 500 ms \\ \hline
+veredicto & Cumple el umbral en escenario nominal local \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Fiabilidad \\ \hline
+indicador & Carga nominal A, estrés oficial 200 usuarios y ventanas históricas \\ \hline
+valor & Nominal A: peticiones=12217, fallos=0 (éxito 100.00\%, IC 95\% [99.97\%, 100.00\%]); Estrés oficial (200 usuarios): peticiones=98684, fallos=0 (éxito 100.00\%, IC 95\% [99.99\%, 100.00\%]); Antecedente histórico: 10 ventanas locust\_esc3 (éxito entre 12,78 \% y 34,5781 \%) \\ \hline
+fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); microservicio-soporte/resultados\_estres/20260920\_164722/locust\_estres\_200\_stats.csv (Aggregated); experimentos/resultados/iso25010.csv (ventanas locust\_esc3) \\ \hline
+alcance & Conjunto nominal A (50 usuarios) y corrida oficial de estrés (200 usuarios) en entorno local/contenedorizado; ventanas históricas de referencia \\ \hline
+criterio & Cero fallos (tasa de error 0.00\%, éxito \textgreater{}= 99.90\%) en nominal y estrés oficial \\ \hline
+veredicto & Cumple criterio de cero fallos en corrida nominal y corrida oficial de estrés de 200 usuarios; antecedentes históricos conservados \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Fiabilidad / disponibilidad \\ \hline
+indicador & Disponibilidad de produccion \\ \hline
+valor & No medida \\ \hline
+fuente & Sin fuente temporal de disponibilidad evaluada \\ \hline
+alcance & Exito de peticiones de carga no equivale a disponibilidad temporal \\ \hline
+criterio & Requiere medicion temporal y entorno definidos \\ \hline
+veredicto & No demostrado \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Seguridad \\ \hline
+indicador & Falsos positivos de M2 en cadenas integras \\ \hline
+valor & No medido en producción; FPR verificado 0/30 (0.00\%, IC 95\% [0.00\%, 11.35\%]) en pruebas sintéticas \\ \hline
+fuente & experimentos/resultados/falsos\_positivos.csv (observaciones M2) \\ \hline
+alcance & Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion \\ \hline
+criterio & FPR = 0.00\% en muestra de control (umbral tolerable \textless{} 5.0\% a nivel de confianza 95\%) \\ \hline
+veredicto & Cumple en pruebas sintéticas: 0 falsos positivos (FPR = 0.00\%, IC 95\% [0.00\%, 11.35\%]); no certifica seguridad global \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Mantenibilidad \\ \hline
+indicador & Cobertura de pruebas en microservicios \\ \hline
+valor & Secretaría: LINE 2313/3108 = 74.42\%; Soporte: LINE 458/640 = 71.56\%; Principal: No verificable con la evidencia versionada \\ \hline
+fuente & docs/cobertura/secretaria/jacoco.xml (contador global LINE); docs/cobertura/soporte/jacoco.xml (contador global LINE); compuertas: microservicio-secretaria/backend/pom.xml, microservicio-soporte/backend/pom.xml, sga-principal/pom.xml; limitacion Principal: docs/cobertura/README.md (evidencia insuficiente e incoherente) \\ \hline
+alcance & Contadores BUNDLE/LINE de reportes versionados, con sus exclusiones; no acredita una nueva ejecucion ni cobertura del HEAD actual. Compuertas particulares: Secretaría y Soporte \textgreater{}= 70\% LINE; Principal \textgreater{}= 30\% INSTRUCTION (no equivale a LINE; cumplimiento no verificado) \\ \hline
+criterio & Criterio de evaluacion de esta matriz: cobertura \textgreater{}= 70\% LINE por modulo \\ \hline
+veredicto & Secretaría: Cumple el criterio LINE de la matriz; Soporte: Cumple el criterio LINE de la matriz; Principal: No verificable con la evidencia versionada \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Adecuación funcional \\ \hline
+indicador & Satisfaccion de requisitos funcionales \\ \hline
+valor & Sin medicion evaluada \\ \hline
+fuente & Sin fuente evaluada en este alcance \\ \hline
+alcance & No se evalua evidencia funcional en este generador \\ \hline
+criterio & No establecido en esta evaluacion \\ \hline
+veredicto & No evaluado \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Usabilidad \\ \hline
+indicador & Indicadores de uso \\ \hline
+valor & Sin medicion evaluada \\ \hline
+fuente & Sin fuente evaluada en este alcance \\ \hline
+alcance & Sin estudio de usuarios evaluado en este alcance \\ \hline
+criterio & No establecido en esta evaluacion \\ \hline
+veredicto & No evaluado \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Portabilidad \\ \hline
+indicador & Ejecucion en entornos definidos \\ \hline
+valor & Sin medicion evaluada \\ \hline
+fuente & Sin fuente evaluada en este alcance \\ \hline
+alcance & Sin medicion de portabilidad evaluada en este alcance \\ \hline
+criterio & No establecido en esta evaluacion \\ \hline
+veredicto & No evaluado \\ \hline
+\end{tabularx}
+\par\medskip
+\begin{tabularx}{\linewidth}{|p{0.22\linewidth}|X|}
+\hline
+caracteristica & Compatibilidad \\ \hline
+indicador & Interoperabilidad y coexistencia \\ \hline
+valor & Sin medicion evaluada \\ \hline
+fuente & Sin fuente evaluada en este alcance \\ \hline
+alcance & Sin evidencia de compatibilidad evaluada en este alcance \\ \hline
+criterio & No establecido en esta evaluacion \\ \hline
+veredicto & No evaluado \\ \hline
+\end{tabularx}
+\par\medskip

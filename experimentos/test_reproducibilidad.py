@@ -9,6 +9,14 @@ from unittest.mock import patch
 
 from verificar_reproducibilidad import ARTIFACTS, CERTIFICATE, verify, write_certificate
 from run_experimentos import LiveBackendClient
+from generar_tabla_latencias import (
+    EXPECTED_REPETITIONS,
+    LOAD_LEVELS,
+    MECHANISMS,
+    calculate_statistics,
+    load_latency_samples,
+    vargha_delaney_a12,
+)
 
 
 class CertificateTests(unittest.TestCase):
@@ -113,6 +121,114 @@ class DocumentationMirrorTests(unittest.TestCase):
                     copia.read_bytes(),
                     f"Copia documental E7 desactualizada: {nombre}",
                 )
+
+
+class LatencyAnalysisTests(unittest.TestCase):
+    """Punto 21: estadistica estratificada por mecanismo y nivel."""
+
+    def test_segmenta_160_observaciones_en_16_celdas(self):
+        samples = load_latency_samples()
+
+        self.assertEqual(
+            set(samples),
+            set(MECHANISMS),
+        )
+
+        total = 0
+
+        for mechanism in MECHANISMS:
+            self.assertEqual(
+                set(samples[mechanism]),
+                set(LOAD_LEVELS),
+            )
+
+            for level in LOAD_LEVELS:
+                values = samples[mechanism][level]
+
+                self.assertEqual(
+                    len(values),
+                    EXPECTED_REPETITIONS,
+                    (
+                        f"{mechanism}/nivel={level} debe "
+                        f"tener {EXPECTED_REPETITIONS} repeticiones"
+                    ),
+                )
+
+                total += len(values)
+
+        self.assertEqual(total, 160)
+
+
+    def test_vargha_delaney_a12_dominancia_y_empates(self):
+        self.assertAlmostEqual(
+            vargha_delaney_a12(
+                [2.0, 2.0],
+                [1.0, 1.0],
+            ),
+            1.0,
+        )
+
+        self.assertAlmostEqual(
+            vargha_delaney_a12(
+                [1.0, 1.0],
+                [1.0, 1.0],
+            ),
+            0.5,
+        )
+
+        self.assertAlmostEqual(
+            vargha_delaney_a12(
+                [1.0, 1.0],
+                [2.0, 2.0],
+            ),
+            0.0,
+        )
+
+
+    def test_estadisticas_y_a12_se_calculan_dentro_del_mismo_nivel(self):
+        samples = load_latency_samples()
+        results = calculate_statistics(samples)
+
+        expected_keys = {
+            (mechanism, level)
+            for level in LOAD_LEVELS
+            for mechanism in MECHANISMS
+        }
+
+        actual_keys = {
+            (result.mechanism, result.load_level)
+            for result in results
+        }
+
+        self.assertEqual(
+            len(results),
+            16,
+        )
+
+        self.assertEqual(
+            actual_keys,
+            expected_keys,
+        )
+
+        for result in results:
+            if result.mechanism == "M0":
+                self.assertIsNone(result.a12_vs_m0)
+                continue
+
+            expected_a12 = vargha_delaney_a12(
+                samples[result.mechanism][result.load_level],
+                samples["M0"][result.load_level],
+            )
+
+            self.assertAlmostEqual(
+                result.a12_vs_m0,
+                expected_a12,
+                places=12,
+                msg=(
+                    "A12 debe comparar el mecanismo con M0 "
+                    f"dentro del nivel {result.load_level}"
+                ),
+            )
 
 
 if __name__ == "__main__":

@@ -11,13 +11,13 @@ services:
       - "8080:8080"   # REST Gateway
       - "9092:9092"   # gRPC Server
     environment:
-      - DB_HOST=3.23.195.43
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
-      - grpc.client.docente-service.address=static://microservicio-docente:9091
+      - grpc.client.docente-service.address=dns:///microservicio-docente:9091
     networks:
       - sga-distribuido-net
 
@@ -31,10 +31,10 @@ services:
       - "8081:8000"   # REST (el contenedor Django siempre escucha en 8000, ver Dockerfile)
       - "9091:9091"   # gRPC Server
     environment:
-      - DB_HOST=3.23.195.43
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}
       - SGA_PRINCIPAL_GRPC_HOST=sga-principal:9092
@@ -52,10 +52,10 @@ services:
     ports:
       - "8082:5176"   # REST Backend (server.port real del jar es 5176, ver application.properties)
     environment:
-      - DB_HOST=3.23.195.43
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - AES_SECRET_KEY=${AES_SECRET_KEY}
@@ -76,10 +76,10 @@ services:
     ports:
       - "8083:5178"   # REST Backend (server.port real del jar es 5178, ver application.properties)
     environment:
-      - DB_HOST=3.23.195.43
+      - DB_HOST=${DB_HOST:-localhost}
       - DB_PORT=5433
       - DB_NAME=sga
-      - DB_USER=postgres
+      - DB_USER=${DB_USER:-sga_app}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - GRPC_INTERNAL_TOKEN=${GRPC_INTERNAL_TOKEN}

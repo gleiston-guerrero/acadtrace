@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "note": "SHA-256 de bytes exactos; no normalizar finales de línea. Una corrida por escenario; no prueba procedencia de ejecución.",
+  "runs": {
+    "nominal": {
+      "sha256": {
+        "microservicio-soporte/locust_esc1_stats.csv": "900bed90bfd113b06f9fca11ee58974acad632a6c599fe2c3efc214217d26a4c",
+        "microservicio-soporte/locust_esc1_stats_history.csv": "ffb37013e8a01ec99c1f1ed24400999a1b48564a67ae1ebe1dc29288b8678ea3"
+      },
+      "expected": {
+        "peticiones": "12217",
+        "fallos": "0",
+        "rps": "40.95542036966924",
+        "media_ms": "10.181439175291882",
+        "p50_ms": "4",
+        "p95_ms": "9",
+        "p99_ms": "23",
+        "usuarios_maximos": "50",
+        "maximo_ms": "47889.95589996921",
+        "duracion_observada_s": "298"
+      }
+    },
+    "estres": {
+      "sha256": {
+        "microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats.csv": "c4e286ecd346c593ebfde080f047519b45cea00e27e5c5ec909f31e07d8ac089",
+        "microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_stats_history.csv": "226729064fa77a0cca51be22c26c91d401869694d8d4926418db97bb58bfb627",
+        "microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_failures.csv": "48ea7dc61427abba01680829dd9fb55b50a69604f28ae3139e85d888b289349b",
+        "microservicio-soporte/resultados_estres/20260920_164722/locust_estres_200_exceptions.csv": "6dba11106e7eb84c71d85b91cb592276309d8b2d485ba6ea8e82da18e6ed7663"
+      },
+      "expected": {
+        "peticiones": "98684",
+        "fallos": "0",
+        "rps": "164.86740285525565",
+        "media_ms": "7.86715629893033",
+        "p50_ms": "7",
+        "p95_ms": "15",
+        "p99_ms": "23",
+        "usuarios_maximos": "200",
+        "maximo_ms": "324.8848000075668",
+        "duracion_observada_s": "599"
+      }
+    }
+  }
+}

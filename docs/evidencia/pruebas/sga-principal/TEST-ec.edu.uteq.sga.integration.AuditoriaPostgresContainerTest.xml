@@ -1,0 +1,1108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="ec.edu.uteq.sga.integration.AuditoriaPostgresContainerTest" time="19.971" tests="2" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/runner/work/acadtrace/acadtrace/sga-principal/target/test-classes:/home/runner/work/acadtrace/acadtrace/sga-principal/target/classes:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-data-jpa/3.2.5/spring-boot-starter-data-jpa-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-aop/3.2.5/spring-boot-starter-aop-3.2.5.jar:/home/runner/.m2/repository/org/aspectj/aspectjweaver/1.9.22/aspectjweaver-1.9.22.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/3.2.5/spring-boot-starter-jdbc-3.2.5.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/5.0.1/HikariCP-5.0.1.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/6.1.6/spring-jdbc-6.1.6.jar:/home/runner/.m2/repository/org/hibernate/orm/hibernate-core/6.4.4.Final/hibernate-core-6.4.4.Final.jar:/home/runner/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar:/home/runner/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar:/home/runner/.m2/repository/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.jar:/home/runner/.m2/repository/org/hibernate/common/hibernate-commons-annotations/6.0.6.Final/hibernate-commons-annotations-6.0.6.Final.jar:/home/runner/.m2/repository/io/smallrye/jandex/3.1.2/jandex-3.1.2.jar:/home/runner/.m2/repository/com/fasterxml/classmate/1.6.0/classmate-1.6.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.14.13/byte-buddy-1.14.13.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-runtime/4.0.5/jaxb-runtime-4.0.5.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-core/4.0.5/jaxb-core-4.0.5.jar:/home/runner/.m2/repository/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar:/home/runner/.m2/repository/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar:/home/runner/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/home/runner/.m2/repository/org/antlr/antlr4-runtime/4.13.0/antlr4-runtime-4.13.0.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-jpa/3.2.5/spring-data-jpa-3.2.5.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/3.2.5/spring-data-commons-3.2.5.jar:/home/runner/.m2/repository/org/springframework/spring-orm/6.1.6/spring-orm-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-context/6.1.6/spring-context-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-tx/6.1.6/spring-tx-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-beans/6.1.6/spring-beans-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-aspects/6.1.6/spring-aspects-6.1.6.jar:/home/runner/.m2/repository/org/flywaydb/flyway-core/9.22.3/flyway-core-9.22.3.jar:/home/runner/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.4/jackson-dataformat-toml-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.15.4/jackson-core-2.15.4.jar:/home/runner/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-security/3.2.5/spring-boot-starter-security-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/3.2.5/spring-boot-starter-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.2.5/spring-boot-starter-logging-3.2.5.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.21.1/log4j-to-slf4j-2.21.1.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.13/jul-to-slf4j-2.0.13.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar:/home/runner/.m2/repository/org/springframework/spring-aop/6.1.6/spring-aop-6.1.6.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-config/6.2.4/spring-security-config-6.2.4.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-web/6.2.4/spring-security-web-6.2.4.jar:/home/runner/.m2/repository/org/springframework/spring-expression/6.1.6/spring-expression-6.1.6.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-validation/3.2.5/spring-boot-starter-validation-3.2.5.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/10.1.20/tomcat-embed-el-10.1.20.jar:/home/runner/.m2/repository/org/hibernate/validator/hibernate-validator/8.0.1.Final/hibernate-validator-8.0.1.Final.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-web/3.2.5/spring-boot-starter-web-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-json/3.2.5/spring-boot-starter-json-3.2.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.15.4/jackson-datatype-jdk8-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.15.4/jackson-datatype-jsr310-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.15.4/jackson-module-parameter-names-2.15.4.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/3.2.5/spring-boot-starter-tomcat-3.2.5.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.20/tomcat-embed-core-10.1.20.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/10.1.20/tomcat-embed-websocket-10.1.20.jar:/home/runner/.m2/repository/org/springframework/spring-web/6.1.6/spring-web-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/6.1.6/spring-webmvc-6.1.6.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/3.2.5/spring-boot-starter-actuator-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/3.2.5/spring-boot-actuator-autoconfigure-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator/3.2.5/spring-boot-actuator-3.2.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.12.5/micrometer-observation-1.12.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.12.5/micrometer-commons-1.12.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-jakarta9/1.12.5/micrometer-jakarta9-1.12.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-devtools/3.2.5/spring-boot-devtools-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/3.2.5/spring-boot-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.2.5/spring-boot-autoconfigure-3.2.5.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.6.2/postgresql-42.6.2.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.31.0/checker-qual-3.31.0.jar:/home/runner/.m2/repository/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.2.5/spring-boot-starter-test-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/3.2.5/spring-boot-test-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.2.5/spring-boot-test-autoconfigure-3.2.5.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.3/jakarta.activation-api-2.1.3.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.5.1/json-smart-2.5.1.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.5.1/accessors-smart-2.5.1.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.6/asm-9.6.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.24.2/assertj-core-3.24.2.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.2.1/awaitility-4.2.1.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.2/junit-jupiter-5.10.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.2/junit-jupiter-api-5.10.2.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/1.10.2/junit-platform-commons-1.10.2.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.2/junit-jupiter-params-5.10.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.2/junit-jupiter-engine-5.10.2.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/1.10.2/junit-platform-engine-1.10.2.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.7.0/mockito-core-5.7.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.13/byte-buddy-agent-1.14.13.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.7.0/mockito-junit-jupiter-5.7.0.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.1/jsonassert-1.5.1.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/6.1.6/spring-core-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-jcl/6.1.6/spring-jcl-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-test/6.1.6/spring-test-6.1.6.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.9.1/xmlunit-core-2.9.1.jar:/home/runner/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.12.5/micrometer-registry-prometheus-1.12.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.12.5/micrometer-core-1.12.5.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_common/0.16.0/simpleclient_common-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient/0.16.0/simpleclient-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_tracer_otel/0.16.0/simpleclient_tracer_otel-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_tracer_common/0.16.0/simpleclient_tracer_common-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_tracer_otel_agent/0.16.0/simpleclient_tracer_otel_agent-0.16.0.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-test/6.2.4/spring-security-test-6.2.4.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-core/6.2.4/spring-security-core-6.2.4.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-crypto/6.2.4/spring-security-crypto-6.2.4.jar:/home/runner/.m2/repository/org/testcontainers/junit-jupiter/1.20.1/junit-jupiter-1.20.1.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/1.19.7/testcontainers-1.19.7.jar:/home/runner/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.3.6/docker-java-api-3.3.6.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.3.6/docker-java-transport-zerodep-3.3.6.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.3.6/docker-java-transport-3.3.6.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar:/home/runner/.m2/repository/org/testcontainers/postgresql/1.20.1/postgresql-1.20.1.jar:/home/runner/.m2/repository/org/testcontainers/jdbc/1.19.7/jdbc-1.19.7.jar:/home/runner/.m2/repository/org/testcontainers/database-commons/1.19.7/database-commons-1.19.7.jar:/home/runner/.m2/repository/io/jsonwebtoken/jjwt-api/0.12.3/jjwt-api-0.12.3.jar:/home/runner/.m2/repository/io/jsonwebtoken/jjwt-impl/0.12.3/jjwt-impl-0.12.3.jar:/home/runner/.m2/repository/io/jsonwebtoken/jjwt-jackson/0.12.3/jjwt-jackson-0.12.3.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.15.4/jackson-databind-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.15.4/jackson-annotations-2.15.4.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-mail/3.2.5/spring-boot-starter-mail-3.2.5.jar:/home/runner/.m2/repository/org/springframework/spring-context-support/6.1.6/spring-context-support-6.1.6.jar:/home/runner/.m2/repository/org/eclipse/angus/jakarta.mail/2.0.3/jakarta.mail-2.0.3.jar:/home/runner/.m2/repository/org/eclipse/angus/angus-activation/2.0.2/angus-activation-2.0.2.jar:/home/runner/.m2/repository/com/google/firebase/firebase-admin/9.3.0/firebase-admin-9.3.0.jar:/home/runner/.m2/repository/com/google/api-client/google-api-client/2.4.0/google-api-client-2.4.0.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.jar:/home/runner/.m2/repository/com/google/oauth-client/google-oauth-client/1.35.0/google-oauth-client-1.35.0.jar:/home/runner/.m2/repository/com/google/auth/google-auth-library-credentials/1.23.0/google-auth-library-credentials-1.23.0.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-gson/1.44.1/google-http-client-gson-1.44.1.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-apache-v2/1.44.1/google-http-client-apache-v2-1.44.1.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar:/home/runner/.m2/repository/com/google/api-client/google-api-client-gson/2.4.0/google-api-client-gson-2.4.0.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client/1.44.1/google-http-client-1.44.1.jar:/home/runner/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar:/home/runner/.m2/repository/io/grpc/grpc-context/1.65.1/grpc-context-1.65.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-api/0.31.1/opencensus-api-0.31.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-contrib-http-util/0.31.1/opencensus-contrib-http-util-0.31.1.jar:/home/runner/.m2/repository/com/google/api/api-common/2.31.0/api-common-2.31.0.jar:/home/runner/.m2/repository/com/google/auto/value/auto-value-annotations/1.10.4/auto-value-annotations-1.10.4.jar:/home/runner/.m2/repository/com/google/auth/google-auth-library-oauth2-http/1.23.0/google-auth-library-oauth2-http-1.23.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-storage/2.38.0/google-cloud-storage-2.38.0.jar:/home/runner/.m2/repository/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar:/home/runner/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-jackson2/1.44.1/google-http-client-jackson2-1.44.1.jar:/home/runner/.m2/repository/com/google/apis/google-api-services-storage/v1-rev20240319-2.0.0/google-api-services-storage-v1-rev20240319-2.0.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-core/2.38.0/google-cloud-core-2.38.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-core-http/2.38.0/google-cloud-core-http-2.38.0.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-appengine/1.44.1/google-http-client-appengine-1.44.1.jar:/home/runner/.m2/repository/com/google/api/gax-httpjson/2.48.0/gax-httpjson-2.48.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-core-grpc/2.38.0/google-cloud-core-grpc-2.38.0.jar:/home/runner/.m2/repository/com/google/api/gax/2.48.0/gax-2.48.0.jar:/home/runner/.m2/repository/com/google/api/gax-grpc/2.48.0/gax-grpc-2.48.0.jar:/home/runner/.m2/repository/io/grpc/grpc-alts/1.65.1/grpc-alts-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-grpclb/1.65.1/grpc-grpclb-1.65.1.jar:/home/runner/.m2/repository/org/conscrypt/conscrypt-openjdk-uber/2.5.2/conscrypt-openjdk-uber-2.5.2.jar:/home/runner/.m2/repository/io/grpc/grpc-auth/1.65.1/grpc-auth-1.65.1.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-iam-v1/1.34.0/proto-google-iam-v1-1.34.0.jar:/home/runner/.m2/repository/com/google/protobuf/protobuf-java-util/3.25.3/protobuf-java-util-3.25.3.jar:/home/runner/.m2/repository/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.jar:/home/runner/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.23/animal-sniffer-annotations-1.23.jar:/home/runner/.m2/repository/org/threeten/threetenbp/1.6.9/threetenbp-1.6.9.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-cloud-storage-v2/2.38.0-alpha/proto-google-cloud-storage-v2-2.38.0-alpha.jar:/home/runner/.m2/repository/com/google/api/grpc/grpc-google-cloud-storage-v2/2.38.0-alpha/grpc-google-cloud-storage-v2-2.38.0-alpha.jar:/home/runner/.m2/repository/com/google/api/grpc/gapic-google-cloud-storage-v2/2.38.0-alpha/gapic-google-cloud-storage-v2-2.38.0-alpha.jar:/home/runner/.m2/repository/io/grpc/grpc-googleapis/1.65.1/grpc-googleapis-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-xds/1.65.1/grpc-xds-1.65.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-proto/0.2.0/opencensus-proto-0.2.0.jar:/home/runner/.m2/repository/com/google/re2j/re2j/1.7/re2j-1.7.jar:/home/runner/.m2/repository/io/grpc/grpc-rls/1.65.1/grpc-rls-1.65.1.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-firestore/3.21.1/google-cloud-firestore-3.21.1.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-cloud-firestore-v1/3.21.1/proto-google-cloud-firestore-v1-3.21.1.jar:/home/runner/.m2/repository/com/google/cloud/proto-google-cloud-firestore-bundle-v1/3.21.1/proto-google-cloud-firestore-bundle-v1-3.21.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-contrib-grpc-util/0.31.1/opencensus-contrib-grpc-util-0.31.1.jar:/home/runner/.m2/repository/com/google/guava/guava/33.1.0-jre/guava-33.1.0-jre.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.13/slf4j-api-2.0.13.jar:/home/runner/.m2/repository/io/netty/netty-codec-http/4.1.109.Final/netty-codec-http-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-common/4.1.109.Final/netty-common-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-buffer/4.1.109.Final/netty-buffer-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec/4.1.109.Final/netty-codec-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-handler/4.1.109.Final/netty-handler-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-resolver/4.1.109.Final/netty-resolver-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport-native-unix-common/4.1.109.Final/netty-transport-native-unix-common-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport/4.1.109.Final/netty-transport-4.1.109.Final.jar:/home/runner/.m2/repository/org/apache/pdfbox/pdfbox/3.0.2/pdfbox-3.0.2.jar:/home/runner/.m2/repository/org/apache/pdfbox/pdfbox-io/3.0.2/pdfbox-io-3.0.2.jar:/home/runner/.m2/repository/org/apache/pdfbox/fontbox/3.0.2/fontbox-3.0.2.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.3.0/commons-logging-1.3.0.jar:/home/runner/.m2/repository/org/apache/poi/poi-ooxml/5.2.5/poi-ooxml-5.2.5.jar:/home/runner/.m2/repository/org/apache/poi/poi/5.2.5/poi-5.2.5.jar:/home/runner/.m2/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/home/runner/.m2/repository/com/zaxxer/SparseBitSet/1.3/SparseBitSet-1.3.jar:/home/runner/.m2/repository/org/apache/poi/poi-ooxml-lite/5.2.5/poi-ooxml-lite-5.2.5.jar:/home/runner/.m2/repository/org/apache/xmlbeans/xmlbeans/5.2.0/xmlbeans-5.2.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.25.0/commons-compress-1.25.0.jar:/home/runner/.m2/repository/commons-io/commons-io/2.15.0/commons-io-2.15.0.jar:/home/runner/.m2/repository/com/github/virtuald/curvesapi/1.08/curvesapi-1.08.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.21.1/log4j-api-2.21.1.jar:/home/runner/.m2/repository/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar:/home/runner/.m2/repository/org/apache/commons/commons-csv/1.10.0/commons-csv-1.10.0.jar:/home/runner/.m2/repository/com/github/librepdf/openpdf/1.3.32/openpdf-1.3.32.jar:/home/runner/.m2/repository/net/devh/grpc-client-spring-boot-starter/3.1.0.RELEASE/grpc-client-spring-boot-starter-3.1.0.RELEASE.jar:/home/runner/.m2/repository/net/devh/grpc-common-spring-boot/3.1.0.RELEASE/grpc-common-spring-boot-3.1.0.RELEASE.jar:/home/runner/.m2/repository/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar:/home/runner/.m2/repository/io/grpc/grpc-inprocess/1.65.1/grpc-inprocess-1.65.1.jar:/home/runner/.m2/repository/net/devh/grpc-server-spring-boot-starter/3.1.0.RELEASE/grpc-server-spring-boot-starter-3.1.0.RELEASE.jar:/home/runner/.m2/repository/io/grpc/grpc-services/1.65.1/grpc-services-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-api/1.65.1/grpc-api-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-protobuf/1.65.1/grpc-protobuf-1.65.1.jar:/home/runner/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/home/runner/.m2/repository/com/google/protobuf/protobuf-java/3.25.1/protobuf-java-3.25.1.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-common-protos/2.29.0/proto-google-common-protos-2.29.0.jar:/home/runner/.m2/repository/io/grpc/grpc-protobuf-lite/1.65.1/grpc-protobuf-lite-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-stub/1.65.1/grpc-stub-1.65.1.jar:/home/runner/.m2/repository/com/google/errorprone/error_prone_annotations/2.23.0/error_prone_annotations-2.23.0.jar:/home/runner/.m2/repository/io/grpc/grpc-netty-shaded/1.65.1/grpc-netty-shaded-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-util/1.65.1/grpc-util-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-core/1.65.1/grpc-core-1.65.1.jar:/home/runner/.m2/repository/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/home/runner/.m2/repository/javax/annotation/javax.annotation-api/1.3.2/javax.annotation-api-1.3.2.jar:/home/runner/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-ui/2.5.0/springdoc-openapi-starter-webmvc-ui-2.5.0.jar:/home/runner/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-api/2.5.0/springdoc-openapi-starter-webmvc-api-2.5.0.jar:/home/runner/.m2/repository/org/springdoc/springdoc-openapi-starter-common/2.5.0/springdoc-openapi-starter-common-2.5.0.jar:/home/runner/.m2/repository/io/swagger/core/v3/swagger-core-jakarta/2.2.21/swagger-core-jakarta-2.2.21.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar:/home/runner/.m2/repository/io/swagger/core/v3/swagger-annotations-jakarta/2.2.21/swagger-annotations-jakarta-2.2.21.jar:/home/runner/.m2/repository/io/swagger/core/v3/swagger-models-jakarta/2.2.21/swagger-models-jakarta-2.2.21.jar:/home/runner/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.jar:/home/runner/.m2/repository/org/webjars/swagger-ui/5.13.0/swagger-ui-5.13.0.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="catalina.useNaming" value="false"/>
+    <property name="user.timezone" value="Etc/UTC"/>
+    <property name="org.jboss.logging.provider" value="slf4j"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-17-jdk-amd64/lib"/>
+    <property name="sun.java.command" value="/home/runner/work/acadtrace/acadtrace/sga-principal/target/surefire/surefirebooter-20260918173808715_3.jar /home/runner/work/acadtrace/acadtrace/sga-principal/target/surefire 2026-09-18T17-38-08_653-jvmRun1 surefire-20260918173808715_1tmp surefire_0-20260918173808715_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/runner/work/acadtrace/acadtrace/sga-principal/target/test-classes:/home/runner/work/acadtrace/acadtrace/sga-principal/target/classes:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-data-jpa/3.2.5/spring-boot-starter-data-jpa-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-aop/3.2.5/spring-boot-starter-aop-3.2.5.jar:/home/runner/.m2/repository/org/aspectj/aspectjweaver/1.9.22/aspectjweaver-1.9.22.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/3.2.5/spring-boot-starter-jdbc-3.2.5.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/5.0.1/HikariCP-5.0.1.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/6.1.6/spring-jdbc-6.1.6.jar:/home/runner/.m2/repository/org/hibernate/orm/hibernate-core/6.4.4.Final/hibernate-core-6.4.4.Final.jar:/home/runner/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar:/home/runner/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar:/home/runner/.m2/repository/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.jar:/home/runner/.m2/repository/org/hibernate/common/hibernate-commons-annotations/6.0.6.Final/hibernate-commons-annotations-6.0.6.Final.jar:/home/runner/.m2/repository/io/smallrye/jandex/3.1.2/jandex-3.1.2.jar:/home/runner/.m2/repository/com/fasterxml/classmate/1.6.0/classmate-1.6.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.14.13/byte-buddy-1.14.13.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-runtime/4.0.5/jaxb-runtime-4.0.5.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-core/4.0.5/jaxb-core-4.0.5.jar:/home/runner/.m2/repository/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar:/home/runner/.m2/repository/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar:/home/runner/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/home/runner/.m2/repository/org/antlr/antlr4-runtime/4.13.0/antlr4-runtime-4.13.0.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-jpa/3.2.5/spring-data-jpa-3.2.5.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/3.2.5/spring-data-commons-3.2.5.jar:/home/runner/.m2/repository/org/springframework/spring-orm/6.1.6/spring-orm-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-context/6.1.6/spring-context-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-tx/6.1.6/spring-tx-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-beans/6.1.6/spring-beans-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-aspects/6.1.6/spring-aspects-6.1.6.jar:/home/runner/.m2/repository/org/flywaydb/flyway-core/9.22.3/flyway-core-9.22.3.jar:/home/runner/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.4/jackson-dataformat-toml-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.15.4/jackson-core-2.15.4.jar:/home/runner/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-security/3.2.5/spring-boot-starter-security-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/3.2.5/spring-boot-starter-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.2.5/spring-boot-starter-logging-3.2.5.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.21.1/log4j-to-slf4j-2.21.1.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.13/jul-to-slf4j-2.0.13.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar:/home/runner/.m2/repository/org/springframework/spring-aop/6.1.6/spring-aop-6.1.6.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-config/6.2.4/spring-security-config-6.2.4.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-web/6.2.4/spring-security-web-6.2.4.jar:/home/runner/.m2/repository/org/springframework/spring-expression/6.1.6/spring-expression-6.1.6.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-validation/3.2.5/spring-boot-starter-validation-3.2.5.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/10.1.20/tomcat-embed-el-10.1.20.jar:/home/runner/.m2/repository/org/hibernate/validator/hibernate-validator/8.0.1.Final/hibernate-validator-8.0.1.Final.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-web/3.2.5/spring-boot-starter-web-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-json/3.2.5/spring-boot-starter-json-3.2.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.15.4/jackson-datatype-jdk8-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.15.4/jackson-datatype-jsr310-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.15.4/jackson-module-parameter-names-2.15.4.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/3.2.5/spring-boot-starter-tomcat-3.2.5.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.20/tomcat-embed-core-10.1.20.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/10.1.20/tomcat-embed-websocket-10.1.20.jar:/home/runner/.m2/repository/org/springframework/spring-web/6.1.6/spring-web-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/6.1.6/spring-webmvc-6.1.6.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/3.2.5/spring-boot-starter-actuator-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/3.2.5/spring-boot-actuator-autoconfigure-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator/3.2.5/spring-boot-actuator-3.2.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.12.5/micrometer-observation-1.12.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.12.5/micrometer-commons-1.12.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-jakarta9/1.12.5/micrometer-jakarta9-1.12.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-devtools/3.2.5/spring-boot-devtools-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/3.2.5/spring-boot-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.2.5/spring-boot-autoconfigure-3.2.5.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.6.2/postgresql-42.6.2.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.31.0/checker-qual-3.31.0.jar:/home/runner/.m2/repository/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.2.5/spring-boot-starter-test-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/3.2.5/spring-boot-test-3.2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.2.5/spring-boot-test-autoconfigure-3.2.5.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.3/jakarta.activation-api-2.1.3.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.5.1/json-smart-2.5.1.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.5.1/accessors-smart-2.5.1.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.6/asm-9.6.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.24.2/assertj-core-3.24.2.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.2.1/awaitility-4.2.1.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.2/junit-jupiter-5.10.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.2/junit-jupiter-api-5.10.2.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/1.10.2/junit-platform-commons-1.10.2.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.2/junit-jupiter-params-5.10.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.2/junit-jupiter-engine-5.10.2.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/1.10.2/junit-platform-engine-1.10.2.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.7.0/mockito-core-5.7.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.13/byte-buddy-agent-1.14.13.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.7.0/mockito-junit-jupiter-5.7.0.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.1/jsonassert-1.5.1.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/6.1.6/spring-core-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-jcl/6.1.6/spring-jcl-6.1.6.jar:/home/runner/.m2/repository/org/springframework/spring-test/6.1.6/spring-test-6.1.6.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.9.1/xmlunit-core-2.9.1.jar:/home/runner/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.12.5/micrometer-registry-prometheus-1.12.5.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.12.5/micrometer-core-1.12.5.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_common/0.16.0/simpleclient_common-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient/0.16.0/simpleclient-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_tracer_otel/0.16.0/simpleclient_tracer_otel-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_tracer_common/0.16.0/simpleclient_tracer_common-0.16.0.jar:/home/runner/.m2/repository/io/prometheus/simpleclient_tracer_otel_agent/0.16.0/simpleclient_tracer_otel_agent-0.16.0.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-test/6.2.4/spring-security-test-6.2.4.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-core/6.2.4/spring-security-core-6.2.4.jar:/home/runner/.m2/repository/org/springframework/security/spring-security-crypto/6.2.4/spring-security-crypto-6.2.4.jar:/home/runner/.m2/repository/org/testcontainers/junit-jupiter/1.20.1/junit-jupiter-1.20.1.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/1.19.7/testcontainers-1.19.7.jar:/home/runner/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.3.6/docker-java-api-3.3.6.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.3.6/docker-java-transport-zerodep-3.3.6.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.3.6/docker-java-transport-3.3.6.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar:/home/runner/.m2/repository/org/testcontainers/postgresql/1.20.1/postgresql-1.20.1.jar:/home/runner/.m2/repository/org/testcontainers/jdbc/1.19.7/jdbc-1.19.7.jar:/home/runner/.m2/repository/org/testcontainers/database-commons/1.19.7/database-commons-1.19.7.jar:/home/runner/.m2/repository/io/jsonwebtoken/jjwt-api/0.12.3/jjwt-api-0.12.3.jar:/home/runner/.m2/repository/io/jsonwebtoken/jjwt-impl/0.12.3/jjwt-impl-0.12.3.jar:/home/runner/.m2/repository/io/jsonwebtoken/jjwt-jackson/0.12.3/jjwt-jackson-0.12.3.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.15.4/jackson-databind-2.15.4.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.15.4/jackson-annotations-2.15.4.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-mail/3.2.5/spring-boot-starter-mail-3.2.5.jar:/home/runner/.m2/repository/org/springframework/spring-context-support/6.1.6/spring-context-support-6.1.6.jar:/home/runner/.m2/repository/org/eclipse/angus/jakarta.mail/2.0.3/jakarta.mail-2.0.3.jar:/home/runner/.m2/repository/org/eclipse/angus/angus-activation/2.0.2/angus-activation-2.0.2.jar:/home/runner/.m2/repository/com/google/firebase/firebase-admin/9.3.0/firebase-admin-9.3.0.jar:/home/runner/.m2/repository/com/google/api-client/google-api-client/2.4.0/google-api-client-2.4.0.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.jar:/home/runner/.m2/repository/com/google/oauth-client/google-oauth-client/1.35.0/google-oauth-client-1.35.0.jar:/home/runner/.m2/repository/com/google/auth/google-auth-library-credentials/1.23.0/google-auth-library-credentials-1.23.0.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-gson/1.44.1/google-http-client-gson-1.44.1.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-apache-v2/1.44.1/google-http-client-apache-v2-1.44.1.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar:/home/runner/.m2/repository/com/google/api-client/google-api-client-gson/2.4.0/google-api-client-gson-2.4.0.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client/1.44.1/google-http-client-1.44.1.jar:/home/runner/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar:/home/runner/.m2/repository/io/grpc/grpc-context/1.65.1/grpc-context-1.65.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-api/0.31.1/opencensus-api-0.31.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-contrib-http-util/0.31.1/opencensus-contrib-http-util-0.31.1.jar:/home/runner/.m2/repository/com/google/api/api-common/2.31.0/api-common-2.31.0.jar:/home/runner/.m2/repository/com/google/auto/value/auto-value-annotations/1.10.4/auto-value-annotations-1.10.4.jar:/home/runner/.m2/repository/com/google/auth/google-auth-library-oauth2-http/1.23.0/google-auth-library-oauth2-http-1.23.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-storage/2.38.0/google-cloud-storage-2.38.0.jar:/home/runner/.m2/repository/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar:/home/runner/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-jackson2/1.44.1/google-http-client-jackson2-1.44.1.jar:/home/runner/.m2/repository/com/google/apis/google-api-services-storage/v1-rev20240319-2.0.0/google-api-services-storage-v1-rev20240319-2.0.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-core/2.38.0/google-cloud-core-2.38.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-core-http/2.38.0/google-cloud-core-http-2.38.0.jar:/home/runner/.m2/repository/com/google/http-client/google-http-client-appengine/1.44.1/google-http-client-appengine-1.44.1.jar:/home/runner/.m2/repository/com/google/api/gax-httpjson/2.48.0/gax-httpjson-2.48.0.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-core-grpc/2.38.0/google-cloud-core-grpc-2.38.0.jar:/home/runner/.m2/repository/com/google/api/gax/2.48.0/gax-2.48.0.jar:/home/runner/.m2/repository/com/google/api/gax-grpc/2.48.0/gax-grpc-2.48.0.jar:/home/runner/.m2/repository/io/grpc/grpc-alts/1.65.1/grpc-alts-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-grpclb/1.65.1/grpc-grpclb-1.65.1.jar:/home/runner/.m2/repository/org/conscrypt/conscrypt-openjdk-uber/2.5.2/conscrypt-openjdk-uber-2.5.2.jar:/home/runner/.m2/repository/io/grpc/grpc-auth/1.65.1/grpc-auth-1.65.1.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-iam-v1/1.34.0/proto-google-iam-v1-1.34.0.jar:/home/runner/.m2/repository/com/google/protobuf/protobuf-java-util/3.25.3/protobuf-java-util-3.25.3.jar:/home/runner/.m2/repository/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.jar:/home/runner/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.23/animal-sniffer-annotations-1.23.jar:/home/runner/.m2/repository/org/threeten/threetenbp/1.6.9/threetenbp-1.6.9.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-cloud-storage-v2/2.38.0-alpha/proto-google-cloud-storage-v2-2.38.0-alpha.jar:/home/runner/.m2/repository/com/google/api/grpc/grpc-google-cloud-storage-v2/2.38.0-alpha/grpc-google-cloud-storage-v2-2.38.0-alpha.jar:/home/runner/.m2/repository/com/google/api/grpc/gapic-google-cloud-storage-v2/2.38.0-alpha/gapic-google-cloud-storage-v2-2.38.0-alpha.jar:/home/runner/.m2/repository/io/grpc/grpc-googleapis/1.65.1/grpc-googleapis-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-xds/1.65.1/grpc-xds-1.65.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-proto/0.2.0/opencensus-proto-0.2.0.jar:/home/runner/.m2/repository/com/google/re2j/re2j/1.7/re2j-1.7.jar:/home/runner/.m2/repository/io/grpc/grpc-rls/1.65.1/grpc-rls-1.65.1.jar:/home/runner/.m2/repository/com/google/cloud/google-cloud-firestore/3.21.1/google-cloud-firestore-3.21.1.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-cloud-firestore-v1/3.21.1/proto-google-cloud-firestore-v1-3.21.1.jar:/home/runner/.m2/repository/com/google/cloud/proto-google-cloud-firestore-bundle-v1/3.21.1/proto-google-cloud-firestore-bundle-v1-3.21.1.jar:/home/runner/.m2/repository/io/opencensus/opencensus-contrib-grpc-util/0.31.1/opencensus-contrib-grpc-util-0.31.1.jar:/home/runner/.m2/repository/com/google/guava/guava/33.1.0-jre/guava-33.1.0-jre.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.13/slf4j-api-2.0.13.jar:/home/runner/.m2/repository/io/netty/netty-codec-http/4.1.109.Final/netty-codec-http-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-common/4.1.109.Final/netty-common-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-buffer/4.1.109.Final/netty-buffer-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec/4.1.109.Final/netty-codec-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-handler/4.1.109.Final/netty-handler-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-resolver/4.1.109.Final/netty-resolver-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport-native-unix-common/4.1.109.Final/netty-transport-native-unix-common-4.1.109.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport/4.1.109.Final/netty-transport-4.1.109.Final.jar:/home/runner/.m2/repository/org/apache/pdfbox/pdfbox/3.0.2/pdfbox-3.0.2.jar:/home/runner/.m2/repository/org/apache/pdfbox/pdfbox-io/3.0.2/pdfbox-io-3.0.2.jar:/home/runner/.m2/repository/org/apache/pdfbox/fontbox/3.0.2/fontbox-3.0.2.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.3.0/commons-logging-1.3.0.jar:/home/runner/.m2/repository/org/apache/poi/poi-ooxml/5.2.5/poi-ooxml-5.2.5.jar:/home/runner/.m2/repository/org/apache/poi/poi/5.2.5/poi-5.2.5.jar:/home/runner/.m2/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/home/runner/.m2/repository/com/zaxxer/SparseBitSet/1.3/SparseBitSet-1.3.jar:/home/runner/.m2/repository/org/apache/poi/poi-ooxml-lite/5.2.5/poi-ooxml-lite-5.2.5.jar:/home/runner/.m2/repository/org/apache/xmlbeans/xmlbeans/5.2.0/xmlbeans-5.2.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.25.0/commons-compress-1.25.0.jar:/home/runner/.m2/repository/commons-io/commons-io/2.15.0/commons-io-2.15.0.jar:/home/runner/.m2/repository/com/github/virtuald/curvesapi/1.08/curvesapi-1.08.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.21.1/log4j-api-2.21.1.jar:/home/runner/.m2/repository/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar:/home/runner/.m2/repository/org/apache/commons/commons-csv/1.10.0/commons-csv-1.10.0.jar:/home/runner/.m2/repository/com/github/librepdf/openpdf/1.3.32/openpdf-1.3.32.jar:/home/runner/.m2/repository/net/devh/grpc-client-spring-boot-starter/3.1.0.RELEASE/grpc-client-spring-boot-starter-3.1.0.RELEASE.jar:/home/runner/.m2/repository/net/devh/grpc-common-spring-boot/3.1.0.RELEASE/grpc-common-spring-boot-3.1.0.RELEASE.jar:/home/runner/.m2/repository/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar:/home/runner/.m2/repository/io/grpc/grpc-inprocess/1.65.1/grpc-inprocess-1.65.1.jar:/home/runner/.m2/repository/net/devh/grpc-server-spring-boot-starter/3.1.0.RELEASE/grpc-server-spring-boot-starter-3.1.0.RELEASE.jar:/home/runner/.m2/repository/io/grpc/grpc-services/1.65.1/grpc-services-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-api/1.65.1/grpc-api-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-protobuf/1.65.1/grpc-protobuf-1.65.1.jar:/home/runner/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/home/runner/.m2/repository/com/google/protobuf/protobuf-java/3.25.1/protobuf-java-3.25.1.jar:/home/runner/.m2/repository/com/google/api/grpc/proto-google-common-protos/2.29.0/proto-google-common-protos-2.29.0.jar:/home/runner/.m2/repository/io/grpc/grpc-protobuf-lite/1.65.1/grpc-protobuf-lite-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-stub/1.65.1/grpc-stub-1.65.1.jar:/home/runner/.m2/repository/com/google/errorprone/error_prone_annotations/2.23.0/error_prone_annotations-2.23.0.jar:/home/runner/.m2/repository/io/grpc/grpc-netty-shaded/1.65.1/grpc-netty-shaded-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-util/1.65.1/grpc-util-1.65.1.jar:/home/runner/.m2/repository/io/grpc/grpc-core/1.65.1/grpc-core-1.65.1.jar:/home/runner/.m2/repository/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/home/runner/.m2/repository/javax/annotation/javax.annotation-api/1.3.2/javax.annotation-api-1.3.2.jar:/home/runner/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-ui/2.5.0/springdoc-openapi-starter-webmvc-ui-2.5.0.jar:/home/runner/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-api/2.5.0/springdoc-openapi-starter-webmvc-api-2.5.0.jar:/home/runner/.m2/repository/org/springdoc/springdoc-openapi-starter-common/2.5.0/springdoc-openapi-starter-common-2.5.0.jar:/home/runner/.m2/repository/io/swagger/core/v3/swagger-core-jakarta/2.2.21/swagger-core-jakarta-2.2.21.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar:/home/runner/.m2/repository/io/swagger/core/v3/swagger-annotations-jakarta/2.2.21/swagger-annotations-jakarta-2.2.21.jar:/home/runner/.m2/repository/io/swagger/core/v3/swagger-models-jakarta/2.2.21/swagger-models-jakarta-2.2.21.jar:/home/runner/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.jar:/home/runner/.m2/repository/org/webjars/swagger-ui/5.13.0/swagger-ui-5.13.0.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/runner"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-08-18"/>
+    <property name="java.home" value="/usr/lib/jvm/temurin-17-jdk-amd64"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/runner/work/acadtrace/acadtrace/sga-principal"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="/home/runner/work/acadtrace/acadtrace/sga-principal/target/surefire/surefirebooter-20260918173808715_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.20.1+1"/>
+    <property name="user.name" value="runner"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="6.17.0-1022-azure"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="jnidispatch.path" value="/home/runner/.cache/JNA/temp/jna11911363021816588991.tmp"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="jna.platform.library.path" value="/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:/usr/lib64:/lib64:/usr/lib:/lib:/lib32:/usr/local/lib:/usr/lib/x86_64-linux-gnu/libfakeroot"/>
+    <property name="java.vendor.version" value="Temurin-17.0.20.1+1"/>
+    <property name="localRepository" value="/home/runner/.m2/repository"/>
+    <property name="jna.loaded" value="true"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="catalina.home" value="/tmp/tomcat.0.1522341454748029017"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
+    <property name="java.version" value="17.0.20.1"/>
+    <property name="user.dir" value="/home/runner/work/acadtrace/acadtrace/sga-principal"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="2493"/>
+    <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
+    <property name="catalina.base" value="/tmp/tomcat.0.1522341454748029017"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/opt/hostedtoolcache/Python/3.13.15/x64/lib:/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="17.0.20.1+1"/>
+    <property name="java.specification.maintenance.version" value="1"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[sga-principal] "/>
+  </properties>
+  <testcase name="dosEscriturasConcurrentesMantienenUnaSolaCadena" classname="ec.edu.uteq.sga.integration.AuditoriaPostgresContainerTest" time="1.282">
+    <system-out><![CDATA[17:38:26.398 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [ec.edu.uteq.sga.integration.AuditoriaPostgresContainerTest]: AuditoriaPostgresContainerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:38:26.674 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration ec.edu.uteq.sga.SgaPrincipalApplication for test class ec.edu.uteq.sga.integration.AuditoriaPostgresContainerTest
+17:38:26.969 [main] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
+17:38:26.989 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: 9134a8098d1fcb28340e5b775ffc88b07cccf466337ece3263b777b63bcb3391
+17:38:28.423 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT1.45428868S
+17:38:28.424 [main] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:32771/testdb?loggerLevel=OFF)
+17:38:28.425 [main] INFO org.testcontainers.ext.ScriptUtils -- Executing database script from db/init/V0__baseline.sql
+17:38:28.467 [main] INFO org.testcontainers.ext.ScriptUtils -- Executed database script from db/init/V0__baseline.sql in 42 ms.
+17:38:28.556 [main] INFO org.springframework.boot.devtools.restart.RestartApplicationListener -- Restart disabled due to context in which it is running
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-09-18T17:38:29.186Z  INFO 2493 --- [sga-principal] [           main] e.e.u.s.i.AuditoriaPostgresContainerTest : Starting AuditoriaPostgresContainerTest using Java 17.0.20.1 with PID 2493 (started by runner in /home/runner/work/acadtrace/acadtrace/sga-principal)
+2026-09-18T17:38:29.188Z  INFO 2493 --- [sga-principal] [           main] e.e.u.s.i.AuditoriaPostgresContainerTest : No active profile set, falling back to 1 default profile: "default"
+2026-09-18T17:38:31.832Z  INFO 2493 --- [sga-principal] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-18T17:38:32.003Z  INFO 2493 --- [sga-principal] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 158 ms. Found 25 JPA repository interfaces.
+2026-09-18T17:38:33.991Z  INFO 2493 --- [sga-principal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-18T17:38:34.026Z  INFO 2493 --- [sga-principal] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-18T17:38:34.027Z  INFO 2493 --- [sga-principal] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-18T17:38:34.134Z  INFO 2493 --- [sga-principal] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-18T17:38:34.134Z  INFO 2493 --- [sga-principal] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4910 ms
+2026-09-18T17:38:34.807Z  INFO 2493 --- [sga-principal] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-18T17:38:34.997Z  INFO 2493 --- [sga-principal] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-18T17:38:35.072Z  INFO 2493 --- [sga-principal] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-18T17:38:35.608Z  INFO 2493 --- [sga-principal] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-18T17:38:35.663Z  INFO 2493 --- [sga-principal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-18T17:38:35.686Z  INFO 2493 --- [sga-principal] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@52a08618
+2026-09-18T17:38:35.689Z  INFO 2493 --- [sga-principal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-18T17:38:35.741Z  WARN 2493 --- [sga-principal] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-18T17:38:38.182Z  INFO 2493 --- [sga-principal] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: 
+    alter table if exists sga_docente.periodos_evaluacion 
+       drop constraint if exists FKnw82wxlwu9legeae6ui66y973
+2026-09-18T17:38:38.233Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.233Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "periodos_evaluacion" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_docente.periodos_evaluacion cascade
+2026-09-18T17:38:38.234Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.234Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "periodos_evaluacion" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.anos_lectivos 
+       drop constraint if exists FK5fr8khsqdb2knw0sgipbk9ji0
+2026-09-18T17:38:38.234Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.234Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "anos_lectivos" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       drop constraint if exists FK15qtewhcookxb8nlo74dlvyso
+2026-09-18T17:38:38.235Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.235Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "asignaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       drop constraint if exists FKsgrhaank1w22951sjtrmrpvi4
+2026-09-18T17:38:38.235Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.235Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "asignaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       drop constraint if exists FKm78f2c73hqdkrm4j2usvxy1hd
+2026-09-18T17:38:38.236Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.236Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "asignaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       drop constraint if exists FKqddggy6ciew5wapr1ne06x18e
+2026-09-18T17:38:38.237Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.237Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "asignaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       drop constraint if exists FKnnr5024hpvv7k252j8hu1f6aa
+2026-09-18T17:38:38.237Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.238Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "asignaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       drop constraint if exists FKpyyihqeowt0d8hm8lv2afhmj
+2026-09-18T17:38:38.238Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.238Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "asignaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.auditoria 
+       drop constraint if exists FKmc60a5takcm6k0hp4psrdnttm
+2026-09-18T17:38:38.239Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.239Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "auditoria" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.dispositivos_representante 
+       drop constraint if exists FKj6v9o825ugwcduixs2f5vi3iw
+2026-09-18T17:38:38.239Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.239Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "dispositivos_representante" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.escala_calificaciones 
+       drop constraint if exists FKhmlflarc6kcjneyk5ekexpa04
+2026-09-18T17:38:38.240Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.240Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "escala_calificaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.escala_calificaciones 
+       drop constraint if exists FKslgq7jggrmbs0r1gaw2beo0sj
+2026-09-18T17:38:38.240Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.241Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "escala_calificaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.esquema_calificacion 
+       drop constraint if exists FKau0altyij50xrf4l9rkh28aei
+2026-09-18T17:38:38.242Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.242Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "esquema_calificacion" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.estudiantes 
+       drop constraint if exists FKn58open8v1psf9ftgaydac58g
+2026-09-18T17:38:38.242Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.242Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "estudiantes" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.estudiantes 
+       drop constraint if exists FKop8x0d7ovf1kjevli0eo67mhn
+2026-09-18T17:38:38.244Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.244Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "estudiantes" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.eventos_notificacion_push 
+       drop constraint if exists FKm4c4yin4rn0brg6fnrb65q0d4
+2026-09-18T17:38:38.244Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.244Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "eventos_notificacion_push" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.fichas_estudiante 
+       drop constraint if exists FKiuwxqp0pbfu6c9e6bk72f5v15
+2026-09-18T17:38:38.245Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.245Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "fichas_estudiante" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.grados 
+       drop constraint if exists FKk6tk4lo8pchmfqgmsmrurvv9q
+2026-09-18T17:38:38.246Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.246Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "grados" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.horarios 
+       drop constraint if exists FKkxfg69grd43nvig8drn0mv2ab
+2026-09-18T17:38:38.247Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.247Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "horarios" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.malla_curricular 
+       drop constraint if exists FKodv6yokkqte45gmgfbp3ugux
+2026-09-18T17:38:38.247Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.248Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "malla_curricular" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.malla_curricular 
+       drop constraint if exists FKnksiqlymk39v2fjrmjnb6io3c
+2026-09-18T17:38:38.248Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.248Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "malla_curricular" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.malla_curricular 
+       drop constraint if exists FKqvk6mhgstpyo83qay6flju6du
+2026-09-18T17:38:38.249Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.249Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "malla_curricular" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       drop constraint if exists FKt1hkgjtp9fjepdigmajrnko9l
+2026-09-18T17:38:38.249Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.250Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "matriculas" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       drop constraint if exists FK7teemxeuh2m9ttodar3bwapdw
+2026-09-18T17:38:38.250Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.250Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "matriculas" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       drop constraint if exists FKbr9u30k6wxjnho0ix3nrsc7to
+2026-09-18T17:38:38.251Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.251Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "matriculas" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       drop constraint if exists FK9bhv4scanv29sak1ukw726xbg
+2026-09-18T17:38:38.251Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.252Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "matriculas" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       drop constraint if exists FKbopdwr46cpyl8ut2jp3hdrtxu
+2026-09-18T17:38:38.252Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.252Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "matriculas" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.notificaciones 
+       drop constraint if exists FKrr0ikjdv4qycj44q3lohskm4k
+2026-09-18T17:38:38.253Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.253Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "notificaciones" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.paralelos 
+       drop constraint if exists FKklkoqsl0yy6g828oh67bvxrsr
+2026-09-18T17:38:38.253Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.253Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "paralelos" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.personas 
+       drop constraint if exists FK5lt3cefmp53qkehyrfy5r4flg
+2026-09-18T17:38:38.254Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.254Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "personas" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.representantes 
+       drop constraint if exists FKc01hl3t4gipn16pyhvcxutifk
+2026-09-18T17:38:38.255Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.255Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "representantes" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.tipos_aporte 
+       drop constraint if exists FKil72cfpwmugvhtq6r5tocy6ay
+2026-09-18T17:38:38.255Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.255Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "tipos_aporte" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.usuario_roles 
+       drop constraint if exists FKo74ec96jhrl0qnl41u14osa2b
+2026-09-18T17:38:38.256Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.256Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "usuario_roles" does not exist, skipping
+Hibernate: 
+    alter table if exists sga_principal.usuario_roles 
+       drop constraint if exists FKor5vdfg7bv12b37vaawa9lee2
+2026-09-18T17:38:38.256Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.256Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "usuario_roles" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.anos_lectivos cascade
+2026-09-18T17:38:38.257Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.257Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "anos_lectivos" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.asignaciones cascade
+2026-09-18T17:38:38.257Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.257Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "asignaciones" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.asignaturas cascade
+2026-09-18T17:38:38.258Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.258Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "asignaturas" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.auditoria cascade
+2026-09-18T17:38:38.259Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.259Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "auditoria" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.dispositivos_representante cascade
+2026-09-18T17:38:38.259Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.259Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "dispositivos_representante" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.escala_calificaciones cascade
+2026-09-18T17:38:38.260Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.260Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "escala_calificaciones" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.esquema_calificacion cascade
+2026-09-18T17:38:38.260Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.260Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "esquema_calificacion" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.estado_cadena_auditoria cascade
+2026-09-18T17:38:38.262Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.262Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "estado_cadena_auditoria" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.estudiantes cascade
+2026-09-18T17:38:38.262Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.262Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "estudiantes" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.eventos_notificacion_push cascade
+2026-09-18T17:38:38.263Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.263Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "eventos_notificacion_push" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.fichas_estudiante cascade
+2026-09-18T17:38:38.264Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.264Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "fichas_estudiante" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.grados cascade
+2026-09-18T17:38:38.265Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.265Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "grados" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.horarios cascade
+2026-09-18T17:38:38.265Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.265Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "horarios" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.malla_curricular cascade
+2026-09-18T17:38:38.266Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.266Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "malla_curricular" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.matriculas cascade
+2026-09-18T17:38:38.266Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.266Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "matriculas" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.niveles_educativos cascade
+2026-09-18T17:38:38.267Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.267Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "niveles_educativos" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.notificaciones cascade
+2026-09-18T17:38:38.267Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.267Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "notificaciones" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.paralelos cascade
+2026-09-18T17:38:38.268Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.268Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "paralelos" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.periodos_horario cascade
+2026-09-18T17:38:38.268Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.268Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "periodos_horario" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.personas cascade
+2026-09-18T17:38:38.269Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.269Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "personas" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.representantes cascade
+2026-09-18T17:38:38.269Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.269Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "representantes" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.roles cascade
+2026-09-18T17:38:38.270Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.270Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "roles" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.tipos_aporte cascade
+2026-09-18T17:38:38.270Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.270Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "tipos_aporte" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.usuario_roles cascade
+2026-09-18T17:38:38.271Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.271Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "usuario_roles" does not exist, skipping
+Hibernate: 
+    drop table if exists sga_principal.usuarios cascade
+2026-09-18T17:38:38.271Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-09-18T17:38:38.271Z  WARN 2493 --- [sga-principal] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "usuarios" does not exist, skipping
+Hibernate: 
+    create table sga_docente.periodos_evaluacion (
+        activo boolean,
+        fecha_fin date not null,
+        fecha_inicio date not null,
+        id_ano_lectivo bigint not null,
+        id_periodo bigserial not null,
+        tipo varchar(20) not null,
+        nombre varchar(100) not null,
+        primary key (id_periodo)
+    )
+Hibernate: 
+    create table sga_principal.anos_lectivos (
+        es_actual boolean,
+        fecha_fin date not null,
+        fecha_inicio date not null,
+        creado_por bigint,
+        fecha_creacion timestamp(6) with time zone,
+        id_ano_lectivo bigserial not null,
+        nombre varchar(20) not null unique,
+        primary key (id_ano_lectivo)
+    )
+Hibernate: 
+    create table sga_principal.asignaciones (
+        activo boolean,
+        es_tutor boolean,
+        horas_semanales integer,
+        asignado_por bigint,
+        fecha_asignacion timestamp(6) with time zone,
+        id_ano_lectivo bigint not null,
+        id_asignacion bigserial not null,
+        id_asignatura bigint not null,
+        id_docente bigint not null,
+        id_grado bigint not null,
+        id_paralelo bigint not null,
+        primary key (id_asignacion)
+    )
+Hibernate: 
+    create table sga_principal.asignaturas (
+        activa boolean,
+        horas_semana smallint,
+        fecha_creacion timestamp(6) with time zone,
+        id_asignatura bigserial not null,
+        codigo varchar(20) unique,
+        nombre varchar(100) not null unique,
+        descripcion text,
+        primary key (id_asignatura)
+    )
+Hibernate: 
+    create table sga_principal.auditoria (
+        fecha timestamp(6) with time zone not null,
+        id_auditoria bigserial not null,
+        id_usuario bigint,
+        registro_id bigint,
+        reloj_lamport bigint,
+        resultado varchar(10) not null,
+        trace_id uuid not null,
+        schema_origen varchar(20) not null,
+        version_canonica varchar(20),
+        accion varchar(50) not null,
+        ip_address varchar(50),
+        tabla_afectada varchar(50),
+        username varchar(50),
+        hash_actual varchar(64),
+        hash_anterior varchar(64),
+        hmac varchar(64),
+        contenido_canonico text,
+        descripcion text,
+        user_agent text,
+        vector_reloj text,
+        primary key (id_auditoria)
+    )
+Hibernate: 
+    create table sga_principal.dispositivos_representante (
+        activo boolean not null,
+        fecha_actualizacion timestamp(6) with time zone not null,
+        fecha_registro timestamp(6) with time zone not null,
+        id_dispositivo bigserial not null,
+        id_usuario bigint not null,
+        plataforma varchar(20) not null,
+        token varchar(512) not null unique,
+        primary key (id_dispositivo)
+    )
+Hibernate: 
+    create table sga_principal.escala_calificaciones (
+        nota_maxima numeric(38,2) not null,
+        nota_minima numeric(38,2) not null,
+        equivalente_cualitativo varchar(5),
+        id_ano_lectivo bigint not null,
+        id_escala bigserial not null,
+        id_nivel bigint not null,
+        descripcion varchar(100),
+        primary key (id_escala)
+    )
+Hibernate: 
+    create table sga_principal.esquema_calificacion (
+        peso_formativa numeric(38,2) not null,
+        peso_sumativa numeric(38,2) not null,
+        id_ano_lectivo bigint not null unique,
+        id_esquema bigserial not null,
+        primary key (id_esquema)
+    )
+Hibernate: 
+    create table sga_principal.estado_cadena_auditoria (
+        id_estado smallint not null,
+        ultimo_lamport bigint not null,
+        ultimo_hash varchar(64) not null,
+        vector_reloj text,
+        primary key (id_estado)
+    )
+Hibernate: 
+    create table sga_principal.estudiantes (
+        beneficio_social boolean,
+        discapacidad boolean,
+        fecha_nacimiento date,
+        numeros_hermanos smallint,
+        porcentaje_disc smallint,
+        creado_por bigint,
+        fecha_actualizacion timestamp(6) with time zone,
+        fecha_creacion timestamp(6) with time zone,
+        id_estudiante bigserial not null,
+        id_representante bigint,
+        genero varchar(10),
+        cedula varchar(20) unique,
+        codigo_estudiante varchar(20) unique,
+        estado varchar(20),
+        telefono varchar(20),
+        telefono_alt varchar(20),
+        carnet_conadis varchar(30),
+        etnia varchar(50),
+        nacionalidad varchar(50),
+        origen_listado varchar(50),
+        vive_con varchar(50),
+        apellidos varchar(100) not null,
+        correo varchar(100),
+        nombres varchar(100) not null,
+        tipo_discapacidad varchar(100),
+        lugar_nacimiento varchar(150),
+        direccion text,
+        foto_url varchar(255),
+        primary key (id_estudiante)
+    )
+Hibernate: 
+    create table sga_principal.eventos_notificacion_push (
+        fecha_creacion timestamp(6) with time zone not null,
+        fecha_envio timestamp(6) with time zone,
+        id_evento bigserial not null,
+        id_usuario bigint not null,
+        estado varchar(20) not null,
+        tipo varchar(30) not null,
+        clave_evento varchar(180) not null,
+        primary key (id_evento),
+        constraint uq_evento_push_destinatario unique (clave_evento, id_usuario)
+    )
+Hibernate: 
+    create table sga_principal.fichas_estudiante (
+        enfermedad_catastrofica boolean,
+        tipo_sangre varchar(5),
+        fecha_actualizacion timestamp(6) with time zone,
+        id_estudiante bigint not null unique,
+        id_ficha bigserial not null,
+        telefono_emergencia varchar(20),
+        contacto_emergencia varchar(100),
+        alergias text,
+        detalle_enfermedad text,
+        direccion_referencia text,
+        medicacion_permanente text,
+        primary key (id_ficha)
+    )
+Hibernate: 
+    create table sga_principal.grados (
+        activo boolean,
+        capacidad_max smallint,
+        orden smallint not null,
+        id_grado bigserial not null,
+        id_nivel bigint,
+        nombre varchar(100) not null,
+        primary key (id_grado)
+    )
+Hibernate: 
+    create table sga_principal.horarios (
+        dia_semana smallint not null,
+        hora_fin time(6) not null,
+        hora_inicio time(6) not null,
+        id_periodo integer,
+        id_asignacion bigint not null,
+        id_horario bigserial not null,
+        aula varchar(50),
+        primary key (id_horario)
+    )
+Hibernate: 
+    create table sga_principal.malla_curricular (
+        activo boolean not null,
+        dias_semana smallint,
+        duracion smallint,
+        horas_semana smallint not null,
+        fecha_creacion timestamp(6) with time zone,
+        id_ano_lectivo bigint not null,
+        id_asignatura bigint not null,
+        id_grado bigint not null,
+        id_malla bigserial not null,
+        primary key (id_malla)
+    )
+Hibernate: 
+    create table sga_principal.matriculas (
+        fecha_registro date,
+        numero_orden smallint,
+        fecha_creacion timestamp(6) with time zone,
+        id_ano_lectivo bigint not null,
+        id_estudiante bigint not null,
+        id_grado bigint not null,
+        id_matricula bigserial not null,
+        id_paralelo bigint not null,
+        registrado_por bigint,
+        estado sga_principal.estado_matricula_t not null,
+        observaciones text,
+        primary key (id_matricula)
+    )
+Hibernate: 
+    create table sga_principal.niveles_educativos (
+        grado_fin smallint,
+        grado_inicio smallint,
+        id_nivel bigserial not null,
+        tipo_escala varchar(20) not null,
+        nombre varchar(100) not null,
+        primary key (id_nivel)
+    )
+Hibernate: 
+    create table sga_principal.notificaciones (
+        leida boolean not null,
+        fecha timestamp(6) with time zone not null,
+        id_notificacion bigserial not null,
+        id_usuario bigint,
+        tipo varchar(30) not null,
+        titulo varchar(150) not null,
+        mensaje text,
+        url_destino varchar(255),
+        primary key (id_notificacion)
+    )
+Hibernate: 
+    create table sga_principal.paralelos (
+        activo boolean,
+        letra varchar(1) not null,
+        id_grado bigint not null,
+        id_paralelo bigserial not null,
+        primary key (id_paralelo)
+    )
+Hibernate: 
+    create table sga_principal.periodos_horario (
+        activo boolean not null,
+        hora_fin time(6) not null,
+        hora_inicio time(6) not null,
+        id_periodo serial not null,
+        orden integer not null,
+        nombre varchar(30) not null,
+        primary key (id_periodo)
+    )
+Hibernate: 
+    create table sga_principal.personas (
+        fecha_nacimiento date,
+        fecha_actualizacion timestamp(6) with time zone,
+        fecha_creacion timestamp(6) with time zone,
+        id_persona bigserial not null,
+        id_usuario bigint not null unique,
+        cedula varchar(20) not null unique,
+        telefono varchar(20),
+        telefono_alt varchar(20),
+        apellidos varchar(100) not null,
+        correo_personal varchar(100),
+        especializacion varchar(100),
+        nombres varchar(100) not null,
+        titulo_academico varchar(100),
+        direccion text,
+        foto_url varchar(255),
+        genero sga_principal.genero_t,
+        primary key (id_persona)
+    )
+Hibernate: 
+    create table sga_principal.representantes (
+        convive_con_estudiante boolean,
+        fecha_nacimiento date,
+        ingreso_mensual numeric(10,2),
+        fecha_creacion timestamp(6) with time zone,
+        id_representante bigserial not null,
+        id_usuario bigint unique,
+        cedula varchar(20) unique,
+        contacto_emergencia_telefono varchar(20),
+        genero varchar(20),
+        telefono_alt varchar(20),
+        telefono_principal varchar(20) not null,
+        telefono_trabajo varchar(20),
+        estado_civil varchar(30),
+        nacionalidad varchar(50),
+        nivel_instruccion varchar(50),
+        parentesco varchar(50),
+        apellidos varchar(100) not null,
+        cargo varchar(100),
+        correo varchar(100),
+        nombres varchar(100) not null,
+        ocupacion varchar(100),
+        contacto_emergencia_nombre varchar(150),
+        lugar_trabajo varchar(150),
+        direccion text,
+        observaciones text,
+        primary key (id_representante)
+    )
+Hibernate: 
+    create table sga_principal.roles (
+        activo boolean,
+        id_rol bigserial not null,
+        nombre varchar not null unique,
+        descripcion varchar(255),
+        primary key (id_rol)
+    )
+Hibernate: 
+    create table sga_principal.tipos_aporte (
+        activo boolean not null,
+        orden integer not null,
+        id_ano_lectivo bigint not null,
+        id_tipo_aporte bigserial not null,
+        tipo_evaluacion varchar(12) not null,
+        nombre varchar(60) not null,
+        primary key (id_tipo_aporte)
+    )
+Hibernate: 
+    create table sga_principal.usuario_roles (
+        id_rol bigint not null,
+        id_usuario bigint not null,
+        primary key (id_rol, id_usuario)
+    )
+Hibernate: 
+    create table sga_principal.usuarios (
+        estado boolean not null,
+        intentos_fallidos integer,
+        primer_ingreso boolean,
+        bloqueado_hasta timestamp(6) with time zone,
+        fecha_actualizacion timestamp(6) with time zone,
+        fecha_creacion timestamp(6) with time zone,
+        id_usuario bigserial not null,
+        ultimo_acceso timestamp(6) with time zone,
+        username varchar(50) not null unique,
+        correo varchar(100) not null unique,
+        password_hash varchar(255) not null,
+        primary key (id_usuario)
+    )
+Hibernate: 
+    alter table if exists sga_docente.periodos_evaluacion 
+       add constraint FKnw82wxlwu9legeae6ui66y973 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.anos_lectivos 
+       add constraint FK5fr8khsqdb2knw0sgipbk9ji0 
+       foreign key (creado_por) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       add constraint FK15qtewhcookxb8nlo74dlvyso 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       add constraint FKsgrhaank1w22951sjtrmrpvi4 
+       foreign key (asignado_por) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       add constraint FKm78f2c73hqdkrm4j2usvxy1hd 
+       foreign key (id_asignatura) 
+       references sga_principal.asignaturas
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       add constraint FKqddggy6ciew5wapr1ne06x18e 
+       foreign key (id_docente) 
+       references sga_principal.personas
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       add constraint FKnnr5024hpvv7k252j8hu1f6aa 
+       foreign key (id_grado) 
+       references sga_principal.grados
+Hibernate: 
+    alter table if exists sga_principal.asignaciones 
+       add constraint FKpyyihqeowt0d8hm8lv2afhmj 
+       foreign key (id_paralelo) 
+       references sga_principal.paralelos
+Hibernate: 
+    alter table if exists sga_principal.auditoria 
+       add constraint FKmc60a5takcm6k0hp4psrdnttm 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.dispositivos_representante 
+       add constraint FKj6v9o825ugwcduixs2f5vi3iw 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.escala_calificaciones 
+       add constraint FKhmlflarc6kcjneyk5ekexpa04 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.escala_calificaciones 
+       add constraint FKslgq7jggrmbs0r1gaw2beo0sj 
+       foreign key (id_nivel) 
+       references sga_principal.niveles_educativos
+Hibernate: 
+    alter table if exists sga_principal.esquema_calificacion 
+       add constraint FKau0altyij50xrf4l9rkh28aei 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.estudiantes 
+       add constraint FKn58open8v1psf9ftgaydac58g 
+       foreign key (creado_por) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.estudiantes 
+       add constraint FKop8x0d7ovf1kjevli0eo67mhn 
+       foreign key (id_representante) 
+       references sga_principal.representantes
+Hibernate: 
+    alter table if exists sga_principal.eventos_notificacion_push 
+       add constraint FKm4c4yin4rn0brg6fnrb65q0d4 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.fichas_estudiante 
+       add constraint FKiuwxqp0pbfu6c9e6bk72f5v15 
+       foreign key (id_estudiante) 
+       references sga_principal.estudiantes
+Hibernate: 
+    alter table if exists sga_principal.grados 
+       add constraint FKk6tk4lo8pchmfqgmsmrurvv9q 
+       foreign key (id_nivel) 
+       references sga_principal.niveles_educativos
+Hibernate: 
+    alter table if exists sga_principal.horarios 
+       add constraint FKkxfg69grd43nvig8drn0mv2ab 
+       foreign key (id_asignacion) 
+       references sga_principal.asignaciones
+Hibernate: 
+    alter table if exists sga_principal.malla_curricular 
+       add constraint FKodv6yokkqte45gmgfbp3ugux 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.malla_curricular 
+       add constraint FKnksiqlymk39v2fjrmjnb6io3c 
+       foreign key (id_asignatura) 
+       references sga_principal.asignaturas
+Hibernate: 
+    alter table if exists sga_principal.malla_curricular 
+       add constraint FKqvk6mhgstpyo83qay6flju6du 
+       foreign key (id_grado) 
+       references sga_principal.grados
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       add constraint FKt1hkgjtp9fjepdigmajrnko9l 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       add constraint FK7teemxeuh2m9ttodar3bwapdw 
+       foreign key (id_estudiante) 
+       references sga_principal.estudiantes
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       add constraint FKbr9u30k6wxjnho0ix3nrsc7to 
+       foreign key (id_grado) 
+       references sga_principal.grados
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       add constraint FK9bhv4scanv29sak1ukw726xbg 
+       foreign key (id_paralelo) 
+       references sga_principal.paralelos
+Hibernate: 
+    alter table if exists sga_principal.matriculas 
+       add constraint FKbopdwr46cpyl8ut2jp3hdrtxu 
+       foreign key (registrado_por) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.notificaciones 
+       add constraint FKrr0ikjdv4qycj44q3lohskm4k 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.paralelos 
+       add constraint FKklkoqsl0yy6g828oh67bvxrsr 
+       foreign key (id_grado) 
+       references sga_principal.grados
+Hibernate: 
+    alter table if exists sga_principal.personas 
+       add constraint FK5lt3cefmp53qkehyrfy5r4flg 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.representantes 
+       add constraint FKc01hl3t4gipn16pyhvcxutifk 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+Hibernate: 
+    alter table if exists sga_principal.tipos_aporte 
+       add constraint FKil72cfpwmugvhtq6r5tocy6ay 
+       foreign key (id_ano_lectivo) 
+       references sga_principal.anos_lectivos
+Hibernate: 
+    alter table if exists sga_principal.usuario_roles 
+       add constraint FKo74ec96jhrl0qnl41u14osa2b 
+       foreign key (id_rol) 
+       references sga_principal.roles
+Hibernate: 
+    alter table if exists sga_principal.usuario_roles 
+       add constraint FKor5vdfg7bv12b37vaawa9lee2 
+       foreign key (id_usuario) 
+       references sga_principal.usuarios
+2026-09-18T17:38:38.472Z  INFO 2493 --- [sga-principal] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-18T17:38:39.174Z  INFO 2493 --- [sga-principal] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-18T17:38:41.336Z  INFO 2493 --- [sga-principal] [           main] n.d.b.g.c.a.GrpcClientAutoConfiguration  : Detected grpc-netty-shaded: Creating ShadedNettyChannelFactory + InProcessChannelFactory
+2026-09-18T17:38:41.746Z  WARN 2493 --- [sga-principal] [           main] e.e.u.s.i.c.RestriccionBitacoraValidator : Validacion de restriccion de bitacora omitida: el usuario efectivo test es superusuario. Este arranque no acredita la restriccion.
+2026-09-18T17:38:41.789Z  WARN 2493 --- [sga-principal] [           main] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.principal.PrincipalServiceGrpc$PrincipalServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-18T17:38:41.800Z  WARN 2493 --- [sga-principal] [           main] o.s.aop.framework.CglibAopProxy          : Unable to proxy interface-implementing method [public final io.grpc.ServerServiceDefinition ec.edu.uteq.sga.grpc.contexto.TeacherContextServiceGrpc$TeacherContextServiceImplBase.bindService()] because it is marked as final, consider using interface-based JDK proxies instead.
+2026-09-18T17:38:43.147Z  INFO 2493 --- [sga-principal] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
+2026-09-18T17:38:43.321Z  INFO 2493 --- [sga-principal] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@35378600, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@d84dca4, org.springframework.security.web.context.SecurityContextHolderFilter@62bf5775, org.springframework.security.web.header.HeaderWriterFilter@ae8f742, org.springframework.web.filter.CorsFilter@7088051d, org.springframework.security.web.authentication.logout.LogoutFilter@cae2fa, ec.edu.uteq.sga.infrastructure.security.JwtFilter@22d0b2d0, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@584c8fb7, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@1d9825aa, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2fbba454, org.springframework.security.web.session.SessionManagementFilter@2e80b5c8, org.springframework.security.web.access.ExceptionTranslationFilter@4ecebaad, org.springframework.security.web.access.intercept.AuthorizationFilter@6c344f22]
+2026-09-18T17:38:43.691Z  INFO 2493 --- [sga-principal] [           main] g.s.a.GrpcServerFactoryAutoConfiguration : Detected grpc-netty-shaded: Creating ShadedNettyGrpcServerFactory
+2026-09-18T17:38:44.413Z  INFO 2493 --- [sga-principal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 34633 (http) with context path ''
+2026-09-18T17:38:44.420Z  INFO 2493 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.principal.PrincipalService, bean: principalGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.PrincipalGrpcService$$SpringCGLIB$$0
+2026-09-18T17:38:44.420Z  INFO 2493 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: sga.contexto.TeacherContextService, bean: teacherContextGrpcService, class: ec.edu.uteq.sga.infrastructure.grpc.TeacherContextGrpcService$$SpringCGLIB$$0
+2026-09-18T17:38:44.420Z  INFO 2493 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.health.v1.Health, bean: grpcHealthService, class: io.grpc.protobuf.services.HealthServiceImpl
+2026-09-18T17:38:44.420Z  INFO 2493 --- [sga-principal] [           main] n.d.b.g.s.s.AbstractGrpcServerFactory    : Registered gRPC service: grpc.reflection.v1alpha.ServerReflection, bean: protoReflectionService, class: io.grpc.protobuf.services.ProtoReflectionService
+2026-09-18T17:38:44.501Z  INFO 2493 --- [sga-principal] [           main] n.d.b.g.s.s.GrpcServerLifecycle          : gRPC Server started, listening on address: *, port: 27279
+2026-09-18T17:38:44.531Z  INFO 2493 --- [sga-principal] [           main] e.e.u.s.i.AuditoriaPostgresContainerTest : Started AuditoriaPostgresContainerTest in 16.0 seconds (process running for 35.765)
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=?
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=?
+Hibernate: 
+    insert 
+    into
+        sga_principal.estado_cadena_auditoria
+        (ultimo_hash, ultimo_lamport, vector_reloj, id_estado) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=?
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=? for no key update
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=? for no key update
+Hibernate: 
+    insert 
+    into
+        sga_principal.auditoria
+        (accion, contenido_canonico, descripcion, fecha, hash_actual, hash_anterior, hmac, ip_address, registro_id, reloj_lamport, resultado, schema_origen, tabla_afectada, trace_id, user_agent, username, id_usuario, vector_reloj, version_canonica) 
+    values
+        (?::sga_principal.accion_auditoria_t, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        sga_principal.estado_cadena_auditoria 
+    set
+        ultimo_hash=?,
+        ultimo_lamport=?,
+        vector_reloj=? 
+    where
+        id_estado=?
+Hibernate: 
+    insert 
+    into
+        sga_principal.auditoria
+        (accion, contenido_canonico, descripcion, fecha, hash_actual, hash_anterior, hmac, ip_address, registro_id, reloj_lamport, resultado, schema_origen, tabla_afectada, trace_id, user_agent, username, id_usuario, vector_reloj, version_canonica) 
+    values
+        (?::sga_principal.accion_auditoria_t, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        sga_principal.estado_cadena_auditoria 
+    set
+        ultimo_hash=?,
+        ultimo_lamport=?,
+        vector_reloj=? 
+    where
+        id_estado=?
+Hibernate: 
+    select
+        a1_0.id_auditoria,
+        a1_0.accion,
+        a1_0.contenido_canonico,
+        a1_0.descripcion,
+        a1_0.fecha,
+        a1_0.hash_actual,
+        a1_0.hash_anterior,
+        a1_0.hmac,
+        a1_0.ip_address,
+        a1_0.registro_id,
+        a1_0.reloj_lamport,
+        a1_0.resultado,
+        a1_0.schema_origen,
+        a1_0.tabla_afectada,
+        a1_0.trace_id,
+        a1_0.user_agent,
+        a1_0.username,
+        a1_0.id_usuario,
+        a1_0.vector_reloj,
+        a1_0.version_canonica 
+    from
+        sga_principal.auditoria a1_0 
+    where
+        a1_0.tabla_afectada=?
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=?
+]]></system-out>
+  </testcase>
+  <testcase name="usaPostgresTemporalYGuardaAuditoriaConCamposCriptograficos" classname="ec.edu.uteq.sga.integration.AuditoriaPostgresContainerTest" time="0.053">
+    <system-out><![CDATA[Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=?
+Hibernate: 
+    insert 
+    into
+        sga_principal.usuarios
+        (bloqueado_hasta, correo, estado, fecha_actualizacion, fecha_creacion, intentos_fallidos, password_hash, primer_ingreso, ultimo_acceso, username) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        eca1_0.id_estado,
+        eca1_0.ultimo_hash,
+        eca1_0.ultimo_lamport,
+        eca1_0.vector_reloj 
+    from
+        sga_principal.estado_cadena_auditoria eca1_0 
+    where
+        eca1_0.id_estado=? for no key update
+Hibernate: 
+    insert 
+    into
+        sga_principal.auditoria
+        (accion, contenido_canonico, descripcion, fecha, hash_actual, hash_anterior, hmac, ip_address, registro_id, reloj_lamport, resultado, schema_origen, tabla_afectada, trace_id, user_agent, username, id_usuario, vector_reloj, version_canonica) 
+    values
+        (?::sga_principal.accion_auditoria_t, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        sga_principal.estado_cadena_auditoria 
+    set
+        ultimo_hash=?,
+        ultimo_lamport=?,
+        vector_reloj=? 
+    where
+        id_estado=?
+Hibernate: 
+    select
+        a1_0.id_auditoria,
+        a1_0.accion,
+        a1_0.contenido_canonico,
+        a1_0.descripcion,
+        a1_0.fecha,
+        a1_0.hash_actual,
+        a1_0.hash_anterior,
+        a1_0.hmac,
+        a1_0.ip_address,
+        a1_0.registro_id,
+        a1_0.reloj_lamport,
+        a1_0.resultado,
+        a1_0.schema_origen,
+        a1_0.tabla_afectada,
+        a1_0.trace_id,
+        a1_0.user_agent,
+        a1_0.username,
+        a1_0.id_usuario,
+        a1_0.vector_reloj,
+        a1_0.version_canonica 
+    from
+        sga_principal.auditoria a1_0
+]]></system-out>
+  </testcase>
+</testsuite>
