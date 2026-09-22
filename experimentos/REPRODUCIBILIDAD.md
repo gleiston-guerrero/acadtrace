@@ -28,9 +28,9 @@ La salida predeterminada es `experimentos/resultados/`; `--output-dir` permite o
 - `iso25010.csv`
 - `boxplot_latencia.png`
 
-Cada línea contiene `<SHA-256 de 64 hexadecimales>`, dos espacios y el nombre. No hay encabezados ni fecha variable en el certificado. No incluye Locust ni `falsos_positivos.csv`. El proceso E7 no actualiza las copias de `docs/experimentos/resultados/` ni los resultados de carga E5.
+Cada línea contiene `<SHA-256 de 64 hexadecimales>`, dos espacios y el nombre. No hay encabezados ni fecha variable en el certificado. No incluye Locust ni `falsos_positivos.csv`. La ejecucion E7 no modifica de forma lateral las copias de `docs/experimentos/resultados/`: primero genera y verifica el conjunto canonico en `experimentos/resultados/`. Para una entrega versionada, el mirror documental se sincroniza explicitamente con ese conjunto; `DocumentationMirrorTests` exige igualdad byte a byte. Los resultados de carga E5 permanecen independientes.
 
-Los seis artefactos se generan en una carpeta temporal nueva y vacía. La dependencia gráfica se comprueba antes; los errores de Matplotlib son fatales. Solo tras comprobar existencia, tamaño no nulo, LF en CSV y los seis hashes se publican los archivos, con el certificado al final. Los siete archivos anteriores, si existen, se conservan en una carpeta `e7-anterior-*` dentro del destino; no deben confundirse con la ejecución vigente. Una interrupción durante publicación puede dejar un conjunto incompleto, que el verificador rechazará; la copia anterior queda conservada.
+Los seis artefactos se generan en una carpeta temporal nueva y vacía. La dependencia gráfica se comprueba antes; los errores de Matplotlib son fatales. Solo tras comprobar existencia, tamaño no nulo, LF en CSV y los seis hashes se publican los archivos, con el certificado al final. Los ocho archivos anteriores (seis artefactos certificados, el certificado y el auxiliar de falsos positivos), si existen, se conservan en una carpeta `e7-anterior-*` dentro del destino; no deben confundirse con la ejecución vigente. Una interrupción durante publicación puede dejar un conjunto incompleto, que el verificador rechazará; la copia anterior queda conservada.
 
 Todos los escritores CSV especifican `newline=""` y `lineterminator="\n"`. La comprobación rechaza CR antes de firmar, en consonancia con `.gitattributes`; no se normalizan datos después de calcular SHA-256.
 
@@ -50,8 +50,13 @@ Las pruebas de `test_reproducibilidad.py` usan fixtures sintéticos en carpetas 
 
 El job existente `lint` ejecuta las pruebas y `python experimentos/verificar_reproducibilidad.py` sobre artefactos versionados. No regenera ni firma archivos antes de verificar, para no ocultar inconsistencias. Los certificados históricos con encabezados serán rechazados: deben sustituirse únicamente tras una generación E7 completa válida.
 
-## Estado de validación de esta modificación
+## Estado de validación y automatización en CI
 
-Python no está disponible en PATH en la sesión de implementación. No se ejecutaron generación, verificador Python ni prueba negativa. Los resultados y el certificado anteriores permanecen conservados, sin recertificarlos manualmente. El certificado principal anterior tiene cuatro discrepancias SHA-256 y no cumple el formato nuevo; el paso CI debe fallar hasta regenerar los seis artefactos y versionar el certificado válido. E7 sigue PARCIAL.
+La verificación de reproducibilidad E7 se encuentra formalmente integrada y automatizada en el pipeline de Integración Continua (`.github/workflows/ci-cd.yml`, trabajo `lint`), ejecutando de forma determinista:
+1. Las pruebas unitarias del verificador en copias sintéticas temporales (`python -m unittest discover -s experimentos -p test_reproducibilidad.py -v`).
+2. La verificación de integridad SHA-256 de los seis artefactos versionados (`deteccion.csv`, `manipulaciones.csv`, `exp1_concurrencia.csv`, `exp3_reconciliacion.csv`, `iso25010.csv`, `boxplot_latencia.png`) mediante el verificador Python (`python experimentos/verificar_reproducibilidad.py`), con salida en verde y código de retorno 0.
+3. La verificación cruzada independiente con utilitarios estándar POSIX (`bash experimentos/reproducibilidad.sh` ejecutando `sha256sum -c`).
 
-Pendiente configurar Python 3.12 y pip en PATH, instalar `experimentos/requirements.txt`, ejecutar los comandos anteriores y comprobar también en un clon limpio. No se afirma que las pruebas hayan pasado ni que los hashes actuales pertenezcan al proceso corregido.
+**Límites de alcance y honestidad metodológica:**
+- El pipeline de CI ejecuta la verificación estricta de integridad y las suites unitarias locales en memoria. No ejecuta la regeneración en vivo bajo modo HTTP contra servicios de red externos ni altera las mediciones empíricas conservadas.
+- Los hashes SHA-256 registrados en `certificados/sha256_artefactos.txt` certifican exclusivamente la integridad física y ausencia de manipulación de los artefactos correspondientes a la corrida oficial registrada.

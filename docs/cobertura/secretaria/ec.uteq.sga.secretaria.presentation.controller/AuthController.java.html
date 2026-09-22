@@ -16,12 +16,12 @@ public class AuthController {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final JwtService jwtService;
-<span class="nc" id="L19">    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();</span>
+<span class="fc" id="L19">    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();</span>
 
-<span class="nc" id="L21">    public AuthController(NamedParameterJdbcTemplate jdbc, JwtService jwtService) {</span>
-<span class="nc" id="L22">        this.jdbc = jdbc;</span>
-<span class="nc" id="L23">        this.jwtService = jwtService;</span>
-<span class="nc" id="L24">    }</span>
+<span class="fc" id="L21">    public AuthController(NamedParameterJdbcTemplate jdbc, JwtService jwtService) {</span>
+<span class="fc" id="L22">        this.jdbc = jdbc;</span>
+<span class="fc" id="L23">        this.jwtService = jwtService;</span>
+<span class="fc" id="L24">    }</span>
 
     public record LoginRequest(String username, String password) {}
 

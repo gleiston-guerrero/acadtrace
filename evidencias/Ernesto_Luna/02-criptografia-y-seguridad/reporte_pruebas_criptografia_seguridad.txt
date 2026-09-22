@@ -1,0 +1,12 @@
+-------------------------------------------------------------------------------
+Test set: ec.uteq.sga.secretaria.infrastructure.security.AuditoriaIntegridadTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.708 s -- in ec.uteq.sga.secretaria.infrastructure.security.AuditoriaIntegridadTest
+-------------------------------------------------------------------------------
+Test set: ec.uteq.sga.secretaria.infrastructure.security.CryptoServiceTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in ec.uteq.sga.secretaria.infrastructure.security.CryptoServiceTest
+-------------------------------------------------------------------------------
+Test set: ec.uteq.sga.secretaria.infrastructure.security.JwtServiceTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.027 s -- in ec.uteq.sga.secretaria.infrastructure.security.JwtServiceTest

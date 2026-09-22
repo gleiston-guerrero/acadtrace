@@ -10,7 +10,7 @@ class CryptoServiceTest {
 
     private CryptoService newService() {
         byte[] key32 = new byte[32];
-        System.arraycopy("sga-secretaria-test-key-32bytes!".getBytes(), 0, key32, 0, 32);
+        System.arraycopy("sga-secretaria-test-key-32bytes!".getBytes(), 0, key32, 0, 32);  // gitleaks:allow
         return new CryptoService(Base64.getEncoder().encodeToString(key32));
     }
 

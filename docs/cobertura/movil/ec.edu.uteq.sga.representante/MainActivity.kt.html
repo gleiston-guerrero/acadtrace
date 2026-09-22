@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainActivity.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante</a> &gt; <span class="el_source">MainActivity.kt</span></div><h1>MainActivity.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante
+
+import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.biometric.BiometricManager
+import androidx.fragment.app.FragmentActivity
+import androidx.navigation.compose.rememberNavController
+import ec.edu.uteq.sga.representante.core.BiometricAccessPolicy
+import ec.edu.uteq.sga.representante.core.BiometricStartDecision
+import ec.edu.uteq.sga.representante.ui.navigation.RepresentanteNavGraph
+import ec.edu.uteq.sga.representante.ui.navigation.Screen
+import ec.edu.uteq.sga.representante.ui.theme.SgaRepresentanteAppTheme
+import ec.edu.uteq.sga.representante.notifications.NotificationDestination
+import ec.edu.uteq.sga.representante.notifications.AcademicNotificationPayload
+
+<span class="nc" id="L16">class MainActivity : FragmentActivity() {</span>
+    override fun onCreate(savedInstanceState: Bundle?) {
+<span class="nc" id="L18">        super.onCreate(savedInstanceState)</span>
+<span class="nc" id="L19">        val app = application as SgaRepresentanteApp</span>
+<span class="nc bnc" id="L20" title="All 4 branches missed.">        val sessionValid = app.authRepository.isUserLoggedIn() &amp;&amp; app.sessionManager.isRepresentante()</span>
+<span class="nc" id="L21">        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK</span>
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        val biometricAvailable = BiometricManager.from(this).canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS</span>
+<span class="nc bnc" id="L23" title="All 4 branches missed.">        val start = when (BiometricAccessPolicy.decide(sessionValid, app.sessionManager.isBiometricEnabled(), biometricAvailable)) {</span>
+<span class="nc" id="L24">            BiometricStartDecision.LOGIN -&gt; Screen.Login.route</span>
+<span class="nc" id="L25">            BiometricStartDecision.HOME -&gt; Screen.Home.route</span>
+<span class="nc" id="L26">            BiometricStartDecision.BIOMETRIC_UNLOCK -&gt; Screen.BiometricUnlock.route</span>
+<span class="nc" id="L27">            BiometricStartDecision.BIOMETRIC_FALLBACK -&gt; Screen.BiometricFallback.route</span>
+        }
+<span class="nc bnc" id="L29" title="All 12 branches missed.">        val notificationData = intent.extras?.keySet()?.associateWith { intent.extras?.get(it)?.toString().orEmpty() }.orEmpty()</span>
+<span class="nc" id="L30">        val notificationRoute = NotificationDestination.route(notificationData)</span>
+<span class="nc" id="L31">        val effectiveStart = NotificationDestination.startRoute(sessionValid, start, notificationData)</span>
+<span class="nc" id="L32">        val attendanceContext = AcademicNotificationPayload.from(notificationData).attendanceContext()</span>
+<span class="nc" id="L33">        setContent { SgaRepresentanteAppTheme { RepresentanteNavGraph(rememberNavController(), app, effectiveStart, notificationRoute, attendanceContext) } }</span>
+<span class="nc" id="L34">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

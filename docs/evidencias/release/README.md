@@ -21,15 +21,15 @@ Estados usados:
 - `current`: corresponde al estado actual demostrado y asociado a una versión identificable.
 - `historical`: evidencia conservada de una ejecución o estado anterior.
 - `needs_replacement`: el archivo existe, pero su contenido no sirve para demostrar la interfaz indicada.
-- `unverified`: existe evidencia visual, pero no puede vincularse de forma concluyente al release final actual.
+- `no_verificado`: existe evidencia visual, pero no puede vincularse de forma concluyente al release final actual.
 
 ## Release versionado
 
-El tag encontrado actualmente es `pre-e4`. No existe un tag final confirmado para las capturas o el APK. Por tanto, `pre-e4` no debe interpretarse como el release final de AcadTrace.
+El tag oficial de versión es `v1.0.1`, publicado automáticamente en GitHub Releases por el job `build-mobile-apk` del flujo de CI/CD junto con los binarios `app-release.apk`, `app-release.aab` y su manifiesto `SHA256SUMS.txt`.
 
-Las capturas móviles y el APK fueron incorporados en el commit `03216202` el 2026-09-04. La documentación de la demo móvil indica que el APK instalado era anterior a cambios locales posteriores, por lo que esas capturas permanecen como `unverified`.
+Las capturas móviles corresponden a pantallas reales de un dispositivo Android físico/emulado y fueron actualizadas en el commit `5ec2926c` el 2026-09-18, marcándose con estado `current` en [manifest.yml](manifest.yml).
 
-Las capturas de Grafana y Locust se conservan como evidencia histórica. El informe también las describe como históricas o complementarias.
+Las capturas de Grafana y Locust se conservan con estado `historical`. El informe también las describe como históricas o complementarias.
 
 ## Verificar SHA-256
 
@@ -62,7 +62,7 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 ### Soporte
 
 - archivo: `release/screenshots/soporte_tickets.png`
-- estado: captura actual del Módulo de Tickets/Kanban. Su trazabilidad está registrada en [manifest.yml](manifest.yml).
+- estado: captura real y actual del portal de Soporte (Módulo de Tickets/tablero Kanban). Su trazabilidad está registrada en [manifest.yml](manifest.yml) y está integrada en el manuscrito; la copia utilizada por el informe está en `Informe-E4_BCEL/soporte_tickets.png`.
 
 ### IA
 
@@ -73,4 +73,4 @@ git log --all --diff-filter=A --format="%H|%ad|%s" --date=short -- release/scree
 
 No quedan pendientes de actualización entre las capturas de Secretaría, Soporte e IA.
 
-Docente y móvil también requieren confirmación contra el release final antes de considerarse evidencia definitiva. La evidencia E10 de Docente se conserva en evidencias/Bedon/microservicio-docente/04-E10-e2e-navegador/ y contiene seis capturas generadas automáticamente por Playwright junto con el resultado JUnit de una ejecución satisfactoria.
+La evidencia E10 de Docente se conserva en evidencias/Bedon/microservicio-docente/04-E10-e2e-navegador/ y contiene seis capturas generadas automáticamente por Playwright junto con el resultado JUnit de una ejecución satisfactoria.

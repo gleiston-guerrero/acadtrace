@@ -29,7 +29,7 @@ Para garantizar la reproducibilidad científica estricta de las mediciones, se d
 | **Instancia Cloud** | AWS EC2 `t3.medium` (Región `us-east-1`) |
 | **vCPUs y Memoria** | 2 vCPUs Intel Xeon Platinum / 4.0 GB RAM |
 | **Sistema Operativo** | Ubuntu 22.04 LTS (Kernel Linux 5.15 x86_64) |
-| **IP Pública / Host** | `3.23.195.43` |
+| **IP Pública / Host** | `configurado externamente (DB_HOST)` |
 
 ### 1.3 Versiones de Software, Motores y Librerías
 | Software / Herramienta | Versión Exacta | Propósito en el Sistema |
@@ -60,7 +60,7 @@ Para eliminar el sesgo estocástico y permitir la replicación exacta de los exp
 - **Población Estudiantil:** $N = 344$ estudiantes de educación básica distribuidos uniformemente en 10 grados y paralelos.
 - **Población Docente:** $M = 14$ docentes titulares asignados a las materias curriculares.
 - **Ponderación de Calificaciones (LOEI):** Evaluación Formativa = 70\%, Evaluación Sumativa = 30\%.
-- **Diseño Factorial:** 30 repeticiones $\times$ 4 mecanismos de auditoría $\times$ 5 tipos de manipulación = **120 corridas factoriales independientes**.
+- **Diseño Factorial:** 30 repeticiones $\times$ 4 mecanismos de auditoría $\times$ 5 tipos de manipulación = **600 corridas factoriales independientes**.
 - **Muestras Totales de Manipulación:** 600 eventos transaccionales evaluados individualmente.
 
 ---
@@ -80,40 +80,44 @@ Para eliminar el sesgo estocástico y permitir la replicación exacta de los exp
 
 | Código | Tipo de Ataque / Manipulación | Vector de Inyección | Regla de Detección Violada | Tasa en $M_2$/$M_3$ | Tasa en $M_0$/$M_1$ |
 | :---: | :--- | :--- | :--- | :---: | :---: |
-| **$T_1$** | **Inserción / Modificación directa en BD** | Alteración arbitraria de la nota final en la tabla relacional sin pasar por el servicio. | `HASH_MISMATCH_SHA256`: El hash recalculado del registro no coincide con el hash almacenado. | **100.0\%** | 0.0\% |
-| **$T_2$** | **Borrado de evento transaccional** | Eliminación de una fila intermedia en la cadena histórica de auditoría. | `BROKEN_HASH_CHAIN`: El $H_{\text{prev}}$ del evento subsecuente $e_{i+1}$ no apunta a un nodo existente válido. | **100.0\%** | 0.0\% |
-| **$T_3$** | **Permutación de orden causal (Swap)** | Intercambio de posición entre dos eventos consecutivos en la secuencia. | `LAMPORT_INVARIANT_VIOLATION`: Se detecta que $L(e_i) \ge L(e_{i+1})$, rompiendo el invariante de causalidad. | **100.0\%** | 0.0\% |
-| **$T_4$** | **Inyección de evento retroactivo** | Inserción de una calificación con fecha pasada dentro de la cadena ya cerrada. | `RETROACTIVE_HASH_INVALID`: Invalida recursivamente todos los hashes encadenados posteriores. | **100.0\%** | 0.0\% |
-| **$T_5$** | **Falsificación de timestamp / reloj** | Modificación del timestamp físico o manipulación del contador de Lamport. | `MONOTONIC_TIMESTAMP_VIOLATION` / `HASH_MISMATCH_SHA256`: Discrepancia en la firma del bloque. | **100.0\%** | 0.0\% |
+| **$T_1$** | **Alteración de calificación fuera de la bitácora** | Modificación de la calificación en la tabla simulada sin actualizar el evento de auditoría. | Comparación del estado de la tabla frente a la bitácora protegida. | **100.0\%** | 0.0\% |
+| **$T_2$** | **Alteración del payload protegido** | Modificación de `nota_final` en el payload y en el contenido canónico sin recalcular el hash. | Verificación del contenido canónico y de la cadena almacenada. | **100.0\%** | 0.0\% |
+| **$T_3$** | **Alteración del reloj de Lamport** | Reducción artificial del contador Lamport del evento seleccionado. | Verificación de integridad del contenido canónico y de la cadena. | **100.0\%** | 0.0\% |
+| **$T_4$** | **Eliminación de evento** | Eliminación física del evento seleccionado de la secuencia. | Verificación global de continuidad e integridad de la cadena. | **100.0\%** | 0.0\% |
+| **$T_5$** | **Alteración retroactiva del timestamp** | Retroceso de 86,400 segundos en el timestamp y en el contenido canónico sin recalcular el hash. | Verificación del contenido canónico frente al hash almacenado. | **100.0\%** | 0.0\% |
+
+Los IC 95 % de detección son exactos bilaterales de Clopper-Pearson por mecanismo con n=150 (5 tipos × 30 repeticiones): M0/M1 = 0/150, IC [0.0000 %, 2.4293 %]; M2/M3 = 150/150, IC [97.5707 %, 100.0000 %].
 
 ---
 
 ## 5. Resultados de carga E5
 
-**OFICIAL NOMINAL de Soporte:** `microservicio-soporte/locust_esc1_stats.csv`, junto con sus archivos `_stats_history.csv`, `_failures.csv` y `_exceptions.csv`. La clasificación y las rutas están en [el registro E5](resultados/corridas-e5.md).
+**OFICIAL NOMINAL de Soporte:** `microservicio-soporte/locust_esc1_stats.csv`, junto con su historial `_stats_history.csv`; los auxiliares vacíos no acreditan su procedencia actual. La clasificación y las rutas están en [el registro E5](resultados/corridas-e5.md).
 
-Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. El perfil de `microservicio-soporte/run_locust.py` configura 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. El historial registra 50 usuarios máximos y 299 segundos entre muestras. Se consultan `/health`, `/actuator/health`, `/api/soporte/tickets` y `/api/soporte/election/status`; los endpoints protegidos reciben JWT.
+Es una **prueba de carga reproducible ejecutada en entorno local/contenedorizado**. El perfil de `microservicio-soporte/run_locust.py` configura 50 usuarios virtuales, spawn rate 5 usuarios/s, 5 minutos y `http://localhost:8083`. El historial registra 50 usuarios máximos y 298 segundos entre muestras. Se consultan `/health`, `/actuator/health`, `/api/soporte/tickets` y `/api/soporte/election/status`; los endpoints protegidos reciben JWT.
 
 | Métrica oficial (Aggregated) | Valor |
 |---|---|
-| Peticiones | 12.994 |
+| Peticiones | 12.217 |
 | Fallos | 0; sin HTTP 401 ni HTTP 500 registrados |
-| RPS | 43,537580 req/s |
-| Promedio | 109,113664 ms |
-| P50 | 6 ms |
-| P95 | 440 ms |
-| P99 | 850 ms |
-| Máximo | 2.037,104700 ms |
+| RPS | 40,955420 req/s |
+| Promedio | 10,181439 ms |
+| P50 | 4 ms |
+| P95 | 9 ms |
+| P99 | 23 ms |
+| Máximo | 47889,955900 ms |
 
-Inicio registrado: 2026-09-11 03:59:05 UTC. Commit de conservación: `956cafcb`; normalización posterior: `c5c0e6f5`. Commit del código ejecutado: **No disponible en la evidencia conservada**. Las especificaciones de hardware, software y AWS anteriores corresponden a la descripción histórica del banco, no certifican el entorno efectivo de esta corrida local.
+Historial actual: 2026-09-20 08:46:16–08:51:14 UTC; 298 segundos entre muestras. Perfil validado manualmente: 50 usuarios, 5 usuarios/s y 5 minutos configurados. El criterio PI-1 exige P99 < 500 ms: cumple en escenario nominal local. Capturas nominales conservadas en `332158e4`; commit del código nominal ejecutado no disponible. Las especificaciones previas del banco no certifican el entorno efectivo actual ni disponibilidad de producción.
 
-**Corrida oficial de estrés: NO DISPONIBLE — las evidencias conservadas no satisfacen el criterio** de cero fallos. El conjunto D conserva 106.735 peticiones con 26 fallos (15 HTTP 500 y 11 HTTP 503) y es FALLIDA/HISTÓRICA. El conjunto E conserva 565 HTTP 401 y solo un usuario máximo observado. Ninguno se presenta como estrés oficial válido.
+**Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. Evidencia: `microservicio-soporte/resultados_estres/20260920_164722/`. Los conjuntos D (106.735 peticiones, 26 fallos: 15 HTTP 500 y 11 HTTP 503) y E (565 HTTP 401 y un usuario máximo) siguen siendo FALLIDOS/HISTÓRICOS, distintos de la corrida vigente. El perfil actual usa 1 usuario/s durante 10 minutos; no modifica retrospectivamente los perfiles del protocolo.
 
-La captura `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png` es histórica/complementaria: muestra 13.031 peticiones en terminal y no coincide con las 12.994 del CSV oficial. La causa no está demostrada; prevalece el CSV. Está pendiente una captura manual de su fila `Aggregated`.
+Se conserva la descripción histórica/complementaria de `evidencias/Juliana_Emanuel/backend/pruebas-carga/image.png`, pero no el archivo de imagen versionado; esa descripción atribuye 13.031 peticiones en terminal y no coincide con las 12.994 del CSV histórico anterior. La causa no está demostrada; prevalece el CSV. Las capturas del CSV nominal actual, la matriz y el historial están conservadas en `332158e4`; no se dispone de la evidencia original de configuración del perfil nominal.
+
+La ejecución histórica anterior registró P99=850 ms y no cumplía PI-1; permanece conservada en `microservicio-soporte/resultados_historicos/`. La equivalencia exacta de datasets y entornos no está demostrada; no se atribuye la diferencia exclusivamente a `JwtParser`. El máximo actual aislado de 47.889,96 ms pertenece a `/api/soporte/tickets` (P95=13 ms, P99=32 ms, 0 fallos) y no se filtró. El log/JSON candidatos son anteriores y no acreditan esta ejecución. Estas referencias actualizan los resultados E5; no modifican las instrucciones ni los perfiles del protocolo.
 
 ### Perfiles y cifras históricas (sin carácter oficial E5)
 
-Lo siguiente conserva el protocolo anterior como antecedente. Sus cifras no deben usarse como resultados oficiales; su asociación a CSV y el estado de cada conjunto se describen en el registro E5.
+Lo siguiente conserva el protocolo anterior como antecedente. Los tres valores de throughput indicados a continuación son registros históricos, ajenos al conjunto oficial nominal A. No se conserva actualmente evidencia CSV trazable suficiente para reproducir exactamente esos valores; no deben utilizarse como evidencia cuantitativa oficial del PFC ni atribuirse a los conjuntos B, C, D, E o F sin evidencia verificable. El conjunto A y sus métricas reproducibles, descritos en la sección anterior, continúan siendo la única fuente oficial nominal.
 
 Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para someter el sistema completo (a través del API Gateway HAProxy en puerto 80/8080/5176) a tres perfiles operativos:
 
@@ -122,20 +126,20 @@ Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para s
 - **Tasa de aparición (Spawn rate):** 5 usuarios/segundo.
 - **Duración total:** 5 minutos (300 segundos).
 - **Endpoints evaluados:** `/health`, `/actuator/health`, `/api/soporte/tickets`, `/api/secretario/estudiantes`, `/api/v1/auth/login`.
-- **Cifras históricas declaradas, no oficiales E5:** Throughput medio de **57.4 RPS**, latencia mediana $MD = 68.5$\,ms, latencia $P_{95} = 285.0$\,ms, tasa de fallos HTTP 5xx = **0.0\%**.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput medio de **57.4 RPS** (valor histórico no oficial, sin evidencia CSV trazable conservada suficiente para su reproducción exacta), latencia mediana $MD = 68.5$\,ms, latencia $P_{95} = 285.0$\,ms, tasa de fallos HTTP 5xx = **0.0\%**.
 
 ### Escenario 2: Carga Crítica de Calificaciones
 - **Usuarios concurrentes ($U$):** 14 docentes titulares simultáneos.
 - **Tasa de aparición (Spawn rate):** 14 usuarios/segundo (ingreso instantáneo).
 - **Duración total:** 3 minutos (180 segundos).
 - **Endpoints evaluados:** Transacciones de registro de notas formativas (70\%) y sumativas (30\%) con encadenamiento SHA-256.
-- **Cifras históricas declaradas, no oficiales E5:** Throughput de **24.8 RPS**, latencia mediana $MD = 42.0$\,ms, latencia $P_{95} = 165.0$\,ms, 0 fallos transaccionales.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput de **24.8 RPS** (valor histórico no oficial, sin evidencia CSV trazable conservada suficiente para su reproducción exacta), latencia mediana $MD = 42.0$\,ms, latencia $P_{95} = 165.0$\,ms, 0 fallos transaccionales.
 
 ### Escenario 3: Cierre de Período Académico (Rampa de Estrés)
 - **Usuarios concurrentes ($U$):** Rampa escalonada de 0 a 200 usuarios concurrentes.
 - **Tasa de aparición (Spawn rate):** 1 usuario/segundo durante 200 segundos + 400 segundos de sostenimiento (10 minutos totales = 600\,s).
 - **Endpoints evaluados:** Consulta masiva de actas de secretaría, descarga de libretas PDF, consulta de asistencias y auditoría.
-- **Cifras históricas declaradas, no oficiales E5:** Throughput pico de **142.6 RPS**, latencia $P_{95} \le 412.0$\,ms ($< 500$\,ms SLA), 0.0\% errores 5xx.
+- **Cifras históricas declaradas, no oficiales E5:** Throughput pico de **142.6 RPS** (valor histórico no oficial, sin evidencia CSV trazable conservada suficiente para su reproducción exacta), latencia $P_{95} \le 412.0$\,ms ($< 500$\,ms SLA), 0.0\% errores 5xx.
 
 ---
 
@@ -143,10 +147,13 @@ Las pruebas de carga fueron instrumentadas en el directorio `tests/load/` para s
 
 La fuente única del bloque evaluado es `experimentos/resultados/exp1_concurrencia.csv`. El archivo contiene 160 registros: 40 observaciones para cada mecanismo M0, M1, M2 y M3. El análisis usa exclusivamente la columna `latencia_mediana_ms`; su entrada y su salida están expresadas directamente en milisegundos (ms), sin multiplicar ni dividir por 1000.
 
+**Alcance de la medición:** este bloque corresponde a un microbenchmark local secuencial en memoria. El factor histórico `concurrencia_docentes` representa tamaño de lote experimental; no demuestra solicitudes simultáneas, acceso real a base de datos ni concurrencia HTTP. Las 40 observaciones por mecanismo se conservan completas.
+
 1. **Estimadores descriptivos:** mediana y percentil 95 ($P_{95}$) de las 40 observaciones por mecanismo.
-2. **Intervalos de confianza (IC 95\%):** Bootstrap no paramétrico de la **mediana**, con $B = 10{,}000$ remuestras y semilla fija `20260831`.
-3. **Generación documental:** `experimentos/generar_tabla_latencias.py` valida la estructura del CSV y genera `Informe-E4_BCEL/tabla_latencias_generada.tex` y `Informe-E4_BCEL/boxplot_latencia.png` desde la misma fuente.
-4. **Resultados inferenciales históricos:** los contrastes Mann-Whitney $U$, valores $p$ y tamaños de efecto Vargha-Delaney asociados a otra fuente no forman parte de los resultados vigentes y no se publican en la tabla regenerada.
+2. **Intervalos de confianza (IC 95\%):** bootstrap no paramétrico de la **mediana**, con $B = 10{,}000$ remuestras y semilla fija `20260831`.
+3. **Magnitud del efecto en unidades originales:** diferencia de medianas de cada mecanismo frente a M0, expresada en ms, con IC 95\% mediante bootstrap no paramétrico independiente con $B = 10{,}000$ y la misma semilla. No se interpreta como tamaño de efecto estandarizado.
+4. **Generación documental:** `experimentos/generar_tabla_latencias.py` valida la estructura del CSV y genera `Informe-E4_BCEL/tabla_latencias_generada.tex` y `Informe-E4_BCEL/boxplot_latencia.png` desde la misma fuente.
+5. **Contrastes históricos descartados:** los contrastes Mann-Whitney $U$, valores $p$ y tamaños de efecto Vargha-Delaney asociados a otra fuente no forman parte de los resultados vigentes.
 
 ---
 

@@ -198,7 +198,7 @@ Fragmento de reconciliación de Relojes Vectoriales en `tests/e2e/test_e2e_lifec
 > **Tu respuesta:**
 > *"Por tres razones técnicas fundamentales evaluadas en la arquitectura:
 > 1. **Rendimiento y Throughput:** En el escenario de estrés de Locust procesamos 106,735 transacciones. RSA/ECDSA requiere operaciones de exponenciación modular sobre curvas elípticas que incrementan la latencia en un factor de $10\times$ a $50\times$. HMAC opera con funciones hash simétricas a nivel de microsegundos ($0.15\text{ ms}$).
-> 2. **Contexto de Confianza Inter-servicios:** En una arquitectura de microservicios dentro de una red privada (VPC en AWS), los servicios comparten secretos institucionales rotados periódicamente mediante variables de entorno en Kubernetes/Docker Compose.
+> 2. **Contexto de Confianza Inter-servicios:** Los servicios reciben secretos mediante configuración externa. La rotación periódica es un requisito operativo; no está acreditada por evidencia del repositorio. El estado y las verificaciones pendientes se documentan en [gestión y rotación de secretos](../seguridad/gestion_rotacion_secretos.md).
 > 3. **Encadenamiento Sucesivo:** La seguridad no depende únicamente de la firma individual, sino de la transitividad de los bloques ($H_i = f(H_{i-1})$), lo que hace computacionalmente inviable reconstruir la cadena hacia atrás."*
 
 ---

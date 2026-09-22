@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FormActividadScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.actividades</a> &gt; <span class="el_source">FormActividadScreen.kt</span></div><h1>FormActividadScreen.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.actividades
+
+import android.app.DatePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ec.edu.uteq.sga.representante.ui.components.SgaTopAppBar
+import ec.edu.uteq.sga.representante.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
+
+<span class="nc" id="L28">val TIPOS_ACTIVIDAD = listOf(</span>
+<span class="nc" id="L29">    &quot;TAREA&quot; to &quot;Tarea&quot;,</span>
+<span class="nc" id="L30">    &quot;LECCION_ORAL&quot; to &quot;Lección Oral&quot;,</span>
+<span class="nc" id="L31">    &quot;LECCION_ESCRITA&quot; to &quot;Lección Escrita&quot;,</span>
+<span class="nc" id="L32">    &quot;TALLER&quot; to &quot;Taller&quot;,</span>
+<span class="nc" id="L33">    &quot;CUADERNO&quot; to &quot;Cuaderno&quot;,</span>
+<span class="nc" id="L34">    &quot;TRABAJO_INDIVIDUAL&quot; to &quot;Trabajo Individual&quot;,</span>
+<span class="nc" id="L35">    &quot;EXPOSICION&quot; to &quot;Exposición&quot;,</span>
+<span class="nc" id="L36">    &quot;PROYECTO_INTERDISCIPLINARIO&quot; to &quot;Proyecto Interdisciplinario&quot;,</span>
+<span class="nc" id="L37">    &quot;EXAMEN_TRIMESTRAL&quot; to &quot;Examen Trimestral&quot;</span>
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FormActividadScreen(
+    idAsignacion: Long,
+    idActividad: Long?,
+    viewModel: ActividadesViewModel,
+    onBackClick: () -&gt; Unit
+<span class="nc" id="L47">) {</span>
+<span class="nc" id="L48">    val state by viewModel.uiState.collectAsState()</span>
+<span class="nc" id="L49">    val context = LocalContext.current</span>
+
+<span class="nc bnc" id="L51" title="All 6 branches missed.">    val existingActividad = remember(state.actividades, idActividad) {</span>
+<span class="nc bnc" id="L52" title="All 10 branches missed.">        if (idActividad != null) state.actividades.find { it.idActividad == idActividad } else null</span>
+    }
+
+<span class="nc bnc" id="L55" title="All 4 branches missed.">    var tipo by remember(existingActividad) { mutableStateOf(existingActividad?.tipo ?: &quot;TAREA&quot;) }</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">    var nombre by remember(existingActividad) { mutableStateOf(existingActividad?.nombre ?: &quot;&quot;) }</span>
+<span class="nc bnc" id="L57" title="All 4 branches missed.">    var descripcion by remember(existingActividad) { mutableStateOf(existingActividad?.descripcion ?: &quot;&quot;) }</span>
+<span class="nc" id="L58">    var fechaEntrega by remember(existingActividad) {</span>
+<span class="nc" id="L59">        val sdf = SimpleDateFormat(&quot;yyyy-MM-dd&quot;, Locale.getDefault())</span>
+<span class="nc bnc" id="L60" title="All 4 branches missed.">        mutableStateOf(existingActividad?.fechaEntrega ?: sdf.format(Date()))</span>
+    }
+<span class="nc bnc" id="L62" title="All 4 branches missed.">    var ponderacion by remember(existingActividad) { mutableStateOf(existingActividad?.ponderacion?.toString() ?: &quot;10&quot;) }</span>
+<span class="nc bnc" id="L63" title="All 4 branches missed.">    var notaMaxima by remember(existingActividad) { mutableStateOf(existingActividad?.notaMaxima?.toString() ?: &quot;10&quot;) }</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    var esSumativa by remember(existingActividad) { mutableStateOf(existingActividad?.esSumativa ?: false) }</span>
+<span class="nc" id="L65">    var selectedPeriodoId by remember(existingActividad, state.selectedPeriodo) {</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">        mutableStateOf(existingActividad?.idPeriodo ?: state.selectedPeriodo?.idPeriodo ?: 1L)</span>
+    }
+
+<span class="nc" id="L69">    var expandedTipo by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L70">    var expandedPeriodo by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L71">    var errorMessage by remember { mutableStateOf&lt;String?&gt;(null) }</span>
+<span class="nc" id="L72">    var isSaving by remember { mutableStateOf(false) }</span>
+
+<span class="nc" id="L74">    val calendar = Calendar.getInstance()</span>
+<span class="nc" id="L75">    val datePicker = DatePickerDialog(</span>
+<span class="nc" id="L76">        context,</span>
+<span class="nc" id="L77">        { _, year, month, dayOfMonth -&gt;</span>
+<span class="nc" id="L78">            val formatted = String.format(Locale.getDefault(), &quot;%04d-%02d-%02d&quot;, year, month + 1, dayOfMonth)</span>
+<span class="nc" id="L79">            fechaEntrega = formatted</span>
+<span class="nc" id="L80">        },</span>
+<span class="nc" id="L81">        calendar.get(Calendar.YEAR),</span>
+<span class="nc" id="L82">        calendar.get(Calendar.MONTH),</span>
+<span class="nc" id="L83">        calendar.get(Calendar.DAY_OF_MONTH)</span>
+    )
+
+<span class="nc" id="L86">    Scaffold(</span>
+<span class="nc" id="L87">        topBar = {</span>
+<span class="nc" id="L88">            SgaTopAppBar(</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                title = if (idActividad != null) &quot;Editar Actividad&quot; else &quot;Nueva Actividad&quot;,</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                subtitle = state.selectedAsignacion?.let { &quot;${it.asignaturaNombre} • ${it.gradoNombre} \&quot;${it.paraleloLetra}\&quot;&quot; },</span>
+<span class="nc" id="L91">                showBackButton = true,</span>
+<span class="nc" id="L92">                onBackClick = onBackClick</span>
+            )
+        }
+<span class="nc" id="L95">    ) { padding -&gt;</span>
+<span class="nc" id="L96">        Column(</span>
+<span class="nc" id="L97">            modifier = Modifier</span>
+<span class="nc" id="L98">                .fillMaxSize()</span>
+<span class="nc" id="L99">                .padding(padding)</span>
+<span class="nc" id="L100">                .background(BackgroundSlate)</span>
+<span class="nc" id="L101">                .verticalScroll(rememberScrollState())</span>
+<span class="nc" id="L102">                .padding(20.dp),</span>
+<span class="nc" id="L103">            verticalArrangement = Arrangement.spacedBy(16.dp)</span>
+        ) {
+            // Trimestre / Período
+<span class="nc" id="L106">            ExposedDropdownMenuBox(</span>
+<span class="nc" id="L107">                expanded = expandedPeriodo,</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                onExpandedChange = { expandedPeriodo = !expandedPeriodo }</span>
+<span class="nc" id="L109">            ) {</span>
+<span class="nc" id="L110">                OutlinedTextField(</span>
+<span class="nc bnc" id="L111" title="All 10 branches missed.">                    value = state.periodos.find { it.idPeriodo == selectedPeriodoId }?.nombre ?: &quot;Seleccionar Trimestre&quot;,</span>
+<span class="nc" id="L112">                    onValueChange = {},</span>
+<span class="nc" id="L113">                    readOnly = true,</span>
+<span class="nc" id="L114">                    label = { Text(&quot;Período de Evaluación&quot;) },</span>
+<span class="nc" id="L115">                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPeriodo) },</span>
+<span class="nc" id="L116">                    modifier = Modifier</span>
+<span class="nc" id="L117">                        .fillMaxWidth()</span>
+<span class="nc" id="L118">                        .menuAnchor(),</span>
+<span class="nc" id="L119">                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L120">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L121">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L122">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L123">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+<span class="nc" id="L126">                ExposedDropdownMenu(</span>
+<span class="nc" id="L127">                    expanded = expandedPeriodo,</span>
+<span class="nc" id="L128">                    onDismissRequest = { expandedPeriodo = false }</span>
+<span class="nc" id="L129">                ) {</span>
+<span class="nc" id="L130">                    state.periodos.forEach { periodo -&gt;</span>
+<span class="nc" id="L131">                        DropdownMenuItem(</span>
+<span class="nc" id="L132">                            text = { Text(periodo.nombre) },</span>
+<span class="nc" id="L133">                            onClick = {</span>
+<span class="nc" id="L134">                                selectedPeriodoId = periodo.idPeriodo</span>
+<span class="nc" id="L135">                                expandedPeriodo = false</span>
+<span class="nc" id="L136">                            }</span>
+                        )
+<span class="nc" id="L138">                    }</span>
+                }
+            }
+
+            // Tipo de Actividad
+<span class="nc" id="L143">            ExposedDropdownMenuBox(</span>
+<span class="nc" id="L144">                expanded = expandedTipo,</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                onExpandedChange = { expandedTipo = !expandedTipo }</span>
+<span class="nc" id="L146">            ) {</span>
+<span class="nc" id="L147">                OutlinedTextField(</span>
+<span class="nc bnc" id="L148" title="All 8 branches missed.">                    value = TIPOS_ACTIVIDAD.find { it.first == tipo }?.second ?: tipo,</span>
+<span class="nc" id="L149">                    onValueChange = {},</span>
+<span class="nc" id="L150">                    readOnly = true,</span>
+<span class="nc" id="L151">                    label = { Text(&quot;Tipo de Actividad&quot;) },</span>
+<span class="nc" id="L152">                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTipo) },</span>
+<span class="nc" id="L153">                    modifier = Modifier</span>
+<span class="nc" id="L154">                        .fillMaxWidth()</span>
+<span class="nc" id="L155">                        .menuAnchor(),</span>
+<span class="nc" id="L156">                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L157">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L158">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L159">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L160">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+<span class="nc" id="L163">                ExposedDropdownMenu(</span>
+<span class="nc" id="L164">                    expanded = expandedTipo,</span>
+<span class="nc" id="L165">                    onDismissRequest = { expandedTipo = false }</span>
+<span class="nc" id="L166">                ) {</span>
+<span class="nc" id="L167">                    TIPOS_ACTIVIDAD.forEach { (key, label) -&gt;</span>
+<span class="nc" id="L168">                        DropdownMenuItem(</span>
+<span class="nc" id="L169">                            text = { Text(label) },</span>
+<span class="nc" id="L170">                            onClick = {</span>
+<span class="nc" id="L171">                                tipo = key</span>
+<span class="nc" id="L172">                                expandedTipo = false</span>
+<span class="nc" id="L173">                            }</span>
+                        )
+<span class="nc" id="L175">                    }</span>
+                }
+            }
+
+            // Nombre
+<span class="nc" id="L180">            OutlinedTextField(</span>
+<span class="nc" id="L181">                value = nombre,</span>
+<span class="nc" id="L182">                onValueChange = {</span>
+<span class="nc" id="L183">                    nombre = it</span>
+<span class="nc" id="L184">                    errorMessage = null</span>
+<span class="nc" id="L185">                },</span>
+<span class="nc" id="L186">                label = { Text(&quot;Nombre de la Actividad *&quot;) },</span>
+<span class="nc" id="L187">                singleLine = true,</span>
+<span class="nc" id="L188">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L189">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L190">                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L191">                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L192">                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L193">                    focusedBorderColor = PrimaryNavy</span>
+                )
+            )
+
+            // Descripción
+<span class="nc" id="L198">            OutlinedTextField(</span>
+<span class="nc" id="L199">                value = descripcion,</span>
+<span class="nc" id="L200">                onValueChange = { descripcion = it },</span>
+<span class="nc" id="L201">                label = { Text(&quot;Instrucciones / Descripción (Opcional)&quot;) },</span>
+<span class="nc" id="L202">                minLines = 3,</span>
+<span class="nc" id="L203">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L204">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L205">                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L206">                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L207">                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L208">                    focusedBorderColor = PrimaryNavy</span>
+                )
+            )
+
+            // Fecha de Entrega
+<span class="nc" id="L213">            OutlinedTextField(</span>
+<span class="nc" id="L214">                value = fechaEntrega,</span>
+<span class="nc" id="L215">                onValueChange = {},</span>
+<span class="nc" id="L216">                readOnly = true,</span>
+<span class="nc" id="L217">                label = { Text(&quot;Fecha de Entrega&quot;) },</span>
+<span class="nc" id="L218">                trailingIcon = {</span>
+<span class="nc" id="L219">                    IconButton(onClick = { datePicker.show() }) {</span>
+<span class="nc" id="L220">                        Icon(Icons.Default.CalendarToday, contentDescription = &quot;Seleccionar fecha&quot;, tint = PrimaryNavy)</span>
+                    }
+                },
+<span class="nc" id="L223">                modifier = Modifier</span>
+<span class="nc" id="L224">                    .fillMaxWidth()</span>
+<span class="nc" id="L225">                    .clickable { datePicker.show() },</span>
+<span class="nc" id="L226">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L227">                colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L228">                    focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L229">                    unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L230">                    focusedBorderColor = PrimaryNavy</span>
+                )
+            )
+
+            // Ponderación y Nota Máxima
+<span class="nc" id="L235">            Row(</span>
+<span class="nc" id="L236">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L237">                horizontalArrangement = Arrangement.spacedBy(12.dp)</span>
+            ) {
+<span class="nc" id="L239">                OutlinedTextField(</span>
+<span class="nc" id="L240">                    value = ponderacion,</span>
+<span class="nc" id="L241">                    onValueChange = { ponderacion = it },</span>
+<span class="nc" id="L242">                    label = { Text(&quot;Ponderación (%)&quot;) },</span>
+<span class="nc" id="L243">                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),</span>
+<span class="nc" id="L244">                    modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L245">                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L246">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L247">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L248">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L249">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+
+<span class="nc" id="L253">                OutlinedTextField(</span>
+<span class="nc" id="L254">                    value = notaMaxima,</span>
+<span class="nc" id="L255">                    onValueChange = { notaMaxima = it },</span>
+<span class="nc" id="L256">                    label = { Text(&quot;Nota Máxima&quot;) },</span>
+<span class="nc" id="L257">                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),</span>
+<span class="nc" id="L258">                    modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L259">                    shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L260">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L261">                        focusedTextColor = TextPrimary,</span>
+<span class="nc" id="L262">                        unfocusedTextColor = TextPrimary,</span>
+<span class="nc" id="L263">                        focusedBorderColor = PrimaryNavy</span>
+                    )
+                )
+<span class="nc" id="L266">            }</span>
+
+            // Sumativa vs Formativa Switch
+<span class="nc" id="L269">            Card(</span>
+<span class="nc" id="L270">                modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc" id="L271">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L272">                colors = CardDefaults.cardColors(containerColor = CardSurface),</span>
+<span class="nc" id="L273">                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)</span>
+<span class="nc" id="L274">            ) {</span>
+<span class="nc" id="L275">                Row(</span>
+<span class="nc" id="L276">                    modifier = Modifier</span>
+<span class="nc" id="L277">                        .fillMaxWidth()</span>
+<span class="nc" id="L278">                        .padding(16.dp),</span>
+<span class="nc" id="L279">                    horizontalArrangement = Arrangement.SpaceBetween,</span>
+<span class="nc" id="L280">                    verticalAlignment = Alignment.CenterVertically</span>
+                ) {
+<span class="nc" id="L282">                    Column(modifier = Modifier.weight(1f)) {</span>
+<span class="nc" id="L283">                        Text(&quot;¿Es Actividad Sumativa?&quot;, fontWeight = FontWeight.Bold, color = TextPrimary)</span>
+<span class="nc" id="L284">                        Text(</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                            text = if (esSumativa) &quot;Cuenta para el 30% sumativo del trimestre&quot; else &quot;Cuenta para el 70% formativo del trimestre&quot;,</span>
+<span class="nc" id="L286">                            fontSize = 12.sp,</span>
+<span class="nc" id="L287">                            color = TextSecondary</span>
+                        )
+<span class="nc" id="L289">                    }</span>
+<span class="nc" id="L290">                    Switch(</span>
+<span class="nc" id="L291">                        checked = esSumativa,</span>
+<span class="nc" id="L292">                        onCheckedChange = { esSumativa = it }</span>
+                    )
+<span class="nc" id="L294">                }</span>
+            }
+
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (errorMessage != null) {</span>
+<span class="nc" id="L298">                Text(</span>
+<span class="nc" id="L299">                    text = errorMessage!!,</span>
+<span class="nc" id="L300">                    color = DangerRed,</span>
+<span class="nc" id="L301">                    style = MaterialTheme.typography.bodyMedium</span>
+                )
+            }
+
+<span class="nc" id="L305">            Spacer(modifier = Modifier.height(8.dp))</span>
+
+<span class="nc" id="L307">            Button(</span>
+                onClick = {
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                    if (nombre.isBlank()) {</span>
+<span class="nc" id="L310">                        errorMessage = &quot;El nombre de la actividad es obligatorio.&quot;</span>
+<span class="nc" id="L311">                        return@Button</span>
+                    }
+<span class="nc bnc" id="L313" title="All 2 branches missed.">                    val pond = ponderacion.toDoubleOrNull() ?: 0.0</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                    val maxScore = notaMaxima.toDoubleOrNull() ?: 10.0</span>
+
+<span class="nc" id="L316">                    isSaving = true</span>
+<span class="nc" id="L317">                    errorMessage = null</span>
+
+<span class="nc" id="L319">                    viewModel.saveActividad(</span>
+<span class="nc" id="L320">                        idActividad = idActividad,</span>
+<span class="nc" id="L321">                        idAsignacion = idAsignacion,</span>
+<span class="nc" id="L322">                        idPeriodo = selectedPeriodoId,</span>
+<span class="nc" id="L323">                        tipo = tipo,</span>
+<span class="nc" id="L324">                        nombre = nombre.trim(),</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">                        descripcion = descripcion.trim().ifBlank { null },</span>
+<span class="nc" id="L326">                        fechaEntrega = fechaEntrega,</span>
+<span class="nc" id="L327">                        ponderacion = pond,</span>
+<span class="nc" id="L328">                        notaMaxima = maxScore,</span>
+<span class="nc" id="L329">                        esSumativa = esSumativa,</span>
+                        onSuccess = {
+<span class="nc" id="L331">                            isSaving = false</span>
+<span class="nc" id="L332">                            onBackClick()</span>
+<span class="nc" id="L333">                        },</span>
+                        onError = {
+<span class="nc" id="L335">                            isSaving = false</span>
+<span class="nc" id="L336">                            errorMessage = it</span>
+<span class="nc" id="L337">                        }</span>
+                    )
+<span class="nc" id="L339">                },</span>
+<span class="nc" id="L340">                modifier = Modifier</span>
+<span class="nc" id="L341">                    .fillMaxWidth()</span>
+<span class="nc" id="L342">                    .height(50.dp),</span>
+<span class="nc" id="L343">                shape = RoundedCornerShape(12.dp),</span>
+<span class="nc" id="L344">                colors = ButtonDefaults.buttonColors(</span>
+<span class="nc" id="L345">                    containerColor = PrimaryNavy,</span>
+<span class="nc" id="L346">                    contentColor = Color.White,</span>
+<span class="nc" id="L347">                    disabledContainerColor = PrimaryNavy.copy(alpha = 0.75f),</span>
+<span class="nc" id="L348">                    disabledContentColor = Color.White</span>
+                ),
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                enabled = !isSaving</span>
+<span class="nc" id="L351">            ) {</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">                if (isSaving) {</span>
+<span class="nc" id="L353">                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)</span>
+<span class="nc" id="L354">                    Spacer(modifier = Modifier.width(8.dp))</span>
+<span class="nc" id="L355">                    Text(&quot;Guardando...&quot;, fontWeight = FontWeight.Bold, color = Color.White)</span>
+<span class="nc" id="L356">                } else {</span>
+<span class="nc" id="L357">                    Text(</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">                        text = if (idActividad != null) &quot;Guardar Cambios&quot; else &quot;Crear Actividad&quot;,</span>
+<span class="nc" id="L359">                        fontWeight = FontWeight.Bold,</span>
+<span class="nc" id="L360">                        color = Color.White</span>
+                    )
+                }
+            }
+<span class="nc" id="L364">        }</span>
+    }
+<span class="nc" id="L366">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

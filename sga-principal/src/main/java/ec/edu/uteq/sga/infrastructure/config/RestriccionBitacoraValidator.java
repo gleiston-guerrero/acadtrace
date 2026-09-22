@@ -3,7 +3,6 @@ package ec.edu.uteq.sga.infrastructure.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -15,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 @Component
-@Profile("!test")
 public class RestriccionBitacoraValidator {
 
     private static final Logger log = LoggerFactory.getLogger(RestriccionBitacoraValidator.class);
@@ -35,9 +33,7 @@ public class RestriccionBitacoraValidator {
         try (Connection con = dataSource.getConnection()) {
             String usuarioEfectivo = leerUsuarioEfectivo(con);
             if (esSuperusuario(con)) {
-                log.warn("Validacion de restriccion de bitacora omitida: el usuario efectivo {} es superusuario. " +
-                        "Este arranque no acredita la restriccion.", usuarioEfectivo);
-                return;
+                throw new IllegalStateException("El usuario efectivo " + usuarioEfectivo + " es superusuario; la restriccion append-only sobre la bitacora no puede acreditarse");
             }
             comprobarSinPrivilegio(con, usuarioEfectivo, "UPDATE");
             comprobarSinPrivilegio(con, usuarioEfectivo, "DELETE");

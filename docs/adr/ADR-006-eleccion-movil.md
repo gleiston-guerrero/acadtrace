@@ -50,7 +50,6 @@ Estado comprobado el 4 de septiembre de 2026. Los porcentajes no se publican has
 | Suite Microservicio Docente | 83 aprobadas, 0 fallos |
 | Cobertura Microservicio Docente | 79.28% histórica, de una ejecución no regenerada contra HEAD; no es cobertura oficial actual |
 | Cobertura JaCoCo (instructions/lines/branches/classes) | Ejecución histórica con 100% de pruebas superadas; no confundir con la cobertura coverage.py de Docente |
-| APK debug histórico | 19.06 MB (19,992,081 bytes), generado el 4 de septiembre de 2026 como evidencia de desarrollo; no constituye el paquete oficial de Release |
 | APK/AAB release | Generados y firmados por `build-mobile-apk` mediante keystore privado suministrado por GitHub Actions Secrets |
 | Capacidades del dispositivo implementadas | 2 |
 | Roles móviles permitidos | 1 (`REPRESENTANTE`) |
@@ -108,11 +107,10 @@ Se elige Android nativo porque es la única alternativa que conserva directament
 
 - Proyecto: `C:\acadtrace\app-movil-docente`.
 - Package físico y lógico: `app/src/main/java/ec/edu/uteq/sga/representante`.
-- Salida esperada del APK debug: `app/build/outputs/apk/debug/app-debug.apk`.
 - Contratos Android: `/api/auth/login`, `/api/representante/me/estudiantes`, `/api/representante/me/estudiantes/{id}/calificaciones`, `/api/representante/me/estudiantes/{id}/asistencia` y `/api/representante/me/comunicados`.
 - Contrato interno: `RepresentanteAcademicoService` con `ConsultarCalificaciones`, `ConsultarAsistencia` y `ConsultarComunicados`, deadline de cinco segundos y token interno suministrado por `GRPC_INTERNAL_TOKEN`.
 - JaCoCo está configurado para publicar reportes en CI.
-- El 4 de septiembre de 2026 se ejecutaron exitosamente `testDebugUnitTest` (36 pruebas unitarias aprobadas, 0 fallos) y `assembleDebug`, generando `app-debug.apk` con SHA-256 `E97D8BAD09ECF7AA2C590D7480F54735A17946859BB52C917DE54EDF165A595B` (19.06 MB). Este resultado se conserva como evidencia histórica de desarrollo y no constituye el paquete oficial de Release.
+- El paquete oficial es `app-release.apk`, firmado por CI y publicado en el Release `v1.0.1`.
 - `mvn test` ejecutó correctamente las 36 pruebas unitarias previas al test de contexto, pero `contextLoads` no pudo crear el canal Netty por el mismo fallo loopback del host. La selección específica de fachada ejecutó 11 pruebas con éxito y cumplió el check JaCoCo configurado.
 - Evidencia histórica conservada: Microservicio Docente ejecutó 83 pruebas con éxito y obtuvo 79.28% en una ejecución no regenerada contra HEAD. El HTML conservado de coverage.py muestra además 78% en otra ejecución; la discrepancia queda documentada y ninguna cifra se presenta como cobertura actual.
 - En el APK previamente instalado en el teléfono TECNO CL7, el desbloqueo usó `BiometricPrompt` y Logcat confirmó autenticación exitosa. Esta evidencia no sustituye la validación del APK nuevo.

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PromediosRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.data.repository</a> &gt; <span class="el_source">PromediosRepositoryImpl.kt</span></div><h1>PromediosRepositoryImpl.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.data.repository
+
+import ec.edu.uteq.sga.representante.core.NetworkConnectivityObserver
+import ec.edu.uteq.sga.representante.core.Resource
+import ec.edu.uteq.sga.representante.data.local.AppDatabase
+import ec.edu.uteq.sga.representante.data.local.entity.PromedioAnualEntity
+import ec.edu.uteq.sga.representante.data.local.entity.PromedioTrimestralEntity
+import ec.edu.uteq.sga.representante.data.remote.RetrofitClient
+import ec.edu.uteq.sga.representante.domain.model.PromedioAnual
+import ec.edu.uteq.sga.representante.domain.model.PromedioTrimestral
+import ec.edu.uteq.sga.representante.domain.repository.PromediosRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+<span class="nc" id="L19">class PromediosRepositoryImpl(</span>
+<span class="nc" id="L20">    private val database: AppDatabase,</span>
+<span class="nc" id="L21">    private val retrofitClient: RetrofitClient,</span>
+<span class="nc" id="L22">    private val connectivityObserver: NetworkConnectivityObserver</span>
+) : PromediosRepository {
+
+<span class="nc" id="L25">    private val promediosDao = database.promediosDao()</span>
+<span class="nc" id="L26">    private val docenteApi get() = retrofitClient.getDocenteApi()</span>
+
+    override fun getPromediosTrimestrales(
+        idAsignacion: Long,
+        idPeriodo: Long?
+<span class="nc" id="L31">    ): Flow&lt;Resource&lt;List&lt;PromedioTrimestral&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L32">        emit(Resource.Loading)</span>
+
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        val cached = promediosDao.getPromediosTrimestrales(idAsignacion, idPeriodo).firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L35" title="All 4 branches missed.">        if (cached.isNotEmpty()) {</span>
+<span class="nc" id="L36">            val domainList = cached.map { e -&gt;</span>
+<span class="nc" id="L37">                PromedioTrimestral(</span>
+<span class="nc" id="L38">                    idPromedio = e.idPromedio,</span>
+<span class="nc" id="L39">                    idMatricula = e.idMatricula,</span>
+<span class="nc" id="L40">                    idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L41">                    idPeriodo = e.idPeriodo,</span>
+<span class="nc" id="L42">                    promedioFormativo = e.promedioFormativo,</span>
+<span class="nc" id="L43">                    notaSumativa = e.notaSumativa,</span>
+<span class="nc" id="L44">                    promedioTrimestral = e.promedioTrimestral,</span>
+<span class="nc" id="L45">                    notaCualitativa = e.notaCualitativa</span>
+                )
+            }
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L52">            try {</span>
+<span class="nc" id="L53">                val resp = docenteApi.getPromediosTrimestrales(idAsignacion = idAsignacion, idPeriodo = idPeriodo)</span>
+<span class="nc bnc" id="L54" title="All 4 branches missed.">                if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L55">                    val entities = resp.body()!!.map { dto -&gt;</span>
+<span class="nc" id="L56">                        PromedioTrimestralEntity(</span>
+<span class="nc" id="L57">                            idPromedio = dto.idPromedio,</span>
+<span class="nc" id="L58">                            idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L59">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L60">                            idPeriodo = dto.idPeriodo,</span>
+<span class="nc" id="L61">                            promedioFormativo = dto.promedioFormativo,</span>
+<span class="nc" id="L62">                            notaSumativa = dto.notaSumativa,</span>
+<span class="nc" id="L63">                            promedioTrimestral = dto.promedioTrimestral,</span>
+<span class="nc" id="L64">                            notaCualitativa = dto.notaCualitativa,</span>
+<span class="nc" id="L65">                            calculadoEn = dto.calculadoEn</span>
+                        )
+                    }
+<span class="nc" id="L68">                    promediosDao.insertPromediosTrimestrales(entities)</span>
+
+<span class="nc" id="L70">                    val domainList = entities.map { e -&gt;</span>
+<span class="nc" id="L71">                        PromedioTrimestral(</span>
+<span class="nc" id="L72">                            idPromedio = e.idPromedio,</span>
+<span class="nc" id="L73">                            idMatricula = e.idMatricula,</span>
+<span class="nc" id="L74">                            idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L75">                            idPeriodo = e.idPeriodo,</span>
+<span class="nc" id="L76">                            promedioFormativo = e.promedioFormativo,</span>
+<span class="nc" id="L77">                            notaSumativa = e.notaSumativa,</span>
+<span class="nc" id="L78">                            promedioTrimestral = e.promedioTrimestral,</span>
+<span class="nc" id="L79">                            notaCualitativa = e.notaCualitativa</span>
+                        )
+                    }
+<span class="nc" id="L82">                    emit(Resource.Success(domainList, isOffline = false))</span>
+                }
+<span class="nc" id="L84">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (cached.isEmpty()) {</span>
+<span class="nc" id="L86">                    emit(Resource.Error(&quot;No se pudieron cargar los promedios trimestrales.&quot;))</span>
+                }
+            }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        } else if (cached.isEmpty()) {</span>
+<span class="nc" id="L90">            emit(Resource.Error(&quot;Sin conexión a Internet.&quot;))</span>
+        }
+<span class="nc" id="L92">    }</span>
+
+    override suspend fun calcularPromedioTrimestral(
+        idMatricula: Long,
+        idAsignacion: Long,
+        idPeriodo: Long
+<span class="nc" id="L98">    ): Resource&lt;PromedioTrimestral&gt; = withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L99">        try {</span>
+<span class="nc" id="L100">            val resp = docenteApi.calcularPromedioTrimestral(</span>
+<span class="nc" id="L101">                mapOf(</span>
+<span class="nc" id="L102">                    &quot;id_matricula&quot; to idMatricula,</span>
+<span class="nc" id="L103">                    &quot;id_asignacion&quot; to idAsignacion,</span>
+<span class="nc" id="L104">                    &quot;id_periodo&quot; to idPeriodo,</span>
+<span class="nc" id="L105">                    &quot;nivel&quot; to &quot;EGB&quot;</span>
+                )
+            )
+<span class="nc bnc" id="L108" title="All 4 branches missed.">            if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L109">                val dto = resp.body()!!</span>
+<span class="nc" id="L110">                Resource.Success(</span>
+<span class="nc" id="L111">                    PromedioTrimestral(</span>
+<span class="nc" id="L112">                        idPromedio = dto.idPromedio,</span>
+<span class="nc" id="L113">                        idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L114">                        idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L115">                        idPeriodo = dto.idPeriodo,</span>
+<span class="nc" id="L116">                        promedioFormativo = dto.promedioFormativo,</span>
+<span class="nc" id="L117">                        notaSumativa = dto.notaSumativa,</span>
+<span class="nc" id="L118">                        promedioTrimestral = dto.promedioTrimestral,</span>
+<span class="nc" id="L119">                        notaCualitativa = dto.notaCualitativa</span>
+                    )
+                )
+            } else {
+<span class="nc" id="L123">                Resource.Error(&quot;Error al calcular promedio trimestral: ${resp.code()}&quot;)</span>
+            }
+<span class="nc" id="L125">        } catch (e: Exception) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            Resource.Error(e.message ?: &quot;Error de red&quot;)</span>
+        }
+<span class="nc" id="L128">    }</span>
+
+<span class="nc" id="L130">    override fun getPromediosAnuales(idAsignacion: Long): Flow&lt;Resource&lt;List&lt;PromedioAnual&gt;&gt;&gt; = flow {</span>
+<span class="nc" id="L131">        emit(Resource.Loading)</span>
+
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        val cached = promediosDao.getPromediosAnuales(idAsignacion).firstOrNull() ?: emptyList()</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">        if (cached.isNotEmpty()) {</span>
+<span class="nc" id="L135">            val domainList = cached.map { e -&gt;</span>
+<span class="nc" id="L136">                PromedioAnual(</span>
+<span class="nc" id="L137">                    idPromedioAnual = e.idPromedioAnual,</span>
+<span class="nc" id="L138">                    idMatricula = e.idMatricula,</span>
+<span class="nc" id="L139">                    idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L140">                    idAnoLectivo = e.idAnoLectivo,</span>
+<span class="nc" id="L141">                    promedioAnual = e.promedioAnual,</span>
+<span class="nc" id="L142">                    notaCualitativa = e.notaCualitativa</span>
+                )
+            }
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            emit(Resource.Success(domainList, isOffline = !connectivityObserver.isCurrentlyConnected()))</span>
+        }
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (connectivityObserver.isCurrentlyConnected()) {</span>
+<span class="nc" id="L149">            try {</span>
+<span class="nc" id="L150">                val resp = docenteApi.getPromediosAnuales(idAsignacion = idAsignacion)</span>
+<span class="nc bnc" id="L151" title="All 4 branches missed.">                if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L152">                    val entities = resp.body()!!.map { dto -&gt;</span>
+<span class="nc" id="L153">                        PromedioAnualEntity(</span>
+<span class="nc" id="L154">                            idPromedioAnual = dto.idPromedioAnual,</span>
+<span class="nc" id="L155">                            idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L156">                            idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L157">                            idAnoLectivo = dto.idAnoLectivo,</span>
+<span class="nc" id="L158">                            promedioAnual = dto.promedioAnual,</span>
+<span class="nc" id="L159">                            notaCualitativa = dto.notaCualitativa,</span>
+<span class="nc" id="L160">                            registradoPor = dto.registradoPor,</span>
+<span class="nc" id="L161">                            calculadoEn = dto.calculadoEn</span>
+                        )
+                    }
+<span class="nc" id="L164">                    promediosDao.insertPromediosAnuales(entities)</span>
+
+<span class="nc" id="L166">                    val domainList = entities.map { e -&gt;</span>
+<span class="nc" id="L167">                        PromedioAnual(</span>
+<span class="nc" id="L168">                            idPromedioAnual = e.idPromedioAnual,</span>
+<span class="nc" id="L169">                            idMatricula = e.idMatricula,</span>
+<span class="nc" id="L170">                            idAsignacion = e.idAsignacion,</span>
+<span class="nc" id="L171">                            idAnoLectivo = e.idAnoLectivo,</span>
+<span class="nc" id="L172">                            promedioAnual = e.promedioAnual,</span>
+<span class="nc" id="L173">                            notaCualitativa = e.notaCualitativa</span>
+                        )
+                    }
+<span class="nc" id="L176">                    emit(Resource.Success(domainList, isOffline = false))</span>
+                }
+<span class="nc" id="L178">            } catch (e: Exception) {</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                if (cached.isEmpty()) {</span>
+<span class="nc" id="L180">                    emit(Resource.Error(&quot;No se pudieron cargar los promedios anuales.&quot;))</span>
+                }
+            }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        } else if (cached.isEmpty()) {</span>
+<span class="nc" id="L184">            emit(Resource.Error(&quot;Sin conexión a Internet.&quot;))</span>
+        }
+<span class="nc" id="L186">    }</span>
+
+    override suspend fun calcularPromedioAnual(
+        idMatricula: Long,
+        idAsignacion: Long,
+        idAnoLectivo: Long
+<span class="nc" id="L192">    ): Resource&lt;PromedioAnual&gt; = withContext(Dispatchers.IO) {</span>
+<span class="nc" id="L193">        try {</span>
+<span class="nc" id="L194">            val resp = docenteApi.calcularPromedioAnual(</span>
+<span class="nc" id="L195">                mapOf(</span>
+<span class="nc" id="L196">                    &quot;id_matricula&quot; to idMatricula,</span>
+<span class="nc" id="L197">                    &quot;id_asignacion&quot; to idAsignacion,</span>
+<span class="nc" id="L198">                    &quot;id_ano_lectivo&quot; to idAnoLectivo,</span>
+<span class="nc" id="L199">                    &quot;nivel&quot; to &quot;EGB&quot;</span>
+                )
+            )
+<span class="nc bnc" id="L202" title="All 4 branches missed.">            if (resp.isSuccessful &amp;&amp; resp.body() != null) {</span>
+<span class="nc" id="L203">                val dto = resp.body()!!</span>
+<span class="nc" id="L204">                Resource.Success(</span>
+<span class="nc" id="L205">                    PromedioAnual(</span>
+<span class="nc" id="L206">                        idPromedioAnual = dto.idPromedioAnual,</span>
+<span class="nc" id="L207">                        idMatricula = dto.idMatricula,</span>
+<span class="nc" id="L208">                        idAsignacion = dto.idAsignacion,</span>
+<span class="nc" id="L209">                        idAnoLectivo = dto.idAnoLectivo,</span>
+<span class="nc" id="L210">                        promedioAnual = dto.promedioAnual,</span>
+<span class="nc" id="L211">                        notaCualitativa = dto.notaCualitativa</span>
+                    )
+                )
+            } else {
+<span class="nc" id="L215">                Resource.Error(&quot;Error al calcular promedio anual: ${resp.code()}&quot;)</span>
+            }
+<span class="nc" id="L217">        } catch (e: Exception) {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            Resource.Error(e.message ?: &quot;Error de red&quot;)</span>
+        }
+<span class="nc" id="L220">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

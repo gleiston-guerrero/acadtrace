@@ -68,11 +68,19 @@ SHA256(hash_anterior + JSON_CANONICO(evento, timestamp, payload, Lamport y vecto
 ### Verificación y experimentos
 
 ```powershell
-python -m pytest
+$env:GRPC_INTERNAL_TOKEN="<valor>"
 python -m pytest --cov=docentes --cov-fail-under=70 --cov-report=term-missing --cov-report=html:..\docs\cobertura\docente
 python experimentos/verificador_cadena.py
 python experimentos/generador_sintetico.py --salida dataset-docente.json
 ```
+
+### Alcance de la medición
+
+`grpc_services/server.py` (55 sentencias) actúa como adaptador de transporte gRPC (`DocenteServiceServicer`) que recibe llamadas RPC sobre la red y delega en servicios de dominio y clientes gRPC auxiliares; requiere metadatos de contexto activo (`context.invocation_metadata()`) e infraestructura gRPC, por lo que su verificación corresponde a pruebas de integración de transporte y E2E fuera del alcance de la suite unitaria aislada de dominio. Se declara explícitamente para garantizar total transparencia técnica sobre el alcance de la cifra reportada (incluso incluyéndolo, la cobertura supera el 70 % de la compuerta).
+
+`grpc_services/fix_imports.py` (10 sentencias) es una utilidad auxiliar de post-procesamiento de los archivos gRPC generados; no forma parte del flujo de negocio en ejecución, por lo que se excluye de la medición de cobertura.
+
+`management/commands/*` (32 sentencias) corresponde al bootstrap del servidor gRPC y mantenimiento de bucle de ejecución (infraestructura de arranque), no a lógica de negocio, por lo que se excluye de la medición de cobertura.
 
 El inyector es destructivo y se bloquea salvo que se use una base experimental,
 `DJANGO_DEBUG=True` y autorización explícita:
@@ -153,3 +161,29 @@ Para `EGB`:
 | 7.00 - 8.99 | `AAR` |
 | 4.01 - 6.99 | `PAR` |
 | 0.00 - 4.00 | `NAR` |
+
+## Frontend Web (Docente)
+
+La interfaz web del docente reside en [`frontend/`](frontend/) y está construida con React 19, Tailwind CSS 4 y Vite 8.
+
+### Puesta en marcha independiente (fuera de Compose)
+
+1. Requisitos: Node.js `^20.19.0 || >=22.12.0`, npm `10+`.
+2. Instalación reproducible:
+   ```bash
+   cd frontend
+   npm ci --no-audit
+   ```
+3. Servidor de desarrollo local (puerto 3000):
+   ```bash
+   npm run dev
+   ```
+4. Compilación para producción:
+   ```bash
+   npm run build
+   ```
+5. Pruebas de navegador E2E (Playwright):
+   ```bash
+   npm run test:e2e
+   ```
+
