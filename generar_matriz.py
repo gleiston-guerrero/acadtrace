@@ -1,4 +1,4 @@
-"""E22: preview por defecto. Solo --write-csv/--write-latex escriben archivos.
+﻿"""E22: preview por defecto. Solo --write-csv/--write-latex escriben archivos.
 Las categorias solicitadas por el proyecto no certifican ISO/IEC 25010 completo.
 La evidencia historica se distingue del conjunto nominal A. Solo biblioteca estandar.
 """
@@ -33,7 +33,7 @@ COVERAGE_REPORTS = (
     ('Soporte', Path('docs/cobertura/soporte/jacoco.xml'),
      'LINE', Decimal('70')),
     ('Aplicación móvil', Path('docs/cobertura/movil/jacoco.xml'),
-     'INSTRUCTION', Decimal('2')),
+     'INSTRUCTION', Decimal('10')),
 )
 
 
@@ -255,7 +255,7 @@ def build_rows(metrics, false_positives, historical_windows, stress_metrics=None
             f'{path.as_posix()} (contador global {metric})'
             for _, path, metric, _, _, _, _ in coverage
         )
-        + '; evidencia común: CI #859, run 35677338149, commit 71e6a479183efced7c304d4e70ff912cf1017136',
+        + '; evidencia común: CI #876, run 35693153935, commit 6c1f67ab28d569643b4c7ec4f740d7221bd60b0f',
         'Un único contador oficial por módulo, obtenido del reporte '
         'JaCoCo versionado generado por integración continua',
         '; '.join(

@@ -1,4 +1,4 @@
-# Cobertura de sga-principal
+﻿# Cobertura de sga-principal
 
 El reporte HTML de este módulo se elimina del árbol para no publicar sesiones
 mezcladas ni paquetes huérfanos.
@@ -27,8 +27,8 @@ aquí para publicarlo, siempre desde una única ejecución.
 
 Última medición oficial: **32,79 % de instrucciones cubiertas
 (4668 de 14237)** a nivel de módulo completo (`BUNDLE`). La cifra procede
-de `docs/cobertura/sga-principal/jacoco.xml`, descargado del CI #859,
-run `35677338149`, sobre el commit `71e6a479183efced7c304d4e70ff912cf1017136`.
+de `docs/cobertura/sga-principal/jacoco.xml`, descargado del CI #876,
+run `35693153935`, sobre el commit `6c1f67ab28d569643b4c7ec4f740d7221bd60b0f`.
 
 La compuerta configurada en `pom.xml` exige un mínimo de **30 % de
 instrucciones**. El CI ejecuta la suite mediante `./mvnw clean test -q`,
