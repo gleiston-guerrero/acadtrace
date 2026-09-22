@@ -15,164 +15,164 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-<span class="nc" id="L18">data class ReportePromedioItem(</span>
-<span class="nc" id="L19">    val estudiante: Estudiante,</span>
-<span class="nc" id="L20">    val promedioTrimestral: PromedioTrimestral? = null,</span>
-<span class="nc" id="L21">    val promedioAnual: PromedioAnual? = null</span>
+<span class="pc" id="L18">data class ReportePromedioItem(</span>
+<span class="fc" id="L19">    val estudiante: Estudiante,</span>
+<span class="pc" id="L20">    val promedioTrimestral: PromedioTrimestral? = null,</span>
+<span class="pc" id="L21">    val promedioAnual: PromedioAnual? = null</span>
 <span class="nc" id="L22">)</span>
 
-<span class="nc" id="L24">data class ReportesUiState(</span>
-<span class="nc" id="L25">    val idAsignacion: Long = 0,</span>
-<span class="nc" id="L26">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
-<span class="nc" id="L27">    val selectedAsignacion: Asignacion? = null,</span>
-<span class="nc" id="L28">    val periodos: List&lt;PeriodoEvaluacion&gt; = emptyList(),</span>
-<span class="nc" id="L29">    val selectedPeriodo: PeriodoEvaluacion? = null,</span>
-<span class="nc" id="L30">    val vistaAnual: Boolean = false,</span>
-<span class="nc" id="L31">    val items: List&lt;ReportePromedioItem&gt; = emptyList(),</span>
-<span class="nc" id="L32">    val isLoading: Boolean = false,</span>
-<span class="nc" id="L33">    val isOffline: Boolean = false,</span>
-<span class="nc" id="L34">    val errorMessage: String? = null</span>
-<span class="nc" id="L35">)</span>
+<span class="fc" id="L24">data class ReportesUiState(</span>
+<span class="fc" id="L25">    val idAsignacion: Long = 0,</span>
+<span class="pc" id="L26">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
+<span class="fc" id="L27">    val selectedAsignacion: Asignacion? = null,</span>
+<span class="pc" id="L28">    val periodos: List&lt;PeriodoEvaluacion&gt; = emptyList(),</span>
+<span class="fc" id="L29">    val selectedPeriodo: PeriodoEvaluacion? = null,</span>
+<span class="fc" id="L30">    val vistaAnual: Boolean = false,</span>
+<span class="fc" id="L31">    val items: List&lt;ReportePromedioItem&gt; = emptyList(),</span>
+<span class="fc" id="L32">    val isLoading: Boolean = false,</span>
+<span class="fc" id="L33">    val isOffline: Boolean = false,</span>
+<span class="pc" id="L34">    val errorMessage: String? = null</span>
+<span class="fc" id="L35">)</span>
 
-<span class="nc" id="L37">class ReportesViewModel(</span>
-<span class="nc" id="L38">    private val promediosRepository: PromediosRepository,</span>
-<span class="nc" id="L39">    private val docenteRepository: DocenteRepository</span>
-<span class="nc" id="L40">) : ViewModel() {</span>
+<span class="fc" id="L37">class ReportesViewModel(</span>
+<span class="fc" id="L38">    private val promediosRepository: PromediosRepository,</span>
+<span class="fc" id="L39">    private val docenteRepository: DocenteRepository</span>
+<span class="fc" id="L40">) : ViewModel() {</span>
 
-<span class="nc" id="L42">    private val _uiState = MutableStateFlow(ReportesUiState())</span>
-<span class="nc" id="L43">    val uiState: StateFlow&lt;ReportesUiState&gt; = _uiState.asStateFlow()</span>
+<span class="fc" id="L42">    private val _uiState = MutableStateFlow(ReportesUiState())</span>
+<span class="fc" id="L43">    val uiState: StateFlow&lt;ReportesUiState&gt; = _uiState.asStateFlow()</span>
 
-<span class="nc" id="L45">    private var currentEstudiantes: List&lt;Estudiante&gt; = emptyList()</span>
-<span class="nc" id="L46">    private var currentTrimestrales: List&lt;PromedioTrimestral&gt; = emptyList()</span>
-<span class="nc" id="L47">    private var currentAnuales: List&lt;PromedioAnual&gt; = emptyList()</span>
+<span class="fc" id="L45">    private var currentEstudiantes: List&lt;Estudiante&gt; = emptyList()</span>
+<span class="fc" id="L46">    private var currentTrimestrales: List&lt;PromedioTrimestral&gt; = emptyList()</span>
+<span class="fc" id="L47">    private var currentAnuales: List&lt;PromedioAnual&gt; = emptyList()</span>
 
     private var loadEstudiantesJob: kotlinx.coroutines.Job? = null
     private var loadTrimestralesJob: kotlinx.coroutines.Job? = null
     private var loadAnualesJob: kotlinx.coroutines.Job? = null
 
     fun init(idAsignacion: Long) {
-<span class="nc" id="L54">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)</span>
-<span class="nc" id="L55">        loadAsignaciones(idAsignacion)</span>
-<span class="nc" id="L56">        loadPeriodos()</span>
-<span class="nc" id="L57">    }</span>
+<span class="fc" id="L54">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true)</span>
+<span class="fc" id="L55">        loadAsignaciones(idAsignacion)</span>
+<span class="fc" id="L56">        loadPeriodos()</span>
+<span class="fc" id="L57">    }</span>
 
     private fun loadAsignaciones(idAsignacion: Long) {
-<span class="nc" id="L60">        viewModelScope.launch {</span>
-<span class="nc" id="L61">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
-<span class="nc bnc" id="L62" title="All 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">                    val current = if (idAsignacion &gt; 0) {</span>
-<span class="nc bnc" id="L64" title="All 8 branches missed.">                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()</span>
+<span class="fc" id="L60">        viewModelScope.launch {</span>
+<span class="fc" id="L61">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
+<span class="pc bpc" id="L62" title="3 of 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">                    val current = if (idAsignacion &gt; 0) {</span>
+<span class="fc bfc" id="L64" title="All 8 branches covered.">                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()</span>
                     } else {
 <span class="nc" id="L66">                        res.data.first()</span>
                     }
-<span class="nc" id="L68">                    _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L69">                        asignaciones = res.data,</span>
-<span class="nc" id="L70">                        selectedAsignacion = current,</span>
-<span class="nc" id="L71">                        idAsignacion = current.idAsignacion</span>
+<span class="fc" id="L68">                    _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L69">                        asignaciones = res.data,</span>
+<span class="fc" id="L70">                        selectedAsignacion = current,</span>
+<span class="fc" id="L71">                        idAsignacion = current.idAsignacion</span>
                     )
-<span class="nc" id="L73">                    loadData(current.idAsignacion)</span>
+<span class="fc" id="L73">                    loadData(current.idAsignacion)</span>
                 }
-<span class="nc" id="L75">            }</span>
-<span class="nc" id="L76">        }</span>
-<span class="nc" id="L77">    }</span>
+<span class="fc" id="L75">            }</span>
+<span class="fc" id="L76">        }</span>
+<span class="fc" id="L77">    }</span>
 
     fun selectAsignacion(asignacion: Asignacion) {
-<span class="nc" id="L80">        _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L81">            selectedAsignacion = asignacion,</span>
-<span class="nc" id="L82">            idAsignacion = asignacion.idAsignacion</span>
+<span class="fc" id="L80">        _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L81">            selectedAsignacion = asignacion,</span>
+<span class="fc" id="L82">            idAsignacion = asignacion.idAsignacion</span>
         )
-<span class="nc" id="L84">        loadData(asignacion.idAsignacion)</span>
-<span class="nc" id="L85">    }</span>
+<span class="fc" id="L84">        loadData(asignacion.idAsignacion)</span>
+<span class="fc" id="L85">    }</span>
 
     private fun loadPeriodos() {
-<span class="nc" id="L88">        viewModelScope.launch {</span>
-<span class="nc" id="L89">            docenteRepository.getPeriodosEvaluacion().collect { res -&gt;</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
-<span class="nc" id="L91">                    _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L92">                        periodos = res.data,</span>
-<span class="nc" id="L93">                        selectedPeriodo = res.data.firstOrNull()</span>
+<span class="fc" id="L88">        viewModelScope.launch {</span>
+<span class="fc" id="L89">            docenteRepository.getPeriodosEvaluacion().collect { res -&gt;</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                if (res is Resource.Success) {</span>
+<span class="fc" id="L91">                    _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L92">                        periodos = res.data,</span>
+<span class="fc" id="L93">                        selectedPeriodo = res.data.firstOrNull()</span>
                     )
                 }
-<span class="nc" id="L96">            }</span>
-<span class="nc" id="L97">        }</span>
-<span class="nc" id="L98">    }</span>
+<span class="fc" id="L96">            }</span>
+<span class="fc" id="L97">        }</span>
+<span class="fc" id="L98">    }</span>
 
     fun setVistaAnual(anual: Boolean) {
-<span class="nc" id="L101">        _uiState.value = _uiState.value.copy(vistaAnual = anual)</span>
-<span class="nc" id="L102">        combineData()</span>
-<span class="nc" id="L103">    }</span>
+<span class="fc" id="L101">        _uiState.value = _uiState.value.copy(vistaAnual = anual)</span>
+<span class="fc" id="L102">        combineData()</span>
+<span class="fc" id="L103">    }</span>
 
     fun selectPeriodo(periodo: PeriodoEvaluacion) {
-<span class="nc" id="L106">        _uiState.value = _uiState.value.copy(selectedPeriodo = periodo, vistaAnual = false)</span>
-<span class="nc" id="L107">        loadData(_uiState.value.idAsignacion)</span>
-<span class="nc" id="L108">    }</span>
+<span class="fc" id="L106">        _uiState.value = _uiState.value.copy(selectedPeriodo = periodo, vistaAnual = false)</span>
+<span class="fc" id="L107">        loadData(_uiState.value.idAsignacion)</span>
+<span class="fc" id="L108">    }</span>
 
     fun loadData(idAsignacion: Long) {
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (idAsignacion &lt;= 0) return</span>
-<span class="nc" id="L112">        _uiState.value = _uiState.value.copy(isLoading = true)</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (idAsignacion &lt;= 0) return</span>
+<span class="fc" id="L112">        _uiState.value = _uiState.value.copy(isLoading = true)</span>
 
         // Cargar Estudiantes
-<span class="nc bnc" id="L115" title="All 2 branches missed.">        loadEstudiantesJob?.cancel()</span>
-<span class="nc" id="L116">        loadEstudiantesJob = viewModelScope.launch {</span>
-<span class="nc" id="L117">            docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res -&gt;</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
-<span class="nc" id="L119">                    currentEstudiantes = res.data</span>
-<span class="nc" id="L120">                    combineData()</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        loadEstudiantesJob?.cancel()</span>
+<span class="fc" id="L116">        loadEstudiantesJob = viewModelScope.launch {</span>
+<span class="fc" id="L117">            docenteRepository.getEstudiantesPorAsignacion(idAsignacion).collect { res -&gt;</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">                if (res is Resource.Success) {</span>
+<span class="fc" id="L119">                    currentEstudiantes = res.data</span>
+<span class="fc" id="L120">                    combineData()</span>
                 }
-<span class="nc" id="L122">            }</span>
-<span class="nc" id="L123">        }</span>
+<span class="fc" id="L122">            }</span>
+<span class="fc" id="L123">        }</span>
 
         // Cargar Promedios Trimestrales
-<span class="nc bnc" id="L126" title="All 2 branches missed.">        loadTrimestralesJob?.cancel()</span>
-<span class="nc" id="L127">        loadTrimestralesJob = viewModelScope.launch {</span>
-<span class="nc" id="L128">            promediosRepository.getPromediosTrimestrales(</span>
-<span class="nc" id="L129">                idAsignacion,</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">                _uiState.value.selectedPeriodo?.idPeriodo</span>
-<span class="nc" id="L131">            ).collect { res -&gt;</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
-<span class="nc" id="L133">                    currentTrimestrales = res.data</span>
-<span class="nc" id="L134">                    _uiState.value = _uiState.value.copy(isOffline = res.isOffline, isLoading = false)</span>
-<span class="nc" id="L135">                    combineData()</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        loadTrimestralesJob?.cancel()</span>
+<span class="fc" id="L127">        loadTrimestralesJob = viewModelScope.launch {</span>
+<span class="fc" id="L128">            promediosRepository.getPromediosTrimestrales(</span>
+<span class="fc" id="L129">                idAsignacion,</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">                _uiState.value.selectedPeriodo?.idPeriodo</span>
+<span class="fc" id="L131">            ).collect { res -&gt;</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">                if (res is Resource.Success) {</span>
+<span class="fc" id="L133">                    currentTrimestrales = res.data</span>
+<span class="fc" id="L134">                    _uiState.value = _uiState.value.copy(isOffline = res.isOffline, isLoading = false)</span>
+<span class="fc" id="L135">                    combineData()</span>
                 }
-<span class="nc" id="L137">            }</span>
-<span class="nc" id="L138">        }</span>
+<span class="fc" id="L137">            }</span>
+<span class="fc" id="L138">        }</span>
 
         // Cargar Promedios Anuales
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        loadAnualesJob?.cancel()</span>
-<span class="nc" id="L142">        loadAnualesJob = viewModelScope.launch {</span>
-<span class="nc" id="L143">            promediosRepository.getPromediosAnuales(idAsignacion).collect { res -&gt;</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">                if (res is Resource.Success) {</span>
-<span class="nc" id="L145">                    currentAnuales = res.data</span>
-<span class="nc" id="L146">                    combineData()</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        loadAnualesJob?.cancel()</span>
+<span class="fc" id="L142">        loadAnualesJob = viewModelScope.launch {</span>
+<span class="fc" id="L143">            promediosRepository.getPromediosAnuales(idAsignacion).collect { res -&gt;</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">                if (res is Resource.Success) {</span>
+<span class="fc" id="L145">                    currentAnuales = res.data</span>
+<span class="fc" id="L146">                    combineData()</span>
                 }
-<span class="nc" id="L148">            }</span>
-<span class="nc" id="L149">        }</span>
-<span class="nc" id="L150">    }</span>
+<span class="fc" id="L148">            }</span>
+<span class="fc" id="L149">        }</span>
+<span class="fc" id="L150">    }</span>
 
     private fun combineData() {
-<span class="nc" id="L153">        val trimMap = currentTrimestrales.associateBy { it.idMatricula }</span>
-<span class="nc" id="L154">        val anualMap = currentAnuales.associateBy { it.idMatricula }</span>
+<span class="fc" id="L153">        val trimMap = currentTrimestrales.associateBy { it.idMatricula }</span>
+<span class="fc" id="L154">        val anualMap = currentAnuales.associateBy { it.idMatricula }</span>
 
-<span class="nc" id="L156">        val list = currentEstudiantes.map { est -&gt;</span>
-<span class="nc" id="L157">            ReportePromedioItem(</span>
-<span class="nc" id="L158">                estudiante = est,</span>
-<span class="nc" id="L159">                promedioTrimestral = trimMap[est.idMatricula],</span>
-<span class="nc" id="L160">                promedioAnual = anualMap[est.idMatricula]</span>
+<span class="fc" id="L156">        val list = currentEstudiantes.map { est -&gt;</span>
+<span class="fc" id="L157">            ReportePromedioItem(</span>
+<span class="fc" id="L158">                estudiante = est,</span>
+<span class="fc" id="L159">                promedioTrimestral = trimMap[est.idMatricula],</span>
+<span class="fc" id="L160">                promedioAnual = anualMap[est.idMatricula]</span>
             )
         }
-<span class="nc" id="L163">        _uiState.value = _uiState.value.copy(items = list, isLoading = false)</span>
-<span class="nc" id="L164">    }</span>
+<span class="fc" id="L163">        _uiState.value = _uiState.value.copy(items = list, isLoading = false)</span>
+<span class="fc" id="L164">    }</span>
 
     fun recalcularPromedioTrimestral(idMatricula: Long) {
-<span class="nc bnc" id="L167" title="All 2 branches missed.">        val periodoId = _uiState.value.selectedPeriodo?.idPeriodo ?: 1L</span>
-<span class="nc" id="L168">        viewModelScope.launch {</span>
-<span class="nc" id="L169">            promediosRepository.calcularPromedioTrimestral(</span>
-<span class="nc" id="L170">                idMatricula,</span>
-<span class="nc" id="L171">                _uiState.value.idAsignacion,</span>
-<span class="nc" id="L172">                periodoId</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">        val periodoId = _uiState.value.selectedPeriodo?.idPeriodo ?: 1L</span>
+<span class="fc" id="L168">        viewModelScope.launch {</span>
+<span class="fc" id="L169">            promediosRepository.calcularPromedioTrimestral(</span>
+<span class="fc" id="L170">                idMatricula,</span>
+<span class="fc" id="L171">                _uiState.value.idAsignacion,</span>
+<span class="fc" id="L172">                periodoId</span>
             )
-<span class="nc" id="L174">            loadData(_uiState.value.idAsignacion)</span>
-<span class="nc" id="L175">        }</span>
-<span class="nc" id="L176">    }</span>
+<span class="fc" id="L174">            loadData(_uiState.value.idAsignacion)</span>
+<span class="fc" id="L175">        }</span>
+<span class="fc" id="L176">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -12,39 +12,39 @@ object AcademicRules {
     /**
      * Convierte una calificación numérica en su escala cualitativa equivalente (A+, B+, C+, D).
      */
-<span class="nc" id="L15">    fun convertirNotaCualitativa(nota: Double, nivel: String = &quot;EGB&quot;): String {</span>
-<span class="nc" id="L16">        val bdNota = BigDecimal.valueOf(nota).setScale(2, RoundingMode.HALF_UP)</span>
-<span class="nc" id="L17">        return when {</span>
-<span class="nc bnc" id="L18" title="All 2 branches missed.">            bdNota &gt;= BigDecimal(&quot;9.00&quot;) -&gt; &quot;A_MAS&quot;</span>
-<span class="nc bnc" id="L19" title="All 2 branches missed.">            bdNota &gt;= BigDecimal(&quot;7.00&quot;) -&gt; &quot;B_MAS&quot;</span>
-<span class="nc bnc" id="L20" title="All 2 branches missed.">            bdNota &gt; BigDecimal(&quot;4.00&quot;) -&gt; &quot;C_MAS&quot;</span>
-<span class="nc" id="L21">            else -&gt; &quot;D&quot;</span>
+<span class="fc" id="L15">    fun convertirNotaCualitativa(nota: Double, nivel: String = &quot;EGB&quot;): String {</span>
+<span class="fc" id="L16">        val bdNota = BigDecimal.valueOf(nota).setScale(2, RoundingMode.HALF_UP)</span>
+<span class="fc" id="L17">        return when {</span>
+<span class="fc bfc" id="L18" title="All 2 branches covered.">            bdNota &gt;= BigDecimal(&quot;9.00&quot;) -&gt; &quot;A_MAS&quot;</span>
+<span class="fc bfc" id="L19" title="All 2 branches covered.">            bdNota &gt;= BigDecimal(&quot;7.00&quot;) -&gt; &quot;B_MAS&quot;</span>
+<span class="fc bfc" id="L20" title="All 2 branches covered.">            bdNota &gt; BigDecimal(&quot;4.00&quot;) -&gt; &quot;C_MAS&quot;</span>
+<span class="fc" id="L21">            else -&gt; &quot;D&quot;</span>
         }
     }
 
     fun getEtiquetaCualitativa(codigo: String?): String {
-<span class="nc bnc" id="L26" title="All 8 branches missed.">        return when (codigo) {</span>
-<span class="nc" id="L27">            &quot;A_MAS&quot; -&gt; &quot;A+ (Domina los aprendizajes)&quot;</span>
-<span class="nc" id="L28">            &quot;A_MENOS&quot; -&gt; &quot;A- (Domina aprendizajes)&quot;</span>
-<span class="nc" id="L29">            &quot;B_MAS&quot; -&gt; &quot;B+ (Alcanza los aprendizajes)&quot;</span>
-<span class="nc" id="L30">            &quot;B_MENOS&quot; -&gt; &quot;B- (Alcanza aprendizajes)&quot;</span>
-<span class="nc" id="L31">            &quot;C_MAS&quot; -&gt; &quot;C+ (Próximo a alcanzar)&quot;</span>
-<span class="nc" id="L32">            &quot;C_MENOS&quot; -&gt; &quot;C- (Próximo a alcanzar)&quot;</span>
-<span class="nc" id="L33">            &quot;D&quot; -&gt; &quot;D (No alcanza aprendizajes)&quot;</span>
-<span class="nc bnc" id="L34" title="All 2 branches missed.">            else -&gt; codigo ?: &quot;-&quot;</span>
+<span class="fc bfc" id="L26" title="All 8 branches covered.">        return when (codigo) {</span>
+<span class="fc" id="L27">            &quot;A_MAS&quot; -&gt; &quot;A+ (Domina los aprendizajes)&quot;</span>
+<span class="fc" id="L28">            &quot;A_MENOS&quot; -&gt; &quot;A- (Domina aprendizajes)&quot;</span>
+<span class="fc" id="L29">            &quot;B_MAS&quot; -&gt; &quot;B+ (Alcanza los aprendizajes)&quot;</span>
+<span class="fc" id="L30">            &quot;B_MENOS&quot; -&gt; &quot;B- (Alcanza aprendizajes)&quot;</span>
+<span class="fc" id="L31">            &quot;C_MAS&quot; -&gt; &quot;C+ (Próximo a alcanzar)&quot;</span>
+<span class="fc" id="L32">            &quot;C_MENOS&quot; -&gt; &quot;C- (Próximo a alcanzar)&quot;</span>
+<span class="fc" id="L33">            &quot;D&quot; -&gt; &quot;D (No alcanza aprendizajes)&quot;</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">            else -&gt; codigo ?: &quot;-&quot;</span>
         }
     }
 
     fun getEtiquetaCortaCualitativa(codigo: String?): String {
-<span class="nc bnc" id="L39" title="All 8 branches missed.">        return when (codigo) {</span>
-<span class="nc" id="L40">            &quot;A_MAS&quot; -&gt; &quot;A+&quot;</span>
-<span class="nc" id="L41">            &quot;A_MENOS&quot; -&gt; &quot;A-&quot;</span>
-<span class="nc" id="L42">            &quot;B_MAS&quot; -&gt; &quot;B+&quot;</span>
-<span class="nc" id="L43">            &quot;B_MENOS&quot; -&gt; &quot;B-&quot;</span>
-<span class="nc" id="L44">            &quot;C_MAS&quot; -&gt; &quot;C+&quot;</span>
-<span class="nc" id="L45">            &quot;C_MENOS&quot; -&gt; &quot;C-&quot;</span>
-<span class="nc" id="L46">            &quot;D&quot; -&gt; &quot;D&quot;</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">            else -&gt; codigo ?: &quot;-&quot;</span>
+<span class="fc bfc" id="L39" title="All 8 branches covered.">        return when (codigo) {</span>
+<span class="fc" id="L40">            &quot;A_MAS&quot; -&gt; &quot;A+&quot;</span>
+<span class="fc" id="L41">            &quot;A_MENOS&quot; -&gt; &quot;A-&quot;</span>
+<span class="fc" id="L42">            &quot;B_MAS&quot; -&gt; &quot;B+&quot;</span>
+<span class="fc" id="L43">            &quot;B_MENOS&quot; -&gt; &quot;B-&quot;</span>
+<span class="fc" id="L44">            &quot;C_MAS&quot; -&gt; &quot;C+&quot;</span>
+<span class="fc" id="L45">            &quot;C_MENOS&quot; -&gt; &quot;C-&quot;</span>
+<span class="fc" id="L46">            &quot;D&quot; -&gt; &quot;D&quot;</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">            else -&gt; codigo ?: &quot;-&quot;</span>
         }
     }
 
@@ -53,19 +53,19 @@ object AcademicRules {
      * 70% Promedio Formativo + 30% Nota Sumativa
      */
     fun calcularPromedioTrimestral(promedioFormativo: Double, notaSumativa: Double): Double {
-<span class="nc" id="L56">        val f = BigDecimal.valueOf(promedioFormativo).multiply(BigDecimal(&quot;0.70&quot;))</span>
-<span class="nc" id="L57">        val s = BigDecimal.valueOf(notaSumativa).multiply(BigDecimal(&quot;0.30&quot;))</span>
-<span class="nc" id="L58">        return f.add(s).setScale(2, RoundingMode.HALF_UP).toDouble()</span>
+<span class="fc" id="L56">        val f = BigDecimal.valueOf(promedioFormativo).multiply(BigDecimal(&quot;0.70&quot;))</span>
+<span class="fc" id="L57">        val s = BigDecimal.valueOf(notaSumativa).multiply(BigDecimal(&quot;0.30&quot;))</span>
+<span class="fc" id="L58">        return f.add(s).setScale(2, RoundingMode.HALF_UP).toDouble()</span>
     }
 
     /**
      * Calcula el promedio anual como el promedio simple de los trimestres cursados.
      */
     fun calcularPromedioAnual(notasTrimestrales: List&lt;Double&gt;): Double {
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (notasTrimestrales.isEmpty()) return 0.0</span>
-<span class="nc" id="L66">        val suma = notasTrimestrales.map { BigDecimal.valueOf(it) }</span>
-<span class="nc" id="L67">            .fold(BigDecimal.ZERO) { acc, d -&gt; acc.add(d) }</span>
-<span class="nc" id="L68">        return suma.divide(BigDecimal.valueOf(notasTrimestrales.size.toLong()), 2, RoundingMode.HALF_UP).toDouble()</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (notasTrimestrales.isEmpty()) return 0.0</span>
+<span class="fc" id="L66">        val suma = notasTrimestrales.map { BigDecimal.valueOf(it) }</span>
+<span class="fc" id="L67">            .fold(BigDecimal.ZERO) { acc, d -&gt; acc.add(d) }</span>
+<span class="fc" id="L68">        return suma.divide(BigDecimal.valueOf(notasTrimestrales.size.toLong()), 2, RoundingMode.HALF_UP).toDouble()</span>
     }
 
     /**
@@ -76,13 +76,13 @@ object AcademicRules {
         nuevaPonderacion: Double,
         esSumativa: Boolean
     ): Pair&lt;Boolean, String?&gt; {
-<span class="nc bnc" id="L79" title="All 2 branches missed.">        val limite = if (esSumativa) MAX_PONDERACION_SUMATIVA else MAX_PONDERACION_FORMATIVA</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        val tipo = if (esSumativa) &quot;sumativas&quot; else &quot;formativas&quot;</span>
-<span class="nc" id="L81">        val total = ponderacionActual + nuevaPonderacion</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        return if (total &gt; limite) {</span>
-<span class="nc" id="L83">            Pair(false, &quot;La ponderación total para actividades $tipo no puede superar el $limite%. (Actual: $ponderacionActual%)&quot;)</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        val limite = if (esSumativa) MAX_PONDERACION_SUMATIVA else MAX_PONDERACION_FORMATIVA</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        val tipo = if (esSumativa) &quot;sumativas&quot; else &quot;formativas&quot;</span>
+<span class="fc" id="L81">        val total = ponderacionActual + nuevaPonderacion</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        return if (total &gt; limite) {</span>
+<span class="fc" id="L83">            Pair(false, &quot;La ponderación total para actividades $tipo no puede superar el $limite%. (Actual: $ponderacionActual%)&quot;)</span>
         } else {
-<span class="nc" id="L85">            Pair(true, null)</span>
+<span class="fc" id="L85">            Pair(true, null)</span>
         }
     }
 }
