@@ -96,13 +96,16 @@ de sus métricas declaradas. `scripts/recalcular_metricas_carga.py` verifica
 ambos conjuntos antes de emitir resultados o generar macros; `--check-latex`
 verifica también los hashes nominales publicados y las afirmaciones nominales
 seleccionadas. No valida automáticamente toda la prosa de estrés del informe.
-Los hashes se calculan sobre bytes exactos, incluidos finales de línea;
-una normalización del archivo provoca fallo y requiere revisión explícita.
+Los hashes de CSV y nueva evidencia cubren bytes exactos, incluidos finales
+de línea. Solo los dos TXT históricos derivados de `20260920_164722` se
+comparan con LF como sus blobs Git, sin reescribir sus archivos.
 
-Hay **n=1 corrida nominal y n=1 corrida de estrés**. No existen repeticiones
-independientes oficiales para estimar variabilidad entre ejecuciones: el
-intervalo de confianza entre corridas **no es estimable**. Los percentiles
-son descriptivos de peticiones dentro de cada corrida, no repeticiones.
+El manifiesto histórico conserva n=1 nominal y n=1 estrés. El conjunto
+complementario de #48 ya tiene **n=3 nominales y n=3 estrés válidos**:
+`nominal_02`, `nominal_03`, `nominal_06`; `estres_01`, `estres_05`, `estres_06`.
+Véase [repeticiones #48](../docs/locust/repeticiones-48.md). Los IC95 de la
+media entre corridas usan bootstrap percentil, 10000 remuestras y semilla 12345.
+n=3 ofrece precisión limitada; los percentiles describen peticiones por corrida.
 
 La carpeta oficial de estrés conserva cuatro CSV y dos TXT. `perfil.txt` y
 `resumen_validacion.txt` son documentación derivada; la captura relee los CSV.
@@ -113,7 +116,8 @@ TXT, no comprobados por el hash ni por la captura. El nominal tampoco conserva
 la evidencia original de configuración. La compuerta acredita integridad y
 coherencia de los artefactos declarados, no una validación retrospectiva.
 No se usa la corrida incompleta `20260920_163041/` ni los candidatos.
-No se ejecutaron nuevas cargas ni se fabricaron repeticiones o logs.
+Las nuevas corridas conservan CSV crudos, consola y perfil. Las inválidas se
+conservan y se excluyen de todas las estadísticas complementarias.
 
 Pruebas reproducibles de mutación, sin tocar los originales:
 

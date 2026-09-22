@@ -1,0 +1,24 @@
+name: Evidencia de carga - issue 48
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar-evidencia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recalcular 3+3, bootstrap y verificar integridad sin regenerar
+        run: python scripts/recalcular_metricas_carga.py --check-repeticiones --check-latex
+      - name: Mutaciones sobre copias temporales
+        run: |
+          python scripts/test_recalcular_metricas_carga.py
+          python scripts/test_repeticiones_carga.py
