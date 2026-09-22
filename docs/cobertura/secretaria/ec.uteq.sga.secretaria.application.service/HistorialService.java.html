@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HistorialService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">HistorialService.java</span></div><h1>HistorialService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HistorialService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">HistorialService.java</span></div><h1>HistorialService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.uteq.sga.secretaria.infrastructure.common.ApiException;
 import ec.uteq.sga.secretaria.infrastructure.common.jdbc.GenericRowMapper;
@@ -41,23 +41,23 @@ public class HistorialService {
     @PostConstruct
     void seedLamportClock() {
         try {
-<span class="fc" id="L44">            Long max = jdbc.getJdbcTemplate().queryForObject(</span>
-<span class="fc" id="L45">                    &quot;SELECT COALESCE(MAX(lamport_ts), 0) FROM sga_principal.historial_promocion&quot;, Long.class);</span>
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">            lamportClock.seed(max == null ? 0 : max);</span>
-<span class="pc" id="L47">        } catch (DataAccessException e) {</span>
-<span class="nc" id="L48">            log.warn(&quot;No se pudo leer lamport_ts (¿falta correr db/migrations/002_lamport_clock.sql?). &quot; +</span>
-<span class="nc" id="L49">                    &quot;El reloj logico arranca en 0.&quot;, e);</span>
-        }
+<span class="nc" id="L44">            Long max = jdbc.getJdbcTemplate().queryForObject(</span>
+                    &quot;SELECT COALESCE(MAX(lamport_ts), 0) FROM sga_principal.historial_promocion&quot;, Long.class);
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            lamportClock.seed(max == null ? 0 : max);</span>
+<span class="fc" id="L47">        } catch (DataAccessException e) {</span>
+<span class="fc" id="L48">            log.warn(&quot;No se pudo leer lamport_ts (¿falta correr db/migrations/002_lamport_clock.sql?). &quot; +</span>
+                    &quot;El reloj logico arranca en 0.&quot;, e);
+<span class="nc" id="L50">        }</span>
 <span class="fc" id="L51">    }</span>
 
     public Map&lt;String, Object&gt; historialEstudiante(long idEstudiante) {
 <span class="fc" id="L54">        List&lt;Map&lt;String, Object&gt;&gt; est = jdbc.query(</span>
-<span class="fc" id="L55">                &quot;SELECT id_estudiante, nombres, apellidos, cedula, codigo_estudiante &quot; +</span>
+                &quot;SELECT id_estudiante, nombres, apellidos, cedula, codigo_estudiante &quot; +
                         &quot;FROM sga_secretaria.estudiantes WHERE id_estudiante = :id&quot;,
 <span class="fc" id="L57">                new MapSqlParameterSource(&quot;id&quot;, idEstudiante), GenericRowMapper.INSTANCE);</span>
 <span class="fc bfc" id="L58" title="All 2 branches covered.">        if (est.isEmpty()) {</span>
 <span class="fc" id="L59">            est = jdbc.query(</span>
-<span class="fc" id="L60">                    &quot;SELECT id_estudiante, nombres, apellidos, cedula, codigo_estudiante &quot; +</span>
+                    &quot;SELECT id_estudiante, nombres, apellidos, cedula, codigo_estudiante &quot; +
                             &quot;FROM sga_principal.estudiantes WHERE id_estudiante = :id&quot;,
 <span class="fc" id="L62">                    new MapSqlParameterSource(&quot;id&quot;, idEstudiante), GenericRowMapper.INSTANCE);</span>
         }
@@ -75,7 +75,7 @@ public class HistorialService {
 <span class="fc" id="L75">                sql, new MapSqlParameterSource(&quot;id&quot;, idEstudiante), GenericRowMapper.INSTANCE);</span>
 <span class="fc" id="L76">        enriquecerConCatalogo(historial);</span>
 <span class="fc" id="L77">        historial.sort(Comparator.comparing(</span>
-<span class="pc" id="L78">                (Map&lt;String, Object&gt; row) -&gt; (java.time.LocalDate) row.get(&quot;fecha_inicio&quot;),</span>
+<span class="nc" id="L78">                (Map&lt;String, Object&gt; row) -&gt; (java.time.LocalDate) row.get(&quot;fecha_inicio&quot;),</span>
 <span class="fc" id="L79">                Comparator.nullsLast(Comparator.reverseOrder())));</span>
 
 <span class="fc" id="L81">        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</span>
@@ -87,12 +87,12 @@ public class HistorialService {
     @Transactional
     public Map&lt;String, Object&gt; registrarPromocion(PromocionRequest dto, String username) {
 <span class="nc" id="L89">        List&lt;Map&lt;String, Object&gt;&gt; mat = jdbc.query(</span>
-<span class="nc" id="L90">                &quot;SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo &quot; +</span>
+                &quot;SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo &quot; +
                         &quot;FROM sga_principal.matriculas m WHERE m.id_matricula = :id&quot;,
 <span class="nc" id="L92">                new MapSqlParameterSource(&quot;id&quot;, dto.id_matricula()), GenericRowMapper.INSTANCE);</span>
 <span class="nc bnc" id="L93" title="All 2 branches missed.">        if (mat.isEmpty()) {</span>
 <span class="nc" id="L94">            mat = jdbc.query(</span>
-<span class="nc" id="L95">                    &quot;SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo &quot; +</span>
+                    &quot;SELECT m.id_matricula, m.id_estudiante, m.id_grado, m.id_ano_lectivo &quot; +
                             &quot;FROM sga_secretaria.matriculas m WHERE m.id_matricula = :id&quot;,
 <span class="nc" id="L97">                    new MapSqlParameterSource(&quot;id&quot;, dto.id_matricula()), GenericRowMapper.INSTANCE);</span>
         }
@@ -100,7 +100,7 @@ public class HistorialService {
 <span class="nc" id="L100">        Map&lt;String, Object&gt; m = mat.get(0);</span>
 
 <span class="nc" id="L102">        List&lt;Long&gt; userIds = jdbc.query(</span>
-<span class="nc" id="L103">                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,</span>
+                &quot;SELECT id_usuario FROM sga_principal.usuarios WHERE username = :username&quot;,
 <span class="nc" id="L104">                new MapSqlParameterSource(&quot;username&quot;, username), (rs, n) -&gt; rs.getLong(&quot;id_usuario&quot;));</span>
 <span class="nc bnc" id="L105" title="All 2 branches missed.">        Long registradoPor = userIds.isEmpty() ? null : userIds.get(0);</span>
 
@@ -123,7 +123,7 @@ public class HistorialService {
                 VALUES (:idMatricula, :idEstudiante, :idGrado, :idAno,
                         :resultado::sga_principal.resultado_promocion_t, :promedio, :observaciones, :registradoPor, :lamportTs)
                 &quot;&quot;&quot;,
-<span class="nc" id="L126">                new MapSqlParameterSource()</span>
+                new MapSqlParameterSource()
 <span class="nc" id="L127">                        .addValue(&quot;lamportTs&quot;, lamportTs)</span>
 <span class="nc" id="L128">                        .addValue(&quot;idMatricula&quot;, dto.id_matricula())</span>
 <span class="nc" id="L129">                        .addValue(&quot;idEstudiante&quot;, m.get(&quot;id_estudiante&quot;))</span>
@@ -137,13 +137,13 @@ public class HistorialService {
 <span class="nc bnc" id="L137" title="All 2 branches missed.">        String estadoMatricula = &quot;PROMOVIDO&quot;.equals(resultadoNorm) ? &quot;PROMOVIDA&quot; : &quot;NO_PROMOVIDA&quot;;</span>
         try {
 <span class="nc" id="L139">            jdbc.update(</span>
-<span class="nc" id="L140">                    &quot;UPDATE sga_principal.matriculas SET estado = :estado::sga_principal.estado_matricula_t &quot; +</span>
+                    &quot;UPDATE sga_principal.matriculas SET estado = :estado::sga_principal.estado_matricula_t &quot; +
                             &quot;WHERE id_matricula = :id&quot;,
 <span class="nc" id="L142">                    new MapSqlParameterSource().addValue(&quot;estado&quot;, estadoMatricula).addValue(&quot;id&quot;, dto.id_matricula()));</span>
 <span class="nc" id="L143">        } catch (Exception ignored) {}</span>
         try {
 <span class="nc" id="L145">            jdbc.update(</span>
-<span class="nc" id="L146">                    &quot;UPDATE sga_secretaria.matriculas SET estado = :estado::sga_principal.estado_matricula_t &quot; +</span>
+                    &quot;UPDATE sga_secretaria.matriculas SET estado = :estado::sga_principal.estado_matricula_t &quot; +
                             &quot;WHERE id_matricula = :id&quot;,
 <span class="nc" id="L148">                    new MapSqlParameterSource().addValue(&quot;estado&quot;, estadoMatricula).addValue(&quot;id&quot;, dto.id_matricula()));</span>
 <span class="nc" id="L149">        } catch (Exception ignored) {}</span>
@@ -161,15 +161,15 @@ public class HistorialService {
 <span class="nc" id="L161">                exitosos++;</span>
 <span class="nc" id="L162">            } catch (Exception e) {</span>
 <span class="nc" id="L163">                log.error(&quot;Error al registrar promocion en lote para matricula {}: {}&quot;, item.id_matricula(), e.getMessage());</span>
-            }
-        }
+<span class="nc" id="L164">            }</span>
+<span class="nc" id="L165">        }</span>
 <span class="nc" id="L166">        return Map.of(&quot;total&quot;, items.size(), &quot;exitosos&quot;, exitosos);</span>
     }
 
     @Transactional
     public void eliminarPromocion(long idHistorial) {
 <span class="fc" id="L171">        List&lt;Map&lt;String, Object&gt;&gt; hp = jdbc.query(</span>
-<span class="fc" id="L172">                &quot;SELECT id_matricula FROM sga_principal.historial_promocion WHERE id_historial = :id&quot;,</span>
+                &quot;SELECT id_matricula FROM sga_principal.historial_promocion WHERE id_historial = :id&quot;,
 <span class="fc" id="L173">                new MapSqlParameterSource(&quot;id&quot;, idHistorial), GenericRowMapper.INSTANCE);</span>
 <span class="fc bfc" id="L174" title="All 2 branches covered.">        if (hp.isEmpty()) throw ApiException.notFound(&quot;Registro de promoción no encontrado&quot;);</span>
 
@@ -179,11 +179,11 @@ public class HistorialService {
 
         try {
 <span class="fc" id="L181">            jdbc.update(&quot;UPDATE sga_principal.matriculas SET estado = 'ACTIVA'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula&quot;,</span>
-<span class="fc" id="L182">                    new MapSqlParameterSource(&quot;idMatricula&quot;, idMatricula));</span>
+                    new MapSqlParameterSource(&quot;idMatricula&quot;, idMatricula));
 <span class="pc" id="L183">        } catch (Exception ignored) {}</span>
         try {
 <span class="fc" id="L185">            jdbc.update(&quot;UPDATE sga_secretaria.matriculas SET estado = 'ACTIVA'::sga_principal.estado_matricula_t WHERE id_matricula = :idMatricula&quot;,</span>
-<span class="fc" id="L186">                    new MapSqlParameterSource(&quot;idMatricula&quot;, idMatricula));</span>
+                    new MapSqlParameterSource(&quot;idMatricula&quot;, idMatricula));
 <span class="pc" id="L187">        } catch (Exception ignored) {}</span>
 <span class="fc" id="L188">    }</span>
 
@@ -218,7 +218,7 @@ public class HistorialService {
 <span class="nc" id="L218">                sql.append(&quot; AND hp.id_historial IS NULL&quot;);</span>
 <span class="pc bpc" id="L219" title="2 of 4 branches missed.">            } else if (&quot;NO_PROMOVIDO&quot;.equalsIgnoreCase(estado) || &quot;REPROBADO&quot;.equalsIgnoreCase(estado)) {</span>
 <span class="nc" id="L220">                sql.append(&quot; AND hp.resultado::text IN ('REPROBADO', 'NO_PROMOVIDO')&quot;);</span>
-<span class="nc" id="L221">            } else {</span>
+            } else {
 <span class="fc" id="L222">                sql.append(&quot; AND hp.resultado::text = :resultado&quot;);</span>
 <span class="fc" id="L223">                params.addValue(&quot;resultado&quot;, estado.toUpperCase());</span>
             }
@@ -244,7 +244,7 @@ public class HistorialService {
 <span class="pc bpc" id="L244" title="1 of 2 branches missed.">            CatalogoService.Paralelo p = rowParalelo != null ? paralelos.get(rowParalelo) : null;</span>
 <span class="pc bpc" id="L245" title="1 of 2 branches missed.">            row.put(&quot;grado&quot;, g != null ? g.nombre() : null);</span>
 <span class="pc bpc" id="L246" title="1 of 2 branches missed.">            row.put(&quot;paralelo&quot;, p != null ? p.letra() : null);</span>
-        }
+<span class="fc" id="L247">        }</span>
 
 <span class="fc" id="L249">        return data;</span>
     }
@@ -265,7 +265,7 @@ public class HistorialService {
 <span class="fc" id="L265">        Map&lt;Long, Map&lt;String, Object&gt;&gt; porGrado = new LinkedHashMap&lt;&gt;();</span>
 <span class="fc bfc" id="L266" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; c : conteos) {</span>
 <span class="fc" id="L267">            porGrado.put(((Number) c.get(&quot;id_grado_origen&quot;)).longValue(), c);</span>
-        }
+<span class="fc" id="L268">        }</span>
 
 <span class="fc" id="L270">        return catalogo.grados().stream()</span>
 <span class="fc" id="L271">                .filter(CatalogoService.Grado::activo)</span>
@@ -313,7 +313,7 @@ public class HistorialService {
 <span class="nc bnc" id="L313" title="All 2 branches missed.">            CatalogoService.Paralelo paralelo = idParalelo != null ? paralelos.get(idParalelo) : null;</span>
 <span class="nc bnc" id="L314" title="All 2 branches missed.">            row.put(&quot;grado&quot;, grado != null ? grado.nombre() : null);</span>
 <span class="nc bnc" id="L315" title="All 2 branches missed.">            row.put(&quot;paralelo&quot;, paralelo != null ? paralelo.letra() : null);</span>
-        }
+<span class="nc" id="L316">        }</span>
 
 <span class="nc" id="L318">        Comparator&lt;Map&lt;String, Object&gt;&gt; porOrdenGrado = Comparator.comparing(row -&gt; {</span>
 <span class="nc bnc" id="L319" title="All 2 branches missed.">            Long idGrado = row.get(&quot;id_grado&quot;) instanceof Number n ? n.longValue() : null;</span>
@@ -345,7 +345,7 @@ public class HistorialService {
 <span class="pc bpc" id="L345" title="1 of 2 branches missed.">            fila.put(&quot;ano_lectivo&quot;, ano != null ? ano.nombre() : null);</span>
 <span class="pc bpc" id="L346" title="1 of 2 branches missed.">            fila.put(&quot;fecha_inicio&quot;, ano != null ? ano.fechaInicio() : null);</span>
 <span class="pc bpc" id="L347" title="1 of 2 branches missed.">            fila.put(&quot;fecha_fin&quot;, ano != null ? ano.fechaFin() : null);</span>
-        }
+<span class="fc" id="L348">        }</span>
 <span class="fc" id="L349">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

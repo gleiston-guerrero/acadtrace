@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AulaVirtualViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.aulavirtual</a> &gt; <span class="el_source">AulaVirtualViewModel.kt</span></div><h1>AulaVirtualViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.aulavirtual
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AulaVirtualViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">ec.edu.uteq.sga.representante.ui.screens.aulavirtual</a> &gt; <span class="el_source">AulaVirtualViewModel.kt</span></div><h1>AulaVirtualViewModel.kt</h1><pre class="source lang-java linenums">package ec.edu.uteq.sga.representante.ui.screens.aulavirtual
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,78 +12,78 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-<span class="nc" id="L15">data class AulaVirtualUiState(</span>
-<span class="nc" id="L16">    val idAsignacion: Long = 0,</span>
-<span class="nc" id="L17">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
-<span class="nc" id="L18">    val selectedAsignacion: Asignacion? = null,</span>
-<span class="nc" id="L19">    val agenda: AulaVirtualSemanasResponseDTO? = null,</span>
-<span class="nc" id="L20">    val isLoading: Boolean = false,</span>
-<span class="nc" id="L21">    val errorMessage: String? = null</span>
-<span class="nc" id="L22">)</span>
+<span class="fc" id="L15">data class AulaVirtualUiState(</span>
+<span class="pc" id="L16">    val idAsignacion: Long = 0,</span>
+<span class="pc" id="L17">    val asignaciones: List&lt;Asignacion&gt; = emptyList(),</span>
+<span class="fc" id="L18">    val selectedAsignacion: Asignacion? = null,</span>
+<span class="fc" id="L19">    val agenda: AulaVirtualSemanasResponseDTO? = null,</span>
+<span class="fc" id="L20">    val isLoading: Boolean = false,</span>
+<span class="fc" id="L21">    val errorMessage: String? = null</span>
+<span class="fc" id="L22">)</span>
 
-<span class="nc" id="L24">class AulaVirtualViewModel(</span>
-<span class="nc" id="L25">    private val aulaVirtualRepository: AulaVirtualRepository,</span>
-<span class="nc" id="L26">    private val docenteRepository: DocenteRepository</span>
-<span class="nc" id="L27">) : ViewModel() {</span>
+<span class="fc" id="L24">class AulaVirtualViewModel(</span>
+<span class="fc" id="L25">    private val aulaVirtualRepository: AulaVirtualRepository,</span>
+<span class="fc" id="L26">    private val docenteRepository: DocenteRepository</span>
+<span class="fc" id="L27">) : ViewModel() {</span>
 
-<span class="nc" id="L29">    private val _uiState = MutableStateFlow(AulaVirtualUiState())</span>
-<span class="nc" id="L30">    val uiState: StateFlow&lt;AulaVirtualUiState&gt; = _uiState.asStateFlow()</span>
+<span class="fc" id="L29">    private val _uiState = MutableStateFlow(AulaVirtualUiState())</span>
+<span class="fc" id="L30">    val uiState: StateFlow&lt;AulaVirtualUiState&gt; = _uiState.asStateFlow()</span>
 
     fun init(idAsignacion: Long) {
-<span class="nc" id="L33">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)</span>
-<span class="nc" id="L34">        loadAsignaciones(idAsignacion)</span>
-<span class="nc" id="L35">        loadAgenda(idAsignacion)</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L33">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)</span>
+<span class="fc" id="L34">        loadAsignaciones(idAsignacion)</span>
+<span class="fc" id="L35">        loadAgenda(idAsignacion)</span>
+<span class="fc" id="L36">    }</span>
 
     private fun loadAsignaciones(idAsignacion: Long) {
-<span class="nc" id="L39">        viewModelScope.launch {</span>
-<span class="nc" id="L40">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
-<span class="nc bnc" id="L41" title="All 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">                    val current = if (idAsignacion &gt; 0) {</span>
-<span class="nc bnc" id="L43" title="All 8 branches missed.">                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()</span>
+<span class="fc" id="L39">        viewModelScope.launch {</span>
+<span class="fc" id="L40">            docenteRepository.getAsignaciones().collect { res -&gt;</span>
+<span class="pc bpc" id="L41" title="3 of 6 branches missed.">                if (res is Resource.Success &amp;&amp; res.data.isNotEmpty()) {</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">                    val current = if (idAsignacion &gt; 0) {</span>
+<span class="pc bpc" id="L43" title="4 of 8 branches missed.">                        res.data.find { it.idAsignacion == idAsignacion } ?: res.data.first()</span>
                     } else {
 <span class="nc" id="L45">                        res.data.first()</span>
                     }
-<span class="nc" id="L47">                    _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L48">                        asignaciones = res.data,</span>
-<span class="nc" id="L49">                        selectedAsignacion = current,</span>
-<span class="nc" id="L50">                        idAsignacion = current.idAsignacion</span>
+<span class="fc" id="L47">                    _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L48">                        asignaciones = res.data,</span>
+<span class="fc" id="L49">                        selectedAsignacion = current,</span>
+<span class="fc" id="L50">                        idAsignacion = current.idAsignacion</span>
                     )
-<span class="nc" id="L52">                    loadAgenda(current.idAsignacion)</span>
+<span class="fc" id="L52">                    loadAgenda(current.idAsignacion)</span>
                 }
-<span class="nc" id="L54">            }</span>
-<span class="nc" id="L55">        }</span>
-<span class="nc" id="L56">    }</span>
+<span class="fc" id="L54">            }</span>
+<span class="fc" id="L55">        }</span>
+<span class="fc" id="L56">    }</span>
 
     fun selectAsignacion(asignacion: Asignacion) {
-<span class="nc" id="L59">        _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L60">            selectedAsignacion = asignacion,</span>
-<span class="nc" id="L61">            idAsignacion = asignacion.idAsignacion</span>
+<span class="fc" id="L59">        _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L60">            selectedAsignacion = asignacion,</span>
+<span class="fc" id="L61">            idAsignacion = asignacion.idAsignacion</span>
         )
-<span class="nc" id="L63">        loadAgenda(asignacion.idAsignacion)</span>
-<span class="nc" id="L64">    }</span>
+<span class="fc" id="L63">        loadAgenda(asignacion.idAsignacion)</span>
+<span class="fc" id="L64">    }</span>
 
     fun loadAgenda(idAsignacion: Long) {
-<span class="nc" id="L67">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)</span>
-<span class="nc" id="L68">        viewModelScope.launch {</span>
-<span class="nc" id="L69">            val res = aulaVirtualRepository.getAgendaSemanas(idAsignacion)</span>
-<span class="nc" id="L70">            when (res) {</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">                is Resource.Success -&gt; {</span>
-<span class="nc" id="L72">                    _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L73">                        agenda = res.data,</span>
-<span class="nc" id="L74">                        isLoading = false,</span>
-<span class="nc" id="L75">                        errorMessage = null</span>
+<span class="fc" id="L67">        _uiState.value = _uiState.value.copy(idAsignacion = idAsignacion, isLoading = true, errorMessage = null)</span>
+<span class="fc" id="L68">        viewModelScope.launch {</span>
+<span class="fc" id="L69">            val res = aulaVirtualRepository.getAgendaSemanas(idAsignacion)</span>
+<span class="fc" id="L70">            when (res) {</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">                is Resource.Success -&gt; {</span>
+<span class="fc" id="L72">                    _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L73">                        agenda = res.data,</span>
+<span class="fc" id="L74">                        isLoading = false,</span>
+<span class="fc" id="L75">                        errorMessage = null</span>
                     )
                 }
-<span class="nc bnc" id="L78" title="All 2 branches missed.">                is Resource.Error -&gt; {</span>
-<span class="nc" id="L79">                    _uiState.value = _uiState.value.copy(</span>
-<span class="nc" id="L80">                        isLoading = false,</span>
-<span class="nc" id="L81">                        errorMessage = res.message</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">                is Resource.Error -&gt; {</span>
+<span class="fc" id="L79">                    _uiState.value = _uiState.value.copy(</span>
+<span class="fc" id="L80">                        isLoading = false,</span>
+<span class="fc" id="L81">                        errorMessage = res.message</span>
                     )
                 }
-<span class="nc bnc" id="L84" title="All 2 branches missed.">                is Resource.Loading -&gt; {}</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">                is Resource.Loading -&gt; {}</span>
             }
-<span class="nc" id="L86">        }</span>
-<span class="nc" id="L87">    }</span>
+<span class="fc" id="L86">        }</span>
+<span class="fc" id="L87">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

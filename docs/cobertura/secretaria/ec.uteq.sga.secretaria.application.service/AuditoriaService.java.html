@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuditoriaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">AuditoriaService.java</span></div><h1>AuditoriaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuditoriaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sga-secretaria-backend</a> &gt; <a href="index.source.html" class="el_package">ec.uteq.sga.secretaria.application.service</a> &gt; <span class="el_source">AuditoriaService.java</span></div><h1>AuditoriaService.java</h1><pre class="source lang-java linenums">package ec.uteq.sga.secretaria.application.service;
 
 import ec.uteq.sga.secretaria.infrastructure.common.TraceContext;
 import ec.uteq.sga.secretaria.infrastructure.security.AuthenticatedUser;
@@ -38,45 +38,45 @@ public class AuditoriaService {
 <span class="fc" id="L38">    private static final Logger log =</span>
 <span class="fc" id="L39">            LoggerFactory.getLogger(AuditoriaService.class);</span>
 
-<span class="fc" id="L41">    private static final String SCHEMA_ORIGEN = &quot;SECRETARIA&quot;;</span>
+    private static final String SCHEMA_ORIGEN = &quot;SECRETARIA&quot;;
 
     private final NamedParameterJdbcTemplate jdbc;
     private final HmacService hmacService;
     private final LamportClock lamportClock;
     private final AuditHashService auditHashService;
 
-    @Value(&quot;${AUDIT:m2}&quot;)
-<span class="fc" id="L49">    private String auditMode = &quot;m2&quot;;</span>
+<span class="fc" id="L48">    @Value(&quot;${AUDIT:m2}&quot;)</span>
+    private String auditMode = &quot;m2&quot;;
 
     public AuditoriaService(
             NamedParameterJdbcTemplate jdbc,
             HmacService hmacService
     ) {
 <span class="fc" id="L55">        this(</span>
-<span class="fc" id="L56">                jdbc,</span>
-<span class="fc" id="L57">                hmacService,</span>
-<span class="fc" id="L58">                new LamportClock(),</span>
-<span class="fc" id="L59">                new AuditHashService()</span>
+                jdbc,
+                hmacService,
+                new LamportClock(),
+                new AuditHashService()
         );
 <span class="fc" id="L61">    }</span>
 
     @Autowired
-<span class="fc" id="L64">    public AuditoriaService(</span>
+    public AuditoriaService(
             NamedParameterJdbcTemplate jdbc,
             HmacService hmacService,
             LamportClock lamportClock,
             AuditHashService auditHashService
-    ) {
+<span class="fc" id="L69">    ) {</span>
 <span class="fc" id="L70">        this.jdbc = jdbc;</span>
 <span class="fc" id="L71">        this.hmacService = hmacService;</span>
 <span class="fc" id="L72">        this.lamportClock =</span>
 <span class="pc bpc" id="L73" title="1 of 2 branches missed.">                lamportClock != null</span>
 <span class="fc" id="L74">                        ? lamportClock</span>
-<span class="nc" id="L75">                        : new LamportClock();</span>
+<span class="pc" id="L75">                        : new LamportClock();</span>
 <span class="fc" id="L76">        this.auditHashService =</span>
 <span class="pc bpc" id="L77" title="1 of 2 branches missed.">                auditHashService != null</span>
 <span class="fc" id="L78">                        ? auditHashService</span>
-<span class="nc" id="L79">                        : new AuditHashService();</span>
+<span class="pc" id="L79">                        : new AuditHashService();</span>
 <span class="fc" id="L80">    }</span>
 
     public void setAuditMode(String mode) {
@@ -95,11 +95,11 @@ public class AuditoriaService {
             String descripcion
     ) {
 <span class="fc" id="L97">        guardar(</span>
-<span class="fc" id="L98">                accion,</span>
-<span class="fc" id="L99">                tablaAfectada,</span>
-<span class="fc" id="L100">                registroId,</span>
-<span class="fc" id="L101">                descripcion,</span>
-<span class="fc" id="L102">                &quot;EXITO&quot;</span>
+                accion,
+                tablaAfectada,
+                registroId,
+                descripcion,
+                &quot;EXITO&quot;
         );
 <span class="fc" id="L104">    }</span>
 
@@ -111,11 +111,11 @@ public class AuditoriaService {
             String descripcion
     ) {
 <span class="nc" id="L113">        guardar(</span>
-<span class="nc" id="L114">                accion,</span>
-<span class="nc" id="L115">                tablaAfectada,</span>
-<span class="nc" id="L116">                registroId,</span>
-<span class="nc" id="L117">                descripcion,</span>
-<span class="nc" id="L118">                &quot;FALLO&quot;</span>
+                accion,
+                tablaAfectada,
+                registroId,
+                descripcion,
+                &quot;FALLO&quot;
         );
 <span class="nc" id="L120">    }</span>
 
@@ -132,10 +132,10 @@ public class AuditoriaService {
 
         try {
 <span class="fc" id="L134">            String username = usernameActual();</span>
-<span class="fc" id="L135">            UUID traceUuid =</span>
+            UUID traceUuid =
 <span class="fc" id="L136">                    parseOrNew(TraceContext.current());</span>
 
-<span class="fc" id="L138">            Instant fecha =</span>
+            Instant fecha =
 <span class="fc" id="L139">                    Instant.now()</span>
 <span class="fc" id="L140">                            .truncatedTo(ChronoUnit.MILLIS);</span>
 
@@ -146,34 +146,34 @@ public class AuditoriaService {
              */
 <span class="pc bpc" id="L147" title="1 of 2 branches missed.">            if (&quot;m1&quot;.equalsIgnoreCase(auditMode)) {</span>
 <span class="nc" id="L148">                MapSqlParameterSource params =</span>
-<span class="nc" id="L149">                        new MapSqlParameterSource()</span>
+                        new MapSqlParameterSource()
 <span class="nc" id="L150">                                .addValue(&quot;username&quot;, username)</span>
 <span class="nc" id="L151">                                .addValue(&quot;accion&quot;, accion)</span>
 <span class="nc" id="L152">                                .addValue(</span>
-<span class="nc" id="L153">                                        &quot;tablaAfectada&quot;,</span>
-<span class="nc" id="L154">                                        tablaAfectada</span>
+                                        &quot;tablaAfectada&quot;,
+                                        tablaAfectada
                                 )
 <span class="nc" id="L156">                                .addValue(</span>
-<span class="nc" id="L157">                                        &quot;registroId&quot;,</span>
-<span class="nc" id="L158">                                        registroId</span>
+                                        &quot;registroId&quot;,
+                                        registroId
                                 )
 <span class="nc" id="L160">                                .addValue(</span>
-<span class="nc" id="L161">                                        &quot;descripcion&quot;,</span>
-<span class="nc" id="L162">                                        descripcion</span>
+                                        &quot;descripcion&quot;,
+                                        descripcion
                                 )
 <span class="nc" id="L164">                                .addValue(&quot;ip&quot;, ip)</span>
 <span class="nc" id="L165">                                .addValue(</span>
-<span class="nc" id="L166">                                        &quot;traceId&quot;,</span>
+                                        &quot;traceId&quot;,
 <span class="nc" id="L167">                                        traceUuid.toString()</span>
                                 )
 <span class="nc" id="L169">                                .addValue(</span>
-<span class="nc" id="L170">                                        &quot;resultado&quot;,</span>
-<span class="nc" id="L171">                                        resultado</span>
+                                        &quot;resultado&quot;,
+                                        resultado
                                 )
 <span class="nc" id="L173">                                .addValue(</span>
-<span class="nc" id="L174">                                        &quot;fecha&quot;,</span>
+                                        &quot;fecha&quot;,
 <span class="nc" id="L175">                                        fecha.atOffset(</span>
-<span class="nc" id="L176">                                                ZoneOffset.UTC</span>
+                                                ZoneOffset.UTC
                                         )
                                 );
 
@@ -207,7 +207,7 @@ public class AuditoriaService {
                                 :resultado,
                                 :fecha
                             )
-<span class="nc" id="L210">                        &quot;&quot;&quot;, params);</span>
+                        &quot;&quot;&quot;, params);
 
 <span class="nc" id="L212">                return;</span>
             }
@@ -224,20 +224,20 @@ public class AuditoriaService {
                     FROM sga_principal.estado_cadena_auditoria
                     WHERE id_estado = 1
                     FOR UPDATE
-<span class="fc" id="L227">                    &quot;&quot;&quot;, new MapSqlParameterSource());</span>
+                    &quot;&quot;&quot;, new MapSqlParameterSource());
 
-<span class="fc" id="L229">            String hashAnterior =</span>
+            String hashAnterior =
 <span class="pc bpc" id="L230" title="1 of 2 branches missed.">                    estado.get(&quot;ultimo_hash&quot;) != null</span>
 <span class="fc" id="L231">                            ? String.valueOf(</span>
 <span class="fc" id="L232">                                    estado.get(&quot;ultimo_hash&quot;)</span>
-<span class="fc" id="L233">                            )</span>
-<span class="nc" id="L234">                            : AuditHashService.GENESIS_HASH;</span>
+                            )
+<span class="pc" id="L234">                            : AuditHashService.GENESIS_HASH;</span>
 
-<span class="fc" id="L236">            long ultimoLamport =</span>
+            long ultimoLamport =
 <span class="pc bpc" id="L237" title="1 of 2 branches missed.">                    estado.get(&quot;ultimo_lamport&quot;)</span>
 <span class="fc" id="L238">                            instanceof Number numero</span>
 <span class="fc" id="L239">                            ? numero.longValue()</span>
-<span class="nc" id="L240">                            : 0L;</span>
+<span class="pc" id="L240">                            : 0L;</span>
 
 <span class="fc" id="L242">            long lamport = ultimoLamport + 1L;</span>
 
@@ -254,16 +254,16 @@ public class AuditoriaService {
 <span class="nc bnc" id="L254" title="All 2 branches missed.">                        estado.get(&quot;vector_reloj&quot;) != null</span>
 <span class="nc" id="L255">                                ? String.valueOf(</span>
 <span class="nc" id="L256">                                        estado.get(&quot;vector_reloj&quot;)</span>
-<span class="nc" id="L257">                                )</span>
+                                )
 <span class="nc" id="L258">                                : &quot;{}&quot;</span>
                 );
 
 <span class="nc" id="L261">                vector.put(</span>
-<span class="nc" id="L262">                        &quot;secretaria&quot;,</span>
+                        &quot;secretaria&quot;,
 <span class="nc" id="L263">                        vector.getOrDefault(</span>
-<span class="nc" id="L264">                                &quot;secretaria&quot;,</span>
+                                &quot;secretaria&quot;,
 <span class="nc" id="L265">                                0L</span>
-<span class="nc" id="L266">                        ) + 1L</span>
+                        ) + 1L
                 );
 
 <span class="nc" id="L269">                vectorJson =</span>
@@ -271,119 +271,119 @@ public class AuditoriaService {
             }
 
 <span class="fc" id="L273">            Map&lt;String, Object&gt; payload =</span>
-<span class="fc" id="L274">                    new TreeMap&lt;&gt;();</span>
+                    new TreeMap&lt;&gt;();
 
 <span class="fc" id="L276">            payload.put(&quot;descripcion&quot;, descripcion);</span>
 <span class="fc" id="L277">            payload.put(&quot;ip_address&quot;, ip);</span>
 <span class="fc" id="L278">            payload.put(&quot;resultado&quot;, resultado);</span>
 <span class="fc" id="L279">            payload.put(</span>
-<span class="fc" id="L280">                    &quot;schema_origen&quot;,</span>
-<span class="fc" id="L281">                    SCHEMA_ORIGEN</span>
+                    &quot;schema_origen&quot;,
+                    SCHEMA_ORIGEN
             );
 <span class="fc" id="L283">            payload.put(</span>
-<span class="fc" id="L284">                    &quot;trace_id&quot;,</span>
+                    &quot;trace_id&quot;,
 <span class="fc" id="L285">                    traceUuid.toString()</span>
             );
 
-<span class="fc" id="L288">            String estadoReconciliacion =</span>
+            String estadoReconciliacion =
 <span class="pc bpc" id="L289" title="1 of 2 branches missed.">                    &quot;m3&quot;.equalsIgnoreCase(auditMode)</span>
 <span class="nc" id="L290">                            ? &quot;APLICADO&quot;</span>
 <span class="fc" id="L291">                            : &quot;NO_APLICA&quot;;</span>
 
 <span class="fc" id="L293">            Map&lt;String, Object&gt; contenido =</span>
 <span class="fc" id="L294">                    auditHashService.contenidoEvento(</span>
-<span class="fc" id="L295">                            &quot;AUDITORIA&quot;,</span>
-<span class="fc" id="L296">                            tablaAfectada,</span>
-<span class="fc" id="L297">                            registroId,</span>
-<span class="fc" id="L298">                            accion,</span>
-<span class="fc" id="L299">                            username,</span>
+                            &quot;AUDITORIA&quot;,
+                            tablaAfectada,
+                            registroId,
+                            accion,
+                            username,
 <span class="fc" id="L300">                            fecha.toString(),</span>
-<span class="fc" id="L301">                            payload,</span>
+                            payload,
 <span class="fc" id="L302">                            auditMode.toLowerCase(),</span>
-<span class="fc" id="L303">                            lamport,</span>
-<span class="fc" id="L304">                            vector,</span>
-<span class="fc" id="L305">                            estadoReconciliacion</span>
+                            lamport,
+                            vector,
+                            estadoReconciliacion
                     );
 
 <span class="fc" id="L308">            String canonico =</span>
 <span class="fc" id="L309">                    auditHashService.jsonCanonico(</span>
-<span class="fc" id="L310">                            contenido</span>
+                            contenido
                     );
 
 <span class="fc" id="L313">            String hashActual =</span>
 <span class="fc" id="L314">                    auditHashService.calcularHash(</span>
-<span class="fc" id="L315">                            hashAnterior,</span>
-<span class="fc" id="L316">                            contenido</span>
+                            hashAnterior,
+                            contenido
                     );
 
 <span class="fc" id="L319">            String hmac = hmacService.firmar(</span>
-<span class="fc" id="L320">                    SCHEMA_ORIGEN,</span>
+                    SCHEMA_ORIGEN,
 <span class="fc" id="L321">                    String.valueOf(traceUuid),</span>
 <span class="fc" id="L322">                    nvl(username),</span>
-<span class="fc" id="L323">                    accion,</span>
+                    accion,
 <span class="fc" id="L324">                    nvl(tablaAfectada),</span>
 <span class="fc" id="L325">                    String.valueOf(registroId),</span>
 <span class="fc" id="L326">                    nvl(descripcion),</span>
-<span class="fc" id="L327">                    resultado,</span>
+                    resultado,
 <span class="fc" id="L328">                    String.valueOf(</span>
 <span class="fc" id="L329">                            fecha.toEpochMilli()</span>
                     )
             );
 
 <span class="fc" id="L333">            MapSqlParameterSource params =</span>
-<span class="fc" id="L334">                    new MapSqlParameterSource()</span>
+                    new MapSqlParameterSource()
 <span class="fc" id="L335">                            .addValue(&quot;username&quot;, username)</span>
 <span class="fc" id="L336">                            .addValue(&quot;accion&quot;, accion)</span>
 <span class="fc" id="L337">                            .addValue(</span>
-<span class="fc" id="L338">                                    &quot;tablaAfectada&quot;,</span>
-<span class="fc" id="L339">                                    tablaAfectada</span>
+                                    &quot;tablaAfectada&quot;,
+                                    tablaAfectada
                             )
 <span class="fc" id="L341">                            .addValue(</span>
-<span class="fc" id="L342">                                    &quot;registroId&quot;,</span>
-<span class="fc" id="L343">                                    registroId</span>
+                                    &quot;registroId&quot;,
+                                    registroId
                             )
 <span class="fc" id="L345">                            .addValue(</span>
-<span class="fc" id="L346">                                    &quot;descripcion&quot;,</span>
-<span class="fc" id="L347">                                    descripcion</span>
+                                    &quot;descripcion&quot;,
+                                    descripcion
                             )
 <span class="fc" id="L349">                            .addValue(&quot;ip&quot;, ip)</span>
 <span class="fc" id="L350">                            .addValue(</span>
-<span class="fc" id="L351">                                    &quot;traceId&quot;,</span>
+                                    &quot;traceId&quot;,
 <span class="fc" id="L352">                                    traceUuid.toString()</span>
                             )
 <span class="fc" id="L354">                            .addValue(</span>
-<span class="fc" id="L355">                                    &quot;resultado&quot;,</span>
-<span class="fc" id="L356">                                    resultado</span>
+                                    &quot;resultado&quot;,
+                                    resultado
                             )
 <span class="fc" id="L358">                            .addValue(&quot;hmac&quot;, hmac)</span>
 <span class="fc" id="L359">                            .addValue(</span>
-<span class="fc" id="L360">                                    &quot;hashAnterior&quot;,</span>
-<span class="fc" id="L361">                                    hashAnterior</span>
+                                    &quot;hashAnterior&quot;,
+                                    hashAnterior
                             )
 <span class="fc" id="L363">                            .addValue(</span>
-<span class="fc" id="L364">                                    &quot;hashActual&quot;,</span>
-<span class="fc" id="L365">                                    hashActual</span>
+                                    &quot;hashActual&quot;,
+                                    hashActual
                             )
 <span class="fc" id="L367">                            .addValue(</span>
-<span class="fc" id="L368">                                    &quot;relojLamport&quot;,</span>
+                                    &quot;relojLamport&quot;,
 <span class="fc" id="L369">                                    lamport</span>
                             )
 <span class="fc" id="L371">                            .addValue(</span>
-<span class="fc" id="L372">                                    &quot;vectorReloj&quot;,</span>
-<span class="fc" id="L373">                                    vectorJson</span>
+                                    &quot;vectorReloj&quot;,
+                                    vectorJson
                             )
 <span class="fc" id="L375">                            .addValue(</span>
-<span class="fc" id="L376">                                    &quot;contenidoCanonico&quot;,</span>
-<span class="fc" id="L377">                                    canonico</span>
+                                    &quot;contenidoCanonico&quot;,
+                                    canonico
                             )
 <span class="fc" id="L379">                            .addValue(</span>
-<span class="fc" id="L380">                                    &quot;versionCanonica&quot;,</span>
-<span class="fc" id="L381">                                    &quot;v1&quot;</span>
+                                    &quot;versionCanonica&quot;,
+                                    &quot;v1&quot;
                             )
 <span class="fc" id="L383">                            .addValue(</span>
-<span class="fc" id="L384">                                    &quot;fecha&quot;,</span>
+                                    &quot;fecha&quot;,
 <span class="fc" id="L385">                                    fecha.atOffset(</span>
-<span class="fc" id="L386">                                            ZoneOffset.UTC</span>
+                                            ZoneOffset.UTC
                                     )
                             );
 
@@ -431,21 +431,21 @@ public class AuditoriaService {
                             :versionCanonica,
                             :fecha
                         )
-<span class="fc" id="L434">                    &quot;&quot;&quot;, params);</span>
+                    &quot;&quot;&quot;, params);
 
 <span class="fc" id="L436">            MapSqlParameterSource estadoParams =</span>
-<span class="fc" id="L437">                    new MapSqlParameterSource()</span>
+                    new MapSqlParameterSource()
 <span class="fc" id="L438">                            .addValue(</span>
-<span class="fc" id="L439">                                    &quot;hashActual&quot;,</span>
-<span class="fc" id="L440">                                    hashActual</span>
+                                    &quot;hashActual&quot;,
+                                    hashActual
                             )
 <span class="fc" id="L442">                            .addValue(</span>
-<span class="fc" id="L443">                                    &quot;relojLamport&quot;,</span>
+                                    &quot;relojLamport&quot;,
 <span class="fc" id="L444">                                    lamport</span>
                             )
 <span class="fc" id="L446">                            .addValue(</span>
-<span class="fc" id="L447">                                    &quot;vectorReloj&quot;,</span>
-<span class="fc" id="L448">                                    vectorJson</span>
+                                    &quot;vectorReloj&quot;,
+                                    vectorJson
                             );
 
 <span class="fc" id="L451">            jdbc.update(&quot;&quot;&quot;</span>
@@ -455,7 +455,7 @@ public class AuditoriaService {
                         ultimo_lamport = :relojLamport,
                         vector_reloj = COALESCE(CAST(:vectorReloj AS TEXT), vector_reloj)
                     WHERE id_estado = 1
-<span class="fc" id="L458">                    &quot;&quot;&quot;, estadoParams);</span>
+                    &quot;&quot;&quot;, estadoParams);
 
 <span class="fc" id="L460">        } catch (Exception e) {</span>
             /*
@@ -466,24 +466,24 @@ public class AuditoriaService {
                 TransactionAspectSupport
 <span class="nc" id="L467">                        .currentTransactionStatus()</span>
 <span class="nc" id="L468">                        .setRollbackOnly();</span>
-<span class="pc" id="L469">            } catch (Exception ignored) {</span>
+<span class="fc" id="L469">            } catch (Exception ignored) {</span>
                 // Pruebas unitarias sin proxy transaccional.
-            }
+<span class="nc" id="L471">            }</span>
 
 <span class="fc" id="L473">            log.error(</span>
-<span class="fc" id="L474">                    &quot;No se pudo registrar evento de auditoria ({} / {}): {}&quot;,</span>
-<span class="fc" id="L475">                    accion,</span>
-<span class="fc" id="L476">                    tablaAfectada,</span>
+                    &quot;No se pudo registrar evento de auditoria ({} / {}): {}&quot;,
+                    accion,
+                    tablaAfectada,
 <span class="fc" id="L477">                    e.getMessage(),</span>
-<span class="fc" id="L478">                    e</span>
+                    e
             );
-        }
+<span class="fc" id="L480">        }</span>
 <span class="fc" id="L481">    }</span>
 
     private static String usernameActual() {
         try {
-<span class="fc" id="L485">            ServletRequestAttributes attrs =</span>
-<span class="fc" id="L486">                    (ServletRequestAttributes)</span>
+            ServletRequestAttributes attrs =
+                    (ServletRequestAttributes)
                             RequestContextHolder
 <span class="fc" id="L488">                                    .currentRequestAttributes();</span>
 
@@ -491,9 +491,9 @@ public class AuditoriaService {
 <span class="fc" id="L491">                    attrs.getRequest();</span>
 
 <span class="fc" id="L493">            AuthenticatedUser user =</span>
-<span class="fc" id="L494">                    (AuthenticatedUser)</span>
+                    (AuthenticatedUser)
 <span class="fc" id="L495">                            request.getAttribute(</span>
-<span class="fc" id="L496">                                    AuthenticatedUser</span>
+                                    AuthenticatedUser
                                             .REQUEST_ATTRIBUTE
                             );
 
@@ -508,8 +508,8 @@ public class AuditoriaService {
 
     private static String ipActual() {
         try {
-<span class="fc" id="L511">            ServletRequestAttributes attrs =</span>
-<span class="fc" id="L512">                    (ServletRequestAttributes)</span>
+            ServletRequestAttributes attrs =
+                    (ServletRequestAttributes)
                             RequestContextHolder
 <span class="fc" id="L514">                                    .currentRequestAttributes();</span>
 
