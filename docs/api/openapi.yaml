@@ -596,6 +596,13 @@ components:
         application/pdf:
           schema: {type: string, format: binary}
 paths:
+  /actuator/health:
+    get:
+      tags: [principal]
+      summary: Health publico de sga-principal, usado por HAProxy como comprobacion de salud
+      servers: [{url: http://localhost:8080}]
+      security: []
+      responses: {'200': {description: Estado de salud}}
   /api/auth/login:
     post:
       tags: [principal]
@@ -2843,10 +2850,11 @@ paths:
       responses: {'200': {description: Asistencia procesada}, '400': {description: Peticion invalida}, '409': {description: Registro duplicado}}
   /health:
     get:
-      tags: [docente, ia]
+      tags: [docente, ia, soporte]
       servers:
         - {url: http://localhost:8000, description: microservicio-docente}
         - {url: http://localhost:8084, description: microservicio-ia}
+        - {url: http://localhost:8083, description: microservicio-soporte}
       security: []
       responses: {'200': {description: Servicio saludable}}
   /metrics:

@@ -51,10 +51,10 @@ El informe manipulado del 18/09 (`surefirebooter-20260918173808715`) fue **compl
 
 - **Origen:** `sga-principal/target/surefire-reports/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
 - **Ubicación versionada:** `docs/evidencia/pruebas/sga-principal/TEST-ec.edu.uteq.sga.integration.AuditoriaFlywayMigrationContainerTest.xml`
-- **Timestamp de ejecución:** `2026-09-22T08-15-01_578-jvmRun1` (marcas de tiempo de los tests: `08:15:04–08:15:23` UTC-5).
-- **Entorno:** Windows 11, JDK 21 (Microsoft 21.0.11), PostgreSQL 16.14 en Docker efímero (`postgres:16-alpine`, Testcontainers 1.20.1: módulos `junit-jupiter` y `postgresql` del pom, con núcleo `testcontainers` 1.19.7 resuelto por la BOM de Spring Boot 3.2.5, conforme al classpath del propio informe).
-- **Hash SHA-256 verificado:** `21CBC242C5D95F24E27381941A40C103B502C12DA2E184FAFA90B76E1210EBD1`
-- **Resultados:** `tests="2" errors="0" skipped="0" failures="0" time="20.885"`
+- **Fecha de ejecución:** `2026-09-22` (recompilado y reejecutado íntegramente contra el commit `1f31961e`).
+- **Entorno:** Windows 11, JDK 21.0.11 (Eclipse Temurin), PostgreSQL 16.15 en Docker efímero.
+- **Hash SHA-256 verificado:** `2015DB00A3BCA5876D6F950F1A193B846920BF5F2C2E1BA9F56265519EB9FA4F`
+- **Resultados:** `tests="2" errors="0" skipped="0" failures="0" time="9.673"`
 
 ---
 

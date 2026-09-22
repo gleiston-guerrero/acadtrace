@@ -56,7 +56,9 @@ def format_ci_percent(lower: float, upper: float) -> str:
     low_pct = lower * 100
     high_pct = upper * 100
     if lower < 1.0 and f"{low_pct:.2f}" == "100.00":
-        low_str = "99.99%"
+        # El redondeo a 2 decimales lo confunde con 100%; se muestra con mas
+        # precision en vez de sustituirlo por un valor fijo no derivado.
+        low_str = f"{low_pct:.4f}%"
     else:
         low_str = f"{low_pct:.2f}%"
     high_str = f"{high_pct:.2f}%"
