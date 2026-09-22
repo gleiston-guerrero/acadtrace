@@ -1,0 +1,416 @@
+{
+  "metodo": {
+    "semilla": 12345,
+    "remuestras": 10000,
+    "intervalo": "Percentil bootstrap bilateral 95% para la media entre corridas; interpolacion lineal.",
+    "limites": "n=3 sigue siendo pequeno; precision limitada. P50/P95/P99 de cada CSV describen peticiones, no variabilidad entre ejecuciones."
+  },
+  "seleccion": {
+    "nominal": [
+      "nominal_02",
+      "nominal_03",
+      "nominal_06"
+    ],
+    "estres": [
+      "estres_01",
+      "estres_05",
+      "estres_06"
+    ]
+  },
+  "corridas": [
+    {
+      "corrida": "estres_01",
+      "valida": true,
+      "errores": [],
+      "tipo": "estres",
+      "fuente_exit_code": "perfil.txt",
+      "exit_code": 0,
+      "muestras_historial": 596,
+      "max_intervalo_s": 2.0,
+      "discontinuidades_mayores_5s": 0,
+      "metricas": {
+        "peticiones": 99133.0,
+        "fallos": 0.0,
+        "rps": 165.42397833353837,
+        "media_ms": 5.247033247262721,
+        "p50_ms": 5.0,
+        "p95_ms": 10.0,
+        "p99_ms": 14.0,
+        "maximo_ms": 313.4501000022283,
+        "duracion_observada_s": 600.0,
+        "usuarios_maximos": 200
+      },
+      "criterio_latencia": {
+        "descripcion": "P95 < 500 ms",
+        "cumple": true
+      }
+    },
+    {
+      "corrida": "estres_05",
+      "valida": true,
+      "errores": [],
+      "tipo": "estres",
+      "fuente_exit_code": "perfil.txt",
+      "exit_code": 0,
+      "muestras_historial": 596,
+      "max_intervalo_s": 2.0,
+      "discontinuidades_mayores_5s": 0,
+      "metricas": {
+        "peticiones": 98874.0,
+        "fallos": 0.0,
+        "rps": 165.0604135598986,
+        "media_ms": 5.643157404392374,
+        "p50_ms": 5.0,
+        "p95_ms": 11.0,
+        "p99_ms": 17.0,
+        "maximo_ms": 208.48889999615494,
+        "duracion_observada_s": 599.0,
+        "usuarios_maximos": 200
+      },
+      "criterio_latencia": {
+        "descripcion": "P95 < 500 ms",
+        "cumple": true
+      }
+    },
+    {
+      "corrida": "estres_06",
+      "valida": true,
+      "errores": [],
+      "tipo": "estres",
+      "fuente_exit_code": "perfil.txt",
+      "exit_code": 0,
+      "muestras_historial": 595,
+      "max_intervalo_s": 2.0,
+      "discontinuidades_mayores_5s": 0,
+      "metricas": {
+        "peticiones": 98594.0,
+        "fallos": 0.0,
+        "rps": 164.84537351316126,
+        "media_ms": 5.4959280707227975,
+        "p50_ms": 5.0,
+        "p95_ms": 10.0,
+        "p99_ms": 15.0,
+        "maximo_ms": 311.45700000342913,
+        "duracion_observada_s": 598.0,
+        "usuarios_maximos": 200
+      },
+      "criterio_latencia": {
+        "descripcion": "P95 < 500 ms",
+        "cumple": true
+      }
+    },
+    {
+      "corrida": "nominal_02",
+      "valida": true,
+      "errores": [],
+      "tipo": "nominal",
+      "fuente_exit_code": "perfil.txt",
+      "exit_code": 0,
+      "muestras_historial": 298,
+      "max_intervalo_s": 2.0,
+      "discontinuidades_mayores_5s": 0,
+      "metricas": {
+        "peticiones": 14597.0,
+        "fallos": 0.0,
+        "rps": 48.777780187284684,
+        "media_ms": 3.0520837843608564,
+        "p50_ms": 3.0,
+        "p95_ms": 5.0,
+        "p99_ms": 7.0,
+        "maximo_ms": 311.86699999670964,
+        "duracion_observada_s": 299.0,
+        "usuarios_maximos": 50
+      },
+      "criterio_latencia": {
+        "descripcion": "P99 < 500 ms",
+        "cumple": true
+      }
+    },
+    {
+      "corrida": "nominal_03",
+      "valida": true,
+      "errores": [],
+      "tipo": "nominal",
+      "fuente_exit_code": "perfil.txt",
+      "exit_code": 0,
+      "muestras_historial": 297,
+      "max_intervalo_s": 2.0,
+      "discontinuidades_mayores_5s": 0,
+      "metricas": {
+        "peticiones": 14568.0,
+        "fallos": 0.0,
+        "rps": 48.81492926468479,
+        "media_ms": 4.845997700393967,
+        "p50_ms": 4.0,
+        "p95_ms": 8.0,
+        "p99_ms": 14.0,
+        "maximo_ms": 66.25879999774043,
+        "duracion_observada_s": 298.0,
+        "usuarios_maximos": 50
+      },
+      "criterio_latencia": {
+        "descripcion": "P99 < 500 ms",
+        "cumple": true
+      }
+    },
+    {
+      "corrida": "nominal_06",
+      "valida": true,
+      "errores": [],
+      "tipo": "nominal",
+      "fuente_exit_code": "perfil.txt",
+      "exit_code": 0,
+      "muestras_historial": 297,
+      "max_intervalo_s": 2.0,
+      "discontinuidades_mayores_5s": 0,
+      "metricas": {
+        "peticiones": 14610.0,
+        "fallos": 0.0,
+        "rps": 48.96588572394018,
+        "media_ms": 4.876826262854485,
+        "p50_ms": 4.0,
+        "p95_ms": 8.0,
+        "p99_ms": 13.0,
+        "maximo_ms": 312.9625000001397,
+        "duracion_observada_s": 298.0,
+        "usuarios_maximos": 50
+      },
+      "criterio_latencia": {
+        "descripcion": "P99 < 500 ms",
+        "cumple": true
+      }
+    }
+  ],
+  "escenarios": {
+    "nominal": {
+      "n_validas": 3,
+      "metricas": {
+        "peticiones": {
+          "media": 14591.666666666666,
+          "mediana": 14597.0,
+          "desviacion_estandar_muestral": 21.501937897160186,
+          "minimo": 14568.0,
+          "maximo": 14610.0,
+          "ic95_bootstrap_media": [
+            14568.0,
+            14610.0
+          ]
+        },
+        "fallos": {
+          "media": 0.0,
+          "mediana": 0.0,
+          "desviacion_estandar_muestral": 0.0,
+          "minimo": 0.0,
+          "maximo": 0.0,
+          "ic95_bootstrap_media": [
+            0.0,
+            0.0
+          ]
+        },
+        "rps": {
+          "media": 48.85286505863655,
+          "mediana": 48.81492926468479,
+          "desviacion_estandar_muestral": 0.09962563212936781,
+          "minimo": 48.777780187284684,
+          "maximo": 48.96588572394018,
+          "ic95_bootstrap_media": [
+            48.777780187284684,
+            48.96588572394018
+          ]
+        },
+        "media_ms": {
+          "media": 4.2583025825364365,
+          "mediana": 4.845997700393967,
+          "desviacion_estandar_muestral": 1.044729841571471,
+          "minimo": 3.0520837843608564,
+          "maximo": 4.876826262854485,
+          "ic95_bootstrap_media": [
+            3.0520837843608564,
+            4.876826262854485
+          ]
+        },
+        "p50_ms": {
+          "media": 3.6666666666666665,
+          "mediana": 4.0,
+          "desviacion_estandar_muestral": 0.5773502691896257,
+          "minimo": 3.0,
+          "maximo": 4.0,
+          "ic95_bootstrap_media": [
+            3.0,
+            4.0
+          ]
+        },
+        "p95_ms": {
+          "media": 7.0,
+          "mediana": 8.0,
+          "desviacion_estandar_muestral": 1.7320508075688772,
+          "minimo": 5.0,
+          "maximo": 8.0,
+          "ic95_bootstrap_media": [
+            5.0,
+            8.0
+          ]
+        },
+        "p99_ms": {
+          "media": 11.333333333333334,
+          "mediana": 13.0,
+          "desviacion_estandar_muestral": 3.7859388972001824,
+          "minimo": 7.0,
+          "maximo": 14.0,
+          "ic95_bootstrap_media": [
+            7.0,
+            14.0
+          ]
+        },
+        "maximo_ms": {
+          "media": 230.36276666486324,
+          "mediana": 311.86699999670964,
+          "desviacion_estandar_muestral": 142.1192595568155,
+          "minimo": 66.25879999774043,
+          "maximo": 312.9625000001397,
+          "ic95_bootstrap_media": [
+            66.25879999774043,
+            312.9625000001397
+          ]
+        },
+        "duracion_observada_s": {
+          "media": 298.3333333333333,
+          "mediana": 298.0,
+          "desviacion_estandar_muestral": 0.5773502691896257,
+          "minimo": 298.0,
+          "maximo": 299.0,
+          "ic95_bootstrap_media": [
+            298.0,
+            299.0
+          ]
+        },
+        "usuarios_maximos": {
+          "media": 50,
+          "mediana": 50,
+          "desviacion_estandar_muestral": 0.0,
+          "minimo": 50,
+          "maximo": 50,
+          "ic95_bootstrap_media": [
+            50.0,
+            50.0
+          ]
+        }
+      }
+    },
+    "estres": {
+      "n_validas": 3,
+      "metricas": {
+        "peticiones": {
+          "media": 98867.0,
+          "mediana": 98874.0,
+          "desviacion_estandar_muestral": 269.56817319557587,
+          "minimo": 98594.0,
+          "maximo": 99133.0,
+          "ic95_bootstrap_media": [
+            98594.0,
+            99133.0
+          ]
+        },
+        "fallos": {
+          "media": 0.0,
+          "mediana": 0.0,
+          "desviacion_estandar_muestral": 0.0,
+          "minimo": 0.0,
+          "maximo": 0.0,
+          "ic95_bootstrap_media": [
+            0.0,
+            0.0
+          ]
+        },
+        "rps": {
+          "media": 165.1099218021994,
+          "mediana": 165.0604135598986,
+          "desviacion_estandar_muestral": 0.29246227805085206,
+          "minimo": 164.84537351316126,
+          "maximo": 165.42397833353837,
+          "ic95_bootstrap_media": [
+            164.84537351316126,
+            165.42397833353837
+          ]
+        },
+        "media_ms": {
+          "media": 5.462039574125964,
+          "mediana": 5.4959280707227975,
+          "desviacion_estandar_muestral": 0.20022464787486785,
+          "minimo": 5.247033247262721,
+          "maximo": 5.643157404392374,
+          "ic95_bootstrap_media": [
+            5.247033247262721,
+            5.643157404392374
+          ]
+        },
+        "p50_ms": {
+          "media": 5.0,
+          "mediana": 5.0,
+          "desviacion_estandar_muestral": 0.0,
+          "minimo": 5.0,
+          "maximo": 5.0,
+          "ic95_bootstrap_media": [
+            5.0,
+            5.0
+          ]
+        },
+        "p95_ms": {
+          "media": 10.333333333333334,
+          "mediana": 10.0,
+          "desviacion_estandar_muestral": 0.5773502691896257,
+          "minimo": 10.0,
+          "maximo": 11.0,
+          "ic95_bootstrap_media": [
+            10.0,
+            11.0
+          ]
+        },
+        "p99_ms": {
+          "media": 15.333333333333334,
+          "mediana": 15.0,
+          "desviacion_estandar_muestral": 1.5275252316519468,
+          "minimo": 14.0,
+          "maximo": 17.0,
+          "ic95_bootstrap_media": [
+            14.0,
+            17.0
+          ]
+        },
+        "maximo_ms": {
+          "media": 277.79866666727077,
+          "mediana": 311.45700000342913,
+          "desviacion_estandar_muestral": 60.03229071845163,
+          "minimo": 208.48889999615494,
+          "maximo": 313.4501000022283,
+          "ic95_bootstrap_media": [
+            208.48889999615494,
+            313.4501000022283
+          ]
+        },
+        "duracion_observada_s": {
+          "media": 599.0,
+          "mediana": 599.0,
+          "desviacion_estandar_muestral": 1.0,
+          "minimo": 598.0,
+          "maximo": 600.0,
+          "ic95_bootstrap_media": [
+            598.0,
+            600.0
+          ]
+        },
+        "usuarios_maximos": {
+          "media": 200,
+          "mediana": 200,
+          "desviacion_estandar_muestral": 0.0,
+          "minimo": 200,
+          "maximo": 200,
+          "ic95_bootstrap_media": [
+            200.0,
+            200.0
+          ]
+        }
+      }
+    }
+  }
+}

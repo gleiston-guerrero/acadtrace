@@ -1,0 +1,28 @@
+﻿DIAGNOSTICO #48 — 2026-09-22
+No se modificaron resultados anteriores ni configuraciones del sistema.
+Docker: 16 CPU logicas; memoria asignada 7975108608 bytes (7.427 GiB).
+Host: 8 nucleos / 16 procesadores logicos; carga instantanea CPU 25%; memoria disponible 2664396 KiB (2.54 GiB), total 16088560 KiB.
+sga-postgres, etcd y soporte-e48-prueba: running, RestartCount=0.
+Puertos 5433, 2379 y 8085 accesibles; health backend UP.
+Plan Equilibrado: suspension tras 180 s en bateria y 300 s conectado.
+Bateria: BatteryStatus=1, carga 79%.
+
+nominal_05: inicio 1790078867 (12:07:47 UTC); final 1790079277 (12:14:37 UTC).
+Una discontinuidad >5 s: 1790079055 -> 1790079276, 12:10:55 -> 12:14:36 UTC; 221 s; usuarios 50 -> 50. Es tambien la maxima diferencia entre filas crudas consecutivas.
+Evento Kernel-Power 506: 12:10:45.100 UTC, entrada en espera moderna por Idle Timeout.
+Evento Kernel-Power 507: 12:14:36.489 UTC, salida por Input Keyboard.
+
+estres_03: inicio 1790079360 (12:16:00 UTC); final 1790080181 (12:29:41 UTC).
+Una discontinuidad >5 s: 1790079546 -> 1790080181, 12:19:06 -> 12:29:41 UTC; 635 s; usuarios 185 -> 186. Es tambien la maxima diferencia entre filas crudas consecutivas.
+Evento Kernel-Power 506: 12:18:58.567 UTC, entrada en espera moderna por Idle Timeout.
+Evento Kernel-Power 507: 12:29:40.291 UTC, salida por Austerity Battery Drain Budget Exceeded; seguido por otro evento 506.
+
+Los eventos demuestran que hubo suspension del equipo y coinciden temporalmente con los huecos. No permiten atribuir cada segundo del desfase exclusivamente a una causa.
+Las consolas no registran pausas explicitas de Locust, errores de conexion ni mensajes Docker/backend durante los intervalos. Son consolas de Locust, no logs completos de Docker/backend.
+Al final de los huecos aparece el cierre por limite de tiempo y luego exit code 0; no hay terminacion anomala individual de usuarios registrada.
+RemoteException aparece en el envoltorio PowerShell de stderr al arrancar Locust, antes de los huecos; no es una excepcion de usuario Locust. Los CSV exceptions no contienen registros.
+
+BLOQUEO: repeticion fiable pendiente de prevenir la suspension. No se ha cambiado la configuracion ni activado una solicitud temporal para mantener despierto el equipo. Se solicito autorizacion para esta ultima opcion.
+nominal_06, estres_05, estres_06: no ejecutadas.
+Conteo valido conservado segun estado confirmado: nominal=2; estres=1.
+No se iniciaron estadisticas finales, SHA256SUMS, cambios de recalculo, mutacion, CI ni documentacion final.

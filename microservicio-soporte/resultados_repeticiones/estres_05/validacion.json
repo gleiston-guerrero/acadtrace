@@ -1,0 +1,16 @@
+{
+  "corrida": "estres_05",
+  "exit_code": 0,
+  "failure_count": 0,
+  "max_usuarios": 200,
+  "duracion_observada": 599.0,
+  "max_intervalo": 2.0,
+  "discontinuidades_mayores_5s": [],
+  "errores_http_401_500_503": 0,
+  "failures_rows": 0,
+  "exceptions_rows": 0,
+  "console_bytes": 390655,
+  "inhibidor_liberado": true,
+  "tolerancia_duracion_segundos": 5,
+  "valida": true
+}
