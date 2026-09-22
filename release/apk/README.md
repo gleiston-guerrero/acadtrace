@@ -6,16 +6,16 @@ Este directorio funciona como índice técnico y guía de verificación independ
 
 - **Aplicación:** AcadTrace Representante
 - **Package ID:** `ec.edu.uteq.sga.representante`
-- **Versión oficial:** `1.0.1` (`versionCode: 2`)
+- **Versión oficial:** `1.0.2` (`versionCode: 3`)
 - **Variante de compilación:** `release`
-- **Tag oficial de Release:** `v1.0.1`
+- **Tag oficial de Release:** `v1.0.2`
 - **Artefactos publicados en GitHub Release:**
   - `app-release.apk` (Paquete instalable para dispositivos Android)
   - `app-release.aab` (Android App Bundle para distribución optimizada)
   - `SHA256SUMS.txt` (Manifiesto de sumas de comprobación criptográfica SHA-256)
   - `CERTIFICATE_SHA256.txt` (Huella SHA-256 completa del certificado utilizado para firmar APK y AAB)
 
-El tag de publicación en el repositorio coincide exactamente con el valor `versionName = "1.0.1"` configurado en `app-movil-docente/app/build.gradle.kts`.
+El tag de publicación en el repositorio coincide exactamente con el valor `versionName = "1.0.2"` configurado en `app-movil-docente/app/build.gradle.kts`.
 
 ## Certificado y firma de Release
 
@@ -37,7 +37,7 @@ La configuración de Gradle en `app-movil-docente/app/build.gradle.kts` lanza ex
 
 ## Verificación independiente por terceros
 
-Cualquier evaluador o usuario puede verificar la integridad, autenticidad y titularidad de los binarios descargados desde el GitHub Release `v1.0.1` mediante los siguientes comandos estándar.
+Cualquier evaluador o usuario puede verificar la integridad, autenticidad y titularidad de los binarios descargados desde el GitHub Release `v1.0.2` mediante los siguientes comandos estándar.
 
 ### 1. Verificación de sumas de integridad SHA-256
 
@@ -84,5 +84,5 @@ El proceso de construcción y entrega está completamente automatizado en el job
 1. Restaura y valida el keystore PKCS12 mediante suma SHA-256 y comando `keytool -list`.
 2. Restaura la configuración de Firebase `google-services.json`.
 3. Ejecuta `./gradlew clean assembleRelease bundleRelease --no-daemon`.
-4. Verifica criptogr?ficamente APK y AAB, obtiene la huella SHA-256 completa del certificado del keystore, APK y AAB, valida que los tres valores tengan 64 caracteres hexadecimales y hace fallar el flujo si no coinciden.
-5. Genera `SHA256SUMS.txt` con los nombres `app-release.apk` y `app-release.aab`, ejecuta `sha256sum -c SHA256SUMS.txt` como compuerta y publica tambi?n `CERTIFICATE_SHA256.txt`.
+4. Verifica criptográficamente APK y AAB, obtiene la huella SHA-256 completa del certificado del keystore, APK y AAB, valida que los tres valores tengan 64 caracteres hexadecimales y hace fallar el flujo si no coinciden.
+5. Genera `SHA256SUMS.txt` con los nombres `app-release.apk` y `app-release.aab`, ejecuta `sha256sum -c SHA256SUMS.txt` como compuerta y publica también `CERTIFICATE_SHA256.txt`.
