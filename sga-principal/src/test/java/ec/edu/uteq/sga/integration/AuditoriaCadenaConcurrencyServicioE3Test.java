@@ -86,6 +86,12 @@ class AuditoriaCadenaConcurrencyServicioE3Test {
         registry.add("spring.flyway.baseline-on-migrate", () -> "true");
         registry.add("spring.flyway.baseline-version", () -> "8");
         registry.add("AUDIT", () -> "m2");
+        registry.add("JWT_SECRET", () -> "test_jwt_secret_efimero_concurrency_32_bytes!");
+        registry.add("jwt.secret", () -> "test_jwt_secret_efimero_concurrency_32_bytes!");
+        registry.add("GRPC_INTERNAL_TOKEN", () -> "test_grpc_internal_token_123");
+        registry.add("SGA_APP_PASSWORD", () -> SGA_APP_PASSWORD);
+        registry.add("grpc.server.port", () -> "0");
+        registry.add("server.port", () -> "0");
     }
 
     @Autowired

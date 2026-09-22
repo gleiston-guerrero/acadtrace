@@ -37,6 +37,32 @@ COVERAGE_REPORTS = (
 )
 
 
+def wilson_interval(successes, total, z: float = 1.96):
+    """Calcula el intervalo de confianza de Wilson (1927) para una proporcion binomial."""
+    total_f = float(total)
+    successes_f = float(successes)
+    if total_f <= 0:
+        return 0.0, 0.0, 0.0
+    p = successes_f / total_f
+    denom = 1 + (z ** 2) / total_f
+    center = (p + (z ** 2) / (2 * total_f)) / denom
+    margin = (z / denom) * ((p * (1 - p) / total_f + (z ** 2) / (4 * (total_f ** 2))) ** 0.5)
+    lower = max(0.0, center - margin)
+    upper = min(1.0, center + margin)
+    return p, lower, upper
+
+
+def format_ci_percent(lower: float, upper: float) -> str:
+    low_pct = lower * 100
+    high_pct = upper * 100
+    if lower < 1.0 and f"{low_pct:.2f}" == "100.00":
+        low_str = "99.99%"
+    else:
+        low_str = f"{low_pct:.2f}%"
+    high_str = f"{high_pct:.2f}%"
+    return f"[{low_str}, {high_str}]"
+
+
 def derive_coverage():
     results = []
     for module, relative, metric, minimum in COVERAGE_REPORTS:
@@ -213,13 +239,19 @@ def build_rows(metrics, false_positives, historical_windows, stress_metrics=None
         f'p99 < {P99_LIMIT_MS} ms', verdict)
     window_count, min_success, max_success, failed_windows = historical_windows
     if stress_metrics:
-        fiab_value = (f"Nominal A: peticiones={metrics['peticiones']}, fallos={metrics['fallos']} (éxito 100.00%, IC 95% [99.97%, 100.00%]); "
-                      f"Estrés oficial (200 usuarios): peticiones={stress_metrics['peticiones']}, fallos={stress_metrics['fallos']} (éxito 100.00%, IC 95% [99.99%, 100.00%]); "
+        p_nom, low_nom, high_nom = wilson_interval(metrics['peticiones'] - metrics['fallos'], metrics['peticiones'])
+        p_str, low_str, high_str = wilson_interval(stress_metrics['peticiones'] - stress_metrics['fallos'], stress_metrics['peticiones'])
+        fiab_value = (f"Nominal A: peticiones={metrics['peticiones']}, fallos={metrics['fallos']} (éxito {p_nom * 100:.2f}%, IC 95% {format_ci_percent(low_nom, high_nom)}); "
+                      f"Estrés oficial (200 usuarios): peticiones={stress_metrics['peticiones']}, fallos={stress_metrics['fallos']} (éxito {p_str * 100:.2f}%, IC 95% {format_ci_percent(low_str, high_str)}); "
                       f"Antecedente histórico: {window_count} ventanas locust_esc3 (éxito entre {format(min_success, 'f').replace('.', ',')} % y {format(max_success, 'f').replace('.', ',')} %)")
         fiab_source = f"{STATS.as_posix()} (Aggregated); {STRESS_STATS.as_posix()} (Aggregated); {HISTORICAL_WINDOWS.as_posix()} (ventanas locust_esc3)"
         fiab_scope = "Conjunto nominal A (50 usuarios) y corrida oficial de estrés (200 usuarios) en entorno local/contenedorizado; ventanas históricas de referencia"
         fiab_crit = "Cero fallos (tasa de error 0.00%, éxito >= 99.90%) en nominal y estrés oficial"
-        fiab_verd = "Cumple criterio de cero fallos en corrida nominal y corrida oficial de estrés de 200 usuarios; antecedentes históricos conservados"
+        if metrics['fallos'] == 0 and stress_metrics['fallos'] == 0:
+            fiab_verd = "Cumple criterio de cero fallos en corrida nominal y corrida oficial de estrés de 200 usuarios; antecedentes históricos conservados"
+        else:
+            total_f = metrics['fallos'] + stress_metrics['fallos']
+            fiab_verd = f"No cumple: se registraron {total_f} fallos en pruebas de carga y estrés"
     else:
         fiab_value = (f"peticiones nominales={metrics['peticiones']}; fallos nominales={metrics['fallos']}; "
                       f'{window_count} ventanas historicas; exito derivado entre '
@@ -236,13 +268,18 @@ def build_rows(metrics, false_positives, historical_windows, stress_metrics=None
         'Exito de peticiones de carga no equivale a disponibilidad temporal',
         'Requiere medicion temporal y entorno definidos', 'No demostrado')
     positive_count, sample_count = false_positives
+    fp_rate, low_fp, high_fp = wilson_interval(positive_count, sample_count)
+    if positive_count == 0:
+        seg_verd = f"Cumple en pruebas sintéticas: 0 falsos positivos (FPR = 0.00%, IC 95% {format_ci_percent(low_fp, high_fp)}); no certifica seguridad global"
+    else:
+        seg_verd = f"No cumple: {positive_count} falsos positivos detectados en pruebas sintéticas (FPR = {fp_rate * 100:.2f}%, IC 95% {format_ci_percent(low_fp, high_fp)})"
     add('Seguridad', 'Falsos positivos de M2 en cadenas integras',
         f'No medido en producción; FPR verificado {positive_count}/{sample_count} '
-        '(0.00%, IC 95% [0.00%, 11.35%]) en pruebas sintéticas',
+        f'({fp_rate * 100:.2f}%, IC 95% {format_ci_percent(low_fp, high_fp)}) en pruebas sintéticas',
         f'{FALSE_POSITIVES.as_posix()} (observaciones M2)',
         'Solo pruebas sinteticas de cadenas integras; no mide seguridad en produccion',
         'FPR = 0.00% en muestra de control (umbral tolerable < 5.0% a nivel de confianza 95%)',
-        'Cumple en pruebas sintéticas: 0 falsos positivos (FPR = 0.00%, IC 95% [0.00%, 11.35%]); no certifica seguridad global')
+        seg_verd)
     coverage = derive_coverage()
     add(
         'Mantenibilidad',
