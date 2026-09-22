@@ -284,10 +284,10 @@ jobs:
           DB_PORT: 5433
           DB_NAME: sga
           DB_USER: sga_app
-          DB_PASSWORD: ${{ secrets.SGA_APP_PASSWORD || secrets.DB_PASSWORD }}
+          DB_PASSWORD: ${{ secrets.SGA_APP_PASSWORD }}
           FLYWAY_USER: postgres
           FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          SGA_APP_PASSWORD: ${{ secrets.SGA_APP_PASSWORD || secrets.DB_PASSWORD }}
+          SGA_APP_PASSWORD: ${{ secrets.SGA_APP_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           GRPC_INTERNAL_TOKEN: test-internal-token
