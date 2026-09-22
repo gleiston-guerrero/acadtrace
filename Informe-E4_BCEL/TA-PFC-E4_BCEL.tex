@@ -865,9 +865,12 @@ sensibles enumeradas (\texttt{authorization}, \texttt{jwt},
 \texttt{password}, \texttt{contrasena}, \texttt{contrase\~na},
 \texttt{contrase?a}, \texttt{internal\_token}, \texttt{token},
 \texttt{secret}). No protege: representaci\'on de flotantes de rango
-extremo, marcas de tiempo como \texttt{Instant} sin preformatear, orden
-de claves con caracteres suplementarios (U+10000 y siguientes), el valor
-especial \texttt{NaN} ni ning\'un tipo fuera del vector patr\'on.
+extremo, marcas de tiempo como \texttt{Instant} sin preformatear ---en
+producci\'on Docente serializa \texttt{datetime} con offset
+(\texttt{2026-09-21T20:00:00+00:00}) y Principal serializa
+\texttt{Instant} con sufijo UTC (\texttt{2026-09-21T20:00:00Z})---,
+orden de claves con caracteres suplementarios (U+10000 y siguientes), el
+valor especial \texttt{NaN} ni ning\'un tipo fuera del vector patr\'on.
 
 \paragraph{Interoperabilidad real entre lenguajes.}
 Los verificadores rehashean el texto almacenado en la columna
@@ -900,9 +903,10 @@ los tres servicios queda registrada como deuda t\'ecnica de esta entrega.
 Mientras esa biblioteca no exista, la unicidad de la bit\'acora se
 sostiene sobre el vector patr\'on de once campos y sobre el rehash de
 \texttt{contenido\_canonico} en la verificaci\'on, no sobre una identidad
-car\'acter por car\'acter entre lenguajes. Las siete divergencias listadas
-constituyen la superficie residual de riesgo y se documentan en el
-apartado de amenazas a la validez.
+car\'acter por car\'acter entre lenguajes. Las cuatro divergencias
+medidas (m\'as la divergencia de tipos de marca de tiempo fuera del
+vector patr\'on) constituyen la superficie residual de riesgo y se
+documentan en el apartado de amenazas a la validez.
 
 \subsection{Cinco Tipos de Manipulaci\'on Inyectados (T1 a T5)}
 Se ejecutaron 30 repeticiones sint\'eticas controladas de cada tipo de manipulaci\'on por mecanismo, para un total de 600 corridas ($30 \times 4 \times 5$):
@@ -980,15 +984,25 @@ Siguiendo las pautas metodol\'ogicas para experimentaci\'on en ingenier\'ia de s
   \item \textbf{Contenci\'on de Recursos en Host Compartido:} Durante las pruebas de estr\'es con Locust y ejecuci\'on concurrente de microservicios, la contenci\'on de procesador y memoria en hosts compartidos representa una amenaza residual de variabilidad en latencias, monitoreada a nivel de host mediante la pila de observabilidad.
   \item \textbf{Divergencias entre implementaciones can\'onicas.} La forma
 can\'onica de la bit\'acora se implementa tres veces (dos en Java y una
-en Python) sin biblioteca compartida. Sobre doce vectores independientes,
-las dos implementaciones Java coinciden entre s\'i, pero difieren de la
-implementaci\'on Python en siete de los doce casos (decimales, flotantes
-extremos, marcas de tiempo, fechas dentro del payload, clave
-\texttt{contrase\~na} por codificaci\'on de la lista, orden de claves con
-caracteres suplementarios, y \texttt{NaN}). La verificaci\'on de la
-cadena se apoya en el rehash del texto almacenado, no en la equivalencia
-de las representaciones. La extracci\'on de una biblioteca can\'onica
-compartida queda como trabajo futuro.
+en Python) sin biblioteca compartida. Sobre los doce vectores
+independientes del arn\'es \path{experimentos/arnes_12_vectores.py}, las
+dos implementaciones Java coinciden en el 100\% de los casos (12/12,
+100.0\%) y la implementaci\'on Python coincide con Java en ocho de los
+doce (8/12, 66.7\%). Las cuatro divergencias medidas son: flotantes de
+rango extremo peque\~no (\texttt{1.0E-7} frente a \texttt{1e-07}),
+flotantes de rango extremo grande (\texttt{1.0E21} frente a
+\texttt{1e+21}), orden de las claves suplementarias (UTF-16 frente a
+puntos de c\'odigo Unicode) y el valor especial \texttt{NaN} (cadena
+\texttt{"NaN"} en Java frente al literal \texttt{NaN} en Python). Existe
+adem\'as una amenaza residual sobre los tipos de producci\'on: los
+vectores entregan la marca de tiempo preformateada como cadena, pero
+cuando los servicios la manejan como objeto nativo, Python produce
+formato ISO con offset (\texttt{2026-09-21T20:00:00+00:00}) y Java
+produce sufijo UTC (\texttt{2026-09-21T20:00:00Z}); por ello la cadena
+se valida sobre el rehash del texto can\'onico persistido y sobre el
+vector patr\'on institucional, lo que justifica la decisi\'on de no
+forzar una biblioteca com\'un pol\'iglota. La extracci\'on de una
+biblioteca can\'onica compartida queda como trabajo futuro.
 \end{enumerate}
 
 \subsection{Amenazas a la Validez Externa}

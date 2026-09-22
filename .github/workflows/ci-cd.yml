@@ -119,6 +119,34 @@ jobs:
         run: |
           python -m pytest -v experimentos/test_verificador_cadena_base.py
 
+  # ─── E42 - ARNÉS CANÓNICO DE 12 VECTORES ───────────────────────────────────
+  arnes-canonico:
+    name: E42 - Arnes canonico de 12 vectores
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolver jars Jackson y spring-context en ~/.m2
+        working-directory: sga-principal
+        run: ./mvnw -q -DskipTests test-compile
+
+      - name: Ejecutar arnés canónico (autocompila y mide 12/12 y 8/12)
+        run: python experimentos/arnes_12_vectores.py
+
   ci-movil-representante:
     name: CI Aplicación Móvil Representante
     runs-on: ubuntu-latest
@@ -1068,6 +1096,7 @@ jobs:
       - lint
       - ci-docente
       - ci-movil-representante
+      - arnes-canonico
       - test-mobile
       - e2e-docente
       - contract-openapi

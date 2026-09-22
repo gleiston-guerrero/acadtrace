@@ -8,15 +8,26 @@ mismos 12 vectores de entrada (experimentos/vectores_canonicos_v1.json):
   - AuditHashService de secretaria (Java), via CanonicoRunner + subprocess.
   - docentes/auditoria/hashing.py (Python), importado directo por ruta.
 
+Antes de ejecutar verifica la frescura de las clases compiladas en
+experimentos/java_harness/build frente a las fuentes .java que las
+producen: si el directorio build no existe, falta alguna clase o el mtime
+de una fuente es mayor que el de su .class, invoca javac automaticamente
+y aborta con exit 1 si la compilacion falla. Asi, modificar o sabortear
+cualquier AuditHashService.java sin recompilar a mano se detecta, se
+recompila de forma transparente y el arnes sale con codigo 1 si hay
+regresion.
+
 No simula ningun lenguaje. Todos los porcentajes se calculan
 aritmeticamente (coincidentes / total * 100) sobre la salida medida.
-Las aserciones finales hacen fallar el arnes (exit 1) si Java Principal
+Las comprobaciones finales hacen fallar el arnes (exit 1) si Java Principal
 deja de coincidir con Java Secretaria en algun vector, o si el conteo
 Java == Python cambia respecto a la evidencia congelada EXPECTED_PYP.
 """
 
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -30,6 +41,61 @@ HASHING_PATH = (
 
 FQN_PRINCIPAL = "ec.edu.uteq.sga.application.service.AuditHashService"
 FQN_SECRETARIA = "ec.uteq.sga.secretaria.application.service.AuditHashService"
+
+# Par (fuente .java, clase .class esperada) cuya frescura se controla.
+# Si la fuente es mas reciente que la clase (o la clase falta), el arnes
+# recompila automaticamente antes de medir.
+FUENTES_JAVA = (
+    (
+        REPO_ROOT
+        / "sga-principal"
+        / "src"
+        / "main"
+        / "java"
+        / "ec"
+        / "edu"
+        / "uteq"
+        / "sga"
+        / "application"
+        / "service"
+        / "AuditHashService.java",
+        HARNESS_BUILD
+        / "ec"
+        / "edu"
+        / "uteq"
+        / "sga"
+        / "application"
+        / "service"
+        / "AuditHashService.class",
+    ),
+    (
+        REPO_ROOT
+        / "microservicio-secretaria"
+        / "backend"
+        / "src"
+        / "main"
+        / "java"
+        / "ec"
+        / "uteq"
+        / "sga"
+        / "secretaria"
+        / "application"
+        / "service"
+        / "AuditHashService.java",
+        HARNESS_BUILD
+        / "ec"
+        / "uteq"
+        / "sga"
+        / "secretaria"
+        / "application"
+        / "service"
+        / "AuditHashService.class",
+    ),
+    (
+        REPO_ROOT / "experimentos" / "java_harness" / "CanonicoRunner.java",
+        HARNESS_BUILD / "CanonicoRunner.class",
+    ),
+)
 
 # Evidencia congelada: coincidencias Java == Python medidas en la ejecucion
 # de referencia. Si el codigo Java o Python cambia y este conteo varia, el
@@ -45,8 +111,8 @@ def cargar_hashing():
     return modulo
 
 
-def localizar_jars():
-    """Resuelve el classpath minimo (Jackson + spring-context) desde ~/.m2."""
+def jars_minimos():
+    """Resuelve los jars minimos (Jackson + spring-context) desde ~/.m2."""
     m2 = Path.home() / ".m2" / "repository"
     piezas = [
         "com/fasterxml/jackson/core/jackson-core/2.15.4/jackson-core-2.15.4.jar",
@@ -62,11 +128,97 @@ def localizar_jars():
     for pieza in piezas:
         ruta = m2 / pieza
         if not ruta.is_file():
-            raise SystemExit(f"ERROR: jar no encontrado en ~/.m2: {pieza}")
+            raise SystemExit(
+                f"ERROR: jar no encontrado en ~/.m2: {pieza}\n"
+                "       Resolverlo con: cd sga-principal && "
+                "./mvnw -q -DskipTests test-compile"
+            )
         jars.append(str(ruta))
-    import os
+    return jars
 
-    return os.pathsep.join([str(HARNESS_BUILD)] + jars)
+
+def localizar_jars():
+    """Classpath de ejecucion: build del arnes + jars minimos."""
+    return os.pathsep.join([str(HARNESS_BUILD)] + jars_minimos())
+
+
+def localizar_classpath_compilacion():
+    """Classpath de javac: solo jars (el build es el destino -d)."""
+    return os.pathsep.join(jars_minimos())
+
+
+def motivos_desfase():
+    """Lista de razones por las que las clases estan desactualizadas."""
+    motivos = []
+    if not HARNESS_BUILD.is_dir():
+        motivos.append("el directorio experimentos/java_harness/build no existe")
+    for fuente, clase in FUENTES_JAVA:
+        if not fuente.is_file():
+            raise SystemExit(f"ERROR: fuente Java no encontrada: {fuente}")
+        if not clase.is_file():
+            if HARNESS_BUILD.is_dir():
+                motivos.append(
+                    "clase ausente: "
+                    + str(clase.relative_to(REPO_ROOT)).replace(os.sep, "/")
+                )
+            continue
+        if fuente.stat().st_mtime > clase.stat().st_mtime:
+            motivos.append(
+                "fuente mas reciente que la clase: "
+                + str(fuente.relative_to(REPO_ROOT)).replace(os.sep, "/")
+            )
+    return motivos
+
+
+def compilar_fuentes(classpath_compilacion):
+    """Invoca javac sobre las tres fuentes reales; aborta con exit 1 si falla."""
+    javac = shutil.which("javac")
+    if not javac:
+        raise SystemExit(
+            "ERROR: javac no esta en el PATH; se requiere un JDK 17 o 21."
+        )
+    HARNESS_BUILD.mkdir(parents=True, exist_ok=True)
+    orden = [str(fuente) for fuente, _ in FUENTES_JAVA]
+    comando = [
+        javac,
+        "-encoding",
+        "UTF-8",
+        "-cp",
+        classpath_compilacion,
+        "-d",
+        str(HARNESS_BUILD),
+        *orden,
+    ]
+    proc = subprocess.run(
+        comando,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if proc.returncode != 0:
+        print("ERROR: fallo la compilacion javac del arnes:")
+        print("  " + " ".join(comando))
+        if proc.stdout:
+            print(proc.stdout)
+        if proc.stderr:
+            print(proc.stderr)
+        raise SystemExit(1)
+    if proc.stdout.strip():
+        print(proc.stdout.strip())
+    print(f"Compilacion javac OK ({len(orden)} fuentes) -> "
+          f"{str(HARNESS_BUILD.relative_to(REPO_ROOT)).replace(os.sep, '/')}")
+
+
+def asegurar_clases_frescas():
+    """Recompila automaticamente si build falta o alguna fuente es mas nueva."""
+    motivos = motivos_desfase()
+    if not motivos:
+        print("Clases Java del arnes actualizadas (sin recompilacion).")
+        return
+    print("Frescura de clases: recompilacion requerida:")
+    for motivo in motivos:
+        print(f"  - {motivo}")
+    compilar_fuentes(localizar_classpath_compilacion())
 
 
 def decodificar(valor):
@@ -102,6 +254,7 @@ def main():
     total = len(vectores)
 
     hashing = cargar_hashing()
+    asegurar_clases_frescas()
     classpath = localizar_jars()
     print(f"Runner Java: {FQN_PRINCIPAL} + {FQN_SECRETARIA}")
     salida_java = ejecutar_java(vectores_doc, classpath)
@@ -159,14 +312,18 @@ def main():
         print(f"      A: {sal_a}")
         print(f"      B: {sal_b}")
 
-    assert coincidentes_ps == total, (
-        f"regresion: Java Principal != Java Secretaria "
-        f"en {total - coincidentes_ps} vectores"
-    )
-    assert coincidentes_pyp == EXPECTED_PYP, (
-        f"regresion: Java == Python cambio de {EXPECTED_PYP} "
-        f"a {coincidentes_pyp}"
-    )
+    if coincidentes_ps != total:
+        print(
+            f"REGRESION: Java Principal != Java Secretaria en "
+            f"{total - coincidentes_ps} vectores."
+        )
+        return 1
+    if coincidentes_pyp != EXPECTED_PYP:
+        print(
+            f"REGRESION: Java == Python cambio de {EXPECTED_PYP} "
+            f"a {coincidentes_pyp}."
+        )
+        return 1
     print("Aserciones OK: sin regresion respecto a la evidencia congelada.")
     return 0
 
