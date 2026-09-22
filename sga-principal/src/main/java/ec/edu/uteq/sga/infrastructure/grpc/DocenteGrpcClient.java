@@ -26,7 +26,7 @@ public class DocenteGrpcClient {
     @Autowired
     private TeacherAuthorizationService authService;
 
-    @Value("")
+    @Value("${app.grpc.internal-token}")
     private String internalToken;
 
     private DocenteServiceGrpc.DocenteServiceBlockingStub getStubWithMetadata() {
