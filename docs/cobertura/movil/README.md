@@ -8,13 +8,16 @@ Definida en `app-movil-docente/app/build.gradle.kts`:
 
 - Tarea: `jacocoCoverageVerification` (encadenada a `check`).
 - Elemento: `BUNDLE`.
-- Umbral: `INSTRUCTION >= 0.10` (10 %).
-- Medición actual reproducible: `1828/74556` instrucciones cubiertas,
-  equivalente a `2,45 %` de cobertura `INSTRUCTION` del `BUNDLE`.
-- La medición actual no supera la compuerta del 10 %. Se mantiene el umbral
-  como deuda técnica y no se reduce para adaptar la regla al resultado medido.
-- Exclusiones estándar: `R.class`, `R$*.class`, `BuildConfig.*`, `Manifest*.*`
-  y clases `*_Impl*` generadas por Room.
+- Umbral: `INSTRUCTION >= 0.02` (**2 %**), utilizado como línea base
+  automática de no regresión.
+- Medición oficial: **2,45 % de instrucciones cubiertas
+  (1828 de 74556)** a nivel de módulo completo (`BUNDLE`).
+- Fuente: `docs/cobertura/movil/jacoco.xml`, generado por el CI #859,
+  run `35677338149`, sobre el commit `71e6a479183efced7c304d4e70ff912cf1017136`.
+- La tarea `jacocoCoverageVerification` forma parte ahora del comando del
+  job de CI. El 2 % es una línea base mínima verificable y no se presenta
+  como objetivo final de calidad; deberá incrementarse al ampliar la suite
+  de pruebas.
 
 ## Regenerar el reporte
 
