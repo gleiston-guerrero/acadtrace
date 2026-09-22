@@ -24,16 +24,35 @@ producen:
 - `microservicio-secretaria/backend/src/main/java/ec/uteq/sga/secretaria/application/service/AuditHashService.java`
 - `experimentos/java_harness/CanonicoRunner.java`
 
-Si el directorio `build` no existe, falta alguna clase, o el `mtime` de
-cualquier `.java` es mayor que el de su respectivo `.class`, el script
-invoca `javac` automaticamente (`subprocess.run()` con UTF-8 y classpath
-resuelto desde `~/.m2`). Si la compilacion falla, el arnes aborta de
-inmediato con codigo de salida no cero e imprime el error de compilacion.
+El control de frescura opera en dos capas complementarias:
+1. **Capa temporal (`mtime`):** Si el directorio `build` no existe, falta
+   alguna clase, o el `mtime` de cualquier `.java` es mayor que el de su
+   respectivo `.class`.
+2. **Capa criptográfica de contenido (SHA-256):** El compilador almacena en
+   `experimentos/java_harness/build/.fuentes_sha256.json` el hash SHA-256 de
+   cada archivo fuente compilado. Si el contenido de cualquier `.java` cambia,
+   la discrepancia se detecta incluso si se manipula artificialmente la fecha
+   (`touch`) del archivo `.class` a un timestamp futuro para evadir el `mtime`.
+   Un manifiesto ausente o corrupto obliga igualmente a recompilar.
 
-Consecuencia: modificar (o sabortear) cualquier `AuditHashService.java`
-**sin recompilar a mano** se detecta, se recompila de forma transparente
-y el arnes sale con codigo 1 si hay una regresion. No hay que ejecutar
-`javac` manualmente salvo que se desee un build explicito.
+Si se detecta cualquier desfase temporal o criptográfico, el script
+invoca `javac` automaticamente (`subprocess.run()` con UTF-8 y classpath
+resuelto desde `~/.m2`), actualiza el manifiesto `.fuentes_sha256.json` y
+continua la ejecucion. Si la compilacion falla, el arnes aborta de
+inmediato con codigo de salida 1 e imprime el error de compilacion.
+
+Consecuencia: modificar (o sabotear) cualquier `AuditHashService.java`
+**sin recompilar a mano** se detecta por contenido y por fecha, se recompila
+de forma transparente y el arnes sale con codigo 1 si hay una regresion.
+No hay que ejecutar `javac` manualmente salvo que se desee un build explicito.
+
+### Blindaje de entrada (contrato de 12 vectores)
+
+Antes de iniciar la medición, el arnés exige que
+`experimentos/vectores_canonicos_v1.json` exista, sea legible y declare
+exactamente **12 vectores**. Si el archivo falta, está corrupto o el
+conteo difiere, el arnés aborta con código 1 sin compilar ni medir nada:
+ningún porcentaje se calcula jamás sobre un conjunto de entrada alterado.
 
 ## Integracion en CI (GitHub Actions)
 
@@ -81,12 +100,89 @@ python experimentos/arnes_12_vectores.py
 
 ## Salida esperada (evidencia congelada)
 
+### Caso 1: Procedimiento desde clon limpio (primera ejecucion, autocompilacion javac)
+
+Al ejecutarse desde un clon limpio (o tras eliminar `experimentos/java_harness/build`), el arnes autocompila las tres clases Java reales con `javac`, calcula y almacena sus firmas criptograficas en `.fuentes_sha256.json`, y procede a la evaluacion. A continuación, la salida literal de esa ejecución, sin ediciones:
+
 ```
-Clases Java del arnes actualizadas (sin recompilacion).
-...
+Frescura de clases: recompilacion requerida:
+  - el directorio experimentos/java_harness/build no existe
+Compilacion javac OK (3 fuentes) -> experimentos/java_harness/build
+Runner Java: ec.edu.uteq.sga.application.service.AuditHashService + ec.uteq.sga.secretaria.application.service.AuditHashService
+
+ID  | Vector                                 | P = S   | P = S = Py | Estado      
+------------------------------------------------------------------------------
+1   | Vector patron canonico v1 (ADR-007)    | SI      | SI         | COINCIDE    
+2   | Booleanos y contadores enteros         | SI      | SI         | COINCIDE    
+3   | Arreglos de texto                      | SI      | SI         | COINCIDE    
+4   | Mapas anidados con claves ASCII        | SI      | SI         | COINCIDE    
+5   | Cadenas y listas vacias                | SI      | SI         | COINCIDE    
+6   | Decimal como numero JSON               | SI      | SI         | COINCIDE    
+7   | Flotante de rango extremo pequeno      | SI      | NO         | DIVERGE     
+8   | Marca de tiempo y fecha como cadenas   | SI      | SI         | COINCIDE    
+9   | Claves sensibles con tildes y variante | SI      | SI         | COINCIDE    
+10  | Flotante de rango extremo grande       | SI      | NO         | DIVERGE     
+11  | Claves con caracteres suplementarios   | SI      | NO         | DIVERGE     
+12  | NaN como valor especial                | SI      | NO         | DIVERGE     
+------------------------------------------------------------------------------
+Resumen de evaluacion de equivalencia canonica (calculado):
   * Principal == Secretaria (Java == Java): 12/12 (100.0%)
   * Principal == Secretaria == Python:      8/12 (66.7%)
   * Vectores con alguna divergencia:        4/12
+  - Vector 7 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1.0E-7},"reloj_lamport":48,"reloj_vectorial":{},"timestamp":"2026-09-13T10:20:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1e-07},"reloj_lamport":48,"reloj_vectorial":{},"timestamp":"2026-09-13T10:20:00Z","tipo_evento":"AUDITORIA"}
+  - Vector 10 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1.0E21},"reloj_lamport":52,"reloj_vectorial":{},"timestamp":"2026-09-13T10:55:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1e+21},"reloj_lamport":52,"reloj_vectorial":{},"timestamp":"2026-09-13T10:55:00Z","tipo_evento":"AUDITORIA"}
+  - Vector 11 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"emoji","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"?":"cara","?":"exclamacion"},"reloj_lamport":53,"reloj_vectorial":{},"timestamp":"2026-09-13T11:00:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"emoji","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"！":"exclamacion","😀":"cara"},"reloj_lamport":53,"reloj_vectorial":{},"timestamp":"2026-09-13T11:00:00Z","tipo_evento":"AUDITORIA"}
+  - Vector 12 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"calculo","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"val":"NaN"},"reloj_lamport":54,"reloj_vectorial":{},"timestamp":"2026-09-13T11:10:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"calculo","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"val":NaN},"reloj_lamport":54,"reloj_vectorial":{},"timestamp":"2026-09-13T11:10:00Z","tipo_evento":"AUDITORIA"}
+Aserciones OK: sin regresion respecto a la evidencia congelada.
+```
+
+### Caso 2: Ejecucion subsecuente (sin cambios en fuentes)
+
+Cuando el directorio `build` ya existe y las firmas SHA-256 coinciden con las fuentes, la salida literal de la segunda corrida es:
+
+```
+Clases Java del arnes actualizadas (sin recompilacion).
+Runner Java: ec.edu.uteq.sga.application.service.AuditHashService + ec.uteq.sga.secretaria.application.service.AuditHashService
+
+ID  | Vector                                 | P = S   | P = S = Py | Estado      
+------------------------------------------------------------------------------
+1   | Vector patron canonico v1 (ADR-007)    | SI      | SI         | COINCIDE    
+2   | Booleanos y contadores enteros         | SI      | SI         | COINCIDE    
+3   | Arreglos de texto                      | SI      | SI         | COINCIDE    
+4   | Mapas anidados con claves ASCII        | SI      | SI         | COINCIDE    
+5   | Cadenas y listas vacias                | SI      | SI         | COINCIDE    
+6   | Decimal como numero JSON               | SI      | SI         | COINCIDE    
+7   | Flotante de rango extremo pequeno      | SI      | NO         | DIVERGE     
+8   | Marca de tiempo y fecha como cadenas   | SI      | SI         | COINCIDE    
+9   | Claves sensibles con tildes y variante | SI      | SI         | COINCIDE    
+10  | Flotante de rango extremo grande       | SI      | NO         | DIVERGE     
+11  | Claves con caracteres suplementarios   | SI      | NO         | DIVERGE     
+12  | NaN como valor especial                | SI      | NO         | DIVERGE     
+------------------------------------------------------------------------------
+Resumen de evaluacion de equivalencia canonica (calculado):
+  * Principal == Secretaria (Java == Java): 12/12 (100.0%)
+  * Principal == Secretaria == Python:      8/12 (66.7%)
+  * Vectores con alguna divergencia:        4/12
+  - Vector 7 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1.0E-7},"reloj_lamport":48,"reloj_vectorial":{},"timestamp":"2026-09-13T10:20:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1e-07},"reloj_lamport":48,"reloj_vectorial":{},"timestamp":"2026-09-13T10:20:00Z","tipo_evento":"AUDITORIA"}
+  - Vector 10 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1.0E21},"reloj_lamport":52,"reloj_vectorial":{},"timestamp":"2026-09-13T10:55:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"calc","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"COMPUTAR","payload":{"val":1e+21},"reloj_lamport":52,"reloj_vectorial":{},"timestamp":"2026-09-13T10:55:00Z","tipo_evento":"AUDITORIA"}
+  - Vector 11 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"emoji","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"?":"cara","?":"exclamacion"},"reloj_lamport":53,"reloj_vectorial":{},"timestamp":"2026-09-13T11:00:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"emoji","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"！":"exclamacion","😀":"cara"},"reloj_lamport":53,"reloj_vectorial":{},"timestamp":"2026-09-13T11:00:00Z","tipo_evento":"AUDITORIA"}
+  - Vector 12 [P-S-Py]:
+      A: {"actor_id":"1","entidad":"calculo","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"val":"NaN"},"reloj_lamport":54,"reloj_vectorial":{},"timestamp":"2026-09-13T11:10:00Z","tipo_evento":"AUDITORIA"}
+      B: {"actor_id":"1","entidad":"calculo","entidad_id":"1","estado_reconciliacion":"NO_APLICA","modo":"m2","operacion":"TEST","payload":{"val":NaN},"reloj_lamport":54,"reloj_vectorial":{},"timestamp":"2026-09-13T11:10:00Z","tipo_evento":"AUDITORIA"}
 Aserciones OK: sin regresion respecto a la evidencia congelada.
 ```
 
@@ -116,12 +212,19 @@ caracter por caracter entre lenguajes. Documentada en
 
 ## Sensibilidad (prueba de sabotaje)
 
-- Cambiar una clave de `SECRET_KEYS` en cualquier `AuditHashService.java`
-  y correr `python experimentos/arnes_12_vectores.py` **sin recompilar a
-  mano**: el arnes detecta el desfase, recompila automaticamente y sale
-  con codigo 1 (`Java Principal != Java Secretaria`).
-- Cambiar una clave de `SECRET_KEYS` en `hashing.py` y correr: sale con
-  codigo 1 (`Java == Python cambio de 8 a ...`).
-- Romper la sintaxis de un `.java`: el arnes aborta con codigo 1
-  imprimiendo el error de `javac`.
+- **Sabotaje de fuentes Java sin recompilar:** Cambiar una clave de
+  `SECRET_KEYS` en cualquier `AuditHashService.java` y correr
+  `python experimentos/arnes_12_vectores.py`: el arnes detecta el cambio
+  por mtime y por firma SHA-256, recompila automaticamente y sale con
+  codigo 1 (`Java Principal != Java Secretaria`).
+- **Sabotaje con evasion de fecha (`touch` a `.class`):** Cambiar una clave
+  en `AuditHashService.java` y alterar artificialmente la fecha de modificacion
+  del `.class` para que parezca mas reciente que el fuente: el arnes calcula
+  el hash SHA-256 del contenido `.java`, detecta que no coincide con la
+  firma del build guardada en `.fuentes_sha256.json`, forza la recompilacion
+  con `javac` y sale con codigo 1.
+- **Sabotaje en Python:** Cambiar una clave de `SECRET_KEYS` en `hashing.py`
+  y correr: sale con codigo 1 (`Java == Python cambio de 8 a ...`).
+- **Error sintactico:** Romper la sintaxis de un `.java`: el arnes aborta con
+  codigo 1 imprimiendo el error de `javac`.
 - Revertir siempre el sabotaje despues de verificar.
