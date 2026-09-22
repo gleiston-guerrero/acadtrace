@@ -343,11 +343,22 @@ def main():
 
         GENESIS = "0" * 64
 
-        # Deteccion de insercion no autorizada de filas m1 no selladas
+        # Deteccion de insercion no autorizada de filas m1 no selladas.
+        # Una transicion historica m1 -> v1 es legitima (el sistema empezo sin
+        # encadenamiento criptografico y luego lo activo): todas las filas m1
+        # deben ser anteriores a la primera fila v1. Si aparece una fila m1
+        # despues de que la cadena v1 ya estaba activa, es una insercion
+        # directa con el rol de aplicacion, no historia legitima.
         if filas_m1 and filas_v1:
-            print(f"[ERROR] Se detectaron {len(filas_m1)} fila(s) no selladas (m1) mezcladas con una cadena activa v1. "
-                  f"Manipulacion detectada: insercion directa con rol de aplicacion sin sellado criptografico.")
-            return 2
+            primer_v1_id = filas_v1[0]["id_auditoria"]
+            m1_tras_v1 = [f for f in filas_m1 if f["id_auditoria"] > primer_v1_id]
+            if m1_tras_v1:
+                ids = [f["id_auditoria"] for f in m1_tras_v1]
+                print(f"[ERROR] Se detectaron {len(m1_tras_v1)} fila(s) no selladas (m1) insertadas "
+                      f"despues de que la cadena v1 ya estaba activa (ids={ids}). "
+                      "Manipulacion detectada: insercion directa con rol de aplicacion sin sellado criptografico.")
+                return 2
+            print(f"[OK] {len(filas_m1)} fila(s) m1 preceden a la cadena v1 (transicion historica legitima de modo).")
 
         # Si el despliegue contiene solo filas m1, verificar si el motor tenia cadena v1 activa
         if not filas_v1 and filas_m1:
@@ -390,31 +401,58 @@ def main():
                           f"(hmac={hmac_stored!r}). Manipulacion detectada: insercion directa sin pasar por el servicio de aplicacion.")
                     return 2
 
-            # Validar eventos de Docente contra sga_docente.eventos_auditoria para detectar inyecciones falsas
-            if schema == "DOCENTE" and f.get("registro_id"):
+            # Validar eventos de Docente contra la bitacora local sga_docente.eventos_auditoria
+            # para detectar eslabones falsos inyectados directamente en sga_principal.auditoria.
+            #
+            # registro_id NO es el id_evento de eventos_auditoria: es entidad_id (el id de
+            # dominio del registro auditado, ver central_ledger.insertar_evento_global). El
+            # enlace real y verificable entre ambas bitacoras es hash_actual, que Docente
+            # escribe identico en su copia local (ver HashChainAuditStrategy.registrar) y en
+            # el evento que envia al ledger institucional.
+            if schema == "DOCENTE":
                 try:
                     with connection.cursor() as cur_doc:
                         cur_doc.execute(
-                            "SELECT id FROM sga_docente.eventos_auditoria WHERE id = %s",
-                            [f.get("registro_id")]
+                            "SELECT 1 FROM sga_docente.eventos_auditoria "
+                            "WHERE hash_actual = %s AND entidad_id = %s",
+                            [f.get("hash_actual"),
+                             str(f.get("registro_id")) if f.get("registro_id") is not None else None]
                         )
-                        if not cur_doc.fetchone():
-                            print(f"[ERROR] Eslabon falso con origen DOCENTE id={f.get('id_auditoria')}: "
-                                  f"registro_id={f.get('registro_id')} no existe en sga_docente.eventos_auditoria. "
-                                  f"Manipulacion detectada: eslabon falso inyectado con forma de Docente.")
-                            return 2
-                except Exception:
-                    pass
-
-            # Verificacion criptografica del HMAC si disponemos del secreto
-            if hmac_stored and jwt_secret:
-                hmac_calc = calcular_hmac(jwt_secret, f)
-                hmac_legacy = calcular_hmac(jwt_secret, f, legacy_null=True)
-                if not (hmac.compare_digest(str(hmac_stored).lower(), hmac_calc.lower()) or
-                        hmac.compare_digest(str(hmac_stored).lower(), hmac_legacy.lower())):
-                    print(f"[ERROR] Eslabon id={f.get('id_auditoria')}: firma HMAC invalida. "
-                          f"Manipulacion detectada: registro alterado o insertado sin el secreto institucional.")
+                        encontrado = cur_doc.fetchone()
+                except Exception as exc_doc:
+                    # Un cotejo que no se puede ejecutar no es una manipulacion descartada:
+                    # antes el error se silenciaba (except: pass) y el eslabon falso pasaba.
+                    print(f"[ERROR] Eslabon id={f.get('id_auditoria')} con origen DOCENTE: "
+                          f"no se pudo verificar contra la bitacora local ({type(exc_doc).__name__}). "
+                          "Manipulacion no descartable: cotejo Docente no verificable.")
                     return 2
+                if not encontrado:
+                    print(f"[ERROR] Eslabon falso con origen DOCENTE id={f.get('id_auditoria')}: "
+                          f"no existe en sga_docente.eventos_auditoria un evento con hash_actual="
+                          f"{f.get('hash_actual')!r} y entidad_id={f.get('registro_id')!r}. "
+                          "Manipulacion detectada: eslabon falso inyectado con forma de Docente.")
+                    return 2
+
+            # Verificacion criptografica del HMAC si disponemos del secreto.
+            # Sin el secreto no se puede distinguir una firma real de una
+            # inventada con forma valida (64 hex): para PRINCIPAL/SECRETARIA,
+            # donde el HMAC es obligatorio, eso es fallar cerrado (no se
+            # certifica integridad), no pasar en silencio.
+            if hmac_stored:
+                if not jwt_secret:
+                    if schema in ("PRINCIPAL", "SECRETARIA"):
+                        print(f"[ERROR] Eslabon id={f.get('id_auditoria')}: no hay JWT_SECRET disponible "
+                              f"para verificar criptograficamente el HMAC de {schema}. "
+                              "Manipulacion no descartable: integridad no verificable sin el secreto.")
+                        return 2
+                else:
+                    hmac_calc = calcular_hmac(jwt_secret, f)
+                    hmac_legacy = calcular_hmac(jwt_secret, f, legacy_null=True)
+                    if not (hmac.compare_digest(str(hmac_stored).lower(), hmac_calc.lower()) or
+                            hmac.compare_digest(str(hmac_stored).lower(), hmac_legacy.lower())):
+                        print(f"[ERROR] Eslabon id={f.get('id_auditoria')}: firma HMAC invalida. "
+                              f"Manipulacion detectada: registro alterado o insertado sin el secreto institucional.")
+                        return 2
 
         # Verificacion del eslabon inicial respecto al GENESIS
         GENESIS = "0" * 64
