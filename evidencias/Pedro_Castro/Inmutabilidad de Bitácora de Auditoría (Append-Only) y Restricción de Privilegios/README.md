@@ -17,7 +17,7 @@ Ante la observación de la evaluación sobre la línea base de la prueba:
 
 1. **Línea base institucional oficial (`V8__baseline_completo.sql`):**
    - La prueba de integración arranca con `.withInitScript("db/migration/V8__baseline_completo.sql")` porque esa es **la línea base oficial institucional** de producción del proyecto, con suma criptográfica congelada e idéntica a la del commit `92f2ec91`, tal como fue verificado y aprobado en el **Punto #5** (Esquema de base de datos y migraciones).
-   - En el procedimiento oficial de reconstrucción de producción en AWS (`docs/db/RECONSTRUCCION_PRODUCCION.md`), la base de datos `3.23.195.43:5433/sga` fue levantada exactamente con este mismo procedimiento: carga inicial de `V8__baseline_completo.sql` y posterior ejecución del pipeline de Flyway de V9 a V26. Por tanto, la prueba reproduce con total fidelidad el entorno real productivo.
+   - En el procedimiento oficial de reconstrucción de producción en AWS (`docs/db/RECONSTRUCCION_PRODUCCION.md`), la base de datos de producción (host configurado externamente mediante `DB_HOST:5433`, base `sga`) fue levantada exactamente con este mismo procedimiento: carga inicial de `V8__baseline_completo.sql` y posterior ejecución del pipeline de Flyway de V9 a V26. Por tanto, la prueba reproduce con total fidelidad el entorno real productivo.
 
 2. **Descarte del volcado histórico `8833d2e7:.../baseline_completo.sql` por cumplimiento ético y seguridad:**
    - El antiguo volcado `baseline_completo.sql` del commit `8833d2e7` fue retirado permanentemente en el commit `8c07513b` porque contenía **77 registros reales de estudiantes y 4 usuarios con credenciales y hashes de contraseñas**.

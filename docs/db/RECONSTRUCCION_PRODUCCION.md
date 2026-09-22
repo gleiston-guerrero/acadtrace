@@ -5,7 +5,7 @@ Rama y referencia integrada: `main` (incorporando los cambios de la rama de trab
 
 ## Por qué este procedimiento
 
-La base de producción (`192.0.2.1:5433/sga`) tenía aplicadas versiones de V8
+La base de producción (host configurado externamente mediante `DB_HOST:5433`, base `sga`) tenía aplicadas versiones de V8
 y V19 con sumas divergentes (`-292896054` / `-1469650242` en vez de
 `-107706312` / `-554118186` de `92f2ec91`). Todo arranque con el código
 entregado fallaba con `checksum mismatch` antes de migrar (E10, despliegue).
@@ -50,7 +50,7 @@ proceso quedó registrado públicamente aquí.
 
 - Fecha/hora de ejecución: 2026-09-21 21:15:00 UTC-5.
 - Ejecutado por: Pedro Castro (LEO23as).
-- Base de datos destino: Host `ip-172-31-46-196` (`192.0.2.1:5433`), base `sga`.
+- Base de datos destino: Host interno EC2 `ip-172-31-46-196` (host de producción configurado externamente mediante `DB_HOST:5433`), base `sga`.
 - Commit desplegado en producción: `2c63ca1f` (integrado en rama `main`).
 - Respaldo previo conservado: Base `sga_respaldo_vieja` en el clúster PostgreSQL.
 - Historial Flyway verificado en producción: 19 versiones válidas (V8 a V26) con `success = true`.
