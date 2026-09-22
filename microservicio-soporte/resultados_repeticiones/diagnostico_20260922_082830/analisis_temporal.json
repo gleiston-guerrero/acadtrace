@@ -1,0 +1,63 @@
+[
+  {
+    "corrida": "nominal_05",
+    "inicio_unix": "1790078867",
+    "final_unix": "1790079277",
+    "inicio_utc": "2026-09-22T12:07:47+00:00",
+    "final_utc": "2026-09-22T12:14:37+00:00",
+    "max_delta_filas_crudas": 221.0,
+    "numero_discontinuidades": 1,
+    "discontinuidades": [
+      {
+        "antes_unix": "1790079055",
+        "despues_unix": "1790079276",
+        "antes_utc": "2026-09-22T12:10:55+00:00",
+        "despues_utc": "2026-09-22T12:14:36+00:00",
+        "segundos": 221.0,
+        "usuarios_antes": "50",
+        "usuarios_despues": "50"
+      }
+    ],
+    "eventos_consola": [
+      "python.exe : [2026-09-22 07:07:47,501] DESKTOP-2G72T6F/INFO/locust.main: Starting Locust 2.46.4",
+      "[2026-09-22 07:07:47,506] DESKTOP-2G72T6F/INFO/locust.main: Run time limit set to 300 seconds",
+      "[2026-09-22 07:07:47,511] DESKTOP-2G72T6F/INFO/locust.runners: Ramping to 50 users at a rate of 5.00 per second",
+      "[2026-09-22 07:07:56,584] DESKTOP-2G72T6F/INFO/locust.runners: All users spawned: {\"SoporteUser\": 50} (50 total users)",
+      "[2026-09-22 07:14:36,421] DESKTOP-2G72T6F/INFO/locust.main: --run-time limit reached, shutting down",
+      "[2026-09-22 07:14:37,674] DESKTOP-2G72T6F/INFO/locust.main: Shutting down (exit code 0)"
+    ],
+    "indicadores_error": [
+      "    + CategoryInfo          : NotSpecified: ([2026-09-22 07:...g Locust 2.46.4:String) [], RemoteException"
+    ]
+  },
+  {
+    "corrida": "estres_03",
+    "inicio_unix": "1790079360",
+    "final_unix": "1790080181",
+    "inicio_utc": "2026-09-22T12:16:00+00:00",
+    "final_utc": "2026-09-22T12:29:41+00:00",
+    "max_delta_filas_crudas": 635.0,
+    "numero_discontinuidades": 1,
+    "discontinuidades": [
+      {
+        "antes_unix": "1790079546",
+        "despues_unix": "1790080181",
+        "antes_utc": "2026-09-22T12:19:06+00:00",
+        "despues_utc": "2026-09-22T12:29:41+00:00",
+        "segundos": 635.0,
+        "usuarios_antes": "185",
+        "usuarios_despues": "186"
+      }
+    ],
+    "eventos_consola": [
+      "python.exe : [2026-09-22 07:16:00,960] DESKTOP-2G72T6F/INFO/locust.main: Starting Locust 2.46.4",
+      "[2026-09-22 07:16:00,980] DESKTOP-2G72T6F/INFO/locust.main: Run time limit set to 600 seconds",
+      "[2026-09-22 07:16:00,982] DESKTOP-2G72T6F/INFO/locust.runners: Ramping to 200 users at a rate of 1.00 per second",
+      "[2026-09-22 07:29:41,336] DESKTOP-2G72T6F/INFO/locust.main: --run-time limit reached, shutting down",
+      "[2026-09-22 07:29:42,124] DESKTOP-2G72T6F/INFO/locust.main: Shutting down (exit code 0)"
+    ],
+    "indicadores_error": [
+      "    + CategoryInfo          : NotSpecified: ([2026-09-22 07:...g Locust 2.46.4:String) [], RemoteException"
+    ]
+  }
+]

@@ -1,0 +1,25 @@
+[2026-09-21 20:56:39,383] DESKTOP-2G72T6F/INFO/locust.main: Starting Locust 2.46.4
+[2026-09-21 20:56:39,405] DESKTOP-2G72T6F/INFO/locust.main: Run time limit set to 300 seconds
+[2026-09-21 20:56:39,407] DESKTOP-2G72T6F/INFO/locust.runners: Ramping to 50 users at a rate of 5.00 per second
+[2026-09-21 20:56:48,495] DESKTOP-2G72T6F/INFO/locust.runners: All users spawned: {"SoporteUser": 50} (50 total users)
+[2026-09-21 21:01:38,389] DESKTOP-2G72T6F/INFO/locust.main: --run-time limit reached, shutting down
+[2026-09-21 21:01:38,632] DESKTOP-2G72T6F/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      [GET] /actuator/health                                                          2026     0(0.00%) |      4       2      64      4 |    6.78        0.00
+GET      [GET] /api/soporte/election/status                                              2096     0(0.00%) |      3       2      40      4 |    7.01        0.00
+GET      [GET] /api/soporte/tickets                                                      4179     0(0.00%) |      7       3      66      6 |   13.98        0.00
+GET      [GET] /health                                                                   6298     0(0.00%) |      3       1      43      4 |   21.07        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                     14599     0(0.00%) |      4       1      66      4 |   48.83        0.00
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      [GET] /actuator/health                                                                  4      4      5      5      6      7      8     10     34     64     64   2026
+GET      [GET] /api/soporte/election/status                                                      4      4      4      5      5      6      7      8     17     40     40   2096
+GET      [GET] /api/soporte/tickets                                                              6      7      7      8      9     10     16     23     40     66     66   4179
+GET      [GET] /health                                                                           4      4      4      4      5      6      8      9     28     43     43   6298
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              4      5      6      6      7      8     10     14     34     64     66  14599
+
