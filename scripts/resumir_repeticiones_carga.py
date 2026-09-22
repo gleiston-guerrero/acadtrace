@@ -217,7 +217,9 @@ def generate(base, check=False):
     hashes = []
     for run in runs:
         if run['valida']:
-            for file in sorted((base / run['corrida']).rglob('*')):
+            # Orden determinista reproducible entre sistemas operativos (Windows/Linux)
+            for file in sorted((base / run['corrida']).rglob('*'),
+                               key=lambda p: p.relative_to(base).as_posix().casefold()):
                 if file.is_file():
                     hashes.append(f'{hashlib.sha256(file.read_bytes()).hexdigest()}  {file.relative_to(base).as_posix()}')
     hashes.extend(f'{hashlib.sha256(content.encode("utf-8")).hexdigest()}  {name}'
