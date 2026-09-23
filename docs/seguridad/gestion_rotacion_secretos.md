@@ -1,12 +1,12 @@
 # Gestión de secretos fuera del árbol versionado — E46
 
-Revisión: 2026-09-22. Rama `Juliana-Emanuel`; commit de referencia `9c49a4b7`.
-**Estado: PARCIAL. E46 no está cerrado. Rotaciones verificadas: Ninguna acreditada.**
-Los cambios están en el árbol de trabajo, sin commit. No se modificó historia ni se publicó ningún artefacto.
+Revisión: 2026-09-23. Rama `Juliana-Emanuel`; commit de referencia de la auditoría inicial `9c49a4b7`.
+**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET acreditado en CI y rotado/verificado operativamente en producción. Las demás categorías permanecen pendientes de validación o rotación según corresponda.**
+Los cambios E46 documentados se han versionado en la rama `Juliana-Emanuel`. No se ha ejecutado una reescritura real del historial remoto. El release móvil v1.0.3 fue publicado y verificado.
 
 ## HEAD ACTUAL / árbol de trabajo
 
-El HEAD comprometido conserva las 15 apariciones evaluadas en seis archivos. El contenido actual de esos archivos está corregido localmente:
+El commit de referencia de la auditoría inicial conservaba las 15 apariciones evaluadas en seis archivos. Las correcciones E46 de esos archivos se han versionado:
 
 - Android obtiene `SGA_GATEWAY_URL` y `SGA_DOCENTE_URL` del entorno mediante BuildConfig, con valores locales para emulador. Constants y SettingsScreen comparten esa configuración. Las preferencias persistidas por instalaciones anteriores no se borran automáticamente; puede ser necesario restablecer endpoints en Ajustes.
 - Los dos Calificaciones.jsx importan `IA_API_BASE_URL` desde el módulo de configuración existente. Usan `VITE_IA_API_URL`, con fallback al hostname actual y puerto del servicio IA.
@@ -19,7 +19,7 @@ Se conservan las plantillas, exclusiones de archivos de entorno reales y configu
 
 ## HISTORIAL
 
-**COMPUERTA ACTIVA:**
+**COMPUERTA ACTIVA — estado previo a la reescritura real:**
 - known = 11
 - new = 0
 - replaced = 0
@@ -28,19 +28,23 @@ Se conservan las plantillas, exclusiones de archivos de entorno reales y configu
 - gateExit = 0
 - processExit = 0
 
-**AUDITORÍA AMPLIADA:**
+La evidencia oficial reproducible actual es la configuración por omisión de Gitleaks (`useDefault = true`) y su deuda histórica clasificada. `scannerExit = 2` indica hallazgos; `known` representa deuda histórica ya clasificada. `gateExit = 2` solamente cuando existen `new`, `replaced` o `extra`. Si solo existen hallazgos `known`, `gateExit = 0` y el proceso puede terminar correctamente. El baseline no significa que el historial esté saneado: E46 sigue pendiente mientras exista deuda histórica, aunque la compuerta de regresión no bloquee CI por hallazgos `known`.
+
+**AUDITORÍA AMPLIADA LOCAL/EXPERIMENTAL PREVIA — no es evidencia oficial actual:**
 - baseline occurrences = 11
 - additional occurrences = 91
 - total observed occurrences = 102
 - rules e46-* active in CI = false
 
-El [inventario](e46_inventario_historico.md) y [metadata por ocurrencia](e46_historial_metadata.json) documentan commits y refs alcanzables. Confirman los tres archivos señalados y otras ubicaciones antiguas de dumps/configuraciones. El detector no certifica haber encontrado todos los secretos ni su vigencia.
+Las 102 ocurrencias corresponden a una auditoría ampliada local/experimental previa, ejecutada con reglas `e46-*` no versionadas/no activas en CI; el resultado no es reproducible desde el árbol actual y no forma parte de la compuerta oficial. No se presenta esta cifra como resultado de la configuración activa ni de CI.
+
+El [inventario](e46_inventario_historico.md) y [metadata por ocurrencia](e46_historial_metadata.json) conservan el contexto de esa auditoría previa, con commits y refs alcanzables en aquel momento. Incluyen los tres archivos señalados y otras ubicaciones antiguas de dumps/configuraciones; no sustituyen la evidencia oficial reproducible actual. El detector no certifica haber encontrado todos los secretos ni su vigencia.
 
 Se identificaron cuatro mensajes históricos con direcciones. Las refs locales incluyen main, ramas remotas, tags y stash; no se afirma sincronización completa con el servidor. La limpieza histórica es necesaria para E46 y sigue pendiente conforme al [plan de reescritura](e46_plan_reescritura.md).
 
 ## ROTACIÓN
 
-**Rotaciones verificadas: Ninguna acreditada.**
+**JWT_SECRET acreditado en CI y rotado/verificado operativamente en producción. Las demás categorías permanecen pendientes de validación o rotación según corresponda.**
 
 ## Estado de rotación JWT_SECRET
 
@@ -74,34 +78,52 @@ Se identificaron cuatro mensajes históricos con direcciones. Las refs locales i
 - sga‑principal instancia 1: status=running, sin healthcheck, exit=0
 - sga‑principal instancia 2: status=running, sin healthcheck, exit=0
 
-El [registro](registro_rotacion_e46.md) separa PostgreSQL, JWT, gRPC, SMTP, cuenta administrativa, hashes de usuarios, APIs, Firebase y cifrado. Todos están PENDIENTE; algunas categorías requieren confirmar exposición. Juliana debe aportar evidencia externa verificable para cada caso aplicable. No se intentó autenticar con valores históricos ni cambiar servicios de producción.
+El [registro](registro_rotacion_e46.md) separa PostgreSQL, JWT, gRPC, SMTP, cuenta administrativa, hashes de usuarios, APIs, Firebase y cifrado. Para JWT_SECRET, el estado actualizado es el acreditado en la evidencia anterior de CI y producción. Las demás categorías permanecen pendientes de validación o rotación según corresponda; algunas requieren confirmar exposición. Juliana debe aportar evidencia externa verificable para los casos restantes aplicables. El registro histórico no se modifica en esta actualización documental.
 
 ## APK
+
+### APK v1.0.2 — evidencia histórica
 
 La copia local del APK v1.0.2 coincide con el digest del asset consultado mediante la API de GitHub. Tiene **1 aparición en classes.dex**. Evidencia: `e46_apk_anterior.json`.
 
 SHA-256 del APK anterior: `cfd6b03995b292cba2a9926fc9adde3c6e9ebc075e2e034fee68b117d476e27c`.
 
-APK de revisión: `app-movil-docente/app/build/outputs/apk/release/app-release.apk`.
+### APK local de revisión anterior — evidencia histórica local
+
+Ubicación utilizada para aquel APK de revisión: `app-movil-docente/app/build/outputs/apk/release/app-release.apk`. Esta ruta de salida puede reutilizarse; el hash siguiente identifica el artefacto histórico local, no el release oficial actual.
 
 SHA-256: `ff5bda44157d60407d085ef4d9b1ae67a6aaca856ce651b528c5dd29d4945f7a`.
 
-Se generó con wrapper oficial, endpoints locales y keystore sintético temporal. Inspección de todas las entradas ZIP, incluidos DEX/recursos, como ASCII/UTF-8 y UTF-16LE: **production_server_literal_occurrences = 0**. Evidencia: `e46_apk_revision.json`. La firma sintética es de revisión y no permite actualizar instalaciones firmadas con la clave de producción. No se publicó ni reemplazó v1.0.2. Distribuirlo requiere firma/configuración autorizadas, nueva verificación y retirada o sustitución del asset antiguo.
+Se generó con wrapper oficial, endpoints locales y keystore sintético temporal. Inspección de todas las entradas ZIP, incluidos DEX/recursos, como ASCII/UTF-8 y UTF-16LE: **production_server_literal_occurrences = 0**. Evidencia: `e46_apk_revision.json`. La firma sintética es de revisión y no permite actualizar instalaciones firmadas con la clave de producción. Ese APK local no fue publicado ni reemplazó v1.0.2; se conserva únicamente como evidencia histórica local.
+
+### APK v1.0.3 — release oficial actual
+
+- versionName: `1.0.3`
+- versionCode: `4`
+- tag oficial: `v1.0.3`
+- commit: `09999410434829d60b4246a520b20a1cf089b3af`
+- SHA-256: `52ad00c1a0f31fdf3b7d9ad595ae80544bfb1fa3ae729c8184ada10bf301a227`
+- SHA256SUMS validado
+- firma APK válida
+- certificado coincide
+- referencias de producción = `0`
+
+El release histórico v1.0.2 continúa publicado y su APK anterior permanece accesible; su retirada o gestión continúa pendiente.
 
 ## CI
 
-Workflow con Gitleaks 8.18.0, checkout completo y cuatro modos del helper. El histórico usa `--all --full-history -m`, rechaza clones shallow y **falla con 2 ante cualquier hallazgo, incluso conocido**. El baseline clasifica deuda; no la autoriza ni vuelve verde CI. Errores devuelven 1. El workflow seguirá bloqueado mientras exista deuda.
+Workflow con Gitleaks 8.18.0, checkout completo y cuatro modos del helper. El histórico usa `--all --full-history -m` y rechaza clones shallow. El scanner puede devolver `scannerExit = 2` al encontrar hallazgos. La compuerta de regresión devuelve `gateExit = 2` solamente ante `new`, `replaced` o `extra`; si únicamente hay `known`, devuelve `gateExit = 0` y el proceso puede terminar correctamente. El baseline clasifica deuda conocida, pero no acredita saneamiento histórico. Errores de ejecución devuelven 1. E46 sigue pendiente mientras exista deuda histórica, aunque los hallazgos `known` no bloqueen CI.
 
 La consola solo muestra resultados sanitizados; el reporte temporal redactado se elimina. La metadata incluye ruta, regla, commit, ubicación e identidad derivada únicamente de metadata, nunca valores ni hashes de secretos. Tree cubre tracked y la lista explícita de nuevos archivos E46 bajo revisión; no incluye untracked ajenos.
 
-El autotest de árbol inserta una credencial sintética en una copia temporal. El histórico prueba además el detector real en un repositorio desechable y mutaciones de metadata. No modifica refs del proyecto. No se afirma ejecución publicada de CI.
+El autotest de árbol inserta una credencial sintética en una copia temporal. El histórico prueba además el detector real en un repositorio desechable y mutaciones de metadata. No modifica refs del proyecto. La evidencia publicada de CI para JWT_SECRET se conserva en su sección; las verificaciones locales siguientes no se presentan como nuevas ejecuciones de CI.
 
 ## Verificaciones locales
 
 | Verificación | Resultado |
 |---|---|
 | tree | 0 hallazgos; código 0 |
-| history | 102; 11 conocidos, 91 adicionales; scanner/compuerta 2 |
+| history, configuración oficial previa a la reescritura real | known = 11; new = 0; replaced = 0; extra = 0; scannerExit = 2; gateExit = 0; processExit = 0 |
 | self-test | PASS; mutación rechazada con 2, autotest 0 |
 | self-test-history | PASS; detector histórico rechaza con 2, autotest 0 |
 | Frontend Principal | npm ci --ignore-scripts y npm run build: 0 |
@@ -110,6 +132,13 @@ El autotest de árbol inserta una credencial sintética en una copia temporal. E
 | Python | Sintaxis válida; cuatro pruebas sin red: OK |
 | git diff --check | 0, sin errores |
 
-Android requiere JAVA_HOME, ANDROID_HOME y GRADLE_USER_HOME locales y keystore de revisión. Desde su directorio: `./gradlew.bat assembleRelease testDebugUnitTest jacocoTestReport --console=plain`. Los intentos iniciales fallaron por permisos y SDK sin configurar; con rutas correctas pasaron. Secretaría requirió ejecutar el build fuera del sandbox por acceso denegado de esbuild. Los frontends no declaran script de tests; se verificaron builds. No se probaron conexiones de producción.
+Android requiere JAVA_HOME, ANDROID_HOME y GRADLE_USER_HOME locales y keystore de revisión. Desde su directorio: `./gradlew.bat assembleRelease testDebugUnitTest jacocoTestReport --console=plain`. Los intentos iniciales fallaron por permisos y SDK sin configurar; con rutas correctas pasaron. Secretaría requirió ejecutar el build fuera del sandbox por acceso denegado de esbuild. Los frontends no declaran script de tests; se verificaron builds. Estas pruebas locales no incluyeron conexiones de producción; la verificación operativa posterior de JWT_SECRET se documenta por separado en su sección.
 
-**Falta para cerrar:** acreditar rotaciones/revocaciones aplicables, aprobar y ejecutar limpieza de todas las refs con history=0, verificar copias/cachés/forks y retirar o sustituir el APK publicado. El plan conserva pendientes explícitos sobre refs remotas, mapas protegidos y número definitivo de commits; una simulación no ejecutada no es evidencia.
+**Falta para cerrar:**
+
+- acreditar las rotaciones/revocaciones restantes que sean aplicables;
+- aprobar y ejecutar la reescritura REAL del historial remoto hasta obtener history=0;
+- revisar copias, cachés, forks y refs antiguas después de la reescritura;
+- retirar o gestionar el release histórico v1.0.2 mientras siga publicado.
+
+La simulación aislada de reescritura sí fue ejecutada exitosamente, pero no equivale a la limpieza ni publicación del historial remoto real.
