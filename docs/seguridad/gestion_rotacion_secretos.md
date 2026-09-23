@@ -1,7 +1,7 @@
 # Gestión de secretos fuera del árbol versionado — E46
 
 Revisión: 2026-09-23. Rama `Juliana-Emanuel`; commit de referencia de la auditoría inicial `9c49a4b7`.
-**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET, la credencial PostgreSQL del rol `sga_app` y SMTP están rotados y verificados operativamente. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
+**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET, la credencial PostgreSQL del rol `sga_app`, SMTP, la credencial usada por el script operativo histórico y los hashes de autenticación que seguían vigentes están rotados o invalidados y verificados. Permanecen pendientes el saneamiento real del historial remoto y la gestión del release histórico v1.0.2.**
 Los cambios E46 documentados se han versionado en la rama `Juliana-Emanuel`. No se ha ejecutado una reescritura real del historial remoto. El release móvil v1.0.3 fue publicado y verificado.
 
 ## HEAD ACTUAL / árbol de trabajo
@@ -44,7 +44,7 @@ Se identificaron cuatro mensajes históricos con direcciones. Las refs locales i
 
 ## ROTACIÓN
 
-**JWT_SECRET, la credencial PostgreSQL del rol `sga_app` y SMTP están ROTADOS Y VERIFICADOS. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
+**JWT_SECRET, la credencial PostgreSQL del rol `sga_app`, SMTP, la cuenta usada históricamente por el script operativo y los hashes de usuarios que seguían vigentes están ROTADOS/INVALIDADOS Y VERIFICADOS.**
 
 ## Estado de rotación PostgreSQL — `sga_app`
 
@@ -117,6 +117,30 @@ No se almacena ni documenta el valor anterior ni el nuevo de la contraseña SMTP
 
 El [registro](registro_rotacion_e46.md) separa PostgreSQL, JWT, gRPC, SMTP, cuenta administrativa, hashes de usuarios, APIs, Firebase y cifrado. Para JWT_SECRET, el estado actualizado es el acreditado en la evidencia anterior de CI y producción. Las demás categorías permanecen pendientes de validación o rotación según corresponda; algunas requieren confirmar exposición. Juliana debe aportar evidencia externa verificable para los casos restantes aplicables. El registro histórico no se modifica en esta actualización documental.
 
+## Estado de la cuenta usada por el script operativo histórico
+
+- Fecha: 2026-09-23.
+- La cuenta identificada en `scripts/populate_all_docentes_full.py` continúa existiendo en producción.
+- La verificación actual mostró `ROLE_REPRESENTANTE`; no se acredita que actualmente sea una cuenta administrativa.
+- La contraseña histórica fue invalidada sustituyendo el hash por uno generado desde una credencial aleatoria que no se mostró ni se almacenó.
+- Se estableció `primer_ingreso=true`, `intentos_fallidos=0` y `bloqueado_hasta=NULL`.
+- El rol y el estado de la cuenta no fueron modificados.
+- La nueva credencial aleatoria no se conserva; si la cuenta vuelve a utilizarse deberá ejecutarse un reset autorizado.
+
+## Estado de hashes históricos de usuarios
+
+- Fecha: 2026-09-23.
+- Se identificaron 21 hashes bcrypt históricos únicos en dumps y baselines alcanzables.
+- Se revisaron 36 cuentas actuales sin imprimir usernames, correos, contraseñas ni hashes.
+- 19 cuentas conservaban un hash exactamente igual a alguno de los hashes históricos.
+- Las 19 estaban activas, disponían de correo y ninguna registraba acceso previo.
+- Distribución: 3 con `ROLE_REPRESENTANTE` y 16 sin rol.
+- Las 19 coincidencias fueron sustituidas por hashes bcrypt nuevos derivados de credenciales aleatorias independientes.
+- Los valores planos no fueron mostrados ni almacenados.
+- Se estableció `primer_ingreso=true`, `intentos_fallidos=0` y `bloqueado_hasta=NULL`.
+- Resultado posterior: **19 cuentas rotadas y 0 hashes históricos vigentes en producción**.
+- Evidencia sanitizada: `docs/seguridad/e46_rotacion_usuarios_2026-09-23.md`.
+
 ## APK
 
 ### APK v1.0.2 — evidencia histórica
@@ -160,7 +184,7 @@ El autotest de árbol inserta una credencial sintética en una copia temporal. E
 | Verificación | Resultado |
 |---|---|
 | tree | 0 hallazgos; código 0 |
-| history, configuración oficial previa a la reescritura real | known = 11; new = 0; replaced = 0; extra = 0; scannerExit = 2; gateExit = 0; processExit = 0 |
+| history, después de sincronizar `Juliana-Emanuel` con `main` y antes de la reescritura real | known = 7; new = 0; replaced = 4; extra = 8; scannerExit = 2; gateExit = 2 |
 | self-test | PASS; mutación rechazada con 2, autotest 0 |
 | self-test-history | PASS; detector histórico rechaza con 2, autotest 0 |
 | Frontend Principal | npm ci --ignore-scripts y npm run build: 0 |
@@ -173,7 +197,6 @@ Android requiere JAVA_HOME, ANDROID_HOME y GRADLE_USER_HOME locales y keystore d
 
 **Falta para cerrar:**
 
-- acreditar las rotaciones/revocaciones restantes que sean aplicables;
 - aprobar y ejecutar la reescritura REAL del historial remoto hasta obtener history=0;
 - revisar copias, cachés, forks y refs antiguas después de la reescritura;
 - retirar o gestionar el release histórico v1.0.2 mientras siga publicado.
