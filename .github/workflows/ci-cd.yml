@@ -49,7 +49,7 @@ jobs:
           SECRET_SCAN_REPORT_DIR: ${{ runner.temp }}/secret-scan-reports
         run: node scripts/scan-secrets.cjs tree
 
-      - name: Escanear historial completo y bloquear hallazgos nuevos frente a deuda documentada
+      - name: Escanear historial completo y bloquear toda deuda pendiente
         if: ${{ !cancelled() }}
         env:
           SECRET_SCAN_REPORT_DIR: ${{ runner.temp }}/secret-scan-reports
