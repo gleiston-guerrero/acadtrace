@@ -1,7 +1,7 @@
 # Gestión de secretos fuera del árbol versionado — E46
 
 Revisión: 2026-09-23. Rama `Juliana-Emanuel`; commit de referencia de la auditoría inicial `9c49a4b7`.
-**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET, la credencial PostgreSQL del rol `sga_app`, SMTP, la credencial usada por el script operativo histórico y los hashes de autenticación que seguían vigentes están rotados o invalidados y verificados. Permanecen pendientes el saneamiento real del historial remoto y la gestión del release histórico v1.0.2.**
+**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET, la credencial PostgreSQL del rol `sga_app`, SMTP, la credencial usada por el script operativo histórico y los hashes de autenticación vigentes fueron rotados o invalidados y verificados. Los assets móviles históricos de v1.0.2 también fueron retirados. Permanece pendiente el saneamiento real del historial remoto y su verificación posterior.**
 Los cambios E46 documentados se han versionado en la rama `Juliana-Emanuel`. No se ha ejecutado una reescritura real del historial remoto. El release móvil v1.0.3 fue publicado y verificado.
 
 ## HEAD ACTUAL / árbol de trabajo
@@ -169,7 +169,7 @@ Se generó con wrapper oficial, endpoints locales y keystore sintético temporal
 - certificado coincide
 - referencias de producción = `0`
 
-El release histórico v1.0.2 continúa publicado y su APK anterior permanece accesible; su retirada o gestión continúa pendiente.
+El release histórico v1.0.2 permanece publicado como referencia documental, pero el 2026-09-23 se retiraron `app-release.apk`, `app-release.aab`, `CERTIFICATE_SHA256.txt` y `SHA256SUMS.txt`. La verificación posterior en GitHub mostró que solo permanece `TA-PFC-E4_BCEL.pdf`. El release oficial limpio para la aplicación móvil continúa siendo v1.0.3.
 
 ## CI
 
@@ -199,6 +199,5 @@ Android requiere JAVA_HOME, ANDROID_HOME y GRADLE_USER_HOME locales y keystore d
 
 - aprobar y ejecutar la reescritura REAL del historial remoto hasta obtener history=0;
 - revisar copias, cachés, forks y refs antiguas después de la reescritura;
-- retirar o gestionar el release histórico v1.0.2 mientras siga publicado.
 
 La simulación aislada de reescritura sí fue ejecutada exitosamente, pero no equivale a la limpieza ni publicación del historial remoto real.
