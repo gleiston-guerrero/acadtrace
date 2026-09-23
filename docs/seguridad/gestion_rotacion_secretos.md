@@ -1,7 +1,7 @@
 # Gestión de secretos fuera del árbol versionado — E46
 
 Revisión: 2026-09-23. Rama `Juliana-Emanuel`; commit de referencia de la auditoría inicial `9c49a4b7`.
-**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET y la credencial PostgreSQL del rol `sga_app` están rotados y verificados operativamente. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
+**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET, la credencial PostgreSQL del rol `sga_app` y SMTP están rotados y verificados operativamente. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
 Los cambios E46 documentados se han versionado en la rama `Juliana-Emanuel`. No se ha ejecutado una reescritura real del historial remoto. El release móvil v1.0.3 fue publicado y verificado.
 
 ## HEAD ACTUAL / árbol de trabajo
@@ -44,7 +44,7 @@ Se identificaron cuatro mensajes históricos con direcciones. Las refs locales i
 
 ## ROTACIÓN
 
-**JWT_SECRET y la credencial PostgreSQL del rol `sga_app` están ROTADOS Y VERIFICADOS. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
+**JWT_SECRET, la credencial PostgreSQL del rol `sga_app` y SMTP están ROTADOS Y VERIFICADOS. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
 
 ## Estado de rotación PostgreSQL — `sga_app`
 
@@ -64,6 +64,24 @@ Se identificaron cuatro mensajes históricos con direcciones. Las refs locales i
 - `/actuator/health` respondió `status=UP` y el componente PostgreSQL `db` respondió `status=UP`.
 
 No se almacena en el repositorio el valor anterior ni el nuevo de la contraseña.
+
+## Estado de rotación SMTP
+
+**Producción / Gmail SMTP:**
+- Estado: ROTADO Y VERIFICADO OPERATIVAMENTE.
+- Fecha: 2026-09-23.
+- La credencial SMTP desplegada antes de la rotación coincidía con uno de los valores históricos identificados.
+- La autenticación con esa credencial fue rechazada por Gmail con código `535 5.7.8`.
+- Se generó una nueva contraseña de aplicación del proveedor.
+- La nueva credencial fue validada antes de desplegarse: `SMTP_AUTH=OK`.
+- `MAIL_PASSWORD` fue actualizado en el `.env` externo de producción.
+- Las instancias consumidoras de `sga-principal` fueron recreadas.
+- La autenticación usando el valor almacenado en producción resultó satisfactoria: `SMTP_PRODUCCION=OK`.
+- Se realizó un envío real de prueba mediante `smtp.gmail.com:587` con STARTTLS.
+- El mensaje de prueba fue recibido correctamente.
+- Evidencia visual: `evidencias/Juliana_Emanuel/e46_smtp_prueba_2026-09-23.png`.
+
+No se almacena ni documenta el valor anterior ni el nuevo de la contraseña SMTP.
 
 ## Estado de rotación JWT_SECRET
 
