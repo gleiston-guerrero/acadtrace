@@ -56,14 +56,23 @@ Se identificaron cuatro mensajes históricos con direcciones. Las refs locales i
 - El valor del secret no se almacena ni se documenta.
 
 **Producción / AWS EC2:**
-- Estado: PENDIENTE DE INFRAESTRUCTURA
+- Estado: ROTADO Y VERIFICADO OPERATIVAMENTE
 
-**Aclarar:**
-- El job de AWS solo se ejecuta con push a main.
-- El JWT_SECRET de producción se obtiene de configuración externa en EC2.
-- Juliana no realizó cambios en AWS.
-- No se afirma que la rotación de producción esté completada.
-- Debe ser acreditada por el responsable de infraestructura.
+**Evidencia:**
+- El archivo .env de producción existe.
+- .env no está versionado por Git.
+- permisos del .env: 600, propietario ubuntu.
+- JWT_SECRET estaba configurado.
+- Se generó un nuevo valor directamente en EC2 usando un CSPRNG mediante: `openssl rand -hex 32`
+- El valor nunca fue mostrado ni almacenado en documentación.
+- Se recrearon únicamente los servicios consumidores:
+  - sga‑principal
+  - microservicio‑secretaria
+  - microservicio‑soporte
+- microservicio‑secretaria: status=running, health=healthy, exit=0
+- microservicio‑soporte: status=running, sin healthcheck, exit=0
+- sga‑principal instancia 1: status=running, sin healthcheck, exit=0
+- sga‑principal instancia 2: status=running, sin healthcheck, exit=0
 
 El [registro](registro_rotacion_e46.md) separa PostgreSQL, JWT, gRPC, SMTP, cuenta administrativa, hashes de usuarios, APIs, Firebase y cifrado. Todos están PENDIENTE; algunas categorías requieren confirmar exposición. Juliana debe aportar evidencia externa verificable para cada caso aplicable. No se intentó autenticar con valores históricos ni cambiar servicios de producción.
 
