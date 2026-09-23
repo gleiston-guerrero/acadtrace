@@ -390,9 +390,12 @@ jobs:
   # ─── 2b. JOB CONTRACT-OPENAPI (E4) ─────────────────────────────────────────
   contract-openapi:
     name: E4 - Verificación de contrato OpenAPI
-    needs: test-secretaria-backend
+    needs:
+      - test-backend
+      - test-secretaria-backend
+      - test-soporte-backend
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -407,162 +410,144 @@ jobs:
           python-version: "3.12"
       - name: Instalar PyYAML
         run: python -m pip install PyYAML
-      - name: Empaquetar Secretaría sin repetir tests
-        working-directory: microservicio-secretaria/backend
+
+      # Los tres servicios documentan operaciones distintas en el contrato
+      # (Secretaria, Soporte y Principal); verificar solo Secretaria dejaba
+      # sin comparar 4 operaciones reales de Principal y una ruta de salud
+      # de Soporte que el contrato documentaba sin que el servicio la sirva.
+      - name: Empaquetar los tres servicios sin repetir tests
         run: |
-          bash mvnw -B -Dmaven.test.skip=true -Djacoco.skip=true package
-          test -s target/sga-secretaria-backend.jar
-      - name: Comparar OpenAPI con Secretaría y PostgreSQL efímeros
+          set -euo pipefail
+          bash microservicio-secretaria/backend/mvnw -B -f microservicio-secretaria/backend/pom.xml -Dmaven.test.skip=true -Djacoco.skip=true package
+          bash sga-principal/mvnw -B -f sga-principal/pom.xml -Dmaven.test.skip=true -Djacoco.skip=true package
+          bash microservicio-soporte/backend/mvnw -B -f microservicio-soporte/backend/pom.xml -Dmaven.test.skip=true -Djacoco.skip=true package
+          test -s microservicio-secretaria/backend/target/sga-secretaria-backend.jar
+          test -s sga-principal/target/sga-principal-0.0.1-SNAPSHOT.jar
+          test -s microservicio-soporte/backend/target/sga-soporte-backend.jar
+
+      - name: Generar credenciales efímeras
         shell: bash
         run: |
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          from pathlib import Path
-          import secrets
-          import signal
-          import subprocess
-          import sys
-          import tempfile
-          import time
-          import urllib.error
-          import urllib.request
+          set -euo pipefail
+          DB_PASSWORD="$(openssl rand -hex 32)"
+          SGA_APP_PASSWORD="$(openssl rand -hex 32)"
+          AES_SECRET_KEY="$(openssl rand -base64 32)"
+          JWT_SECRET="$(openssl rand -hex 32)"
+          GRPC_INTERNAL_TOKEN="$(openssl rand -hex 32)"
+          echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$SGA_APP_PASSWORD"
+          echo "::add-mask::$AES_SECRET_KEY"
+          echo "::add-mask::$JWT_SECRET"
+          echo "::add-mask::$GRPC_INTERNAL_TOKEN"
+          echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
+          echo "SGA_APP_PASSWORD=$SGA_APP_PASSWORD" >> "$GITHUB_ENV"
+          echo "AES_SECRET_KEY=$AES_SECRET_KEY" >> "$GITHUB_ENV"
+          echo "JWT_SECRET=$JWT_SECRET" >> "$GITHUB_ENV"
+          echo "GRPC_INTERNAL_TOKEN=$GRPC_INTERNAL_TOKEN" >> "$GITHUB_ENV"
 
-          root = Path.cwd()
-          jar = root / "microservicio-secretaria/backend/target/sga-secretaria-backend.jar"
-          url = "http://localhost:5176/v3/api-docs"
-          container = "openapi-secretaria-" + secrets.token_hex(6)
-          backend = None
-          result = 2
-          failed = False
-          stage = "PostgreSQL"
-          ephemeral = {
-              "DB_PASSWORD": secrets.token_urlsafe(32),
-              "JWT_SECRET": secrets.token_hex(32),
-              "AES_SECRET_KEY": base64.b64encode(secrets.token_bytes(32)).decode(),
-              "GRPC_INTERNAL_TOKEN": secrets.token_urlsafe(32),
+      - name: Levantar PostgreSQL y etcd efímeros
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name openapi-pg --publish 127.0.0.1::5432 \
+            --env POSTGRES_DB=sga --env POSTGRES_USER=postgres --env POSTGRES_PASSWORD="$DB_PASSWORD" \
+            --health-cmd "pg_isready -U postgres -d sga" \
+            --health-interval 2s --health-timeout 3s --health-retries 30 \
+            postgres:15-alpine
+          # Soporte usa etcd para la eleccion de lider (LeaderElectionService);
+          # sin el, su arranque se queda bloqueado indefinidamente.
+          docker run -d --name openapi-etcd --publish 127.0.0.1:2379:2379 \
+            quay.io/coreos/etcd:v3.5.9 \
+            /usr/local/bin/etcd --data-dir=/etcd-data \
+            --listen-client-urls http://0.0.0.0:2379 \
+            --advertise-client-urls http://0.0.0.0:2379
+          for intento in $(seq 1 30); do
+            [ "$(docker inspect --format='{{.State.Health.Status}}' openapi-pg)" = "healthy" ] && break
+            sleep 2
+          done
+          test "$(docker inspect --format='{{.State.Health.Status}}' openapi-pg)" = "healthy"
+          echo "DB_PORT=$(docker port openapi-pg 5432/tcp | cut -d: -f2)" >> "$GITHUB_ENV"
+
+      - name: Aplicar cadena de migraciones V8..V26
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/openapi-migrations
+          for migration in sga-principal/src/main/resources/db/migration/V*.sql; do
+            nombre="$(basename "$migration")"
+            if [ "$nombre" = "V18__rol_aplicacion_y_revocacion_auditoria.sql" ]; then
+              sed "s/\${sga_app_password}/${SGA_APP_PASSWORD}/g" "$migration" > "/tmp/openapi-migrations/$nombre"
+            else
+              cp "$migration" "/tmp/openapi-migrations/$nombre"
+            fi
+          done
+          docker exec openapi-pg mkdir -p /openapi-migrations
+          docker cp /tmp/openapi-migrations/. openapi-pg:/openapi-migrations/
+          mapfile -t MIGRACIONES < <(
+            find /tmp/openapi-migrations -maxdepth 1 -type f -name 'V*.sql' -printf '%f\n' | sort -V
+          )
+          for migration in "${MIGRACIONES[@]}"; do
+            docker exec -e PGPASSWORD="$DB_PASSWORD" openapi-pg \
+              psql -v ON_ERROR_STOP=1 -U postgres -d sga -f "/openapi-migrations/$migration"
+          done
+
+      - name: Levantar los tres servicios y verificar contrato OpenAPI
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          esperar() {
+            local url="$1" nombre="$2"
+            for intento in $(seq 1 40); do
+              if curl --fail --silent "$url" > /dev/null; then
+                echo "$nombre disponible"
+                return 0
+              fi
+              sleep 3
+            done
+            echo "::error::$nombre no respondio a tiempo"
+            return 1
           }
-          for value in ephemeral.values():
-              print("::add-mask::" + value, flush=True)
-          env = os.environ.copy()
-          env.update(ephemeral)
-          env.update({
-              "DB_HOST": "localhost", "DB_NAME": "sga",
-              "DB_USER": "sga_app", "DB_SSL": "false", "PORT": "5176",
-              "POSTGRES_DB": "sga", "POSTGRES_USER": "postgres",
-              "POSTGRES_PASSWORD": ephemeral["DB_PASSWORD"],
-          })
 
-          def docker(*args, check=True):
-              return subprocess.run(
-                  ["docker", *args], env=env, capture_output=True,
-                  text=True, check=check, timeout=120,
-              )
+          # Flyway ya corrio via psql (paso anterior); los servicios solo
+          # abren su propio datasource como sga_app, ya existente desde V18.
+          DB_HOST=127.0.0.1 DB_PORT="$DB_PORT" DB_NAME=sga DB_USER=sga_app DB_SSL=false PORT=5176 \
+          DB_PASSWORD="$SGA_APP_PASSWORD" SPRING_FLYWAY_ENABLED=false \
+          JWT_SECRET="$JWT_SECRET" GRPC_INTERNAL_TOKEN="$GRPC_INTERNAL_TOKEN" AES_SECRET_KEY="$AES_SECRET_KEY" \
+          nohup java -jar microservicio-secretaria/backend/target/sga-secretaria-backend.jar > secretaria.log 2>&1 &
 
-          def interrupted(signum, frame):
-              raise SystemExit(2)
+          DB_HOST=127.0.0.1 DB_PORT="$DB_PORT" DB_NAME=sga DB_USER=sga_app DB_PASSWORD="$SGA_APP_PASSWORD" \
+          SGA_APP_PASSWORD="$SGA_APP_PASSWORD" SPRING_FLYWAY_ENABLED=false \
+          JWT_SECRET="$JWT_SECRET" AES_SECRET_KEY="$AES_SECRET_KEY" GRPC_INTERNAL_TOKEN="$GRPC_INTERNAL_TOKEN" \
+          MAIL_PASSWORD="ci-openapi" FCM_ENABLED=false \
+          nohup java -jar sga-principal/target/sga-principal-0.0.1-SNAPSHOT.jar > principal.log 2>&1 &
 
-          signal.signal(signal.SIGTERM, interrupted)
-          signal.signal(signal.SIGINT, interrupted)
+          DB_HOST=127.0.0.1 DB_PORT="$DB_PORT" DB_NAME=sga DB_USER=sga_app DB_PASSWORD="$SGA_APP_PASSWORD" \
+          JWT_SECRET="$JWT_SECRET" GRPC_INTERNAL_TOKEN="$GRPC_INTERNAL_TOKEN" SPRING_FLYWAY_ENABLED=false \
+          ETCD_ENDPOINTS=http://localhost:2379 \
+          nohup java -jar microservicio-soporte/backend/target/sga-soporte-backend.jar > soporte.log 2>&1 &
 
-          with tempfile.TemporaryDirectory(prefix="openapi-secretaria-") as temporary:
-              logfile = Path(temporary) / "backend.log"
-              try:
-                  # Sin mounts, SQL ni migraciones: base nueva y vacía.
-                  docker(
-                      "run", "--detach", "--name", container,
-                      "--publish", "127.0.0.1::5432",
-                      "--env", "POSTGRES_DB", "--env", "POSTGRES_USER",
-                      "--env", "POSTGRES_PASSWORD",
-                      "--health-cmd", "pg_isready -U postgres -d sga",
-                      "--health-interval", "2s", "--health-timeout", "3s",
-                      "--health-retries", "30", "postgres:15-alpine",
-                  )
-                  deadline = time.monotonic() + 60
-                  while True:
-                      state = json.loads(docker(
-                          "inspect", "--format", "{{json .State}}", container
-                      ).stdout)
-                      if not state["Running"] or state["Health"]["Status"] == "unhealthy":
-                          raise RuntimeError("PostgreSQL no saludable")
-                      if state["Health"]["Status"] == "healthy":
-                          break
-                      if time.monotonic() >= deadline:
-                          raise TimeoutError("PostgreSQL")
-                      time.sleep(1)
-                  mapping = docker("port", container, "5432/tcp").stdout.strip()
-                  env["DB_PORT"] = mapping.rsplit(":", 1)[1]
+          esperar "http://localhost:5176/v3/api-docs" "Secretaria"
+          esperar "http://localhost:8080/v3/api-docs" "Principal"
+          esperar "http://localhost:5178/v3/api-docs" "Soporte"
 
-                  stage = "startup/OpenAPI"
-                  # CWD temporal para no cargar un .env del repositorio.
-                  with logfile.open("wb") as output:
-                      backend = subprocess.Popen(
-                          ["java", "-jar", str(jar)], cwd=temporary, env=env,
-                          stdout=output, stderr=subprocess.STDOUT,
-                      )
-                  print(f"PID Secretaría: {backend.pid}", flush=True)
-                  deadline = time.monotonic() + 60
-                  while True:
-                      if backend.poll() is not None:
-                          raise RuntimeError("Java terminó antes de estar listo")
-                      remaining = deadline - time.monotonic()
-                      if remaining <= 0:
-                          raise TimeoutError("OpenAPI")
-                      try:
-                          with urllib.request.urlopen(url, timeout=min(2, remaining)) as response:
-                              if response.status != 200 or response.geturl() != url:
-                                  raise ValueError("HTTP inesperado")
-                              document = json.load(response)
-                              if not isinstance(document, dict) or not isinstance(document.get("paths"), dict):
-                                  raise ValueError("JSON sin paths")
-                          break
-                      except (urllib.error.URLError, TimeoutError, ValueError, OSError):
-                          time.sleep(min(1, max(0, deadline - time.monotonic())))
-                  if backend.poll() is not None:
-                      raise RuntimeError("Java terminó antes de la verificación")
-                  stage = "verificador"
-                  # El script existente valida OpenAPI y compara método + path.
-                  result = subprocess.run(
-                      [sys.executable, "scripts/verificar_openapi.py"],
-                      cwd=root, env=env, check=False, timeout=30,
-                  ).returncode
-                  failed = result == 2
-              except Exception as exc:
-                  print(f"ERROR en {stage}: {type(exc).__name__}", file=sys.stderr)
-                  result = 2
-                  failed = True
-              finally:
-                  # La limpieza no sustituye el exit code del verificador.
-                  try:
-                      if backend is not None and backend.poll() is None:
-                          backend.terminate()
-                          try:
-                              backend.wait(timeout=10)
-                          except subprocess.TimeoutExpired:
-                              backend.kill()
-                              backend.wait(timeout=5)
-                  finally:
-                      try:
-                          if failed:
-                              text = logfile.read_text(encoding="utf-8", errors="replace") if logfile.exists() else ""
-                              pg = docker("logs", "--tail", "40", container, check=False)
-                              text += "\nPostgreSQL:\n" + pg.stdout + pg.stderr
-                              for value in ephemeral.values():
-                                  text = text.replace(value, "[REDACTADO]")
-                              for line in text.splitlines()[-160:]:
-                                  print("diagnóstico | " + line)
-                      except Exception:
-                          print("No se pudieron recuperar todos los logs de diagnóstico.")
-                      finally:
-                          try:
-                              cleanup = docker("rm", "--force", "--volumes", container, check=False)
-                              if cleanup.returncode != 0:
-                                  print("::warning::Comprobar limpieza del contenedor efímero.")
-                          except Exception:
-                              print("::warning::No se pudo completar la limpieza Docker.")
-          sys.exit(result)
-          PY
+          OPENAPI_SECRETARIA_URL=http://localhost:5176/v3/api-docs \
+          OPENAPI_PRINCIPAL_URL=http://localhost:8080/v3/api-docs \
+          OPENAPI_SOPORTE_URL=http://localhost:5178/v3/api-docs \
+          python scripts/verificar_openapi.py --service all
+
+      - name: Recolectar logs si algo fallo
+        if: failure()
+        shell: bash
+        run: |
+          echo "--- Secretaria ---"; cat secretaria.log 2>/dev/null || true
+          echo "--- Principal ---"; cat principal.log 2>/dev/null || true
+          echo "--- Soporte ---"; cat soporte.log 2>/dev/null || true
+
+      - name: Limpieza
+        if: always()
+        shell: bash
+        run: docker rm --force --volumes openapi-pg openapi-etcd 2>/dev/null || true
 
   test-web:
     name: 3. Construcción y Validación Frontend Web

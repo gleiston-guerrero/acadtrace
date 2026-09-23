@@ -14,7 +14,7 @@ veredicto & Cumple el umbral en escenario nominal local \\ \hline
 \hline
 caracteristica & Fiabilidad \\ \hline
 indicador & Carga nominal A, estrés oficial 200 usuarios y ventanas históricas \\ \hline
-valor & Nominal A: peticiones=12217, fallos=0 (éxito 100.00\%, IC 95\% [99.97\%, 100.00\%]); Estrés oficial (200 usuarios): peticiones=98684, fallos=0 (éxito 100.00\%, IC 95\% [99.99\%, 100.00\%]); Antecedente histórico: 10 ventanas locust\_esc3 (éxito entre 12,78 \% y 34,5781 \%) \\ \hline
+valor & Nominal A: peticiones=12217, fallos=0 (éxito 100.00\%, IC 95\% [99.97\%, 100.00\%]); Estrés oficial (200 usuarios): peticiones=98684, fallos=0 (éxito 100.00\%, IC 95\% [99.9961\%, 100.00\%]); Antecedente histórico: 10 ventanas locust\_esc3 (éxito entre 12,78 \% y 34,5781 \%) \\ \hline
 fuente & microservicio-soporte/locust\_esc1\_stats.csv (Aggregated); microservicio-soporte/resultados\_estres/20260920\_164722/locust\_estres\_200\_stats.csv (Aggregated); experimentos/resultados/iso25010.csv (ventanas locust\_esc3) \\ \hline
 alcance & Conjunto nominal A (50 usuarios) y corrida oficial de estrés (200 usuarios) en entorno local/contenedorizado; ventanas históricas de referencia \\ \hline
 criterio & Cero fallos (tasa de error 0.00\%, éxito \textgreater{}= 99.90\%) en nominal y estrés oficial \\ \hline
@@ -47,7 +47,7 @@ veredicto & Cumple en pruebas sintéticas: 0 falsos positivos (FPR = 0.00\%, IC 
 \hline
 caracteristica & Mantenibilidad \\ \hline
 indicador & Cobertura oficial de pruebas por módulo \\ \hline
-valor & Principal: INSTRUCTION 4668/14237 = 32.79\%; Secretaría: LINE 2115/2882 = 73.39\%; Soporte: LINE 458/640 = 71.56\%; Aplicación móvil: INSTRUCTION 7611/74556 = 10.21\% \\ \hline
+valor & Principal: INSTRUCTION 4668/14237 = 32.79\%; Secretaría: LINE 2315/3110 = 74.44\%; Soporte: LINE 458/640 = 71.56\%; Aplicación móvil: INSTRUCTION 7611/74556 = 10.21\% \\ \hline
 fuente & docs/cobertura/sga-principal/jacoco.xml (contador global INSTRUCTION); docs/cobertura/secretaria/jacoco.xml (contador global LINE); docs/cobertura/soporte/jacoco.xml (contador global LINE); docs/cobertura/movil/jacoco.xml (contador global INSTRUCTION); evidencia común: CI \#876, run 35693153935, commit 6c1f67ab28d569643b4c7ec4f740d7221bd60b0f \\ \hline
 alcance & Un único contador oficial por módulo, obtenido del reporte JaCoCo versionado generado por integración continua \\ \hline
 criterio & Principal: mínimo 30\% INSTRUCTION; Secretaría: mínimo 70\% LINE; Soporte: mínimo 70\% LINE; Aplicación móvil: mínimo 10\% INSTRUCTION \\ \hline

@@ -16,7 +16,7 @@ El sistema está compuesto por un módulo principal y cuatro microservicios aut�
 | Servicio | Tecnología Backend | Puerto REST | Puerto gRPC | Puerto Frontend | Responsabilidad Principal |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **SGA Principal** | Java 21 (Spring Boot) | 8080 | 9092 | 5173 | Core Académico, Usuarios, Autenticación y Módulos |
-| **Microservicio Docente** | Python 3.12 (Django REST) | 8081 | 9091 | 5174 | Gestión de Asistencia, Evaluaciones y Calificaciones |
+| **Microservicio Docente** | Python 3.12+ (Django 6.0.6 REST) | 8081 | 9091 | 5174 | Gestión de Asistencia, Evaluaciones y Calificaciones |
 | **Microservicio Secretaría** | Java 21 (Spring Boot) | 8082 | 9093 | 5176 | Control de Trámites, Certificados, Matrícula y Auditoría HMAC |
 | **Microservicio Soporte** | Java 17 (Spring Boot) | 8083 | 9094 | 8083 | Tickets de Incidencias, Elección de Líder etcd y Actuator |
 | **Microservicio IA** | Python (FastAPI) | 8084 | — | — | Diagnóstico académico y asistencia mediante inteligencia artificial |
@@ -39,8 +39,8 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 
 | Estructura Prescrita | Carpeta en AcadTrace | Contenido y Responsabilidad | Comando de Reproducción |
 | :--- | :--- | :--- | :--- |
-| `src/core` | [`sga-principal/`](sga-principal/) | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && ./mvnw test` |
-| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 5 / Python 3.12 | Desde la raíz del repositorio, con Python instalado. **PowerShell 5.1 / Windows:** `Set-Location -ErrorAction Stop microservicio-docente; py -3 -m venv .venv; if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear el venv' }; .\.venv\Scripts\python.exe -m pip install -r requirements.txt; if ($LASTEXITCODE -ne 0) { throw 'No se pudieron instalar las dependencias' }; $env:GRPC_INTERNAL_TOKEN='test-internal-token'; .\.venv\Scripts\python.exe -m pytest`<br>**Bash / Linux:** `cd microservicio-docente && python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt && GRPC_INTERNAL_TOKEN=test-internal-token .venv/bin/python -m pytest` |
+| `src/core` | [`sga-principal/`](sga-principal/) | Núcleo académico en Spring Boot 3 / Java 21, autenticación JWT, entidades JPA y gRPC server (:9092) | `cd sga-principal && JWT_SECRET=test-jwt-secret ./mvnw test` |
+| `src/docente` | [`microservicio-docente/`](microservicio-docente/) | Gestión de evaluaciones, asistencia y auditoría criptográfica SHA-256 en Django 6.0.6 / Python 3.12+ | Desde la raíz del repositorio, con Python instalado. **PowerShell 5.1 / Windows:** `Set-Location -ErrorAction Stop microservicio-docente; python -c "import sys; raise SystemExit(0 if sys.version_info >= (3,12) else 1)"; if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 o superior es requerido' }; python -m venv .venv; if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear el venv' }; .\.venv\Scripts\python.exe -m pip install -r requirements.txt; if ($LASTEXITCODE -ne 0) { throw 'No se pudieron instalar las dependencias' }; $env:GRPC_INTERNAL_TOKEN='test-internal-token'; .\.venv\Scripts\python.exe -m pytest`<br>**Bash / Linux:** `cd microservicio-docente && python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt && GRPC_INTERNAL_TOKEN=test-internal-token .venv/bin/python -m pytest` |
 | `src/secretaria` | [`microservicio-secretaria/`](microservicio-secretaria/) | Trámites, emisión de certificados y bitácora con HMAC en Spring Boot | `cd microservicio-secretaria/backend && ./mvnw test` |
 | `src/soporte` | [`microservicio-soporte/`](microservicio-soporte/) | Sistema de tickets, elección de líder etcd y trazabilidad Zipkin | `cd microservicio-soporte/backend && ./mvnw test` |
 | Inteligencia artificial (complementario) | [`microservicio-ia/`](microservicio-ia/) | Microservicio FastAPI para diagnóstico académico y asistencia mediante inteligencia artificial | No aplica al mapa |
@@ -50,10 +50,10 @@ Según la estructura de consolidación documentada en el proyecto, el siguiente 
 | `apps/web` — Docente | [`microservicio-docente/frontend/`](microservicio-docente/frontend/) | Interfaz web de Docente en React 19 y Vite 8 | `cd microservicio-docente/frontend && npm ci --no-audit && npm run build` |
 | `apps/web` — Soporte | [`microservicio-soporte/src/`](microservicio-soporte/src/) | Código fuente de la interfaz web de Soporte | No aplica al mapa |
 | Infraestructura (complementario) | [`infra/`](infra/), [`docker-compose.yml`](docker-compose.yml) | Configuración de infraestructura del sistema, gateway y despliegue; el Compose raíz integra los servicios y componentes operativos | No aplica al mapa |
-| `infra/gateway` | [`infra/haproxy/`](infra/haproxy/) | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `docker compose up haproxy -d` |
-| `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/), [`docker-compose.yml`](docker-compose.yml) | Observabilidad con Prometheus (:9090), Grafana (:3001) y Dozzle (:8888); el Compose raíz contiene su configuración de despliegue | `docker compose up prometheus grafana dozzle -d` |
+| `infra/gateway` | [`infra/haproxy/`](infra/haproxy/) | Balanceador perimetral HAProxy 2.9 (HTTP y gRPC) | `cp .env.example .env && docker compose up haproxy -d` |
+| `infra/observability` | [`infra/prometheus/`](infra/prometheus/), [`infra/grafana/`](infra/grafana/), [`docker-compose.yml`](docker-compose.yml) | Observabilidad con Prometheus (:9090), Grafana (:3001) y Dozzle (:8888); el Compose raíz contiene su configuración de despliegue | `cp .env.example .env && docker compose up prometheus grafana dozzle -d` |
 | Operación (complementario) | [`ops/`](ops/) | Recursos y configuración operativa de Prometheus y Grafana, en una ubicación distinta de la infraestructura agrupada en `infra/` | No aplica al mapa |
-| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Verificación de bitácora, arnés de 12 vectores canónicos y reproducibilidad experimental | `python experimentos/arnes_12_vectores.py` (arnés canónico E2) y `python -m pytest experimentos/test_verificador_cadena_base.py` (22 pruebas E3). Para base PostgreSQL: `DB_HOST=<host> DB_PORT=<port> DB_USER=<user> DB_PASSWORD=<pass> DB_NAME=sga python experimentos/verificador_cadena.py` |
+| `docs/experiments` | [`experimentos/`](experimentos/), [`docs/experimentos/`](docs/experimentos/) | Verificación de bitácora, arnés de 12 vectores canónicos y reproducibilidad experimental | Preparación desde clon limpio: `cd sga-principal && ./mvnw -q -DskipTests test-compile && cd .. && cd microservicio-secretaria/backend && ./mvnw -q -DskipTests test-compile && cd ../.. && python experimentos/arnes_12_vectores.py` (arnés canónico E2; procedimiento detallado en [`experimentos/README_arnes.md`](experimentos/README_arnes.md)). `python -m pytest experimentos/test_verificador_cadena_base.py` (36 pruebas E3). Para base PostgreSQL: `DB_HOST=<host> DB_PORT=<port> DB_USER=<user> DB_PASSWORD=<pass> DB_NAME=sga python experimentos/verificador_cadena.py` |
 | Documentación técnica (complementario) | [`docs/`](docs/), [`docs/api/openapi.yaml`](docs/api/openapi.yaml), [`docs/api/README.md`](docs/api/README.md) | Arquitectura, seguridad, documentación API y contrato OpenAPI versionado | No aplica al mapa |
 | Utilidades (complementario) | [`scripts/`](scripts/), [`scripts/verificar_openapi.py`](scripts/verificar_openapi.py), [`docs/api/validate_openapi.py`](docs/api/validate_openapi.py) | Utilidades del proyecto; verificación del contrato OpenAPI runtime y validación estática del contrato versionado | No aplica al mapa |
 | Entregables (complementario) | [`release/`](release/) | Índice y documentación de verificación del release oficial `v1.0.3` (`app-release.apk`, `app-release.aab`, `SHA256SUMS.txt`, `CERTIFICATE_SHA256.txt` publicados en GitHub Release) | No aplica al mapa |
@@ -84,7 +84,7 @@ Existen dos alternativas para poner en marcha el sistema:
 Pone en marcha todos los contenedores de backend, gateway y microservicios con un solo comando:
 
 # 1. Clonar el repositorio
-git clone https://github.com/LEO23as/acadtrace.git
+git clone https://github.com/gleiston-guerrero/acadtrace.git
 cd acadtrace
 
 # 2. Levantar el stack completo (valida entorno, .env y levanta los servicios)
@@ -208,9 +208,10 @@ LIMIT 20;
 
 El job `build-images` de `.github/workflows/ci-cd.yml` publica imágenes propias
 en `ghcr.io/<repository_owner-en-minúsculas>/<imagen>`, mediante `GITHUB_TOKEN`.
-Depende de los 10 trabajos bloqueantes de prueba, validación y contrato del pipeline:
+Depende de los 11 trabajos bloqueantes de prueba, validación y contrato del pipeline:
 `test-backend`, `test-soporte-backend`, `test-secretaria-backend`, `test-web`, `lint`,
-`ci-docente`, `ci-movil-representante`, `test-mobile`, `e2e-docente` y `contract-openapi`.
+`ci-docente`, `ci-movil-representante`, `arnes-canonico`, `test-mobile`, `e2e-docente`
+y `contract-openapi`.
 
 | Imagen | Contexto de construcción | Dockerfile desde la raíz |
 |---|---|---|
@@ -240,7 +241,7 @@ al completar exitosamente el pipeline en la rama `main`.
 ## Requisitos del Sistema
 
 * **Java JDK:** JDK 17 o 21 (JDK 25 NO es compatible con Lombok 1.18.36 ni con JaCoCo 0.8.11)
-* **Python:** 3.10 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
+* **Python:** 3.12 o superior (con django, djangorestframework, grpcio, grpcio-tools, psycopg2-binary)
 * **Node.js:** ^20.19.0 || >= 22.12.0 (recomendado LTS v22.x, npm v10+)
 * **Docker & Docker Compose:** (Opcional para despliegue en contenedores)
 

@@ -19,13 +19,13 @@ Este directorio contiene la consolidación estructurada de evidencias técnicas,
 
 1. **Microservicio de Secretaría (Spring Boot 3.2.5 + Java 21):**
    - Interfaz web del portal administrativo (Dashboard de estudiantes, matrículas, cursos y reportes).
-   - Cobertura de pruebas con JaCoCo certificada en **73.39 % de líneas (LINE, 2,115/2,882)** y **72.62 % de instrucciones (11,229/15,462)** a nivel de `BUNDLE` en CI #876 (superando la compuerta mínima estricta del 70 %).
+   - Cobertura oficial JaCoCo: **74.44 % LINE (2,315/3,110)** a nivel de `BUNDLE`.
    - Integración con base de datos real en contenedores efímeros vía **Testcontainers (PostgreSQL 16)** y migraciones deterministas con **Flyway** sincronizadas al 100% con producción (secuencia completa de 17 migraciones `V8` a `V26`) en Secretaría y Principal (Entregable #37 / Criterio E13).
 2. **Criptografía, Seguridad e Inmutabilidad (Entregable #43 / Criterios E2, E3):**
    - Disparador de base de datos **Append-Only** (`tg_auditoria_append_only`) en PostgreSQL que rechaza cualquier intento de `UPDATE` o `DELETE` con excepción fatal.
    - Sellado criptográfico con **HMAC-SHA256 en tiempo constante** (`HmacService.java`) y verificación en `experimentos/verificador_cadena.py` para detectar inserciones no autorizadas por usuarios de BD (`sga_app`).
-   - Reconocimiento de bitácora relacional convencional modo `m1` sin falsos positivos de manipulación y rechazo estricto de mezclas no autorizadas en cadenas activas.
-   - Suite completa y rigurosa de 32 pruebas unitarias aisladas (`experimentos/test_verificador_cadena_base.py`) que erradican mutaciones supervivientes (monotonía Lamport, ordenamiento por id_auditoria, compatibilidad con null en campos Java y enlaces de SGA Docente) e integrada en CI.
+   - Reconocimiento de bitácora relacional convencional modo `m1` legítima: filas `m1` anteriores a toda la cadena `v1` se tratan como transición histórica de modo (no manipulación), y solo se rechazan cuando aparecen intercaladas después de que la cadena `v1` ya estaba activa.
+   - Suite de 36 pruebas unitarias aisladas (`experimentos/test_verificador_cadena_base.py`) integrada en CI, incluyendo casos previamente sin cobertura: enlace real Docente↔bitácora institucional (por `hash_actual` + `entidad_id`, tanto el caso legítimo como el falso), la ruta de cadena rota (`HASH_ACTUAL_INVALIDO`) de extremo a extremo, y la falla cerrada cuando `JWT_SECRET` no está disponible.
    - Cifrado simétrico autenticado **AES-256-GCM** (`CryptoService.java`) con IV aleatorio para datos de menores (LOPDP).
    - Protección perimetral de endpoints con token JWT HMAC-SHA256 (`HTTP 401 Unauthorized`).
 3. **Calidad, Contratos OpenAPI y Matriz ISO/IEC 25010 (Entregables #4, #22, #48):**
@@ -50,7 +50,6 @@ evidencias/
     │   ├── portal-secretaria.png                    # Captura real del dashboard administrativo (localhost:5176/dashboard)
     │   ├── grados-cursos-secretaira.png             # Captura del módulo de Grados y Cursos de Secretaría
     │   ├── secretaria_portal.png                    # Captura integrada oficial del portal administrativo
-    │   └── jacoco_cobertura_71_porciento.png        # Captura del reporte oficial JaCoCo superando el 70 % LINE (74.42 % LINE actual)
     │
     ├── 02-criptografia-y-seguridad/                 # Evidencias de seguridad, inmutabilidad y criptografía
     │   ├── trigger_append_only_rechazo.png          # Captura en terminal demostrando rechazo de UPDATE/DELETE por el trigger
@@ -83,10 +82,10 @@ evidencias/
   - Gestión de Usuarios y Roles.
   - Importación Masiva y Reportes PDF institucionales.
 
-### B. Cobertura de Pruebas JaCoCo al 73.39 % (`Tarea E8 / Punto 38`)
+### B. Cobertura de Pruebas JaCoCo al 74.44 % (`Tarea E8 / Punto 38`)
 * **Ubicación del reporte oficial:** `docs/cobertura/secretaria/jacoco.xml` (y `docs/cobertura/README.md`)
 * **Métrica oficial:**
-  - **Líneas cubiertas (LINE):** 73.39 % (2,115 cubiertas de 2,882 líneas totales analizadas en CI #876).
+  - **L?neas cubiertas (LINE):** 74.44 % (2,315/3,110).
   - **Instrucciones cubiertas (INSTRUCTION):** 72.62 % (11,229 de 15,462 instrucciones).
   - **Batería de pruebas:** 96 pruebas automatizadas (0 fallos, 0 errores, 0 omitidas).
   - **Compuerta mínima:** Enforceable a nivel de `BUNDLE` al 70.00 % en `microservicio-secretaria/backend/pom.xml`.
@@ -169,9 +168,9 @@ evidencias/
   1. **Soporte de bitácora relacional `m1` legítima y rechazo de mezcla no autorizada:** Detección precisa de filas sin hash previo ni bloque cuando la auditoría opera legítimamente en modo relacional estándar (`m1`), pero rechazo categórico con código de salida 2 si se detecta una mezcla de filas `m1` dentro de una cadena `v1` activa o cuando `estado_cadena_auditoria` tiene una cabeza inicializada.
   2. **Verificación criptográfica HMAC-SHA256 y paridad con Java:** Verificación canónica de la firma HMAC contra la clave simétrica (`JWT_SECRET` cargada automáticamente de entorno o `.env`). Se implementó paridad estricta con el cálculo de Java `String.valueOf(null)` formateando valores nulos en `registro_id` y `trace_id` como `"null"`, preservando a la vez retrocompatibilidad con esquemas legacy mediante `legacy_null`.
   3. **Verificación estricta de orden cronológico y causal:** Comprobación estricta de monotonía creciente en relojes lógicos de Lamport ($L_i > L_{i-1}$) y ordenamiento monótono de identificadores primarios `id_auditoria`, invalidando cualquier retroceso o reordenamiento artificial.
-  4. **Validación de enlaces foráneos de SGA Docente:** Detección de enlaces ficticios o huérfanos validando la presencia del `id_auditoria_docente` contra la bitácora `sga_docente.eventos_auditoria`.
-  5. **Aislamiento estricto y resistencia a mutaciones:** 32 pruebas unitarias que cubren exhaustivamente cada escenario forense y código de retorno (`0`: íntegro, `1`: error de sintaxis/argumentos, `2`: violación de integridad/manipulación detectada, `3`: fallo de conectividad de BD).
-* **Resultado:** **32 passed in 1.64s (100 % de éxito)**.
+  4. **Validación del enlace real Docente↔bitácora institucional:** un eslabón `DOCENTE` en `sga_principal.auditoria` se coteja contra `sga_docente.eventos_auditoria` por `hash_actual` y `entidad_id` (no existe columna `id_auditoria_docente` ni en el repositorio ni en el modelo `EventoAuditoria`, cuya clave primaria es `id_evento`; `registro_id` es el `entidad_id` de dominio, no un id de evento). Un eslabón sin fila correspondiente en la bitácora local se rechaza con código 2; un cotejo que no se puede ejecutar tampoco se descarta como íntegro.
+  5. **Aislamiento estricto:** 36 pruebas unitarias que cubren cada escenario forense. Códigos de retorno reales del script (no hay código `3`): `0` íntegro, `1` fallo de infraestructura (conexión/consulta a la base de datos), `2` manipulación detectada o integridad no verificable (incluye HMAC sin `JWT_SECRET` disponible).
+* **Resultado:** **36 passed en ~0.8 s (100 % de éxito)**.
 * **Comando reproducible:**
   ```powershell
   python -m pytest experimentos/test_verificador_cadena_base.py -v
