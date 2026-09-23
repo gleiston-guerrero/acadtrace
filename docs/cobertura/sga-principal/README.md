@@ -1,7 +1,6 @@
 # Cobertura de sga-principal
 
-El reporte HTML de este módulo se elimina del árbol para no publicar sesiones
-mezcladas ni paquetes huérfanos.
+El reporte HTML de este módulo se conserva en el árbol como evidencia navegable del reporte JaCoCo versionado.
 
 La compuerta activa está definida en `sga-principal/pom.xml`:
 

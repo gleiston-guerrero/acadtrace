@@ -10,7 +10,7 @@
 ### PR #142: Cierre de tareas #4 (OpenAPI), #37 (Testcontainers con Flyway) y #38 (exclusiones JaCoCo)
 * **Enlace GitHub:** [https://github.com/gleiston-guerrero/acadtrace/pull/142](https://github.com/gleiston-guerrero/acadtrace/pull/142)
 * **Commit de merge:** `af976b8fd158a758f70bd181e987d0412e89c6aa`
-* **Descripción:** Integración final de la compuerta JaCoCo al 71.42 % LINE en Secretaría con 94 pruebas unitarias e integración en Testcontainers con Flyway.
+* **Descripción:** Integración final de la compuerta JaCoCo al 74.44 % LINE (2315/3110) en Secretaría con 94 pruebas unitarias e integración en Testcontainers con Flyway.
 * **Aprobado y fusionado:** Sí (Merged).
 
 ### PR #140: Saneamiento de seguridad y tokens en Secretaría (Tarea 46)
