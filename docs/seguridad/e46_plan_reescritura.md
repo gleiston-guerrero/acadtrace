@@ -1,10 +1,30 @@
-# E46 — Plan de reescritura para revisión; remoto real NO REESCRITO
+# E46 — Registro de reescritura histórica
 
-Fecha: 2026-09-23. Este documento no autoriza ejecutar una reescritura real sobre el remoto. La reescritura real no se ha ejecutado ni publicado. Sí se ejecutó una simulación aislada sobre copias temporales. La rotación externa aplicable debe preceder a la limpieza publicada.
+Fecha: 2026-09-23. La reescritura real del historial remoto fue ejecutada, verificada y publicada. Este documento conserva las secciones del plan previo como evidencia del procedimiento seguido.
 
-**REESCRITURA REAL DEL REMOTO = NO EJECUTADA**
+**REESCRITURA REAL DEL REMOTO = EJECUTADA Y PUBLICADA**
 
-## Resultado de simulación aislada
+## Resultado final publicado
+
+- Reescritura publicada sobre 6 ramas y 5 tags.
+- Verificación desde clon nuevo: `tree = 0`.
+- Verificación desde clon nuevo: `history = 0`.
+- `self-test`: PASS.
+- `self-test-history`: PASS.
+- Las seis rutas sensibles retiradas presentan 0 commits alcanzables en las refs publicadas.
+- Las credenciales y hashes aplicables fueron rotados o invalidados antes del cierre.
+- Los assets sensibles históricos de v1.0.2 fueron retirados.
+- `git-filter-repo` identificó 200 `refs/pull/*` afectadas por el cambio de SHAs.
+- Se solicitó purga a GitHub mediante el ticket #4787781.
+- El ticket fue cerrado automáticamente porque la cuenta solicitante no dispone de soporte técnico.
+- Las refs internas de pull requests quedan documentadas como limitación externa administrada por GitHub.
+
+## Contexto del plan previo
+
+Las secciones siguientes se conservan como evidencia del plan preparado antes de la ejecución real. Las instrucciones expresadas en futuro o como pendientes describen aquel estado previo y no el estado actual.
+
+
+## Evidencia previa: resultado de simulación aislada
 
 - `GITLEAKS_RAW = 0`
 - `tree findings = 0`
@@ -15,7 +35,7 @@ Fecha: 2026-09-23. Este documento no autoriza ejecutar una reescritura real sobr
 - `scannerExit = 0`
 - `gateExit = 0`
 
-Estos resultados corresponden únicamente a una copia temporal reescrita. El remoto real conserva su historial original. La simulación no acredita que GitHub esté saneado ni autoriza publicar cambios de historial.
+Estos resultados corresponden a la simulación previa que sirvió para validar el procedimiento antes de publicarlo. Posteriormente, la misma estrategia fue aplicada al remoto real y verificada desde un clon nuevo obtenido directamente de GitHub.
 
 ## Herramienta y alcance
 

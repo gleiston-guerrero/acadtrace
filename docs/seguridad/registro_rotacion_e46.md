@@ -2,7 +2,24 @@
 
 Fecha de revisión: 2026-09-23.
 
-**Estado general: PARCIAL.**
+**Estado general: CERRADO T?CNICAMENTE EN RAMAS Y TAGS PUBLICADOS; purga de refs internas de GitHub documentada como limitaci?n externa.**
+
+
+## Cierre de historial Git ? 2026-09-23
+
+Se ejecut? y public? la reescritura autorizada del historial Git. Se preservaron las 6 ramas y 5 tags existentes y se verific? el resultado desde un clon nuevo del repositorio remoto.
+
+- `tree`: 0 hallazgos
+- `history`: 0 known pending, 0 new, 0 replaced, 0 extra
+- scanner exit 0
+- gate exit 0
+- self-test PASS
+- self-test-history PASS
+- seis rutas hist?ricas sensibles eliminadas de todos los commits alcanzables en las refs publicadas
+- ticket de purga de refs internas de GitHub: **#4787781**
+- resultado del ticket: cerrado autom?ticamente porque la cuenta solicitante no dispone de soporte t?cnico
+
+Las `refs/pull/*` son referencias internas administradas por GitHub y no pueden modificarse mediante el push de ramas/tags. La limitaci?n queda registrada para seguimiento por el propietario del repositorio o una cuenta con soporte habilitado.
 
 JWT_SECRET, la credencial PostgreSQL del rol `sga_app` y SMTP fueron rotados y verificados operativamente. Los hallazgos oficiales restantes de Gitleaks corresponden a fixtures de pruebas y valores sintéticos utilizados exclusivamente en CI; no constituyen credenciales de producción. Las categorías procedentes de la auditoría ampliada permanecen clasificadas según la evidencia disponible.
 

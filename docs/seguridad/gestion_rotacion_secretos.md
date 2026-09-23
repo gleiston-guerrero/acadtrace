@@ -19,6 +19,26 @@ Se conservan las plantillas, exclusiones de archivos de entorno reales y configu
 
 ## HISTORIAL
 
+### Resultado posterior a la reescritura publicada ? 2026-09-23
+
+La limpieza hist?rica se ejecut? sobre un espejo aislado con `git-filter-repo 2.47.0` y posteriormente se public? sobre las refs remotas controladas.
+
+Resultado verificado desde un clon nuevo obtenido directamente de GitHub:
+
+- ramas publicadas reescritas: 6
+- tags publicados reescritos: 5
+- `tree`: 0 hallazgos; gate exit 0
+- `history`: 0 known pending; 0 new; 0 replaced; 0 extra
+- scanner exit: 0
+- gate exit: 0
+- `self-test`: PASS
+- `self-test-history`: PASS
+- `git diff --check`: sin errores
+- las seis rutas hist?ricas sensibles retiradas presentan 0 commits alcanzables en las refs reescritas
+
+Las referencias internas `refs/pull/*` de GitHub no pueden actualizarse mediante push normal. `git-filter-repo` inform? 200 refs de pull request afectadas por el cambio de SHAs; esto no equivale a 200 PR con secretos, sino a PR cuyas referencias dependen de historia reescrita. Se solicit? purga a GitHub Support mediante el ticket **#4787781**. El ticket fue cerrado autom?ticamente porque la cuenta solicitante no incluye soporte t?cnico. Esta limitaci?n de infraestructura queda documentada y no invalida el resultado de los escaneos sobre las ramas y tags publicados.
+
+
 **COMPUERTA ACTIVA — estado previo a la reescritura real:**
 - known = 11
 - new = 0
