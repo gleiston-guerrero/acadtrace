@@ -37,11 +37,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Instalar Gitleaks 8.18.0
+      - name: Instalar Gitleaks 8.18.0 con verificacion SHA-256
         run: |
           set -euo pipefail
+
+          GITLEAKS_VERSION="8.18.0"
+          ARCHIVE="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          CHECKSUMS="gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          BASE_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+
           mkdir -p "$RUNNER_TEMP/gitleaks-bin"
-          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz | tar xz -C "$RUNNER_TEMP/gitleaks-bin"
+          mkdir -p "$RUNNER_TEMP/gitleaks-download"
+          cd "$RUNNER_TEMP/gitleaks-download"
+
+          curl -fsSLO "$BASE_URL/$ARCHIVE"
+          curl -fsSLO "$BASE_URL/$CHECKSUMS"
+
+          grep "  $ARCHIVE$" "$CHECKSUMS" | sha256sum -c -
+
+          tar xzf "$ARCHIVE" -C "$RUNNER_TEMP/gitleaks-bin" gitleaks
+
+          "$RUNNER_TEMP/gitleaks-bin/gitleaks" version
           echo "$RUNNER_TEMP/gitleaks-bin" >> "$GITHUB_PATH"
 
       - name: Escanear arbol versionado (compuerta)
