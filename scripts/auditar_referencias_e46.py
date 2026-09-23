@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import ipaddress
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -15,9 +16,6 @@ import zipfile
 
 IP = re.compile(rb'(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])')
 HTTP = re.compile(rb'http://[^\s<>"\x27\\)]+')
-CONSTANTS = 'app-movil-docente/app/src/main/java/ec/edu/uteq/sga/representante/core/Constants.kt'
-
-
 def git(*args):
     return subprocess.check_output(['git', *args], stderr=subprocess.DEVNULL)
 
@@ -29,10 +27,34 @@ def public(value):
         return False
 
 
-def production_literals():
-    evidence = git('show', '9c49a4b7:' + CONSTANTS)
-    evidence += git('show', '-s', '--format=%B', '0b274d4d')
-    return sorted({m.group() for m in IP.finditer(evidence) if public(m.group())})
+def production_literals(policy_path=None):
+    # After the authorized history rewrite, production references must not be
+    # recovered from obsolete commits. When exact historical references are
+    # required, load them from a protected file outside the repository.
+    if policy_path is None:
+        return []
+
+    path = Path(policy_path)
+    if not path.is_file():
+        raise SystemExit('Production-reference policy file does not exist.')
+
+    values = set()
+    for raw in path.read_text(encoding='utf-8').splitlines():
+        value = raw.strip()
+        if not value or value.startswith('#'):
+            continue
+        try:
+            encoded = value.encode('ascii')
+        except UnicodeEncodeError:
+            raise SystemExit('Production-reference policy contains a non-ASCII value.')
+        if not IP.fullmatch(encoded) or not public(encoded):
+            raise SystemExit('Production-reference policy contains an invalid public IPv4 literal.')
+        values.add(encoded)
+
+    if len(values) != 2:
+        raise SystemExit('Expected exactly two production reference literals in protected policy.')
+
+    return sorted(values)
 
 
 def audit_tree(literals):
@@ -105,11 +127,26 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--production-literals-file', type=Path)
     args = parser.parse_args()
-    literals = production_literals()
-    if len(literals) != 2:
-        raise SystemExit('Expected two production reference literals; audit incomplete.')
+
+    policy_path = args.production_literals_file
+    if policy_path is None:
+        external = os.environ.get('E46_PRODUCTION_LITERALS_FILE')
+        if external:
+            policy_path = Path(external)
+
+    literals = production_literals(policy_path)
+
+    if args.apk and not literals:
+        raise SystemExit(
+            'APK audit requires --production-literals-file or '
+            'E46_PRODUCTION_LITERALS_FILE pointing to protected external policy.'
+        )
+
     result = audit_apk(args.apk, literals) if args.apk else audit_tree(literals)
+    result['production_policy_loaded'] = bool(literals)
+    result['production_literal_count'] = len(literals)
     text = json.dumps(result, indent=2, ensure_ascii=True) + '\n'
     if args.output:
         args.output.write_text(text, encoding='utf-8')
