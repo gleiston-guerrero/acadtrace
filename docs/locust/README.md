@@ -44,6 +44,32 @@ Los siguientes cinco conjuntos de datos existentes en el repositorio son **NO OF
 
 ---
 
+### 2.1. Clasificación explícita de carpetas auxiliares
+
+La única fuente canónica que declara los resultados oficiales de carga es
+`docs/locust/manifest_carga.json`. Ese manifiesto fija exactamente los dos
+escenarios oficiales vigentes: la corrida nominal A y la corrida oficial de estrés
+`20260920_164722`.
+
+Las siguientes carpetas se conservan por trazabilidad, pero **no constituyen
+conjuntos oficiales adicionales**:
+
+- `microservicio-soporte/resultados_candidatos/`: **CANDIDATO / NO OFICIAL**.
+  Contiene artefactos generados durante la selección de la corrida nominal.
+  Sus archivos no forman parte de `manifest_carga.json`, no alimentan las
+  macros oficiales del manuscrito y no deben citarse como resultado oficial.
+
+- `microservicio-soporte/resultados_repeticiones/`: **COMPLEMENTARIO / NO
+  SUSTITUYE EL CONJUNTO OFICIAL**. Contiene las repeticiones utilizadas para
+  estimar variabilidad e IC95: `nominal_02`, `nominal_03`, `nominal_06`,
+  `estres_01`, `estres_05` y `estres_06`. Estas seis corridas complementan la
+  evaluación estadística, pero no reemplazan la corrida nominal A ni la corrida
+  oficial de estrés declaradas en `manifest_carga.json`.
+
+Las carpetas incompletas, interrumpidas o con configuración inválida que se
+conservan dentro de `resultados_repeticiones/` son únicamente evidencia de
+diagnóstico y están excluidas del resumen estadístico reproducible.
+
 ## Corrida oficial de estrés vigente
 
 **Corrida oficial de estrés: DISPONIBLE y CUMPLE.** La ejecución local de 200 usuarios máximos registra 98.684 peticiones, 0 fallos, P95=15 ms y P99=23 ms; cumple el criterio de aceptación P95 < 500 ms y 0 fallos. Código ejecutado: `88649f3f`; conservación de evidencia: `b43008e5`. Evidencia: `microservicio-soporte/resultados_estres/20260920_164722/`; host `http://localhost:8085`, incorporación de 1 usuario/s, 10 minutos configurados y 599 s entre muestras. Véase [registro E5](../../experimentos/resultados/corridas-e5.md). Las capturas nominales están conservadas en `332158e4` y la captura de estrés en `b43008e5`; solo la evidencia original del perfil nominal sigue no disponible. El estado de HikariCP no está acreditado.
