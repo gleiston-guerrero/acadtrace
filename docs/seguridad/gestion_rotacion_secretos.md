@@ -1,7 +1,7 @@
 # Gestión de secretos fuera del árbol versionado — E46
 
 Revisión: 2026-09-23. Rama `Juliana-Emanuel`; commit de referencia de la auditoría inicial `9c49a4b7`.
-**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET acreditado en CI y rotado/verificado operativamente en producción. Las demás categorías permanecen pendientes de validación o rotación según corresponda.**
+**Estado: PARCIAL. E46 no está cerrado. JWT_SECRET y la credencial PostgreSQL del rol `sga_app` están rotados y verificados operativamente. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
 Los cambios E46 documentados se han versionado en la rama `Juliana-Emanuel`. No se ha ejecutado una reescritura real del historial remoto. El release móvil v1.0.3 fue publicado y verificado.
 
 ## HEAD ACTUAL / árbol de trabajo
@@ -44,7 +44,26 @@ Se identificaron cuatro mensajes históricos con direcciones. Las refs locales i
 
 ## ROTACIÓN
 
-**JWT_SECRET acreditado en CI y rotado/verificado operativamente en producción. Las demás categorías permanecen pendientes de validación o rotación según corresponda.**
+**JWT_SECRET y la credencial PostgreSQL del rol `sga_app` están ROTADOS Y VERIFICADOS. Las demás categorías aplicables permanecen pendientes de validación o rotación según corresponda.**
+
+## Estado de rotación PostgreSQL — `sga_app`
+
+**Producción / AWS EC2:**
+- Estado: ROTADO Y VERIFICADO OPERATIVAMENTE.
+- Fecha: 2026-09-23.
+- Se generó una nueva credencial mediante CSPRNG sin mostrarla ni versionarla.
+- La rotación se ejecutó mediante `scripts/rotar_password_sga_app.sh`.
+- La nueva credencial autenticó correctamente como `sga_app`.
+- La credencial anterior fue rechazada antes de completar el procedimiento.
+- El rol verificado conserva `superuser=false`.
+- Se actualizaron `SGA_APP_PASSWORD` y `DB_PASSWORD` en el `.env` externo de producción.
+- Se recrearon los consumidores PostgreSQL.
+- Las dos instancias de `sga-principal` quedaron `running`, con `exit=0`.
+- En ambas instancias `RestriccionBitacoraValidator` verificó que `sga_app` no puede modificar la bitácora.
+- Ambas instancias registraron `Started SgaPrincipalApplication`.
+- `/actuator/health` respondió `status=UP` y el componente PostgreSQL `db` respondió `status=UP`.
+
+No se almacena en el repositorio el valor anterior ni el nuevo de la contraseña.
 
 ## Estado de rotación JWT_SECRET
 
