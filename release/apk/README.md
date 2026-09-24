@@ -6,16 +6,26 @@ Este directorio funciona como índice técnico y guía de verificación independ
 
 - **Aplicación:** AcadTrace Representante
 - **Package ID:** `ec.edu.uteq.sga.representante`
-- **Versión oficial:** `1.0.2` (`versionCode: 3`)
+- **Versión oficial:** `1.0.3` (`versionCode: 4`)
 - **Variante de compilación:** `release`
-- **Tag oficial de Release:** `v1.0.2`
+- **Tag oficial de Release:** `v1.0.3`
+- **versionName:** `1.0.3`
+- **Commit de release:** `09999410434829d60b4246a520b20a1cf089b3af`
+- **SHA-256 APK:** `52ad00c1a0f31fdf3b7d9ad595ae80544bfb1fa3ae729c8184ada10bf301a227`
 - **Artefactos publicados en GitHub Release:**
   - `app-release.apk` (Paquete instalable para dispositivos Android)
   - `app-release.aab` (Android App Bundle para distribución optimizada)
   - `SHA256SUMS.txt` (Manifiesto de sumas de comprobación criptográfica SHA-256)
   - `CERTIFICATE_SHA256.txt` (Huella SHA-256 completa del certificado utilizado para firmar APK y AAB)
 
-El tag de publicación en el repositorio coincide exactamente con el valor `versionName = "1.0.2"` configurado en `app-movil-docente/app/build.gradle.kts`.
+El tag de publicación en el repositorio coincide exactamente con el valor `versionName = "1.0.3"` configurado en `app-movil-docente/app/build.gradle.kts`.
+
+Verificaciones confirmadas del release oficial v1.0.3:
+
+- `SHA256SUMS_OK = SI`
+- `APK_SIGNATURE_VALID = SI`
+- `CERTIFICATE_MATCH = SI`
+- `APK_V1_0_3_PROD_REFERENCES = 0`
 
 ## Certificado y firma de Release
 
@@ -37,7 +47,7 @@ La configuración de Gradle en `app-movil-docente/app/build.gradle.kts` lanza ex
 
 ## Verificación independiente por terceros
 
-Cualquier evaluador o usuario puede verificar la integridad, autenticidad y titularidad de los binarios descargados desde el GitHub Release `v1.0.2` mediante los siguientes comandos estándar.
+Cualquier evaluador o usuario puede verificar la integridad, autenticidad y titularidad de los binarios descargados desde el GitHub Release `v1.0.3` mediante los siguientes comandos estándar.
 
 ### 1. Verificación de sumas de integridad SHA-256
 

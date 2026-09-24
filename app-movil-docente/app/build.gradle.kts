@@ -52,8 +52,8 @@ android {
         applicationId = "ec.edu.uteq.sga.representante"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
         buildConfigField("String", "BASE_GATEWAY_URL", endpoint("SGA_GATEWAY_URL", "http://10.0.2.2:8080/api/"))
         buildConfigField("String", "BASE_DOCENTE_URL", endpoint("SGA_DOCENTE_URL", "http://10.0.2.2:8081/api/docente/"))
 

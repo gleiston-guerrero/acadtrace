@@ -1,8 +1,9 @@
 schema_version: 1
 release_reference:
-  tag_found: v1.0.1
+  tag_found: v1.0.3
   final_tag_confirmed: true
-  note: "v1.0.1 corresponde al tag de publicacion automatizada en GitHub Releases generado por el job build-mobile-apk (artefactos app-release.apk, app-release.aab y SHA256SUMS.txt)."
+  commit: 09999410434829d60b4246a520b20a1cf089b3af
+  note: "v1.0.3 corresponde al release movil oficial actual publicado automaticamente por CI con app-release.apk, app-release.aab, SHA256SUMS.txt y CERTIFICATE_SHA256.txt."
 
 captures:
   - file: release/screenshots/sga_principal.png

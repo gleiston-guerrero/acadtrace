@@ -1,0 +1,100 @@
+﻿{
+  "start_utc": "2026-09-20T07:09:16.625753+00:00",
+  "wall_seconds": 305.3280000000377,
+  "returncode": 0,
+  "command": [
+    "python",
+    "-m",
+    "locust",
+    "-f",
+    "microservicio-soporte/locustfile.py",
+    "--host",
+    "http://localhost:8083",
+    "--headless",
+    "-u",
+    "50",
+    "-r",
+    "5",
+    "--run-time",
+    "5m",
+    "--csv",
+    "microservicio-soporte\\resultados_candidatos\\locust_esc1_candidato"
+  ],
+  "locust_version": "2.46.4",
+  "source_sha256": {
+    "microservicio-soporte\\locust_esc1_stats.csv": "8a76eea34413ad186c014febc594acbb0353da6abb81d750f1d32a8c621528cb",
+    "microservicio-soporte\\locust_esc1_stats_history.csv": "317409e18325bd454248029443e9ebb6039fb41e451502215e410367bf526116",
+    "microservicio-soporte\\locustfile.py": "e2ede4c480d0c3192895521ef2750375290679c15eb6ae563e9908e0b7c0fd72"
+  },
+  "precheck": [
+    {
+      "endpoint": "/health",
+      "status": 200,
+      "ms": 38.89
+    },
+    {
+      "endpoint": "/actuator/health",
+      "status": 200,
+      "ms": 12.39
+    },
+    {
+      "endpoint": "/api/soporte/election/status",
+      "status": 200,
+      "ms": 10.51
+    },
+    {
+      "endpoint": "/api/soporte/tickets",
+      "status": 200,
+      "ms": 22.45
+    }
+  ],
+  "postcheck": [
+    {
+      "endpoint": "/health",
+      "status": 200,
+      "ms": 7.03
+    },
+    {
+      "endpoint": "/actuator/health",
+      "status": 200,
+      "ms": 6.04
+    },
+    {
+      "endpoint": "/api/soporte/election/status",
+      "status": 200,
+      "ms": 8.33
+    },
+    {
+      "endpoint": "/api/soporte/tickets",
+      "status": 200,
+      "ms": 7.91
+    }
+  ],
+  "infrastructure_issues": [],
+  "containers": {
+    "soporte-candidato": {
+      "running": true,
+      "restart_count": 0,
+      "started_at": "2026-09-20T07:02:38.699020697Z",
+      "oom": false
+    },
+    "sga-postgres": {
+      "running": true,
+      "restart_count": 0,
+      "started_at": "2026-09-20T06:59:21.108003239Z",
+      "oom": false
+    },
+    "etcd": {
+      "running": true,
+      "restart_count": 0,
+      "started_at": "2026-09-20T06:59:21.509762948Z",
+      "oom": false
+    },
+    "sga-zipkin": {
+      "running": true,
+      "restart_count": 0,
+      "started_at": "2026-09-20T06:59:21.776488336Z",
+      "oom": false
+    }
+  }
+}

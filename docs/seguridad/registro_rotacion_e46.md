@@ -1,20 +1,39 @@
 # E46 — Registro de rotación
 
-Fecha de revisión: 2026-09-22. **Rotaciones verificadas: Ninguna acreditada**.
-No se intentó autenticar con credenciales históricas ni modificar proveedores.
-Los hallazgos son indicios; no se afirma que todos sigan vigentes ni que todos fueran reales.
+Fecha de revisión: 2026-09-23.
+
+**Estado general: CERRADO T?CNICAMENTE EN RAMAS Y TAGS PUBLICADOS; purga de refs internas de GitHub documentada como limitaci?n externa.**
+
+
+## Cierre de historial Git ? 2026-09-23
+
+Se ejecut? y public? la reescritura autorizada del historial Git. Se preservaron las 6 ramas y 5 tags existentes y se verific? el resultado desde un clon nuevo del repositorio remoto.
+
+- `tree`: 0 hallazgos
+- `history`: 0 known pending, 0 new, 0 replaced, 0 extra
+- scanner exit 0
+- gate exit 0
+- self-test PASS
+- self-test-history PASS
+- seis rutas hist?ricas sensibles eliminadas de todos los commits alcanzables en las refs publicadas
+- ticket de purga de refs internas de GitHub: **#4787781**
+- resultado del ticket: cerrado autom?ticamente porque la cuenta solicitante no dispone de soporte t?cnico
+
+Las `refs/pull/*` son referencias internas administradas por GitHub y no pueden modificarse mediante el push de ramas/tags. La limitaci?n queda registrada para seguimiento por el propietario del repositorio o una cuenta con soporte habilitado.
+
+JWT_SECRET, la credencial PostgreSQL del rol `sga_app` y SMTP fueron rotados y verificados operativamente. Los hallazgos oficiales restantes de Gitleaks corresponden a fixtures de pruebas y valores sintéticos utilizados exclusivamente en CI; no constituyen credenciales de producción. Las categorías procedentes de la auditoría ampliada permanecen clasificadas según la evidencia disponible.
 
 | Sistema | Tipo | Exposición histórica | Acción | Fecha | Evidencia | Estado |
 |---|---|---|---|---|---|---|
-| PostgreSQL | Contraseña de acceso | Variables en archivos de entorno históricos; revisar también propiedades | Juliana: identificar cuentas, cambiar contraseña en PostgreSQL/proveedor, actualizar secretos de cada servicio y verificar rechazo de la anterior y acceso con la nueva | Pendiente | Inventario histórico; falta evidencia externa | PENDIENTE |
-| Principal / Soporte | JWT_SECRET / firma | Configuración histórica detectada | Juliana: cambiar clave de firma en todos los emisores/verificadores, invalidar sesiones anteriores y registrar prueba sanitizada | Pendiente | Inventario histórico; falta evidencia externa | PENDIENTE |
-| Servicios internos | Token gRPC | Categoría por contrastar con configuración y despliegues históricos | Juliana: identificar tokens expuestos, rotarlos coordinadamente en clientes y servidores; acreditar rechazo del anterior | Pendiente | Sin evidencia de rotación | PENDIENTE |
-| Correo | SMTP | Propiedades históricas de Principal | Juliana: revocar contraseña de aplicación en el proveedor, emitir otra, actualizar el secreto externo y probar envío | Pendiente | Hallazgos e46-properties-literal-secret; falta evidencia externa | PENDIENTE |
-| API de administración | Usuario/contraseña operativa | Cuatro ocurrencias en script histórico | Juliana: cambiar contraseña de la cuenta y revocar sus sesiones/tokens; probar mediante mecanismo autorizado | Pendiente | Hallazgos e46-operational-python-password | PENDIENTE |
-| Usuarios del sistema | Hashes de contraseñas | Dumps y baselines SQL históricos | Juliana: identificar cuentas reales afectadas, forzar cambio de contraseña e invalidar sesiones; tratar los dumps como datos sensibles | Pendiente | 65 ocurrencias de hashes; no son 65 cuentas únicas | PENDIENTE |
-| APIs externas / IA | API keys | Inventario y proveedor pendientes de contraste | Juliana: identificar claves reales expuestas y revocarlas en el proveedor; actualizar gestor de secretos | Pendiente | No se acredita una clave externa concreta vigente | PENDIENTE |
-| Firebase | Cuenta de servicio / clave privada | Confirmación de exposición pendiente; referencias a Firebase no prueban exposición de clave privada | Juliana: revisar claves de cuentas de servicio y auditoría del proveedor; revocar las expuestas, si existen | Pendiente | Sin evidencia externa | PENDIENTE |
-| Secretaría / otros | Claves de cifrado | Alcance histórico y datos cifrados pendientes de contraste | Juliana: inventariar claves, respaldar recuperación, migrar datos y retirar la clave anterior con prueba de lectura | Pendiente | Sin evidencia externa; no cambiar a ciegas | PENDIENTE |
-| CI y pruebas | Once coincidencias originales | Workflow y fixtures de pruebas | Juliana: confirmar procedencia ficticia o tratar como real; no eximir por nombre de archivo | Pendiente | Metadatos por ocurrencia en inventario | PENDIENTE |
+| PostgreSQL | Contraseña de acceso del rol `sga_app` | Credenciales históricas detectadas en archivos de configuración | Se generó una nueva credencial mediante CSPRNG y se ejecutó `scripts/rotar_password_sga_app.sh`; se verificó autenticación con la nueva credencial, rechazo de la anterior y restricciones del rol; se actualizaron `SGA_APP_PASSWORD` y `DB_PASSWORD` del `.env` de producción y se recrearon los consumidores | 2026-09-23 | Ambas instancias de sga-principal: running/exit=0; RestriccionBitacoraValidator verificado; Started SgaPrincipalApplication; Actuator status=UP y db=UP | ROTADO Y VERIFICADO |
+| Principal / Soporte | JWT_SECRET / firma | Configuración histórica detectada | Se rotó la clave en GitHub Actions y AWS EC2 y se recrearon los servicios consumidores | 2026-09-23 | Workflow manual #960; commit 3ab0a368; servicios operativos después de la rotación | ROTADO Y VERIFICADO |
+| Servicios internos | Token gRPC | No se identificó un hallazgo potencialmente real específico en el inventario E46 | No corresponde ejecutar una rotación sin evidencia de exposición | 2026-09-23 | e46_historial_metadata.json no contiene ocurrencias potencialmente reales de token gRPC | SIN HALLAZGO CONCRETO — NO REQUIERE ROTACIÓN CON EVIDENCIA ACTUAL |
+| Correo | SMTP | Propiedades históricas de Principal; la credencial desplegada coincidía con un valor histórico y Gmail la rechazaba | Se generó una nueva contraseña de aplicación, se validó autenticación SMTP, se actualizó `MAIL_PASSWORD` en el `.env` externo de producción, se recreó `sga-principal` y se realizó un envío real satisfactorio | 2026-09-23 | SMTP antiguo: 535/5.7.8 rechazado; nueva credencial: SMTP_AUTH=OK; SMTP_PRODUCCION=OK; correo de prueba recibido; `evidencias/Juliana_Emanuel/e46_smtp_prueba_2026-09-23.png` | ROTADO Y VERIFICADO |
+| Script operativo histórico | Usuario/contraseña de cuenta usada por el script | Cuatro ocurrencias históricas; la cuenta sigue existiendo actualmente con `ROLE_REPRESENTANTE`, no como administrador | Se sustituyó su hash por una credencial aleatoria no mostrada ni almacenada, se estableció `primer_ingreso=true` y se conservaron rol y estado | 2026-09-23 | Verificación sanitizada en producción; cuenta activa, `primer_ingreso=true`, intentos fallidos=0; `e46_rotacion_usuarios_2026-09-23.md` | ROTADO / CREDENCIAL HISTÓRICA INVALIDADA |
+| Usuarios del sistema | Hashes bcrypt históricos | Dumps y baselines SQL históricos | Se compararon hashes históricos contra producción sin imprimirlos; 19 cuentas vigentes coincidían y ninguna había iniciado sesión. Se sustituyó cada hash por uno nuevo generado desde una credencial aleatoria no conservada y se estableció `primer_ingreso=true` | 2026-09-23 | 21 hashes históricos únicos; 36 cuentas revisadas; 19 coincidencias antes; 19 rotadas; 0 hashes históricos vigentes después; `e46_rotacion_usuarios_2026-09-23.md` | ROTADO / HASHES HISTÓRICOS INVALIDADOS |
+| APIs externas / IA | API keys | No se identificó una API key externa potencialmente real en el inventario E46 | No corresponde revocar claves sin identificar una credencial expuesta | 2026-09-23 | e46_historial_metadata.json no contiene ocurrencias potencialmente reales de API keys externas | SIN HALLAZGO CONCRETO — NO REQUIERE ROTACIÓN CON EVIDENCIA ACTUAL |
+| Firebase | Cuenta de servicio / clave privada | No se identificó una clave privada o cuenta de servicio expuesta en el inventario E46 | No corresponde revocar credenciales sin evidencia de exposición | 2026-09-23 | e46_historial_metadata.json no contiene ocurrencias potencialmente reales de Firebase | SIN HALLAZGO CONCRETO — NO REQUIERE ROTACIÓN CON EVIDENCIA ACTUAL |
+| Secretaría / otros | Claves de cifrado | Las coincidencias AES identificadas corresponden a fixtures de CI; no existe un hallazgo potencialmente real de clave AES en la auditoría ampliada | No requiere rotación adicional con la evidencia disponible | 2026-09-23 | e46_inventario_historico.md y gitleaks-history-baseline.json | FIXTURE/TEST — NO REQUIERE ROTACIÓN |
+| CI y pruebas | Once coincidencias originales de Gitleaks | SecurityTest.java, test_sga_navegador.py y ci-cd.yml | Se verificó su procedencia como constantes JWT de pruebas, tokens de escenarios de navegador y valores sintéticos de CI | 2026-09-23 | gitleaks-history-baseline.json, e46_inventario_historico.md y código clasificado | FIXTURE/TEST — NO REQUIERE ROTACIÓN |
 
 Para cambiar un estado a ROTADO o REVOCADO: adjuntar fecha, identificador no sensible y evidencia del proveedor o prueba sanitizada del rechazo del valor anterior y funcionamiento del nuevo. No adjuntar valores, hashes derivados de secretos ni capturas sin redactar. NO ERA CREDENCIAL REAL requiere prueba de procedencia; la apariencia de fixture no basta.

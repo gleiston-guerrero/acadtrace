@@ -25,11 +25,11 @@ Estados usados:
 
 ## Release versionado
 
-El tag oficial de versión es `v1.0.1`, publicado automáticamente en GitHub Releases por el job `build-mobile-apk` del flujo de CI/CD junto con los binarios `app-release.apk`, `app-release.aab` y su manifiesto `SHA256SUMS.txt`.
+El tag oficial actual de version es `v1.0.3`, publicado automaticamente en GitHub Releases desde el commit `09999410434829d60b4246a520b20a1cf089b3af`. El release contiene `app-release.apk`, `app-release.aab`, `SHA256SUMS.txt` y `CERTIFICATE_SHA256.txt`.
 
-Las capturas móviles corresponden a pantallas reales de un dispositivo Android físico/emulado y fueron actualizadas en el commit `5ec2926c` el 2026-09-18, marcándose con estado `current` en [manifest.yml](manifest.yml).
+Las capturas moviles individuales corresponden a pantallas reales de un dispositivo Android fisico/emulado y fueron actualizadas en el commit `5ec2926c` el 2026-09-18. La composicion actual `movil_representante_evidencia.png` fue incorporada posteriormente en `f7996415`. Todas estan registradas como `current` en [manifest.yml](manifest.yml).
 
-Las capturas de Grafana y Locust se conservan con estado `historical`. El informe también las describe como históricas o complementarias.
+Las capturas de observabilidad en Grafana conservadas como evidencia historica permanecen con estado `historical`. El informe las describe como evidencia historica o complementaria.
 
 ## Verificar SHA-256
 

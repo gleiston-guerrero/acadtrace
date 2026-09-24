@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,[GET] /api/soporte/tickets,CatchResponseError('Código HTTP: 0'),16,2026-09-22T02:28:37Z,2026-09-22T02:28:37Z
+GET,[GET] /api/soporte/election/status,CatchResponseError('Código HTTP: 0'),3,2026-09-22T02:28:37Z,2026-09-22T02:28:37Z
+GET,[GET] /health,CatchResponseError('Código HTTP inesperado: 0'),26,2026-09-22T02:28:37Z,2026-09-22T02:28:37Z
+GET,[GET] /actuator/health,CatchResponseError('Código HTTP Actuator: 0'),8,2026-09-22T02:28:37Z,2026-09-22T02:28:37Z
